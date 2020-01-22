@@ -1,0 +1,23 @@
+{
+  "name": "openapi-generator-node",
+  "version": "0.0.1",
+  "description": "OpenAPI code generator written in Node",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Karl von Randow",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^13.1.7",
+    "eslint": "^6.8.0",
+    "typescript": "^3.7.4"
+  },
+  "dependencies": {
+    "camelcase": "^5.3.1",
+    "handlebars": "^4.7.2",
+    "swagger-parser": "^8.0.4",
+    "ts-node": "^8.6.2"
+  }
+}

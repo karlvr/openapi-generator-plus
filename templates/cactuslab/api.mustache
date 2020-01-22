@@ -1,0 +1,103 @@
+package {{package}};
+
+{{#imports}}import {{import}};
+{{/imports}}
+import {{package}}.{{className name}}ApiService;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.CacheControl;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+
+import io.swagger.annotations.*;
+import io.swagger.jaxrs.PATCH;
+import java.io.InputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import com.cactuslab.jaxrs.auth.Authenticated;
+
+import java.util.Map;
+import java.util.List;
+
+{{#useBeanValidation}}
+import java.util.Set;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import javax.validation.constraints.*;
+{{/useBeanValidation}}
+
+@Path("{{{path}}}")
+// @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
+
+@Api(description = "the {{{name}}} API")
+{{#if consumes}}@Consumes({ {{#consumes}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/consumes}} }){{/if}}
+{{#if produces}}@Produces({ {{#produces}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/produces}} }){{/if}}
+{{>generatedAnnotation}}
+
+@SuppressWarnings("all")
+public class {{className name}}Api  {
+
+  @Inject {{className name}}ApiService delegate;
+
+  @SuppressWarnings("all")
+  private static final Log log = LogFactory.getLog({{className name}}Api.class);
+
+{{#operations}}
+{{#operation}}{{^vendorExtensions.x-implementation-provided}}
+
+    @{{httpMethod}}{{#if authMethods}} @Authenticated{{/if}}{{#isDeprecated}} @Deprecated{{/isDeprecated}}
+    {{#if path}}@Path("{{{path}}}"){{/if}}
+    {{#if consumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/if}}
+    {{#if produces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/if}}
+    @ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}"{{#if returnNativeType}}, response = {{{returnNativeType}}}.class{{/if}}{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
+        {{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
+            {{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
+            {{/unless}}{{/scopes}}
+        }{{/isOAuth}}){{#unless @last}},
+        {{/unless}}{{/authMethods}}
+    }{{/if}}, tags={ {{#tags}}"{{tag}}"{{#unless @last}}, {{/unless}}{{/tags}} })
+    @ApiResponses(value = { {{#responses}}
+        @ApiResponse(code = {{{code}}}, message = "{{{description}}}"{{#if nativeType}}, response = {{{nativeType}}}.class{{/if}}{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}} })
+    public Response {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+    	{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
+    	{{#isDeprecated}}log.error("Deprecated API called: {{operationId}}");{{/isDeprecated}}
+    	try {
+    		{{#useBeanValidation}}{{#allParams}}{{#vendorExtensions.x-validation}}
+    		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+			Validator validator = factory.getValidator();
+			Set<ConstraintViolation<{{{dataType}}}>> validations = validator.validate(request);
+			if (!validations.isEmpty()) {
+				throw new {{{className @root/name}}}Service.{{{operationIdCamelCase}}}400Exception(validations);
+			}
+			
+    		{{/vendorExtensions.x-validation}}{{/allParams}}{{/useBeanValidation}}{{#responses}}{{#isDefault}}
+    		{{^vendorExtensions.x-java-is-response-void}}{{nativeType}} entity = {{/vendorExtensions.x-java-is-response-void}}delegate.{{nickname}}({{#allParams}}{{#isFile}}{{paramName}}InputStream, {{paramName}}Detail{{/isFile}}{{^isFile}}{{paramName}}{{/isFile}}, {{/allParams}}response);
+    		{{^vendorExtensions.x-java-is-response-void}}
+    		response.entity(entity);
+    		{{/vendorExtensions.x-java-is-response-void}}
+    		return response.build();
+    		{{/isDefault}}{{/responses}}
+        {{#responses}}{{^isDefault}}
+        } catch ({{{className @root/name}}}Service.{{{className ../operationId}}}{{{code}}}Exception e) {
+        	response.status({{code}});
+        	{{^vendorExtensions.x-java-is-response-void}}
+        	response.entity(e.getEntity());
+        	{{/vendorExtensions.x-java-is-response-void}}
+        	return response.build();
+        {{/isDefault}}{{/responses}}
+        } finally {
+        
+        }
+    }
+
+{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+{{/operations}}
+}

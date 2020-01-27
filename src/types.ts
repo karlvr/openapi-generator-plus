@@ -5,6 +5,11 @@ export interface CodegenConfig {
 	toClassName: (name: string) => string
 	toIdentifier: (name: string) => string
 	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined) => string
+	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined) => string
+	toDefaultValue: (defaultValue: any, type: string, required: boolean) => string
+	options: () => CodegenOptions
+	/** Return the native type that corresponds to no return type */
+	noReturnNativeType: () => string
 }
 
 /**
@@ -18,9 +23,11 @@ export interface CodegenOptions {
  * Options specific to Java that the user can provide to the code generation process.
  */
 export interface CodegenOptionsJava extends CodegenOptions {
+	apiPackage: string
+	apiServiceImplPackage: string
+	modelPackage: string
+	invokerPackage: string
 	useBeanValidation?: boolean
-	package: string
-	imports?: string[]
 }
 
 /**
@@ -31,8 +38,14 @@ export interface CodegenRootContext {
 	generatedDate: string
 }
 
+export interface CodegenRootContextJava extends CodegenRootContext {
+	package: string
+	imports?: string[]
+}
+
 export interface CodegenDocument {
-	groups: { [name: string]: CodegenOperationGroup | undefined }
+	groups: { [name: string]: CodegenOperationGroup }
+	schemas: { [name: string]: CodegenModel }
 }
 
 export interface CodegenOperationGroup {
@@ -80,12 +93,18 @@ export interface CodegenResponse {
 
 /* See DefaultCodegen.fromProperty */
 export interface CodegenProperty {
+	/** The name of the property as a safe identifier in the current language. */
 	name: string
+
+	/** The name of the property from the API spec. */
+	originalName: string
+
 	description?: string
 	title?: string
 	exampleValue?: string
-	defaultValue?: any
-	readOnly?: boolean
+	defaultValue: string
+	readOnly: boolean
+	required: boolean
 	vendorExtensions?: CodegenVendorExtensions
 	// TODO validation
 
@@ -94,10 +113,26 @@ export interface CodegenProperty {
 
 	/** Type in native language */
 	nativeType?: string
+
+	isBoolean: boolean
+}
+
+/** The context for model output */
+export interface CodegenModelContext {
+	model: CodegenModel[]
+}
+
+export interface CodegenModel {
+	name: string
+	description?: string
+	isEnum: boolean
+	vars: CodegenProperty[]
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export interface CodegenParameter {
 	name: string
+	originalName: string
 	in: string
 	type?: string
 	nativeType?: string

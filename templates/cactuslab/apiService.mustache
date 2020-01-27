@@ -1,0 +1,58 @@
+package {{package}};
+
+import {{package}}.*;
+import {{modelPackage}}.*;
+
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+
+{{#imports}}import {{import}};
+{{/imports}}
+
+import java.util.Collection;
+import java.util.List;
+
+import java.io.InputStream;
+
+import javax.validation.ConstraintViolation;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+
+{{>generatedAnnotation}}
+{{#operations}}
+@SuppressWarnings("all")
+public interface {{className ../name}}ApiService {
+	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
+	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+	
+	{{#operation}}{{^vendorExtensions.x-implementation-provided}}
+	{{#responses}}{{^isDefault}}
+	public static class {{{className ../operationId}}}{{{code}}}Exception extends Exception {
+		{{#unless nativeType}}
+		public {{{className ../operationId}}}{{{code}}}Exception() {
+			
+		}
+		{{else}}
+		private {{{nativeType}}} entity;
+		
+		public {{{className ../operationId}}}{{{code}}}Exception({{{nativeType}}}Message.CodeEnum code, String message) {
+			this.entity = new {{{nativeType}}}();
+			this.entity.getMessages().add(new {{{nativeType}}}Message().code(code).message(message));
+		}
+
+		{{#vendorExtensions.x-validation}}
+		public <T> {{{className ../operationId}}}{{{code}}}Exception(Collection<ConstraintViolation<T>> validations) {
+			this.entity = new {{{nativeType}}}();
+			validations.forEach(v -> this.entity.getMessages().add(new {{{nativeType}}}Message().code({{{nativeType}}}Message.CodeEnum.VALIDATION).message(v.getMessage()).property(v.getPropertyPath().toString())));
+		}
+
+		{{/vendorExtensions.x-validation}}
+		public {{{nativeType}}} getEntity() {
+			return this.entity;
+		}
+		{{/unless}}
+	}
+	{{/isDefault}}{{/responses}}
+	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+}
+{{/operations}}

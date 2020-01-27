@@ -1,0 +1,32 @@
+package {{package}}.impl;
+
+import {{package}}.*;
+import {{modelPackage}}.*;
+
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+
+{{#imports}}import {{import}};
+{{/imports}}
+
+import java.util.List;
+
+import java.io.InputStream;
+
+import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+
+// @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
+{{>generatedAnnotation}}
+{{#operations}}
+public class {{className ../name}}ApiServiceImpl implements {{className ../name}}ApiService {
+
+{{#operation}}
+	@Override
+	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}} {
+		return {{#if returnNativeType}}new {{{returnNativeType}}}(){{else}}null{{/if}};
+	}
+	
+{{/operation}}
+}
+{{/operations}}

@@ -1,0 +1,111 @@
+import io.swagger.annotations.*;
+import java.util.Objects;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.io.Serializable;
+import javax.xml.bind.annotation.*;
+{{#if description}}@ApiModel(description = "{{{description}}}"){{/if}}
+
+@SuppressWarnings("unused")
+public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} implements Serializable, APIBean{{#vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{classname}}}>{{/vendorExtensions.x-is-api-response-envelope}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
+	{{#vendorExtensions.x-is-api-response-envelope}}
+	private Map<String, Map<String, APIBean>> __refs = new LinkedHashMap<>();
+	public Map<String, Map<String, APIBean>> refBeans() {
+		return __refs;
+	}
+	public {{className name}} addRef(String fieldName, String ref, APIBeanFactoryFunction creator) {
+		Map<String, APIBean> existingRefs = refBeans().get(fieldName);
+		if (existingRefs == null) {
+			existingRefs = new LinkedHashMap<>();
+			refBeans().put(fieldName, existingRefs);
+		}
+		if (existingRefs.get(ref) == null) {
+			APIBean bean = creator.create();
+			if (bean != null) {
+				existingRefs.put(ref, bean);
+			}
+		}
+		return this;
+	}
+  {{/vendorExtensions.x-is-api-response-envelope}}
+  {{#vars}}{{#isEnum}}
+
+{{>enumClass}}{{/isEnum}}{{#items.isEnum}}{{#items}}
+
+{{>enumClass}}{{/items}}{{/items.isEnum}}
+  private {{{nativeType}}} {{name}} = {{{defaultValue}}};
+  private boolean patched{{capitalize name}} = false;{{/vars}}
+
+  {{#vars}}
+  /**
+   {{#description}}
+   * {{description}}
+   {{/description}}
+   {{#minimum}}
+   * minimum: {{minimum}}
+   {{/minimum}}
+   {{#maximum}}
+   * maximum: {{maximum}}
+   {{/maximum}}
+   **/
+  public {{className ../name}} {{name}}({{{nativeType}}} {{name}}) {
+    set{{capitalize name}}({{name}});
+    return this;
+  }
+
+  {{#vendorExtensions.extraAnnotation}}{{{vendorExtensions.extraAnnotation}}}{{/vendorExtensions.extraAnnotation}}
+  @ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}value = "{{{description}}}")
+  @JsonProperty("{{originalName}}")
+{{#@root.useBeanValidation}}{{>beanValidation}}{{/@root.useBeanValidation}}  public {{{nativeType}}} {{#isBoolean}}is{{else}}get{{/isBoolean}}{{capitalize name}}() {
+    return this.{{name}};
+  }
+  public void set{{capitalize name}}({{{nativeType}}} {{name}}) {
+    this.{{name}} = {{name}};
+    this.patched{{capitalize name}} = true;
+  }
+  public boolean patched{{capitalize name}}() {
+    return this.patched{{capitalize name}};
+  }
+
+  {{/vars}}
+
+  @Override
+  public boolean equals(java.lang.Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    {{classname}} {{classVarName}} = ({{classname}}) o;{{#hasVars}}
+    return {{#vars}}Objects.equals(this.{{name}}, {{classVarName}}.{{name}}){{#hasMore}} &&
+        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{/hasVars}}{{^hasVars}}
+    return true;{{/hasVars}}
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash({{#vars}}this.{{name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("class {{classname}} {\n");
+    {{#parent}}sb.append("    ").append(toIndentedString(super.toString())).append("\n");{{/parent}}
+    {{#vars}}sb.append("    {{name}}: ").append(toIndentedString(this.{{name}})).append("\n");
+    {{/vars}}sb.append("}");
+    return sb.toString();
+  }
+
+  /**
+   * Convert the given object to string with each line indented by 4 spaces
+   * (except the first line).
+   */
+  private String toIndentedString(java.lang.Object o) {
+    if (o == null) {
+      return "null";
+    }
+    return o.toString().replace("\n", "\n    ");
+  }
+}

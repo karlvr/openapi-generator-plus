@@ -30,3 +30,13 @@ export function isOpenAPIV2Operation(ob: OpenAPI.Operation): ob is OpenAPIV2.Ope
 	}
 	return true
 }
+
+export function isOpenAPIV2Document(ob: OpenAPI.Document): ob is OpenAPIV2.Document {
+	const anyOb = ob as any
+	return (anyOb.swagger !== undefined)
+}
+
+export function isOpenAPIV3Document(ob: OpenAPI.Document): ob is OpenAPIV3.Document {
+	const anyOb = ob as any
+	return (anyOb.openapi !== undefined)
+}

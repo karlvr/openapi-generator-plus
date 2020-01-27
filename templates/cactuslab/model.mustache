@@ -1,0 +1,17 @@
+package {{package}};
+
+{{#imports}}import {{import}};
+{{/imports}}
+{{#useBeanValidation}}
+import javax.validation.Valid;
+import javax.validation.constraints.*;
+{{/useBeanValidation}}
+{{#models}}
+{{#model}}{{#if description}}
+/**
+ * {{description}}
+ **/{{/if}}
+{{#isEnum}}{{>enumClass}}{{/isEnum}}
+{{^isEnum}}{{>pojo}}{{/isEnum}}
+{{/model}}
+{{/models}}

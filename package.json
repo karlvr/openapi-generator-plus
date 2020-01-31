@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "camelcase": "^5.3.1",
+    "getopts": "^2.2.5",
     "handlebars": "^4.7.2",
     "swagger-parser": "^8.0.4",
     "ts-node": "^8.6.2"

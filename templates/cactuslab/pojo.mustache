@@ -33,14 +33,14 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
 {{>enumClass}}{{/isEnum}}{{#items.isEnum}}{{#items}}
 
 {{>enumClass}}{{/items}}{{/items.isEnum}}
-  private {{{nativeType}}} {{name}} = {{{defaultValue}}};
+  private {{{nativeType}}} {{identifier name}} = {{{defaultValue}}};
   private boolean patched{{capitalize name}} = false;{{/vars}}
 
   {{#vars}}
   /**
-   {{#description}}
+   {{#if description}}
    * {{description}}
-   {{/description}}
+   {{/if}}
    {{#minimum}}
    * minimum: {{minimum}}
    {{/minimum}}
@@ -48,19 +48,19 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
    * maximum: {{maximum}}
    {{/maximum}}
    **/
-  public {{className ../name}} {{name}}({{{nativeType}}} {{name}}) {
-    set{{capitalize name}}({{name}});
+  public {{className ../name}} {{identifier name}}({{{nativeType}}} {{identifier name}}) {
+    set{{capitalize name}}({{identifier name}});
     return this;
   }
 
   {{#vendorExtensions.extraAnnotation}}{{{vendorExtensions.extraAnnotation}}}{{/vendorExtensions.extraAnnotation}}
   @ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}value = "{{{description}}}")
-  @JsonProperty("{{originalName}}")
+  @JsonProperty("{{name}}")
 {{#@root.useBeanValidation}}{{>beanValidation}}{{/@root.useBeanValidation}}  public {{{nativeType}}} {{#isBoolean}}is{{else}}get{{/isBoolean}}{{capitalize name}}() {
-    return this.{{name}};
+    return this.{{identifier name}};
   }
-  public void set{{capitalize name}}({{{nativeType}}} {{name}}) {
-    this.{{name}} = {{name}};
+  public void set{{capitalize name}}({{{nativeType}}} {{identifier name}}) {
+    this.{{identifier name}} = {{identifier name}};
     this.patched{{capitalize name}} = true;
   }
   public boolean patched{{capitalize name}}() {
@@ -77,10 +77,10 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    {{classname}} {{classVarName}} = ({{classname}}) o;{{#hasVars}}
-    return {{#vars}}Objects.equals(this.{{name}}, {{classVarName}}.{{name}}){{#hasMore}} &&
-        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{/hasVars}}{{^hasVars}}
-    return true;{{/hasVars}}
+    {{className name}} {{identifier name}} = ({{className name}}) o;{{#if vars}}
+    return {{#vars}}Objects.equals(this.{{identifier name}}, {{identifier ../name}}.{{identifier name}}){{#hasMore}} &&
+        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{else}}
+    return true;{{/if}}
   }
 
   @Override
@@ -91,9 +91,9 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class {{classname}} {\n");
+    sb.append("class {{className name}} {\n");
     {{#parent}}sb.append("    ").append(toIndentedString(super.toString())).append("\n");{{/parent}}
-    {{#vars}}sb.append("    {{name}}: ").append(toIndentedString(this.{{name}})).append("\n");
+    {{#vars}}sb.append("    {{identifier name}}: ").append(toIndentedString(this.{{identifier name}})).append("\n");
     {{/vars}}sb.append("}");
     return sb.toString();
   }

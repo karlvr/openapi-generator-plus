@@ -4,9 +4,10 @@ import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import path from 'path'
 import camelcase from 'camelcase'
-import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava } from './types'
+import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenOptions, CodegenInitialOptions } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
+import getopts from 'getopts'
 
 function capitalize(value: string) {
 	if (value.length > 0) {
@@ -35,73 +36,98 @@ function classCamelCase(value: string) {
 	return result
 }
 
+function identifierCamelCase(value: string) {
+	let result = value.replace(/[^-_\.a-zA-Z0-9]/g, '-')
+	result = result.replace(/^[0-9]*/, '')
+	result = camelcase(result)
+	if (result.length === 0) {
+		throw new Error(`Unrepresentable identifier: ${value}`)
+	}
+	return result
+}
+
+function escapeString(value: string) {
+	value = value.replace(/\\/g, '\\\\')
+	value = value.replace(/"/g, '\\"')
+	return value
+}
+
 const JavaCodegenConfig: CodegenConfig = {
 	toClassName: (name) => {
 		return classCamelCase(name)
 	},
 	toIdentifier: (name) => {
-		let result = name.replace(/[^-_\.a-zA-Z0-9]/g, '-')
-		result = result.replace(/^[0-9]*/, '')
-		result = camelcase(result)
-		if (result.length === 0) {
-			throw new Error(`Unrepresentable identifier name: ${name}`)
-		}
-		return result
+		return identifierCamelCase(name)
 	},
-	toNativeType: (type, format, required, refName) => {
+	toEnumName: (name) => {
+		return classCamelCase(name) + 'Enum'
+	},
+	toLiteral: (value) => {
+		if (typeof value === 'string') {
+			return `"${escapeString(value)}"`
+		} else if (typeof value === 'number') {
+			return `${value}`
+		} else {
+			throw new Error(`Invalid literal value: ${value}`)
+		}
+	},
+	toNativeType: (type, format, required, refName, state) => {
 		if (type === 'object' && refName) {
-			return refName
+			return `${(state.options as CodegenOptionsJava).modelPackage}.${refName}`
 		}
 
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
 				if (format === 'int32') {
-					return required ? 'Integer' : 'int'
+					return !required ? 'java.lang.Integer' : 'int'
 				} else if (format === 'int64') {
-					return required ? 'Long' : 'long'
+					return !required ? 'java.lang.Long' : 'long'
 				} else {
-					return required ? 'Integer' : 'int'
+					return !required ? 'java.lang.Integer' : 'int'
 				}
 			}
 			case 'number': {
 				if (format === 'float') {
-					return required ? 'Float' : 'float'
+					return !required ? 'java.lang.Float' : 'float'
 				} else if (format === 'double') {
-					return require ? 'Double' : 'double'
+					return !require ? 'java.lang.Double' : 'double'
 				} else {
-					return required ? 'Float' : 'float'
+					return !required ? 'java.lang.Float' : 'float'
 				}
 			}
 			case 'string': {
 				if (format === 'byte') {
-					return required ? 'Byte' : 'byte'
+					return !required ? 'java.lang.Byte' : 'byte'
 				} else if (format === 'binary') {
-					return 'Object'
+					return 'java.lang.Object'
 				} else if (format === 'date') {
-					return 'LocalDate'
+					return 'java.time.LocalDate'
 				} else if (format === 'date-time') {
-					return 'ZonedDateTime'
+					return 'java.time.ZonedDateTime'
 				} else {
-					return 'String'
+					return 'java.lang.String'
 				}
 			}
 			case 'boolean': {
-				return required ? 'Boolean' : 'boolean'
+				return !required ? 'java.lang.Boolean' : 'boolean'
 			}
 			case 'object': {
-				return 'UHOH' // TODO an anonymous object?
+				return 'java.lang.Object'
+			}
+			case 'file': {
+				return 'java.io.InputStream'
 			}
 		}
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (type, format, refName, uniqueItems) => {
-		const itemNativeType = JavaCodegenConfig.toNativeType(type, format, false, refName)
+	toNativeArrayType: (type, format, refName, uniqueItems, state) => {
+		const itemNativeType = state.config.toNativeType(type, format, false, refName, state)
 		if (uniqueItems) {
-			return `Set<${itemNativeType}>`
+			return `java.util.Set<${itemNativeType}>`
 		} else {
-			return `Collection<${itemNativeType}>`
+			return `java.util.Collection<${itemNativeType}>`
 		}
 	},
 	toDefaultValue: (defaultValue, type, required) => {
@@ -122,19 +148,22 @@ const JavaCodegenConfig: CodegenConfig = {
 			case 'string':
 			case 'object':
 			case 'array':
+			case 'file':
 				return 'null'
 		}
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	options: (): CodegenOptionsJava => {
+	options: (initialOptions): CodegenOptionsJava => {
+		const packageName = initialOptions.package || 'com.example'
 		return {
 			hideGenerationTimestamp: true,
-			apiPackage: 'com.example.api',
-			apiServiceImplPackage: 'com.example.api.impl',
-			modelPackage: 'com.example.model',
-			invokerPackage: 'com.example.invoker',
+			apiPackage: `${packageName}`,
+			apiServiceImplPackage: `${packageName}.impl`,
+			modelPackage: `${packageName}.model`,
+			invokerPackage: `${packageName}.app`,
 			useBeanValidation: true,
+			...initialOptions,
 		}
 	},
 	noReturnNativeType: () => {
@@ -248,25 +277,25 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): 
 				itemsRefName = nameFromRef(parameter.items.$ref)
 			}
 			const itemsSchema = resolveReference(parameter.items, state)!
-			nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, parameter.uniqueItems)
+			nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, parameter.uniqueItems, state)
 		} else {
-			nativeType = state.config.toNativeType(parameter.type, parameter.format, !!parameter.required, undefined)
+			nativeType = state.config.toNativeType(parameter.type, parameter.format, !!parameter.required, undefined, state)
 		}
 		property = {
-			name: state.config.toIdentifier(parameter.name),
-			originalName: parameter.name,
+			name: parameter.name,
 			nativeType,
 			description: parameter.description,
 			type,
 			required: !!parameter.required,
-			defaultValue: state.config.toDefaultValue(parameter.default, parameter.type, !!parameter.required),
+			defaultValue: state.config.toDefaultValue(parameter.default, parameter.type, !!parameter.required, state),
 			readOnly: false,
 			isBoolean: parameter.type === 'boolean',
+			isEnum: false, // TODO
 		}
 	}
 
 	const result: CodegenParameter = {
-		name: state.config.toIdentifier(parameter.name),
+		name: state.config.toIdentifier(parameter.name, state),
 		originalName: parameter.name,
 		type: property ? property.type : undefined,
 		nativeType: property ? property.nativeType : undefined,
@@ -330,7 +359,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		httpMethod: method,
 		path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
-		returnNativeType: defaultResponse ? defaultResponse.nativeType : state.config.noReturnNativeType(),
+		returnNativeType: defaultResponse ? defaultResponse.nativeType : state.config.noReturnNativeType(state),
 		consumes: toConsumeMediaTypes(operation, state),
 		produces: toProduceMediaTypes(operation, state),
 		allParams: parameters,
@@ -467,7 +496,7 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 			description: response.description,
 			isDefault,
 			type: property ? property.type : undefined,
-			nativeType: property ? property.nativeType : state.config.noReturnNativeType(),
+			nativeType: property ? property.nativeType : state.config.noReturnNativeType(state),
 			vendorExtensions: toCodegenVendorExtensions(response),
 		}
 	} else if (isOpenAPIV3ResponseObject(response)) {
@@ -492,8 +521,25 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	schema = resolveReference(schema, state)
 
 	let nativeType: string
+	let enumValueNativeType: string | undefined
+	let enumValues: any[] | undefined
 	
-	if (schema.type === 'array' && schema.items) {
+	if (schema.enum) {
+		if (!schema.type) {
+			type = 'string'
+		} else if (typeof schema.type === 'string') {
+			type = schema.type
+		} else {
+			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
+		}
+
+		nativeType = state.config.toEnumName(name, state)
+		enumValueNativeType = state.config.toNativeType(type, schema.format, false, undefined, state)
+		enumValues = schema.enum
+	} else if (schema.type === 'array') {
+		if (!schema.items) {
+			throw new Error('items missing for schema.type array')
+		}
 		type = schema.type
 
 		let itemsRefName: string | undefined
@@ -501,28 +547,30 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			itemsRefName = nameFromRef(schema.items.$ref)
 		}
 		const itemsSchema = resolveReference(schema.items, state)
-		nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, schema.uniqueItems)
+		nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, schema.uniqueItems, state)
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
-		nativeType = state.config.toNativeType(type, schema.format, required, refName)
+		nativeType = state.config.toNativeType(type, schema.format, required, refName, state)
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
-		nativeType = state.config.toNativeType(type, schema.format, required, refName)
+		nativeType = state.config.toNativeType(type, schema.format, required, refName, state)
 	} else {
 		throw new Error(`Unsupported schema.type ${schema.type} in ${JSON.stringify(schema)}`)
 	}
 
 	return {
-		name: state.config.toIdentifier(name),
-		originalName: name,
+		name,
 		description: schema.description,
 		title: schema.title,
-		defaultValue: state.config.toDefaultValue(schema.default, type, required),
+		defaultValue: state.config.toDefaultValue(schema.default, type, required, state),
 		readOnly: !!schema.readOnly,
 		required,
 		type,
 		nativeType,
+		enumValueNativeType,
+		enumValues,
 		isBoolean: type === 'boolean',
+		isEnum: !!enumValueNativeType,
 	}
 }
 
@@ -567,25 +615,54 @@ const enum HttpMethods {
 	PUT = 'PUT',
 }
 
-function prepareApiContext(context: any, config: CodegenConfig, root?: CodegenRootContext): any {
+function prepareApiContext(context: any, state: CodegenState, root?: CodegenRootContext): any {
 	return {
 		...context,
-		...config.options(),
+		...state.options,
 		...root,
 		// classname: config.toApiName(context.name),
 	}
 }
 
+async function loadCommandLineConfig(path: string): Promise<CodegenInitialOptions> {
+	if (path) {
+		const configJSON = await fs.readFile(path, {
+			encoding: 'UTF-8',
+		}) as string
+		return JSON.parse(configJSON)
+	} else {
+		return {}
+	}
+}
+
 export async function run() {
 	try {
+		const commandLineOptions = getopts(process.argv.slice(2), {
+			alias: {
+				config: 'c',
+			},
+			unknown: (option) => {
+				console.log(`Unknown option: ${option}`)
+				return false
+			},
+		})
+
+		if (commandLineOptions._.length === 0) {
+			console.log(`usage: [-c <config json>] <path or url to api spec>`)
+			process.exit(1)
+		}
+
+		const initialOptions = await loadCommandLineConfig(commandLineOptions.config)
+
 		const parser = new SwaggerParser()
-		const root = await parser.parse('./swagger.yml')
-		const config = JavaCodegenConfig
+		const root = await parser.parse(commandLineOptions._[0])
+		const config: CodegenConfig = JavaCodegenConfig
 
 		const state: CodegenState = {
 			parser,
 			root,
 			config,
+			options: config.options(initialOptions),
 		}
 
 		// console.log('refs', parser.$refs)
@@ -633,14 +710,33 @@ export async function run() {
 		/** Convert the string argument to a Java class name. */
 		Handlebars.registerHelper('className', function(name: string) {
 			if (typeof name === 'string') {
-				return new Handlebars.SafeString(config.toClassName(name))
+				return new Handlebars.SafeString(config.toClassName(name, state))
 			} else {
-				throw new Error(`className helper has name parameter: ${name}`)
+				throw new Error(`className helper has invalid name parameter: ${name}`)
 			}
 		})
 		/** Convert the given name to be a safe appropriately named identifier for the language */
 		Handlebars.registerHelper('identifier', function(this: any, name: string, options: HelperOptions) {
-			return new Handlebars.SafeString(config.toIdentifier(name))
+			if (typeof name === 'string') {
+				return new Handlebars.SafeString(config.toIdentifier(name, state))
+			} else {
+				throw new Error(`identifier helper has invalid parameter: ${name}`)
+			}
+		})
+		/** Convert the string argument to a Java enum name. */
+		Handlebars.registerHelper('enumName', function(name: string) {
+			if (typeof name === 'string') {
+				return new Handlebars.SafeString(config.toEnumName(name, state))
+			} else {
+				throw new Error(`enumName helper has invalid parameter: ${name}`)
+			}
+		})
+		Handlebars.registerHelper('literal', function(value: any) {
+			if (value !== undefined) {
+				return new Handlebars.SafeString(config.toLiteral(value, state))
+			} else {
+				throw new Error(`literal helper has invalid parameter: ${value}`)
+			}
 		})
 		Handlebars.registerHelper('capitalize', function(this: any, name: string) {
 			return capitalize(name)
@@ -717,7 +813,7 @@ export async function run() {
 		// await emit('api', './output/Api.java', api)
 		await loadTemplates('./templates/cactuslab')
 
-		const options: CodegenOptionsJava = config.options() as CodegenOptionsJava
+		const options: CodegenOptionsJava = state.options as CodegenOptionsJava
 		const rootContext: CodegenRootContextJava = {
 			generatorClass: 'openapi-generator-node',
 			generatedDate: new Date().toISOString(),
@@ -727,18 +823,19 @@ export async function run() {
 
 		const apiPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
-			await emit('api', `./output/${apiPackagePath}/${config.toClassName(groupName)}Api.java`, prepareApiContext(doc.groups[groupName], config, rootContext))
+			await emit('api', `./output/${apiPackagePath}/${config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
 		for (const groupName in doc.groups) {
-			await emit('apiService', `./output/${apiPackagePath}/${config.toClassName(groupName)}ApiService.java`, prepareApiContext(doc.groups[groupName], config, rootContext))
+			await emit('apiService', `./output/${apiPackagePath}/${config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
 		rootContext.package = options.apiServiceImplPackage
 
 		const apiImplPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
-			await emit('apiServiceImpl', `./output/${apiImplPackagePath}/${config.toClassName(groupName)}ApiServiceImpl.java`, prepareApiContext(doc.groups[groupName], config, rootContext))
+			await emit('apiServiceImpl', `./output/${apiImplPackagePath}/${config.toClassName(groupName, state)}ApiServiceImpl.java`, 
+				prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
 		rootContext.package = options.modelPackage
@@ -750,7 +847,7 @@ export async function run() {
 					model: [doc.schemas[modelName]],
 				},
 			}
-			await emit('model', `./output/${modelPackagePath}/${config.toClassName(modelName)}.java`, prepareApiContext(context, config, rootContext))
+			await emit('model', `./output/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext))
 		}
 
 		

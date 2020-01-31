@@ -57,7 +57,7 @@ public class {{className name}}Api  {
     {{#if path}}@Path("{{{path}}}"){{/if}}
     {{#if consumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/if}}
     {{#if produces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/if}}
-    @ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}"{{#if returnNativeType}}, response = {{{returnNativeType}}}.class{{/if}}{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
+    @ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
         {{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
             {{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
             {{/unless}}{{/scopes}}
@@ -65,7 +65,7 @@ public class {{className name}}Api  {
         {{/unless}}{{/authMethods}}
     }{{/if}}, tags={ {{#tags}}"{{tag}}"{{#unless @last}}, {{/unless}}{{/tags}} })
     @ApiResponses(value = { {{#responses}}
-        @ApiResponse(code = {{{code}}}, message = "{{{description}}}"{{#if nativeType}}, response = {{{nativeType}}}.class{{/if}}{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}} })
+        @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}} })
     public Response {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     	{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
     	{{#isDeprecated}}log.error("Deprecated API called: {{operationId}}");{{/isDeprecated}}

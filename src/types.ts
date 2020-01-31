@@ -1,15 +1,28 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import SwaggerParser = require('swagger-parser')
 
+export interface CodegenState {
+	parser: SwaggerParser
+	root: OpenAPI.Document
+	config: CodegenConfig
+	options: CodegenOptions
+}
+
+export interface CodegenInitialOptions {
+	[name: string]: any
+}
+
 export interface CodegenConfig {
-	toClassName: (name: string) => string
-	toIdentifier: (name: string) => string
-	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined) => string
-	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined) => string
-	toDefaultValue: (defaultValue: any, type: string, required: boolean) => string
-	options: () => CodegenOptions
+	toClassName: (name: string, state: CodegenState) => string
+	toIdentifier: (name: string, state: CodegenState) => string
+	toEnumName: (name: string, state: CodegenState) => string
+	toLiteral: (value: any, state: CodegenState) => string
+	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
+	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
+	toDefaultValue: (defaultValue: any, type: string, required: boolean, state: CodegenState) => string
+	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
 	/** Return the native type that corresponds to no return type */
-	noReturnNativeType: () => string
+	noReturnNativeType: (state: CodegenState) => string
 }
 
 /**
@@ -93,12 +106,7 @@ export interface CodegenResponse {
 
 /* See DefaultCodegen.fromProperty */
 export interface CodegenProperty {
-	/** The name of the property as a safe identifier in the current language. */
 	name: string
-
-	/** The name of the property from the API spec. */
-	originalName: string
-
 	description?: string
 	title?: string
 	exampleValue?: string
@@ -114,7 +122,13 @@ export interface CodegenProperty {
 	/** Type in native language */
 	nativeType?: string
 
+	/** The native type of the enum value */
+	enumValueNativeType?: string
+	/** The values making up the enum */
+	enumValues?: any[]
+
 	isBoolean: boolean
+	isEnum: boolean
 }
 
 /** The context for model output */
@@ -148,12 +162,6 @@ export interface CodegenParameter {
 
 export interface CodegenVendorExtensions {
 	[name: string]: any
-}
-
-export interface CodegenState {
-	parser: SwaggerParser
-	root: OpenAPI.Document
-	config: CodegenConfig
 }
 
 export interface CodegenAuthMethod {

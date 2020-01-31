@@ -1,7 +1,4 @@
-package {{package}}.impl;
-
-import {{package}}.*;
-import {{modelPackage}}.*;
+package {{package}};
 
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 
@@ -19,7 +16,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 // @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
 {{>generatedAnnotation}}
 {{#operations}}
-public class {{className ../name}}ApiServiceImpl implements {{className ../name}}ApiService {
+public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}.{{className ../name}}ApiService {
 
 {{#operation}}
 	@Override

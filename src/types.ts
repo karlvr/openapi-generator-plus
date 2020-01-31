@@ -16,7 +16,8 @@ export interface CodegenConfig {
 	toClassName: (name: string, state: CodegenState) => string
 	toIdentifier: (name: string, state: CodegenState) => string
 	toEnumName: (name: string, state: CodegenState) => string
-	toLiteral: (value: any, state: CodegenState) => string
+	/** Format a value as a literal in the specific language */
+	toLiteral: (value: any, type: string, state: CodegenState) => string
 	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
 	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
 	toDefaultValue: (defaultValue: any, type: string, required: boolean, state: CodegenState) => string

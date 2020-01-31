@@ -62,13 +62,11 @@ const JavaCodegenConfig: CodegenConfig = {
 	toEnumName: (name) => {
 		return classCamelCase(name) + 'Enum'
 	},
-	toLiteral: (value) => {
-		if (typeof value === 'string') {
+	toLiteral: (value, type) => {
+		if (type === 'string') {
 			return `"${escapeString(value)}"`
-		} else if (typeof value === 'number') {
-			return `${value}`
 		} else {
-			throw new Error(`Invalid literal value: ${value}`)
+			return `${value}`
 		}
 	},
 	toNativeType: (type, format, required, refName, state) => {
@@ -623,9 +621,11 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
 		}
 
+		const enumValueType = type
+
 		nativeType = state.config.toEnumName(name, state)
 		enumValueNativeType = state.config.toNativeType(type, schema.format, false, undefined, state)
-		enumValues = schema.enum
+		enumValues = schema.enum ? schema.enum.map(value => state.config.toLiteral(value, enumValueType, state)) : undefined
 	} else if (schema.type === 'array') {
 		if (!schema.items) {
 			throw new Error('items missing for schema.type array')
@@ -821,13 +821,13 @@ export async function run() {
 				throw new Error(`enumName helper has invalid parameter: ${name}`)
 			}
 		})
-		Handlebars.registerHelper('literal', function(value: any) {
-			if (value !== undefined) {
-				return new Handlebars.SafeString(config.toLiteral(value, state))
-			} else {
-				throw new Error(`literal helper has invalid parameter: ${value}`)
-			}
-		})
+		// Handlebars.registerHelper('literal', function(value: any) {
+		// 	if (value !== undefined) {
+		// 		return new Handlebars.SafeString(config.toLiteral(value, state))
+		// 	} else {
+		// 		throw new Error(`literal helper has invalid parameter: ${value}`)
+		// 	}
+		// })
 		Handlebars.registerHelper('capitalize', function(this: any, name: string) {
 			return capitalize(name)
 		})

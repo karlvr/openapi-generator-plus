@@ -3,7 +3,7 @@
 public enum {{enumName name}} {
 
     {{#enumValues}}
-    @XmlEnumValue({{literal .}}) {{identifier .}}({{../enumValueNativeType}}.valueOf({{literal .}})){{#unless @last}}, {{else}};{{/unless}}
+    @XmlEnumValue({{{.}}}) {{identifier .}}({{../enumValueNativeType}}.valueOf({{{.}}})){{#unless @last}}, {{else}};{{/unless}}
     {{/enumValues}}
 
 

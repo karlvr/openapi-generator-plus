@@ -166,9 +166,6 @@ const JavaCodegenConfig: CodegenConfig = {
 			...initialOptions,
 		}
 	},
-	noReturnNativeType: () => {
-		return ''
-	},
 }
 
 // TODO this represents a strategy for grouping operations
@@ -359,7 +356,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		httpMethod: method,
 		path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
-		returnNativeType: defaultResponse ? defaultResponse.nativeType : state.config.noReturnNativeType(state),
+		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes: toConsumeMediaTypes(operation, state),
 		produces: toProduceMediaTypes(operation, state),
 		allParams: parameters,
@@ -496,7 +493,7 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 			description: response.description,
 			isDefault,
 			type: property ? property.type : undefined,
-			nativeType: property ? property.nativeType : state.config.noReturnNativeType(state),
+			nativeType: property ? property.nativeType : undefined,
 			vendorExtensions: toCodegenVendorExtensions(response),
 		}
 	} else if (isOpenAPIV3ResponseObject(response)) {

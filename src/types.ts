@@ -21,8 +21,6 @@ export interface CodegenConfig {
 	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
 	toDefaultValue: (defaultValue: any, type: string, required: boolean, state: CodegenState) => string
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
-	/** Return the native type that corresponds to no return type */
-	noReturnNativeType: (state: CodegenState) => string
 }
 
 /**

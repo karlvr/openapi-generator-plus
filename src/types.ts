@@ -163,10 +163,34 @@ export interface CodegenVendorExtensions {
 }
 
 export interface CodegenAuthMethod {
-	name: string
-	isOAuth?: boolean
-	scopes?: string[]
+	type: string
 	description?: string
+	name: string
+
+	/** The header or query parameter name for apiKey */
+	paramName?: string
+	in?: string
+	
+	flow?: string
+	authorizationUrl?: string
+	tokenUrl?: string
+	scopes?: CodegenAuthScope[]
+
+	isBasic?: boolean
+	isApiKey?: boolean
+	isOAuth?: boolean
+
+	isInQuery?: boolean
+	isInHeader?: boolean
+
+	vendorExtensions?: CodegenVendorExtensions
+}
+
+export interface CodegenAuthScope {
+	scope: string
+	description?: string
+	
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export interface CodegenMediaType {

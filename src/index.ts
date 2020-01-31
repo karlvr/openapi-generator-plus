@@ -4,7 +4,7 @@ import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import path from 'path'
 import camelcase from 'camelcase'
-import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenOptions, CodegenInitialOptions } from './types'
+import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenOptions, CodegenInitialOptions, CodegenAuthMethod, CodegenAuthScope } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import getopts from 'getopts'
@@ -325,7 +325,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): 
 	return result
 }
 
-function toCodegenVendorExtensions(ob: OpenAPI.Operation | OpenAPIX.Response): CodegenVendorExtensions | undefined {
+interface IndexedObject {
+	[index: string]: any;
+}
+
+function toCodegenVendorExtensions(ob: IndexedObject): CodegenVendorExtensions | undefined {
 	const result: CodegenVendorExtensions = {}
 	let found = false
 
@@ -351,6 +355,11 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		}
 	}
 
+	let authMethods: CodegenAuthMethod[] | undefined
+	if (operation.security) {
+		authMethods = toCodegenAuthMethods(operation.security, state)
+	}
+
 	const op: CodegenOperation = {
 		operationId: operation.operationId,
 		httpMethod: method,
@@ -360,6 +369,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		consumes: toConsumeMediaTypes(operation, state),
 		produces: toProduceMediaTypes(operation, state),
 		allParams: parameters,
+		authMethods,
 		defaultResponse,
 		responses,
 		isDeprecated: operation.deprecated,
@@ -369,6 +379,89 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
 	return op
+}
+
+function toCodegenAuthMethods(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenAuthMethod[] {
+	const result: CodegenAuthMethod[] = []
+	for (const securityElement of security) { /* Don't know why it's an array at the top level */
+		for (const name in securityElement) {
+			result.push(toCodegenAuthMethod(name, securityElement[name], state))
+		}
+	}
+	return result
+}
+
+function toCodegenAuthMethod(name: string, scopes: string[] | undefined, state: CodegenState): CodegenAuthMethod {
+	if (isOpenAPIV2Document(state.root)) {
+		if (!state.root.securityDefinitions) {
+			throw new Error('security requirement found but no security definitions found')
+		}
+
+		const scheme = state.root.securityDefinitions[name]
+		switch (scheme.type) {
+			case 'basic':
+				return {
+					type: scheme.type,
+					description: scheme.description,
+					name,
+					isBasic: true,
+					vendorExtensions: toCodegenVendorExtensions(scheme),
+				}
+			case 'apiKey':
+				return {
+					type: scheme.type,
+					description: scheme.description,
+					name,
+					paramName: scheme.name,
+					in: scheme.in,
+					isApiKey: true,
+					vendorExtensions: toCodegenVendorExtensions(scheme),
+				}
+			case 'oauth2':
+				return {
+					type: scheme.type,
+					description: scheme.description,
+					name,
+					flow: scheme.flow,
+					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl : undefined,
+					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl : undefined,
+					scopes: toCodegenAuthScopes(scopes, scheme.scopes, state),
+					isOAuth: true,
+					vendorExtensions: toCodegenVendorExtensions(scheme),
+				}
+		}
+	} else {
+		const schemes = state.root.components?.securitySchemes
+		if (!schemes) {
+			throw new Error('security requirement found but no security schemes found')
+		}
+		
+		throw new Error('OpenAPIV3 document not yet supported for toAuthMethd')
+	}
+}
+
+function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2.ScopesObject, state: CodegenState): CodegenAuthScope[] | undefined {
+	if (!scopeNames) {
+		return undefined
+	}
+
+	const vendorExtensions = toCodegenVendorExtensions(scopes)
+
+	/* A bug in the swagger parser? The openapi-types don't suggest that scopes should be an array */
+	if (Array.isArray(scopes)) {
+		scopes = scopes[0]
+	}
+
+	const result: CodegenAuthScope[] = []
+	for (const scopeName of scopeNames) {
+		const scopeDescription = scopes[scopeName]
+		result.push({
+			scope: scopeName,
+			description: scopeDescription,
+			vendorExtensions,
+		})
+	}
+	return result
 }
 
 function toConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {

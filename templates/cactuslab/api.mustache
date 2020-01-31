@@ -63,7 +63,7 @@ public class {{className name}}Api  {
             {{/unless}}{{/scopes}}
         }{{/isOAuth}}){{#unless @last}},
         {{/unless}}{{/authMethods}}
-    }{{/if}}, tags={ {{#tags}}"{{tag}}"{{#unless @last}}, {{/unless}}{{/tags}} })
+    }{{/if}}, tags={ {{#tags}}"{{.}}"{{#unless @last}}, {{/unless}}{{/tags}} })
     @ApiResponses(value = { {{#responses}}
         @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}} })
     public Response {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {

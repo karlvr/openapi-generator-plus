@@ -3,7 +3,7 @@ import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import path from 'path'
-import camelcase from 'camelcase'
+import { camelCase, constantCase, snakeCase, pascalCase } from 'change-case'
 import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenOptions, CodegenInitialOptions, CodegenAuthMethod, CodegenAuthScope } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
@@ -27,7 +27,7 @@ function classCamelCase(value: string) {
 	let result = value.replace(/[^-_\.a-zA-Z0-9]+/g, '-')
 	result = result.replace(/(-|_\.)([a-zA-Z])/g, (whole, sep, letter) => capitalize(letter))
 	result = result.replace(/(-|_\.)/g, '')
-	result = result.replace(/^[0-9]*/, '')
+	result = result.replace(/^[^a-zA-Z_]*/, '')
 	// result = camelcase(result, { pascalCase: true }) // This didn't work as it changes "FAQSection" to "FaqSection"
 	result = capitalize(result)
 	if (result.length === 0) {
@@ -37,9 +37,8 @@ function classCamelCase(value: string) {
 }
 
 function identifierCamelCase(value: string) {
-	let result = value.replace(/[^-_\.a-zA-Z0-9]/g, '-')
-	result = result.replace(/^[0-9]*/, '')
-	result = camelcase(result)
+	let result = value.replace(/^[^a-zA-Z_]*/, '')
+	result = camelCase(result)
 	if (result.length === 0) {
 		throw new Error(`Unrepresentable identifier: ${value}`)
 	}
@@ -59,15 +58,57 @@ const JavaCodegenConfig: CodegenConfig = {
 	toIdentifier: (name) => {
 		return identifierCamelCase(name)
 	},
+	toConstantName: (name) => {
+		return constantCase(name)
+	},
 	toEnumName: (name) => {
 		return classCamelCase(name) + 'Enum'
 	},
-	toLiteral: (value, type) => {
-		if (type === 'string') {
-			return `"${escapeString(value)}"`
-		} else {
-			return `${value}`
+	toLiteral: (value, type, format, required) => {
+		if (value === undefined) {
+			return undefined
 		}
+
+		switch (type) {
+			case 'integer': {
+				if (format === 'int32') {
+					return !required ? `java.lang.Integer.valueOf(${value})` : `${value}`
+				} else if (format === 'int64') {
+					return !required ? `java.lang.Long.valueOf(${value})` : `${value}L`
+				} else {
+					throw new Error(`Unsupported ${type} format: ${format}`)
+				}
+			}
+			case 'number': {
+				if (format === 'float') {
+					return !required ? `java.lang.Float.valueOf(${value}f)` : `${value}f`
+				} else if (format === 'double') {
+					return !require ? `java.lang.Double.valueOf(${value}d)` : `${value}d`
+				} else {
+					throw new Error(`Unsupported ${type} format: ${format}`)
+				}
+			}
+			case 'string': {
+				if (format === 'byte') {
+					return !required ? `java.lang.Byte.valueOf(${value}b)` : `${value}b`
+				} else if (format === 'binary') {
+					throw new Error(`Cannot format literal for type ${type} format ${format}`)
+				} else if (format === 'date') {
+					return `java.time.LocalDate.parse("${value}")`
+				} else if (format === 'date-time') {
+					return `java.time.ZonedDateTime.parse("${value}")`
+				} else {
+					return `"${escapeString(value)}"`
+				}
+			}
+			case 'boolean':
+				return !required ? `java.lang.Boolean.valueOf(${value})` : `${value}`
+			case 'object':
+			case 'file':
+				throw new Error(`Cannot format literal for type ${type}`)
+		}
+
+		throw new Error(`Unsupported type name: ${type}`)
 	},
 	toNativeType: (type, format, required, refName, state) => {
 		if (type === 'object' && refName) {
@@ -77,21 +118,21 @@ const JavaCodegenConfig: CodegenConfig = {
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
-				if (format === 'int32') {
+				if (format === 'int32' || format === undefined) {
 					return !required ? 'java.lang.Integer' : 'int'
 				} else if (format === 'int64') {
 					return !required ? 'java.lang.Long' : 'long'
 				} else {
-					return !required ? 'java.lang.Integer' : 'int'
+					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
 			}
 			case 'number': {
-				if (format === 'float') {
+				if (format === 'float' || format === undefined) {
 					return !required ? 'java.lang.Float' : 'float'
 				} else if (format === 'double') {
 					return !require ? 'java.lang.Double' : 'double'
 				} else {
-					return !required ? 'java.lang.Float' : 'float'
+					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
 			}
 			case 'string': {
@@ -264,29 +305,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): 
 	if (parameter.schema) {
 		property = toCodegenProperty(parameter.name, parameter.schema, parameter.required || false, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter)) {
-		const type = parameter.type
-		let nativeType: string
-		if (type === 'array') {
-			let itemsRefName: string | undefined
-			if (isOpenAPIVReferenceObject(parameter.items)) {
-				itemsRefName = nameFromRef(parameter.items.$ref)
-			}
-			const itemsSchema = resolveReference(parameter.items, state)!
-			nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, parameter.uniqueItems, state)
-		} else {
-			nativeType = state.config.toNativeType(parameter.type, parameter.format, !!parameter.required, undefined, state)
-		}
-		property = {
-			name: parameter.name,
-			nativeType,
-			description: parameter.description,
-			type,
-			required: !!parameter.required,
-			defaultValue: state.config.toDefaultValue(parameter.default, parameter.type, !!parameter.required, state),
-			readOnly: false,
-			isBoolean: parameter.type === 'boolean',
-			isEnum: false, // TODO
-		}
+		property = toCodegenProperty(parameter.name, parameter, parameter.required || false, state)
 	}
 
 	const result: CodegenParameter = {
@@ -599,7 +618,7 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 	}
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject, required: boolean, state: CodegenState): CodegenProperty {
+function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, state: CodegenState): CodegenProperty {
 	let type: string | undefined
 	let refName: string | undefined
 	if (isOpenAPIVReferenceObject(schema)) {
@@ -622,10 +641,11 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 
 		const enumValueType = type
+		const enumValueFormat = schema.format
 
 		nativeType = state.config.toEnumName(name, state)
 		enumValueNativeType = state.config.toNativeType(type, schema.format, false, undefined, state)
-		enumValues = schema.enum ? schema.enum.map(value => state.config.toLiteral(value, enumValueType, state)) : undefined
+		enumValues = schema.enum ? schema.enum.map(value => state.config.toLiteral(value, enumValueType, enumValueFormat, false, state)) : undefined
 	} else if (schema.type === 'array') {
 		if (!schema.items) {
 			throw new Error('items missing for schema.type array')
@@ -655,11 +675,30 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		defaultValue: state.config.toDefaultValue(schema.default, type, required, state),
 		readOnly: !!schema.readOnly,
 		required,
+		vendorExtensions: toCodegenVendorExtensions(schema),
+
 		type,
 		nativeType,
 		enumValueNativeType,
 		enumValues,
+
+		/* Validation */
+		maximum: schema.maximum,
+		exclusiveMaximum: schema.exclusiveMaximum,
+		minimum: schema.minimum,
+		exclusiveMinimum: schema.exclusiveMinimum,
+		maxLength: schema.maxLength,
+		minLength: schema.minLength,
+		pattern: schema.pattern,
+		maxItems: schema.maxItems,
+		minItems: schema.minLength,
+		uniqueItems: schema.uniqueItems,
+		multipleOf: schema.multipleOf,
+
+		isObject: type === 'object',
+		isArray: type === 'array',
 		isBoolean: type === 'boolean',
+		isNumber: type === 'number' || type === 'integer',
 		isEnum: !!enumValueNativeType,
 	}
 }
@@ -800,7 +839,7 @@ export async function run() {
 		/** Convert the string argument to a Java class name. */
 		Handlebars.registerHelper('className', function(name: string) {
 			if (typeof name === 'string') {
-				return new Handlebars.SafeString(config.toClassName(name, state))
+				return config.toClassName(name, state)
 			} else {
 				throw new Error(`className helper has invalid name parameter: ${name}`)
 			}
@@ -808,15 +847,22 @@ export async function run() {
 		/** Convert the given name to be a safe appropriately named identifier for the language */
 		Handlebars.registerHelper('identifier', function(this: any, name: string, options: HelperOptions) {
 			if (typeof name === 'string') {
-				return new Handlebars.SafeString(config.toIdentifier(name, state))
+				return config.toIdentifier(name, state)
 			} else {
 				throw new Error(`identifier helper has invalid parameter: ${name}`)
+			}
+		})
+		Handlebars.registerHelper('constantName', function(this: any, name: string, options: HelperOptions) {
+			if (typeof name === 'string') {
+				return config.toConstantName(name, state)
+			} else {
+				throw new Error(`constantName helper has invalid parameter: ${name}`)
 			}
 		})
 		/** Convert the string argument to a Java enum name. */
 		Handlebars.registerHelper('enumName', function(name: string) {
 			if (typeof name === 'string') {
-				return new Handlebars.SafeString(config.toEnumName(name, state))
+				return config.toEnumName(name, state)
 			} else {
 				throw new Error(`enumName helper has invalid parameter: ${name}`)
 			}
@@ -828,8 +874,11 @@ export async function run() {
 		// 		throw new Error(`literal helper has invalid parameter: ${value}`)
 		// 	}
 		// })
-		Handlebars.registerHelper('capitalize', function(this: any, name: string) {
-			return capitalize(name)
+		Handlebars.registerHelper('capitalize', function(this: any, value: string) {
+			return capitalize(value)
+		})
+		Handlebars.registerHelper('escapeString', function(this: any, value: string) {
+			return escapeString(value)
 		})
 		// Handlebars.registerHelper('hasConsumes', function(this: any, options: HelperOptions) {
 		// 	if (this.consumes) {

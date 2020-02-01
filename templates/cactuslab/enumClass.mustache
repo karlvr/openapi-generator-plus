@@ -1,9 +1,9 @@
-@XmlType(name="{{enumName name}}")
-@XmlEnum({{enumValueNativeType}}.class)
+@javax.xml.bind.annotation.XmlType(name="{{enumName name}}")
+@javax.xml.bind.annotation.XmlEnum({{enumValueNativeType}}.class)
 public enum {{enumName name}} {
 
     {{#enumValues}}
-    @XmlEnumValue({{{.}}}) {{identifier .}}({{../enumValueNativeType}}.valueOf({{{.}}})){{#unless @last}}, {{else}};{{/unless}}
+    @javax.xml.bind.annotation.XmlEnumValue({{{.}}}) {{constantName .}}({{../enumValueNativeType}}.valueOf({{{.}}})){{#unless @last}}, {{else}};{{/unless}}
     {{/enumValues}}
 
 

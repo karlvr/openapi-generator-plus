@@ -16,7 +16,7 @@
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "camelcase": "^5.3.1",
+    "change-case": "^4.1.1",
     "getopts": "^2.2.5",
     "handlebars": "^4.7.2",
     "swagger-parser": "^8.0.4",

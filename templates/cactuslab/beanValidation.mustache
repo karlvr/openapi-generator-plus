@@ -1,10 +1,12 @@
-{{^isPrimitiveType}}
-  @Valid
-{{/isPrimitiveType}}
+{{#isObject}}
+  @javax.validation.Valid
+{{/isObject}}{{#isArray}}
+  @javax.validation.Valid
+{{/isArray}}
 {{#required}}
 {{^vendorExtensions.x-not-blank}}
 {{^vendorExtensions.x-not-empty}}
-  @NotNull{{#vendorExtensions.x-required-message}}(message="{{&vendorExtensions.x-required-message}}"){{/vendorExtensions.x-required-message}}
+  @javax.validation.constraints.NotNull{{#if vendorExtensions.x-required-message}}(message="{{&vendorExtensions.x-required-message}}"){{/if}}
 {{/vendorExtensions.x-not-empty}}
 {{/vendorExtensions.x-not-blank}}
 {{/required}}

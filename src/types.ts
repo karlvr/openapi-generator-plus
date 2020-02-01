@@ -15,11 +15,13 @@ export interface CodegenInitialOptions {
 export interface CodegenConfig {
 	toClassName: (name: string, state: CodegenState) => string
 	toIdentifier: (name: string, state: CodegenState) => string
+	toConstantName: (name: string, state: CodegenState) => string
 	toEnumName: (name: string, state: CodegenState) => string
-	/** Format a value as a literal in the specific language */
-	toLiteral: (value: any, type: string, state: CodegenState) => string
+	/** Format a value as a literal in the language */
+	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string | undefined
 	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
 	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
+	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, required: boolean, state: CodegenState) => string
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
 }
@@ -113,7 +115,6 @@ export interface CodegenProperty {
 	readOnly: boolean
 	required: boolean
 	vendorExtensions?: CodegenVendorExtensions
-	// TODO validation
 
 	/** OpenAPI type */
 	type?: string
@@ -126,7 +127,23 @@ export interface CodegenProperty {
 	/** The values making up the enum */
 	enumValues?: any[]
 
+	/* Validation */
+	maximum?: number
+	exclusiveMaximum?: boolean
+	minimum?: number
+	exclusiveMinimum?: boolean
+	maxLength?: number
+	minLength?: number
+	pattern?: string
+	maxItems?: number
+	minItems?: number
+	uniqueItems?: boolean
+	multipleOf?: number
+	
+	isObject: boolean
+	isArray: boolean
 	isBoolean: boolean
+	isNumber: boolean
 	isEnum: boolean
 }
 

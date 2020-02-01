@@ -1,10 +1,10 @@
-import SwaggerParser, { parse } from 'swagger-parser'
+import SwaggerParser from 'swagger-parser'
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import path from 'path'
-import { camelCase, constantCase, snakeCase, pascalCase } from 'change-case'
-import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenOperationGroup, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenOptions, CodegenInitialOptions, CodegenAuthMethod, CodegenAuthScope } from './types'
+import { camelCase, constantCase } from 'change-case'
+import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenInitialOptions, CodegenAuthMethod, CodegenAuthScope } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import getopts from 'getopts'
@@ -24,14 +24,14 @@ function capitalize(value: string) {
  * @param value string to be turned into a class name
  */
 function classCamelCase(value: string) {
-	let result = value.replace(/[^-_\.a-zA-Z0-9]+/g, '-')
+	let result = value.replace(/[^-_.a-zA-Z0-9]+/g, '-')
 	result = result.replace(/(-|_\.)([a-zA-Z])/g, (whole, sep, letter) => capitalize(letter))
 	result = result.replace(/(-|_\.)/g, '')
 	result = result.replace(/^[^a-zA-Z_]*/, '')
 	// result = camelcase(result, { pascalCase: true }) // This didn't work as it changes "FAQSection" to "FaqSection"
 	result = capitalize(result)
 	if (result.length === 0) {
-		throw new Error(`Unrepresentable class name: ${name}`)
+		throw new Error(`Unrepresentable class name: ${value}`)
 	}
 	return result
 }
@@ -83,7 +83,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				if (format === 'float') {
 					return !required ? `java.lang.Float.valueOf(${value}f)` : `${value}f`
 				} else if (format === 'double') {
-					return !require ? `java.lang.Double.valueOf(${value}d)` : `${value}d`
+					return !required ? `java.lang.Double.valueOf(${value}d)` : `${value}d`
 				} else {
 					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
@@ -130,7 +130,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				if (format === 'float' || format === undefined) {
 					return !required ? 'java.lang.Float' : 'float'
 				} else if (format === 'double') {
-					return !require ? 'java.lang.Double' : 'double'
+					return !required ? 'java.lang.Double' : 'double'
 				} else {
 					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
@@ -343,7 +343,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): 
 }
 
 interface IndexedObject {
-	[index: string]: any;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[index: string]: any
 }
 
 function toCodegenVendorExtensions(ob: IndexedObject): CodegenVendorExtensions | undefined {
@@ -352,7 +353,7 @@ function toCodegenVendorExtensions(ob: IndexedObject): CodegenVendorExtensions |
 
 	for (const name in ob) {
 		if (name.startsWith('x-')) {
-			result[name] = (ob as any)[name]
+			result[name] = ob[name]
 			found = true
 		}
 	}
@@ -487,7 +488,7 @@ function toConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): Codege
 			mediaType,
 		}))
 	} else if (op.requestBody) {
-		let requestBody = resolveReference(op.requestBody, state)
+		const requestBody = resolveReference(op.requestBody, state)
 		return toCodegenMediaTypes(requestBody.content)
 	} else {
 		return undefined
@@ -512,7 +513,7 @@ function toProduceMediaTypes(op: OpenAPI.Operation, state: CodegenState): Codege
 		return op.produces?.map(mediaType => ({
 			mediaType,
 		}))
- 	} else if (op.responses) {
+	} else if (op.responses) {
 		const defaultResponse = toCodegenResponses(op.responses, state).find(r => r.isDefault)
 		if (defaultResponse) {
 			let response = op.responses[defaultResponse.code]
@@ -546,7 +547,7 @@ function processCodegenOperations(operationInfos: CodegenOperation[], state: Cod
 }
 
 function processOperationInfo(op: CodegenOperation, state: CodegenState) {
-	
+	// TODO
 }
 
 function toCodegenResponses(responses: OpenAPIX.ResponsesObject, state: CodegenState): CodegenResponse[] {
@@ -629,6 +630,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 
 	let nativeType: string
 	let enumValueNativeType: string | undefined
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let enumValues: any[] | undefined
 	
 	if (schema.enum) {
@@ -744,6 +746,7 @@ const enum HttpMethods {
 	PUT = 'PUT',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function prepareApiContext(context: any, state: CodegenState, root?: CodegenRootContext): any {
 	return {
 		...context,
@@ -777,7 +780,7 @@ export async function run() {
 		})
 
 		if (commandLineOptions._.length === 0) {
-			console.log(`usage: [-c <config json>] <path or url to api spec>`)
+			console.log('usage: [-c <config json>] <path or url to api spec>')
 			process.exit(1)
 		}
 
@@ -845,14 +848,14 @@ export async function run() {
 			}
 		})
 		/** Convert the given name to be a safe appropriately named identifier for the language */
-		Handlebars.registerHelper('identifier', function(this: any, name: string, options: HelperOptions) {
+		Handlebars.registerHelper('identifier', function(name: string) {
 			if (typeof name === 'string') {
 				return config.toIdentifier(name, state)
 			} else {
 				throw new Error(`identifier helper has invalid parameter: ${name}`)
 			}
 		})
-		Handlebars.registerHelper('constantName', function(this: any, name: string, options: HelperOptions) {
+		Handlebars.registerHelper('constantName', function(name: string) {
 			if (typeof name === 'string') {
 				return config.toConstantName(name, state)
 			} else {
@@ -874,10 +877,10 @@ export async function run() {
 		// 		throw new Error(`literal helper has invalid parameter: ${value}`)
 		// 	}
 		// })
-		Handlebars.registerHelper('capitalize', function(this: any, value: string) {
+		Handlebars.registerHelper('capitalize', function(value: string) {
 			return capitalize(value)
 		})
-		Handlebars.registerHelper('escapeString', function(this: any, value: string) {
+		Handlebars.registerHelper('escapeString', function(value: string) {
 			return escapeString(value)
 		})
 		// Handlebars.registerHelper('hasConsumes', function(this: any, options: HelperOptions) {
@@ -907,6 +910,7 @@ export async function run() {
 		// 		return options.inverse(this)
 		// 	}
 		// })
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		Handlebars.registerHelper('hasMore', function(this: any, options: HelperOptions) {
 			if (options.data.last === false) {
 				return options.fn(this)

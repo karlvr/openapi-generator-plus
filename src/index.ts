@@ -757,14 +757,14 @@ function prepareApiContext(context: any, state: CodegenState, root?: CodegenRoot
 }
 
 async function loadCommandLineConfig(path: string): Promise<CodegenInitialOptions> {
-	if (path) {
-		const configJSON = await fs.readFile(path, {
-			encoding: 'UTF-8',
-		}) as string
-		return JSON.parse(configJSON)
-	} else {
-		return {}
-	}
+	const configJSON = await fs.readFile(path, {
+		encoding: 'UTF-8',
+	}) as string
+	return JSON.parse(configJSON)
+}
+
+function usage() {
+	console.log(`usage: ${process.argv[1]} [-c <config json>] -o <output dir> -t <template module or path> <path or url to api spec>`)
 }
 
 export async function run() {
@@ -772,6 +772,8 @@ export async function run() {
 		const commandLineOptions = getopts(process.argv.slice(2), {
 			alias: {
 				config: 'c',
+				output: 'o',
+				template: 't',
 			},
 			unknown: (option) => {
 				console.log(`Unknown option: ${option}`)
@@ -779,12 +781,12 @@ export async function run() {
 			},
 		})
 
-		if (commandLineOptions._.length === 0) {
-			console.log('usage: [-c <config json>] <path or url to api spec>')
+		if (commandLineOptions._.length === 0 || !commandLineOptions.output || !commandLineOptions.template) {
+			usage()
 			process.exit(1)
 		}
 
-		const initialOptions = await loadCommandLineConfig(commandLineOptions.config)
+		const initialOptions = commandLineOptions.config ? await loadCommandLineConfig(commandLineOptions.config) : {}
 
 		const parser = new SwaggerParser()
 		const root = await parser.parse(commandLineOptions._[0])
@@ -954,7 +956,7 @@ export async function run() {
 		// await loadTemplates('./server-stub/templates')
 		// await emit('pom', './output/pom.xml', api)
 		// await emit('api', './output/Api.java', api)
-		await loadTemplates('./templates/cactuslab')
+		await loadTemplates(commandLineOptions.template)
 
 		const options: CodegenOptionsJava = state.options as CodegenOptionsJava
 		const rootContext: CodegenRootContextJava = {
@@ -964,20 +966,22 @@ export async function run() {
 			package: options.apiPackage,
 		}
 
+		const outputPath = commandLineOptions.output
+
 		const apiPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
-			await emit('api', `./output/${apiPackagePath}/${config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
+			await emit('api', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
 		for (const groupName in doc.groups) {
-			await emit('apiService', `./output/${apiPackagePath}/${config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
+			await emit('apiService', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
 		rootContext.package = options.apiServiceImplPackage
 
 		const apiImplPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
-			await emit('apiServiceImpl', `./output/${apiImplPackagePath}/${config.toClassName(groupName, state)}ApiServiceImpl.java`, 
+			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${config.toClassName(groupName, state)}ApiServiceImpl.java`, 
 				prepareApiContext(doc.groups[groupName], state, rootContext))
 		}
 
@@ -990,7 +994,7 @@ export async function run() {
 					model: [doc.schemas[modelName]],
 				},
 			}
-			await emit('model', `./output/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext))
+			await emit('model', `${outputPath}/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext))
 		}
 
 		
@@ -1007,6 +1011,4 @@ function packageToPath(packageName: string) {
 	return packageName.replace(/\./g, path.sep)
 }
 
-run().then(() => {
-	console.log('done')
-})
+run()

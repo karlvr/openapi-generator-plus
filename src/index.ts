@@ -3,18 +3,23 @@ import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import path from 'path'
-import { camelCase, constantCase } from 'change-case'
+import { constantCase } from 'change-case'
 import { CodegenDocument, CodegenConfig, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenOptionsJava, CodegenRootContext, CodegenRootContextJava, CodegenInitialOptions, CodegenAuthMethod, CodegenAuthScope } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import getopts from 'getopts'
+import { pascalCase, camelCase, capitalize } from './case-transforms'
 
-function capitalize(value: string) {
-	if (value.length > 0) {
-		return value.substring(0, 1).toUpperCase() + value.substring(1)
-	} else {
-		return value
-	}
+
+/** Returns the string converted to a string that is safe as an identifier in most languages */
+function identifierSafe(value: string) {
+	/* Remove invalid leading characters */
+	value = value.replace(/^[^a-zA-Z_]*/, '')
+
+	/* Convert any illegal characters to underscores */
+	value = value.replace(/[^a-zA-Z0-9_]/g, '_')
+
+	return value
 }
 
 /**
@@ -24,25 +29,11 @@ function capitalize(value: string) {
  * @param value string to be turned into a class name
  */
 function classCamelCase(value: string) {
-	let result = value.replace(/[^-_.a-zA-Z0-9]+/g, '-')
-	result = result.replace(/(-|_\.)([a-zA-Z])/g, (whole, sep, letter) => capitalize(letter))
-	result = result.replace(/(-|_\.)/g, '')
-	result = result.replace(/^[^a-zA-Z_]*/, '')
-	// result = camelcase(result, { pascalCase: true }) // This didn't work as it changes "FAQSection" to "FaqSection"
-	result = capitalize(result)
-	if (result.length === 0) {
-		throw new Error(`Unrepresentable class name: ${value}`)
-	}
-	return result
+	return pascalCase(identifierSafe(value))
 }
 
 function identifierCamelCase(value: string) {
-	let result = value.replace(/^[^a-zA-Z_]*/, '')
-	result = camelCase(result)
-	if (result.length === 0) {
-		throw new Error(`Unrepresentable identifier: ${value}`)
-	}
-	return result
+	return camelCase(identifierSafe(value))
 }
 
 function escapeString(value: string) {

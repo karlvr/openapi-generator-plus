@@ -2,6 +2,7 @@ module.exports = {
 	'extends': ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
 	'env': {
 		'node': true,
+		'jest': true,
 	},
 	'rules': {
 		'array-bracket-spacing': 'warn',

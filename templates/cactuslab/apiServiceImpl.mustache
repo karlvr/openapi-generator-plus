@@ -20,7 +20,7 @@ public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}
 
 {{#operation}}
 	@Override
-	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}} {
+	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}} {
 		{{#if returnNativeType}}return null;{{/if}}
 	}
 	

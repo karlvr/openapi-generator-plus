@@ -1,11 +1,13 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import SwaggerParser = require('swagger-parser')
+import { OpenAPIX } from './types/patches'
 
 export interface CodegenState {
 	parser: SwaggerParser
 	root: OpenAPI.Document
 	config: CodegenConfig
 	options: CodegenOptions
+	anonymousModels: { [name: string]: CodegenModel }
 }
 
 export interface CodegenInitialOptions {
@@ -17,10 +19,12 @@ export interface CodegenConfig {
 	toIdentifier: (name: string, state: CodegenState) => string
 	toConstantName: (name: string, state: CodegenState) => string
 	toEnumName: (name: string, state: CodegenState) => string
+	toOperationName: (path: string, method: string, state: CodegenState) => string
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string | undefined
 	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
-	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
+	toNativeArrayType: (componentNativeType: string, uniqueItems: boolean | undefined, state: CodegenState) => string
+	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string, required: boolean, state: CodegenState) => string | undefined
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
@@ -76,7 +80,7 @@ export interface CodegenOperations {
 }
 
 export interface CodegenOperation {
-	operationId?: string
+	name: string
 	httpMethod: string
 	path: string
 	returnType?: string
@@ -117,10 +121,10 @@ export interface CodegenProperty {
 	vendorExtensions?: CodegenVendorExtensions
 
 	/** OpenAPI type */
-	type?: string
+	type: string
 
 	/** Type in native language */
-	nativeType?: string
+	nativeType: string
 
 	/** The native type of the enum value */
 	enumValueNativeType?: string

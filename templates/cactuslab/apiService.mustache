@@ -19,26 +19,26 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 {{#operations}}
 @SuppressWarnings("all")
 public interface {{className ../name}}ApiService {
-	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
+	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
 	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
 	
 	{{#operation}}{{^vendorExtensions.x-implementation-provided}}
 	{{#responses}}{{^isDefault}}
-	public static class {{{className ../operationId}}}{{{code}}}Exception extends Exception {
+	public static class {{{className ../name}}}{{{code}}}Exception extends Exception {
 		{{#unless nativeType}}
-		public {{{className ../operationId}}}{{{code}}}Exception() {
+		public {{{className ../name}}}{{{code}}}Exception() {
 			
 		}
 		{{else}}
 		private {{{nativeType}}} entity;
 		
-		public {{{className ../operationId}}}{{{code}}}Exception({{{nativeType}}}Message.CodeEnum code, String message) {
+		public {{{className ../name}}}{{{code}}}Exception({{{nativeType}}}Message.CodeEnum code, String message) {
 			this.entity = new {{{nativeType}}}();
 			this.entity.getMessages().add(new {{{nativeType}}}Message().code(code).message(message));
 		}
 
 		{{#vendorExtensions.x-validation}}
-		public <T> {{{className ../operationId}}}{{{code}}}Exception(Collection<ConstraintViolation<T>> validations) {
+		public <T> {{{className ../name}}}{{{code}}}Exception(Collection<ConstraintViolation<T>> validations) {
 			this.entity = new {{{nativeType}}}();
 			validations.forEach(v -> this.entity.getMessages().add(new {{{nativeType}}}Message().code({{{nativeType}}}Message.CodeEnum.VALIDATION).message(v.getMessage()).property(v.getPropertyPath().toString())));
 		}

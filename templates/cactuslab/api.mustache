@@ -57,27 +57,27 @@ public class {{className name}}Api  {
     @ApiResponses(value = { {{#responses}}
         @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
     })
-    public Response {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+    public Response {{name}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     	{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
-    	{{#isDeprecated}}log.error("Deprecated API called: {{operationId}}");{{/isDeprecated}}
+    	{{#isDeprecated}}log.error("Deprecated API called: {{name}}");{{/isDeprecated}}
     	try {
     		{{#@root.useBeanValidation}}{{#allParams}}{{#if vendorExtensions.x-validation}}
     		javax.validation.ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 			javax.validation.Validator validator = factory.getValidator();
 			java.util.Set<javax.validation.ConstraintViolation<{{{nativeType}}}>> validations = validator.validate({{identifier name}});
 			if (!validations.isEmpty()) {
-				throw new {{{className @root/name}}}ApiService.{{{className ../operationId}}}400Exception(validations);
+				throw new {{{className @root/name}}}ApiService.{{{className ../name}}}400Exception(validations);
 			}
 			
     		{{/if}}{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
-    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../operationId}}({{#../allParams}}{{#isFile}}{{name}}InputStream, {{name}}Detail{{/isFile}}{{^isFile}}{{name}}{{/isFile}}, {{/../allParams}}response);
+    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#isFile}}{{name}}InputStream, {{name}}Detail{{/isFile}}{{^isFile}}{{name}}{{/isFile}}, {{/../allParams}}response);
     		{{#if nativeType}}
     		response.entity(entity);
     		{{/if}}
     		return response.build();
     		{{/defaultResponse}}
         {{#responses}}{{^isDefault}}
-        } catch ({{{className @root/name}}}ApiService.{{{className ../operationId}}}{{{code}}}Exception e) {
+        } catch ({{{className @root/name}}}ApiService.{{{className ../name}}}{{{code}}}Exception e) {
         	response.status({{code}});
         	{{^vendorExtensions.x-java-is-response-void}}
         	response.entity(e.getEntity());

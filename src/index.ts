@@ -55,6 +55,9 @@ const JavaCodegenConfig: CodegenConfig = {
 	toEnumName: (name) => {
 		return classCamelCase(name) + 'Enum'
 	},
+	toOperationName: (path, method) => {
+		return `${method.toLocaleLowerCase()}_${path}`
+	},
 	toLiteral: (value, type, format, required) => {
 		if (value === undefined) {
 			return undefined
@@ -103,7 +106,7 @@ const JavaCodegenConfig: CodegenConfig = {
 	},
 	toNativeType: (type, format, required, refName, state) => {
 		if (type === 'object' && refName) {
-			return `${(state.options as CodegenOptionsJava).modelPackage}.${refName}`
+			return `${(state.options as CodegenOptionsJava).modelPackage}.${state.config.toClassName(refName, state)}`
 		}
 
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
@@ -152,13 +155,15 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (type, format, refName, uniqueItems, state) => {
-		const itemNativeType = state.config.toNativeType(type, format, false, refName, state)
+	toNativeArrayType: (componentNativeType, uniqueItems) => {
 		if (uniqueItems) {
-			return `java.util.Set<${itemNativeType}>`
+			return `java.util.Set<${componentNativeType}>`
 		} else {
-			return `java.util.Collection<${itemNativeType}>`
+			return `java.util.List<${componentNativeType}>`
 		}
+	},
+	toNativeMapType: (keyNativeType, componentNativeType) => {
+		return `java.util.Map<${keyNativeType}, ${componentNativeType}>`
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {
@@ -246,7 +251,7 @@ function addOperationsToGroups(operationInfos: CodegenOperation[], apiInfo: Code
 
 function processCodegenDocument(doc: CodegenDocument) {
 	for (const name in doc.groups) {
-		doc.groups[name].operations.operation.sort((a, b) => a.operationId!.localeCompare(b.operationId!))
+		doc.groups[name].operations.operation.sort((a, b) => a.name.localeCompare(b.name))
 	}
 }
 
@@ -296,20 +301,20 @@ function createCodegenOperation(path: string, method: string, operation: OpenAPI
 	result.push(op)
 }
 
-function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): CodegenParameter {
+function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, state: CodegenState): CodegenParameter {
 	if (isOpenAPIVReferenceObject(parameter)) {
 		parameter = state.parser.$refs.get(parameter.$ref) as OpenAPIV3.ParameterObject | OpenAPIV2.Parameter
 	}
 
 	let property: CodegenProperty | undefined
 	if (parameter.schema) {
-		property = toCodegenProperty(parameter.name, parameter.schema, parameter.required || false, state)
+		property = toCodegenProperty(parameter.name, parameter.schema, parameter.required || false, parentName, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter)) {
-		property = toCodegenProperty(parameter.name, parameter, parameter.required || false, state)
+		property = toCodegenProperty(parameter.name, parameter, parameter.required || false, parentName, state)
 	}
 
 	const result: CodegenParameter = {
-		name: state.config.toIdentifier(parameter.name, state),
+		name: parameter.name,
 		originalName: parameter.name,
 		type: property ? property.type : undefined,
 		nativeType: property ? property.nativeType : undefined,
@@ -361,15 +366,25 @@ function toCodegenVendorExtensions(ob: IndexedObject): CodegenVendorExtensions |
 	return found ? result : undefined
 }
 
+function toCodegenOperationName(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState) {
+	if (operation.operationId) {
+		return operation.operationId
+	}
+
+	return state.config.toOperationName(path, method, state)
+}
+
 function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState): CodegenOperation {
-	const responses: CodegenResponse[] | undefined = operation.responses ? toCodegenResponses(operation.responses, state) : undefined
+	const name = toCodegenOperationName(path, method, operation, state)
+	const responses: CodegenResponse[] | undefined = operation.responses ? toCodegenResponses(operation.responses, name, state) : undefined
 	const defaultResponse = responses ? responses.find(r => r.isDefault) : undefined
+
 
 	let parameters: CodegenParameter[] | undefined
 	if (operation.parameters) {
 		parameters = []
 		for (const parameter of operation.parameters) {
-			parameters.push(toCodegenParameter(parameter, state))
+			parameters.push(toCodegenParameter(parameter, name, state))
 		}
 	}
 
@@ -379,7 +394,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	}
 
 	const op: CodegenOperation = {
-		operationId: operation.operationId,
+		name,
 		httpMethod: method,
 		path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
@@ -514,7 +529,7 @@ function toProduceMediaTypes(op: OpenAPI.Operation, state: CodegenState): Codege
 			mediaType,
 		}))
 	} else if (op.responses) {
-		const defaultResponse = toCodegenResponses(op.responses, state).find(r => r.isDefault)
+		const defaultResponse = toCodegenResponses(op.responses, '', state).find(r => r.isDefault)
 		if (defaultResponse) {
 			let response = op.responses[defaultResponse.code]
 			if (response) {
@@ -550,7 +565,7 @@ function processOperationInfo(op: CodegenOperation, state: CodegenState) {
 	// TODO
 }
 
-function toCodegenResponses(responses: OpenAPIX.ResponsesObject, state: CodegenState): CodegenResponse[] {
+function toCodegenResponses(responses: OpenAPIX.ResponsesObject, parentName: string, state: CodegenState): CodegenResponse[] {
 	const result: CodegenResponse[] = []
 
 	let bestCode: number | undefined
@@ -558,7 +573,7 @@ function toCodegenResponses(responses: OpenAPIX.ResponsesObject, state: CodegenS
 
 	for (const responseCodeString in responses) {
 		const responseCode = responseCodeString === 'default' ? 0 : parseInt(responseCodeString, 10)
-		const response = toCodegenResponse(responseCode, responses[responseCodeString], false, state)
+		const response = toCodegenResponse(responseCode, responses[responseCodeString], false, parentName, state)
 
 		result.push(response)
 
@@ -589,7 +604,7 @@ function nameFromRef($ref: string): string | undefined {
 	return undefined
 }
 
-function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault: boolean, state: CodegenState): CodegenResponse {
+function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault: boolean, parentName: string, state: CodegenState): CodegenResponse {
 	response = resolveReference(response, state)
 
 	if (code === 0) {
@@ -597,7 +612,7 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 	}
 	
 	if (isOpenAPIV2ResponseObject(response)) {
-		const property = response.schema ? toCodegenProperty('response', response.schema, true, state) : undefined
+		const property = response.schema ? toCodegenProperty('response', response.schema, true, parentName, state) : undefined
 		
 		return {
 			code,
@@ -619,8 +634,10 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 	}
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, state: CodegenState): CodegenProperty {
-	let type: string | undefined
+function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentName: string, state: CodegenState): CodegenProperty {
+	let type: string
+
+	/* The name of the schema, which can be used to name custom types */
 	let refName: string | undefined
 	if (isOpenAPIVReferenceObject(schema)) {
 		refName = nameFromRef(schema.$ref)
@@ -654,17 +671,33 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 		type = schema.type
 
-		let itemsRefName: string | undefined
-		if (isOpenAPIVReferenceObject(schema.items)) {
-			itemsRefName = nameFromRef(schema.items.$ref)
-		}
-		const itemsSchema = resolveReference(schema.items, state)
-		nativeType = state.config.toNativeArrayType(itemsSchema.type, itemsSchema.format, itemsRefName, schema.uniqueItems, state)
+		const componentProperty = toCodegenProperty(name, schema.items, false, refName || parentName, state)
+		nativeType = state.config.toNativeArrayType(componentProperty.nativeType, schema.uniqueItems, state)
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
-		nativeType = state.config.toNativeType(type, schema.format, required, refName, state)
+
+		if (type === 'object' && schema.additionalProperties) {
+			/* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#model-with-mapdictionary-properties */
+			const keyNativeType = state.config.toNativeType('string', undefined, true, undefined, state)
+			const componentProperty = toCodegenProperty('component', schema.additionalProperties, false, name, state)
+
+			nativeType = state.config.toNativeMapType(keyNativeType, componentProperty.nativeType, state)
+		} else {
+			if (type === 'object' && !refName) {
+				refName = `${parentName}_${name}`
+
+				state.anonymousModels[refName] = toCodegenModel(refName, schema as OpenAPIX.SchemaObject, state) // TODO cast, need to get rid of parameter object
+			}
+
+			nativeType = state.config.toNativeType(type, schema.format, required, refName, state)
+		}
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
+		if (!refName) {
+			refName = `${parentName}_${name}`
+
+			state.anonymousModels[refName] = toCodegenModel(refName, schema as OpenAPIX.SchemaObject, state) // TODO cast
+		}
 		nativeType = state.config.toNativeType(type, schema.format, required, refName, state)
 	} else {
 		throw new Error(`Unsupported schema.type ${schema.type} in ${JSON.stringify(schema)}`)
@@ -711,14 +744,14 @@ function toCodegenModel(name: string, schema: OpenAPIV2.SchemaObject | OpenAPIV3
 	for (const propertyName in schema.properties) {
 		const required = schema.required ? schema.required.indexOf(propertyName) !== -1 : false
 		const propertySchema = schema.properties[propertyName]
-		const property = toCodegenProperty(propertyName, propertySchema, required, state)
+		const property = toCodegenProperty(propertyName, propertySchema, required, name, state)
 		vars.push(property)
 	}
 
 	if (schema.allOf) {
 		for (let subSchema of schema.allOf) {
 			subSchema = resolveReference(subSchema, state)
-			const subModel = toCodegenModel('ignore', subSchema as OpenAPIV2.Schema, state)
+			const subModel = toCodegenModel(name, subSchema as OpenAPIV2.Schema, state)
 			vars.push(...subModel.vars)
 		}
 	} else if (schema.anyOf) {
@@ -797,6 +830,7 @@ export async function run() {
 			root,
 			config,
 			options: config.options(initialOptions),
+			anonymousModels: {},
 		}
 
 		// console.log('refs', parser.$refs)
@@ -992,6 +1026,15 @@ export async function run() {
 			const context = {
 				models: {
 					model: [doc.schemas[modelName]],
+				},
+			}
+			await emit('model', `${outputPath}/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true)
+		}
+
+		for (const modelName in state.anonymousModels) {
+			const context = {
+				models: {
+					model: [state.anonymousModels[modelName]],
 				},
 			}
 			await emit('model', `${outputPath}/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true)

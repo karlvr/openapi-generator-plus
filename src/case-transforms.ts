@@ -8,9 +8,15 @@ export function capitalize(value: string) {
 }
 
 export function camelCase(value: string) {
-	return value.replace(/([^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (whole, sep, letter) => capitalize(letter))
+	value = value.replace(/([^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (whole, sep, letter) => capitalize(letter))
+	/* If the string starts with capitals, we need to lower-case that first word */
+	value = value.replace(/^([A-Z]+)([A-Z])/, (whole, first, next) => first.toLocaleLowerCase() + next)
+	/* If the string starts with a capital letter, lower-case it */
+	value = value.replace(/^[A-Z]/, (whole) => whole.toLocaleLowerCase())
+	return value
 }
 
 export function pascalCase(value: string) {
-	return capitalize(camelCase(value))
+	value = value.replace(/([^a-zA-Z0-9]+)([a-zA-Z0-9])/g, (whole, sep, letter) => capitalize(letter))
+	return capitalize(value)
 }

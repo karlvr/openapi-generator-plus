@@ -7,8 +7,8 @@ import javax.xml.bind.annotation.*;
 {{#if description}}@ApiModel(description = "{{{description}}}"){{/if}}
 
 @SuppressWarnings("unused")
-public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} implements Serializable, APIBean{{#vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{classname}}}>{{/vendorExtensions.x-is-api-response-envelope}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
-	{{#vendorExtensions.x-is-api-response-envelope}}
+public class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable, APIBean{{#if vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{className name}}}>{{/if}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
+	{{#if vendorExtensions.x-is-api-response-envelope}}
 	private Map<String, Map<String, APIBean>> __refs = new LinkedHashMap<>();
 	public Map<String, Map<String, APIBean>> refBeans() {
 		return __refs;
@@ -27,7 +27,7 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
 		}
 		return this;
 	}
-  {{/vendorExtensions.x-is-api-response-envelope}}
+  {{/if}}
   {{#vars}}{{#isEnum}}
 
 {{>enumClass}}{{/isEnum}}{{#items.isEnum}}{{#items}}
@@ -85,7 +85,7 @@ public class {{className name}}{{#parent}} extends {{{parent}}}{{/parent}} imple
 
   @Override
   public int hashCode() {
-    return Objects.hash({{#vars}}this.{{name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
+    return Objects.hash({{#vars}}this.{{identifier name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
   }
 
   @Override

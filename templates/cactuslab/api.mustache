@@ -1,8 +1,7 @@
 package {{package}};
 
-{{#imports}}import {{import}};
+{{#imports}}import {{.}};
 {{/imports}}
-import {{package}}.{{className name}}ApiService;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.CacheControl;
@@ -24,15 +23,6 @@ import com.cactuslab.jaxrs.auth.Authenticated;
 
 import java.util.Map;
 import java.util.List;
-
-{{#useBeanValidation}}
-import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
-import javax.validation.constraints.*;
-{{/useBeanValidation}}
 
 @Path("{{{path}}}")
 // @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
@@ -65,21 +55,22 @@ public class {{className name}}Api  {
         {{/unless}}{{/authMethods}}
     }{{/if}}, tags={ {{#tags}}"{{.}}"{{#unless @last}}, {{/unless}}{{/tags}} })
     @ApiResponses(value = { {{#responses}}
-        @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}} })
+        @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
+    })
     public Response {{operationId}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
     	{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
     	{{#isDeprecated}}log.error("Deprecated API called: {{operationId}}");{{/isDeprecated}}
     	try {
-    		{{#@root.useBeanValidation}}{{#allParams}}
-    		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-			Validator validator = factory.getValidator();
-			Set<ConstraintViolation<{{{dataType}}}>> validations = validator.validate(request);
+    		{{#@root.useBeanValidation}}{{#allParams}}{{#if vendorExtensions.x-validation}}
+    		javax.validation.ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+			javax.validation.Validator validator = factory.getValidator();
+			java.util.Set<javax.validation.ConstraintViolation<{{{nativeType}}}>> validations = validator.validate({{identifier name}});
 			if (!validations.isEmpty()) {
-				throw new {{{className @root/name}}}Service.{{{className ../operationId}}}400Exception(validations);
+				throw new {{{className @root/name}}}ApiService.{{{className ../operationId}}}400Exception(validations);
 			}
 			
-    		{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
-    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{../operationId}}({{#../allParams}}{{#isFile}}{{name}}InputStream, {{name}}Detail{{/isFile}}{{^isFile}}{{name}}{{/isFile}}, {{/../allParams}}response);
+    		{{/if}}{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
+    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../operationId}}({{#../allParams}}{{#isFile}}{{name}}InputStream, {{name}}Detail{{/isFile}}{{^isFile}}{{name}}{{/isFile}}, {{/../allParams}}response);
     		{{#if nativeType}}
     		response.entity(entity);
     		{{/if}}

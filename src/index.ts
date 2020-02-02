@@ -71,7 +71,7 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		switch (type) {
 			case 'integer': {
-				if (format === 'int32') {
+				if (format === 'int32' || format === undefined) {
 					return !required ? `java.lang.Integer.valueOf(${value})` : `${value}`
 				} else if (format === 'int64') {
 					return !required ? `java.lang.Long.valueOf(${value})` : `${value}L`
@@ -169,7 +169,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			return `java.util.Collection<${itemNativeType}>`
 		}
 	},
-	toDefaultValue: (defaultValue, type, required) => {
+	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {
 			return `${defaultValue}`
 		}
@@ -181,7 +181,7 @@ const JavaCodegenConfig: CodegenConfig = {
 		switch (type) {
 			case 'integer':
 			case 'number':
-				return '0'
+				return state.config.toLiteral(0, type, format, required, state)
 			case 'boolean':
 				return 'false'
 			case 'string':
@@ -334,7 +334,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, state: CodegenState): 
 		case 'body':
 			result.isBodyParam = true
 			break
-		case 'form':
+		case 'formData':
 			result.isFormParam = true
 			break
 	}
@@ -674,7 +674,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		name,
 		description: schema.description,
 		title: schema.title,
-		defaultValue: state.config.toDefaultValue(schema.default, type, required, state),
+		defaultValue: state.config.toDefaultValue(schema.default, type, schema.format, required, state),
 		readOnly: !!schema.readOnly,
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),

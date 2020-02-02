@@ -3,7 +3,7 @@ package {{package}};
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 
-{{#imports}}import {{import}};
+{{#imports}}import {{.}};
 {{/imports}}
 
 import java.util.Collection;
@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 {{#operations}}
 @SuppressWarnings("all")
 public interface {{className ../name}}ApiService {
-	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
+	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
 	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
 	
 	{{#operation}}{{^vendorExtensions.x-implementation-provided}}

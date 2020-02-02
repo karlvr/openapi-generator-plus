@@ -22,7 +22,7 @@ export interface CodegenConfig {
 	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
 	toNativeArrayType: (type: string, format: string | undefined, refName: string | undefined, uniqueItems: boolean | undefined, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
-	toDefaultValue: (defaultValue: any, type: string, required: boolean, state: CodegenState) => string
+	toDefaultValue: (defaultValue: any, type: string, format: string, required: boolean, state: CodegenState) => string | undefined
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
 }
 
@@ -111,7 +111,7 @@ export interface CodegenProperty {
 	description?: string
 	title?: string
 	exampleValue?: string
-	defaultValue: string
+	defaultValue?: string
 	readOnly: boolean
 	required: boolean
 	vendorExtensions?: CodegenVendorExtensions

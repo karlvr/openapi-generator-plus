@@ -2,7 +2,7 @@ package {{package}};
 
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 
-{{#imports}}import {{import}};
+{{#imports}}import {{.}};
 {{/imports}}
 
 import java.util.List;
@@ -21,7 +21,7 @@ public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}
 {{#operation}}
 	@Override
 	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier operationId}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../operationId}}}{{{code}}}Exception{{/isDefault}}{{/responses}} {
-		return {{#if returnNativeType}}new {{{returnNativeType}}}(){{else}}null{{/if}};
+		{{#if returnNativeType}}return null;{{/if}}
 	}
 	
 {{/operation}}

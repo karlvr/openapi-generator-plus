@@ -272,7 +272,7 @@ async function loadTemplates(templateDirPath: string) {
 	}
 }
 
-async function emit(templateName: string, outputPath: string, context: object) {
+async function emit(templateName: string, outputPath: string, context: object, replace: boolean) {
 	const template = Handlebars.partials[templateName]
 	if (!template) {
 		throw new Error(`Unknown template: ${templateName}`)
@@ -282,6 +282,15 @@ async function emit(templateName: string, outputPath: string, context: object) {
 	if (outputPath === '-') {
 		console.log(outputString)
 	} else {
+		if (!replace) {
+			try {
+				await fs.access(outputPath)
+				/* File exists, don't replace */
+				return
+			} catch (error) {
+				/* Ignore, file doesn't exist */
+			}
+		}
 		await fs.mkdir(path.dirname(outputPath), { recursive: true })
 		fs.writeFile(outputPath, outputString, 'UTF-8')
 	}
@@ -970,11 +979,11 @@ export async function run() {
 
 		const apiPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
-			await emit('api', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
+			await emit('api', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true)
 		}
 
 		for (const groupName in doc.groups) {
-			await emit('apiService', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext))
+			await emit('apiService', `${outputPath}/${apiPackagePath}/${config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true)
 		}
 
 		rootContext.package = options.apiServiceImplPackage
@@ -982,7 +991,7 @@ export async function run() {
 		const apiImplPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
 			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${config.toClassName(groupName, state)}ApiServiceImpl.java`, 
-				prepareApiContext(doc.groups[groupName], state, rootContext))
+				prepareApiContext(doc.groups[groupName], state, rootContext), true)
 		}
 
 		rootContext.package = options.modelPackage
@@ -994,7 +1003,7 @@ export async function run() {
 					model: [doc.schemas[modelName]],
 				},
 			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext))
+			await emit('model', `${outputPath}/${modelPackagePath}/${config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true)
 		}
 
 		

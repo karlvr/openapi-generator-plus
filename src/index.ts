@@ -68,7 +68,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				if (format === 'int32' || format === undefined) {
 					return !required ? `java.lang.Integer.valueOf(${value})` : `${value}`
 				} else if (format === 'int64') {
-					return !required ? `java.lang.Long.valueOf(${value})` : `${value}L`
+					return !required ? `java.lang.Long.valueOf(${value}l)` : `${value}l`
 				} else {
 					throw new Error(`Unsupported ${type} format: ${format}`)
 				}

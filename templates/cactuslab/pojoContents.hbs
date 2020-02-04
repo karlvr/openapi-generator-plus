@@ -1,0 +1,105 @@
+	{{#if vendorExtensions.x-is-api-response-envelope}}
+	private Map<String, Map<String, APIBean>> __refs = new LinkedHashMap<>();
+	public Map<String, Map<String, APIBean>> refBeans() {
+		return __refs;
+	}
+	public {{className name}} addRef(String fieldName, String ref, APIBeanFactoryFunction creator) {
+		Map<String, APIBean> existingRefs = refBeans().get(fieldName);
+		if (existingRefs == null) {
+			existingRefs = new LinkedHashMap<>();
+			refBeans().put(fieldName, existingRefs);
+		}
+		if (existingRefs.get(ref) == null) {
+			APIBean bean = creator.create();
+			if (bean != null) {
+				existingRefs.put(ref, bean);
+			}
+		}
+		return this;
+	}
+  {{/if}}
+
+  {{>nestedModels}}
+
+  {{#vars}}
+  private {{{nativeType}}} {{identifier name}} = {{{defaultValue}}};
+  private boolean patched{{identifier name}} = false;
+  {{/vars}}
+
+  {{#vars}}
+  /**
+   {{#if description}}
+   * {{description}}
+   {{/if}}
+   {{#if minimum}}
+   * minimum: {{minimum}}
+   {{/if}}
+   {{#if maximum}}
+   * maximum: {{maximum}}
+   {{/if}}
+   **/
+  public {{className ../name}} {{identifier name}}({{{nativeType}}} {{identifier name}}) {
+    set{{capitalize (identifier name)}}({{identifier name}});
+    return this;
+  }
+
+  {{#if vendorExtensions.extraAnnotation}}
+  {{{vendorExtensions.extraAnnotation}}}
+  {{/if}}
+  @ApiModelProperty({{#example}}example = "{{{example}}}", {{/example}}{{#required}}required = {{required}}, {{/required}}value = "{{{description}}}")
+  @com.fasterxml.jackson.annotation.JsonProperty("{{name}}")
+{{#if @root.useBeanValidation}}
+{{>beanValidation}}
+{{/if}}
+  public {{{nativeType}}} {{#isBoolean}}is{{else}}get{{/isBoolean}}{{capitalize (identifier name)}}() {
+    return this.{{identifier name}};
+  }
+  public void set{{capitalize (identifier name)}}({{{nativeType}}} {{identifier name}}) {
+    this.{{identifier name}} = {{identifier name}};
+    this.patched{{identifier name}} = true;
+  }
+  public boolean patched{{identifier name}}() {
+    return this.patched{{identifier name}};
+  }
+
+  {{/vars}}
+
+  @Override
+  public boolean equals(java.lang.Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    {{className name}} {{identifier name}} = ({{className name}}) o;{{#if vars}}
+    return {{#vars}}Objects.equals(this.{{identifier name}}, {{identifier ../name}}.{{identifier name}}){{#hasMore}} &&
+        {{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{else}}
+    return true;{{/if}}
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash({{#vars}}this.{{identifier name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("class {{className name}} {\n");
+    {{#parent}}sb.append("    ").append(toIndentedString(super.toString())).append("\n");{{/parent}}
+    {{#vars}}sb.append("    {{identifier name}}: ").append(toIndentedString(this.{{identifier name}})).append("\n");
+    {{/vars}}sb.append("}");
+    return sb.toString();
+  }
+
+  /**
+   * Convert the given object to string with each line indented by 4 spaces
+   * (except the first line).
+   */
+  private String toIndentedString(java.lang.Object o) {
+    if (o == null) {
+      return "null";
+    }
+    return o.toString().replace("\n", "\n    ");
+  }

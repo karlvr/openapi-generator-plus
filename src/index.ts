@@ -74,7 +74,9 @@ const JavaCodegenConfig: CodegenConfig = {
 				}
 			}
 			case 'number': {
-				if (format === 'float') {
+				if (format === undefined) {
+					return `java.math.BigDecimal.valueOf("${value}")`
+				} else if (format === 'float') {
 					return !required ? `java.lang.Float.valueOf(${value}f)` : `${value}f`
 				} else if (format === 'double') {
 					return !required ? `java.lang.Double.valueOf(${value}d)` : `${value}d`
@@ -125,7 +127,9 @@ const JavaCodegenConfig: CodegenConfig = {
 				}
 			}
 			case 'number': {
-				if (format === 'float' || format === undefined) {
+				if (format === undefined) {
+					return 'java.math.BigDecimal'
+				} else if (format === 'float') {
 					return !required ? 'java.lang.Float' : 'float'
 				} else if (format === 'double') {
 					return !required ? 'java.lang.Double' : 'double'

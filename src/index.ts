@@ -91,6 +91,8 @@ const JavaCodegenConfig: CodegenConfig = {
 					throw new Error(`Cannot format literal for type ${type} format ${format}`)
 				} else if (format === 'date') {
 					return `java.time.LocalDate.parse("${value}")`
+				} else if (format === 'time') {
+					return `java.time.LocalTime.parse("${value}")`
 				} else if (format === 'date-time') {
 					return `java.time.OffsetDateTime.parse("${value}")`
 				} else {
@@ -144,6 +146,8 @@ const JavaCodegenConfig: CodegenConfig = {
 					return 'java.lang.Object'
 				} else if (format === 'date') {
 					return 'java.time.LocalDate'
+				} else if (format === 'time') {
+					return 'java.time.LocalTime'
 				} else if (format === 'date-time') {
 					return 'java.time.OffsetDateTime'
 				} else {

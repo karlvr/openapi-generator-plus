@@ -979,6 +979,12 @@ export async function run() {
 		// Handlebars.registerHelper('helperMissing', function(this: any) {
 		// 	const options = arguments[arguments.length - 1];
 
+		Handlebars.registerHelper('indent', function(this: {}, indentString: string, options: HelperOptions) {
+			const result = options.fn(this)
+			// const indentString = '\t'.repeat(indent)
+			return result.replace(/^/gm, indentString)
+		})
+
 		// 	console.log(options.name)
 
 

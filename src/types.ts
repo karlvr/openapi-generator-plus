@@ -20,9 +20,10 @@ export interface CodegenConfig {
 	toConstantName: (name: string, state: CodegenState) => string
 	toEnumName: (name: string, state: CodegenState) => string
 	toOperationName: (path: string, method: string, state: CodegenState) => string
+
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string | undefined
-	toNativeType: (type: string, format: string | undefined, required: boolean, refName: string | undefined, state: CodegenState) => string
+	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => string
 	toNativeArrayType: (componentNativeType: string, uniqueItems: boolean | undefined, state: CodegenState) => string
 	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
@@ -126,11 +127,6 @@ export interface CodegenProperty {
 	/** Type in native language */
 	nativeType: string
 
-	/** The native type of the enum value */
-	enumValueNativeType?: string
-	/** The values making up the enum */
-	enumValues?: any[]
-
 	/* Validation */
 	maximum?: number
 	exclusiveMaximum?: boolean
@@ -149,6 +145,9 @@ export interface CodegenProperty {
 	isBoolean: boolean
 	isNumber: boolean
 	isEnum: boolean
+
+	/** Nested models */
+	models?: CodegenModel[]
 }
 
 /** The context for model output */
@@ -159,9 +158,18 @@ export interface CodegenModelContext {
 export interface CodegenModel {
 	name: string
 	description?: string
-	isEnum: boolean
 	vars: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions
+
+	/** Enums */
+	isEnum: boolean
+	/** The native type of the enum value */
+	enumValueNativeType?: string
+	/** The values making up the enum */
+	enumValues?: any[]
+
+	/** Nested models */
+	models?: CodegenModel[]
 }
 
 export interface CodegenParameter {
@@ -171,6 +179,7 @@ export interface CodegenParameter {
 	nativeType?: string
 	description?: string
 	required?: boolean
+
 	isQueryParam?: boolean
 	isPathParam?: boolean
 	isHeaderParam?: boolean

@@ -1,13 +1,7 @@
-import io.swagger.annotations.*;
-import java.util.Objects;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.io.Serializable;
-import javax.xml.bind.annotation.*;
 {{#if description}}@ApiModel(description = "{{{description}}}"){{/if}}
 
 @SuppressWarnings("unused")
-public class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable, APIBean{{#if vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{className name}}}>{{/if}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
+public static class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable, APIBean{{#if vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{className name}}}>{{/if}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
 	{{#if vendorExtensions.x-is-api-response-envelope}}
 	private Map<String, Map<String, APIBean>> __refs = new LinkedHashMap<>();
 	public Map<String, Map<String, APIBean>> refBeans() {

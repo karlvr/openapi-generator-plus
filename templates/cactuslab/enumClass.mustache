@@ -1,6 +1,6 @@
-@javax.xml.bind.annotation.XmlType(name="{{enumName name}}")
+@javax.xml.bind.annotation.XmlType(name="{{className name}}")
 @javax.xml.bind.annotation.XmlEnum({{enumValueNativeType}}.class)
-public enum {{enumName name}} {
+public enum {{className name}} {
 
     {{#enumValues}}
     @javax.xml.bind.annotation.XmlEnumValue({{{.}}}) {{constantName .}}({{../enumValueNativeType}}.valueOf({{{.}}})){{#unless @last}}, {{else}};{{/unless}}
@@ -9,7 +9,7 @@ public enum {{enumName name}} {
 
     private {{enumValueNativeType}} value;
 
-    {{enumName name}}({{enumValueNativeType}} v) {
+    {{className name}}({{enumValueNativeType}} v) {
         value = v;
     }
 
@@ -22,8 +22,8 @@ public enum {{enumName name}} {
         return String.valueOf(value);
     }
 
-    public static {{enumName name}} fromValue(String v) {
-        for ({{enumName name}} b : {{enumName name}}.values()) {
+    public static {{className name}} fromValue(String v) {
+        for ({{className name}} b : {{className name}}.values()) {
             if (String.valueOf(b.value).equals(v)) {
                 return b;
             }

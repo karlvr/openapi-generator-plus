@@ -1,0 +1,4 @@
+{{#models}}
+{{#isEnum}}{{#indent '	'}}{{>enumClass}}{{/indent}}{{/isEnum}}
+{{^isEnum}}{{#indent '	'}}{{>pojoClass}}{{/indent}}{{/isEnum}}
+{{/models}}

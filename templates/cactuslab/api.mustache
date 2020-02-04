@@ -43,6 +43,8 @@ public class {{className name}}Api  {
 {{#operations}}
 {{#operation}}{{^vendorExtensions.x-implementation-provided}}
 
+{{>nestedModels}}
+
     @{{httpMethod}}{{#if authMethods}} @Authenticated{{/if}}{{#isDeprecated}} @Deprecated{{/isDeprecated}}
     {{#if path}}@Path("{{{path}}}"){{/if}}
     {{#if consumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/if}}
@@ -70,7 +72,7 @@ public class {{className name}}Api  {
 			}
 			
     		{{/if}}{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
-    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#isFile}}{{name}}InputStream, {{name}}Detail{{/isFile}}{{^isFile}}{{name}}{{/isFile}}, {{/../allParams}}response);
+    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#if isFile}}{{identifier name}}InputStream, {{identifier name}}Detail{{else}}{{identifier name}}{{/if}}, {{/../allParams}}response);
     		{{#if nativeType}}
     		response.entity(entity);
     		{{/if}}

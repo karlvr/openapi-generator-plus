@@ -166,7 +166,6 @@ export interface CodegenModel {
 
 export interface CodegenParameter {
 	name: string
-	originalName: string
 	in: string
 	type?: string
 	nativeType?: string

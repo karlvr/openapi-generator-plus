@@ -315,7 +315,6 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 
 	const result: CodegenParameter = {
 		name: parameter.name,
-		originalName: parameter.name,
 		type: property ? property.type : undefined,
 		nativeType: property ? property.nativeType : undefined,
 		in: parameter.in,

@@ -19,11 +19,16 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 {{#operations}}
 @SuppressWarnings("all")
 public interface {{className ../name}}ApiService {
-	{{#operation}}{{^vendorExtensions.x-implementation-provided}}public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
-	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+	{{#operation}}
+	{{^vendorExtensions.x-implementation-provided}}
+	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
+	{{/vendorExtensions.x-implementation-provided}}
+	{{/operation}}
 	
-	{{#operation}}{{^vendorExtensions.x-implementation-provided}}
-	{{#responses}}{{^isDefault}}
+	{{#operation}}
+	{{^vendorExtensions.x-implementation-provided}}
+	{{#responses}}
+	{{^isDefault}}
 	public static class {{{className ../name}}}{{{code}}}Exception extends Exception {
 		{{#unless nativeType}}
 		public {{{className ../name}}}{{{code}}}Exception() {
@@ -49,7 +54,9 @@ public interface {{className ../name}}ApiService {
 		}
 		{{/unless}}
 	}
-	{{/isDefault}}{{/responses}}
-	{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+	{{/isDefault}}
+	{{/responses}}
+	{{/vendorExtensions.x-implementation-provided}}
+	{{/operation}}
 }
 {{/operations}}

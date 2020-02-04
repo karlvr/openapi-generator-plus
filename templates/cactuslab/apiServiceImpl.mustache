@@ -19,11 +19,13 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}.{{className ../name}}ApiService {
 
 {{#operation}}
+{{^vendorExtensions.x-implementation-provided}}
 	@Override
 	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}} {
 		{{#if returnNativeType}}return null;{{/if}}
 	}
 	
+{{/vendorExtensions.x-implementation-provided}}
 {{/operation}}
 }
 {{/operations}}

@@ -1085,7 +1085,7 @@ export async function run() {
 		const apiImplPackagePath = packageToPath(rootContext.package)
 		for (const groupName in doc.groups) {
 			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${config.toClassName(groupName, state)}ApiServiceImpl.java`, 
-				prepareApiContext(doc.groups[groupName], state, rootContext), true)
+				prepareApiContext(doc.groups[groupName], state, rootContext), false)
 		}
 
 		rootContext.package = options.modelPackage

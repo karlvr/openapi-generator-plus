@@ -92,7 +92,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				} else if (format === 'date') {
 					return `java.time.LocalDate.parse("${value}")`
 				} else if (format === 'date-time') {
-					return `java.time.ZonedDateTime.parse("${value}")`
+					return `java.time.OffsetDateTime.parse("${value}")`
 				} else {
 					return `"${escapeString(value)}"`
 				}
@@ -145,7 +145,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				} else if (format === 'date') {
 					return 'java.time.LocalDate'
 				} else if (format === 'date-time') {
-					return 'java.time.ZonedDateTime'
+					return 'java.time.OffsetDateTime'
 				} else {
 					return 'java.lang.String'
 				}

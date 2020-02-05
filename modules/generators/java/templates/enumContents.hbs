@@ -1,5 +1,5 @@
     {{#enumValues}}
-    @javax.xml.bind.annotation.XmlEnumValue({{{.}}}) {{constantName .}}({{../enumValueNativeType}}.valueOf({{{.}}})){{#unless @last}}, {{else}};{{/unless}}
+    @javax.xml.bind.annotation.XmlEnumValue({{{.}}}) {{constantName value}}({{{literalValue}}}){{#unless @last}}, {{else}};{{/unless}}
     {{/enumValues}}
 
 

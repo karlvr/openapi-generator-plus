@@ -151,10 +151,15 @@ export interface CodegenModel {
 	/** The native type of the enum value */
 	enumValueNativeType?: string
 	/** The values making up the enum */
-	enumValues?: any[]
+	enumValues?: CodegenEnumValue[]
 
 	/** Nested models */
 	models?: CodegenModel[]
+}
+
+export interface CodegenEnumValue {
+	value: any
+	literalValue: string
 }
 
 export interface CodegenParameter {

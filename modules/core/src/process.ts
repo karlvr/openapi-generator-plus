@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 
@@ -546,7 +546,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	}
 
 	let enumValueNativeType: string | undefined
-	let enumValues: any
+	let enumValues: CodegenEnumValue[] | undefined
 
 	if (schema.allOf) {
 		for (const subSchema of schema.allOf) {
@@ -572,7 +572,10 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		const enumValueFormat = schema.format
 
 		enumValueNativeType = state.config.toNativeType(type, schema.format, false, undefined, state)
-		enumValues = schema.enum ? schema.enum.map(value => state.config.toLiteral(value, enumValueType, enumValueFormat, false, state)) : undefined
+		enumValues = schema.enum ? schema.enum.map(value => ({
+			value,
+			literalValue: state.config.toLiteral(value, enumValueType, enumValueFormat, false, state),
+		})) : undefined
 	} else if (schema.type === 'object') {
 		/* Nothing to do */
 	} else {

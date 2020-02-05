@@ -4,6 +4,7 @@
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
     "test": "jest",
     "watch": "tsc --watch"
   },

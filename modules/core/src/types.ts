@@ -21,12 +21,12 @@ export interface CodegenConfig {
 	toOperationName: (path: string, method: string, state: CodegenState) => string
 
 	/** Format a value as a literal in the language */
-	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string | undefined
+	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => string
 	toNativeArrayType: (componentNativeType: string, uniqueItems: boolean | undefined, state: CodegenState) => string
 	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
-	toDefaultValue: (defaultValue: any, type: string, format: string, required: boolean, state: CodegenState) => string | undefined
+	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
 
 	exportTemplates: (doc: CodegenDocument, commandLineOptions: any, state: CodegenState) => void

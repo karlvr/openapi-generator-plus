@@ -110,9 +110,9 @@ const JavaCodegenConfig: CodegenConfig = {
 	toOperationName: (path, method) => {
 		return `${method.toLocaleLowerCase()}_${path}`
 	},
-	toLiteral: (value, type, format, required) => {
+	toLiteral: (value, type, format, required, state) => {
 		if (value === undefined) {
-			return undefined
+			return state.config.toDefaultValue(undefined, type, format, required, state)
 		}
 
 		switch (type) {

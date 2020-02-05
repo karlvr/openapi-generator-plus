@@ -2,11 +2,11 @@
   "name": "openapi-generator-node",
   "version": "0.0.1",
   "description": "OpenAPI code generator written in Node",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "postinstall": "./scripts/patches.sh",
     "start": "ts-node src/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "watch": "tsc --watch"
   },
   "author": "Karl von Randow",
   "license": "MIT",
@@ -19,13 +19,12 @@
     "eslint-plugin-jest": "^23.6.0",
     "jest": "^25.1.0",
     "ts-jest": "^25.1.0",
+    "ts-node": "^8.6.2",
     "typescript": "^3.7.4"
   },
   "dependencies": {
-    "change-case": "^4.1.1",
     "getopts": "^2.2.5",
-    "handlebars": "^4.7.2",
-    "swagger-parser": "^8.0.4",
-    "ts-node": "^8.6.2"
+    "openapi-generator-node-core": "file:../core",
+    "swagger-parser": "^8.0.4"
   }
 }

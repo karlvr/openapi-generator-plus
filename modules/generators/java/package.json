@@ -1,0 +1,22 @@
+{
+  "name": "java-generator",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "watch": "tsc --watch"
+  },
+  "author": "Karl von Randow",
+  "license": "MIT",
+  "dependencies": {
+    "change-case": "^4.1.1",
+    "handlebars": "^4.7.3",
+    "openapi-generator-node-core": "file:../../core"
+  },
+  "devDependencies": {
+    "@types/node": "^13.7.0",
+    "typescript": "^3.7.5"
+  }
+}

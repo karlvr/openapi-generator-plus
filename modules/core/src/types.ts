@@ -1,6 +1,5 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { OpenAPI } from 'openapi-types'
 import SwaggerParser = require('swagger-parser')
-import { OpenAPIX } from './types/patches'
 
 export interface CodegenState {
 	parser: SwaggerParser
@@ -29,6 +28,8 @@ export interface CodegenConfig {
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string, required: boolean, state: CodegenState) => string | undefined
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
+
+	exportTemplates: (doc: CodegenDocument, commandLineOptions: any, state: CodegenState) => void
 }
 
 /**
@@ -39,27 +40,11 @@ export interface CodegenOptions {
 }
 
 /**
- * Options specific to Java that the user can provide to the code generation process.
- */
-export interface CodegenOptionsJava extends CodegenOptions {
-	apiPackage: string
-	apiServiceImplPackage: string
-	modelPackage: string
-	invokerPackage: string
-	useBeanValidation?: boolean
-}
-
-/**
  * Code generation specific context attributes that are added to the root context.
  */
 export interface CodegenRootContext {
 	generatorClass: string
 	generatedDate: string
-}
-
-export interface CodegenRootContextJava extends CodegenRootContext {
-	package: string
-	imports?: string[]
 }
 
 export interface CodegenDocument {

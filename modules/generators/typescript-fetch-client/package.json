@@ -1,0 +1,22 @@
+{
+  "name": "typescript-fetch-client-generator",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "tsc --watch"
+  },
+  "author": "Karl von Randow",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^13.7.0",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "change-case": "^4.1.1",
+    "handlebars": "^4.7.3",
+    "openapi-generator-node-core": "file:../../core"
+  }
+}

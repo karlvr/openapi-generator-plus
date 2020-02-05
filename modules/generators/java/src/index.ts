@@ -231,7 +231,7 @@ const JavaCodegenConfig: CodegenConfig = {
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {
-			return `${defaultValue}`
+			return state.config.toLiteral(defaultValue, type, format, required, state)
 		}
 
 		if (!required) {

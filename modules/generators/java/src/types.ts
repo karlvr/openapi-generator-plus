@@ -1,4 +1,4 @@
-import { CodegenOptions, CodegenRootContext } from 'openapi-generator-node-core/dist/types'
+import { CodegenOptions, CodegenRootContext } from 'openapi-generator-node-core'
 
 /**
  * Options specific to Java that the user can provide to the code generation process.

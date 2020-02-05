@@ -1,6 +1,6 @@
 import { constantCase } from 'change-case'
-import { pascalCase, camelCase, capitalize } from 'openapi-generator-node-core/dist/case-transforms'
-import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core/dist/types'
+import { pascalCase, camelCase, capitalize } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
 import { CodegenOptionsJava, CodegenRootContextJava } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'

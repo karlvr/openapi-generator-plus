@@ -1,0 +1,27 @@
+{
+  "name": "openapi-generator-node",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "build": "(cd modules/core && npm run build) && (cd modules/cli && npm run build) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm run build); fi; done)",
+    "start": "node ./modules/cli/dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karlvr/openapi-generator-node.git"
+  },
+  "author": "Karl von Randow",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/karlvr/openapi-generator-node/issues"
+  },
+  "homepage": "https://github.com/karlvr/openapi-generator-node#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.19.0",
+    "@typescript-eslint/parser": "^2.19.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "typescript": "^3.7.5"
+  }
+}

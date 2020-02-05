@@ -23,7 +23,7 @@
 
   {{#vars}}
   private {{{nativeType}}} {{identifier name}} = {{{defaultValue}}};
-  private boolean patched{{capitalize (identifier name)}} = false;
+  private boolean __patched{{capitalize (identifier name)}} = false;
   {{/vars}}
 
   {{#vars}}
@@ -56,10 +56,10 @@
   }
   public void set{{capitalize (identifier name)}}({{{nativeType}}} {{identifier name}}) {
     this.{{identifier name}} = {{identifier name}};
-    this.patched{{capitalize (identifier name)}} = true;
+    this.__patched{{capitalize (identifier name)}} = true;
   }
   public boolean patched{{capitalize (identifier name)}}() {
-    return this.patched{{capitalize (identifier name)}};
+    return this.__patched{{capitalize (identifier name)}};
   }
 
   {{/vars}}

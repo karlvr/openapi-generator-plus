@@ -75,7 +75,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			}
 			case 'number': {
 				if (format === undefined) {
-					return `java.math.BigDecimal.valueOf("${value}")`
+					return `new java.math.BigDecimal("${value}")`
 				} else if (format === 'float') {
 					return !required ? `java.lang.Float.valueOf(${value}f)` : `${value}f`
 				} else if (format === 'double') {

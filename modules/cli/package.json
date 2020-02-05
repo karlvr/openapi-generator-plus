@@ -1,5 +1,5 @@
 {
-  "name": "openapi-generator-node",
+  "name": "openapi-generator-node-cli",
   "version": "0.0.1",
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",

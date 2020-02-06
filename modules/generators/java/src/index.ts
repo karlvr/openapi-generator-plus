@@ -76,7 +76,13 @@ async function emit(templateName: string, outputPath: string, context: object, r
 		throw new Error(`Unknown template: ${templateName}`)
 	}
 
-	const outputString = template(context)
+	let outputString
+	try {
+		outputString = template(context)
+	} catch (error) {
+		console.error(`Failed to generate template "${templateName}"`, error)
+		return
+	}
 
 	if (outputPath === '-') {
 		console.log(outputString)

@@ -5,6 +5,7 @@ import { CodegenOptionsJava, CodegenRootContextJava } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
+import * as _ from 'lodash'
 
 async function compileTemplate(templatePath: string, hbs: typeof Handlebars) {
 	const templateSource = await fs.readFile(templatePath, 'UTF-8')
@@ -385,41 +386,37 @@ const JavaCodegenConfig: CodegenConfig = {
 		const outputPath = commandLineOptions.output
 
 		const apiPackagePath = packageToPath(rootContext.package)
-		for (const groupName in doc.groups) {
-			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
+		for (const group of doc.groups) {
+			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}Api.java`, prepareApiContext(group, state, rootContext), true, hbs)
 		}
 
-		for (const groupName in doc.groups) {
-			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
+		for (const group of doc.groups) {
+			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}ApiService.java`, prepareApiContext(group, state, rootContext), true, hbs)
 		}
 
 		rootContext.package = options.apiServiceImplPackage
 
 		const apiImplPackagePath = packageToPath(rootContext.package)
-		for (const groupName in doc.groups) {
-			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(groupName, state)}ApiServiceImpl.java`, 
-				prepareApiContext(doc.groups[groupName], state, rootContext), false, hbs)
+		for (const group of doc.groups) {
+			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(group.name, state)}ApiServiceImpl.java`, 
+				prepareApiContext(group, state, rootContext), false, hbs)
 		}
 
 		rootContext.package = options.modelPackage
 
 		const modelPackagePath = packageToPath(rootContext.package)
-		for (const modelName in doc.schemas) {
+		for (const model of doc.models) {
 			const context = {
-				models: {
-					model: [doc.schemas[modelName]],
-				},
+				models: [model],
 			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
+			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
 		}
 
-		for (const modelName in state.anonymousModels) {
+		for (const model of _.values(state.anonymousModels)) {
 			const context = {
-				models: {
-					model: [state.anonymousModels[modelName]],
-				},
+				models: [model],
 			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
+			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
 		}
 	},
 }

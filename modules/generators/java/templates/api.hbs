@@ -41,7 +41,7 @@ public class {{className name}}Api  {
   private static final Log log = LogFactory.getLog({{className name}}Api.class);
 
 {{#operations}}
-{{#operation}}{{^vendorExtensions.x-implementation-provided}}
+{{^vendorExtensions.x-implementation-provided}}
 
 {{>nestedModels}}
 
@@ -91,6 +91,6 @@ public class {{className name}}Api  {
         }
     }
 
-{{/vendorExtensions.x-implementation-provided}}{{/operation}}
+{{/vendorExtensions.x-implementation-provided}}
 {{/operations}}
 }

@@ -1,7 +1,12 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
+import * as _ from 'lodash'
+
+interface CodegenOperationGroups {
+	[name: string]: CodegenOperationGroup
+}
 
 // TODO this represents a strategy for grouping operations
 /**
@@ -9,7 +14,7 @@ import { OpenAPIX } from './types/patches'
  * @param operationInfo 
  * @param apiInfo 
  */
-function addOperationToGroup(operationInfo: CodegenOperation, apiInfo: CodegenDocument) {
+function addOperationToGroup(operationInfo: CodegenOperation, groups: CodegenOperationGroups) {
 	let basePath = operationInfo.path
 	
 	const pos = basePath.indexOf('/', 1)
@@ -29,30 +34,40 @@ function addOperationToGroup(operationInfo: CodegenOperation, apiInfo: CodegenDo
 		groupName = groupName.substring(1)
 	}
 
-	if (!apiInfo.groups[groupName]) {
-		apiInfo.groups[groupName] = {
+	if (!groups[groupName]) {
+		groups[groupName] = {
 			name: groupName,
 			path: basePath,
-			operations: {
-				operation: [],
-			},
+			operations: [],
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 		}
 	}
-	apiInfo.groups[groupName].operations.operation.push(operationInfo)
+	groups[groupName].operations.push(operationInfo)
 }
 
-function addOperationsToGroups(operationInfos: CodegenOperation[], apiInfo: CodegenDocument) {
+function addOperationsToGroups(operationInfos: CodegenOperation[]) {
+	const groups: CodegenOperationGroups = {}
 	for (const operationInfo of operationInfos) {
-		addOperationToGroup(operationInfo, apiInfo)
+		addOperationToGroup(operationInfo, groups)
 	}
+
+	return _.values(groups)
 }
 
 function processCodegenDocument(doc: CodegenDocument) {
-	for (const name in doc.groups) {
-		doc.groups[name].operations.operation.sort((a, b) => a.name.localeCompare(b.name))
+	/* Sort groups */
+	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
+	for (const group of doc.groups) {
+		processCodegenOperationGroup(group)
 	}
+
+	/* Sort models */
+	doc.models.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+}
+
+function processCodegenOperationGroup(group: CodegenOperationGroup) {
+	group.operations.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, result: CodegenOperation[], state: CodegenState) {
@@ -333,16 +348,6 @@ function toCodegenMediaTypes(content: { [media: string]: OpenAPIV3.MediaTypeObje
 	return result
 }
 
-function processCodegenOperations(operationInfos: CodegenOperation[], state: CodegenState) {
-	for (const operationInfo of operationInfos) {
-		processOperationInfo(operationInfo, state)
-	}
-}
-
-function processOperationInfo(op: CodegenOperation, state: CodegenState) {
-	// TODO
-}
-
 function toCodegenResponses(responses: OpenAPIX.ResponsesObject, parentName: string, state: CodegenState): CodegenResponse[] {
 	const result: CodegenResponse[] = []
 
@@ -619,21 +624,17 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, operations, state)
 	}
 
-	// console.log(operationInfos)
-
-	processCodegenOperations(operations, state)
-
 	const doc: CodegenDocument = {
-		groups: {},
-		schemas: {},
+		groups: [],
+		models: [],
 	}
-	addOperationsToGroups(operations, doc)
+	doc.groups = addOperationsToGroups(operations)
 
 	if (isOpenAPIV2Document(root)) {
 		if (root.definitions) {
 			for (const schemaName in root.definitions) {
 				const model = toCodegenModel(schemaName, undefined, root.definitions[schemaName], state)
-				doc.schemas[schemaName] = model
+				doc.models.push(model)
 			}
 		}
 	} else {

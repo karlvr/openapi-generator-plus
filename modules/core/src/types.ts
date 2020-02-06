@@ -48,21 +48,17 @@ export interface CodegenRootContext {
 }
 
 export interface CodegenDocument {
-	groups: { [name: string]: CodegenOperationGroup }
-	schemas: { [name: string]: CodegenModel }
+	groups: CodegenOperationGroup[]
+	models: CodegenModel[]
 }
 
 export interface CodegenOperationGroup {
 	name: string
 	path: string
 	
-	operations: CodegenOperations
+	operations: CodegenOperation[]
 	consumes?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 	produces?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-}
-
-export interface CodegenOperations {
-	operation: CodegenOperation[]
 }
 
 export interface CodegenOperation {

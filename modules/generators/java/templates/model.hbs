@@ -3,11 +3,10 @@ package {{package}};
 {{#imports}}import {{.}};
 {{/imports}}
 {{#models}}
-{{#model}}{{#if description}}
+{{#if description}}
 /**
  * {{description}}
  **/{{/if}}
 {{#isEnum}}{{>enumClass}}{{/isEnum}}
 {{^isEnum}}{{>pojo}}{{/isEnum}}
-{{/model}}
 {{/models}}

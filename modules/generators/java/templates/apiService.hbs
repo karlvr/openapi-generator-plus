@@ -16,16 +16,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 {{>generatedAnnotation}}
-{{#operations}}
 @SuppressWarnings("all")
-public interface {{className ../name}}ApiService {
-	{{#operation}}
+public interface {{className name}}ApiService {
+	{{#operations}}
 	{{^vendorExtensions.x-implementation-provided}}
 	public {{#if returnNativeType}}{{{returnNativeType}}}{{else}}void{{/if}} {{identifier name}}({{#allParams}}{{>serviceQueryParams}}{{>servicePathParams}}{{>serviceHeaderParams}}{{>serviceBodyParams}}{{>serviceFormParams}}, {{/allParams}}ResponseBuilder response) throws RuntimeException{{#responses}}{{^isDefault}}, {{{className ../name}}}{{{code}}}Exception{{/isDefault}}{{/responses}};
 	{{/vendorExtensions.x-implementation-provided}}
-	{{/operation}}
+	{{/operations}}
 	
-	{{#operation}}
+	{{#operations}}
 	{{^vendorExtensions.x-implementation-provided}}
 	{{#responses}}
 	{{^isDefault}}
@@ -57,6 +56,5 @@ public interface {{className ../name}}ApiService {
 	{{/isDefault}}
 	{{/responses}}
 	{{/vendorExtensions.x-implementation-provided}}
-	{{/operation}}
+	{{/operations}}
 }
-{{/operations}}

@@ -15,8 +15,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 // @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
 {{>generatedAnnotation}}
-{{#operations}}
-public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}.{{className ../name}}ApiService {
+public class {{className name}}ApiServiceImpl implements {{@root/apiPackage}}.{{className name}}ApiService {
 
 {{#operation}}
 {{^vendorExtensions.x-implementation-provided}}
@@ -28,4 +27,3 @@ public class {{className ../name}}ApiServiceImpl implements {{@root/apiPackage}}
 {{/vendorExtensions.x-implementation-provided}}
 {{/operation}}
 }
-{{/operations}}

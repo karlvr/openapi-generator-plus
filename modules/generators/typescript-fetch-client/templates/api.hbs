@@ -1,3 +1,4 @@
+/* eslint-disable */
 /// <reference path="./custom.d.ts" />
 // tslint:disable
 {{>licenseInfo}}
@@ -68,34 +69,34 @@ export class RequiredError extends Error {
 }
 
 {{#models}}
-{{#model}}{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{^isEnum}}{{>modelGeneric}}{{/isEnum}}{{/model}}
+{{#isEnum}}{{>modelEnum}}{{/isEnum}}{{^isEnum}}{{>modelGeneric}}{{/isEnum}}
 {{/models}}
-{{#apiInfo}}{{#apis}}{{#operations}}
+{{#groups}}
 /**
- * {{classname}} - fetch parameter creator{{#description}}
- * {{&description}}{{/description}}
+ * {{className name}}Api - fetch parameter creator{{#if description}}
+ * {{&description}}{{/if}}
  * @export
  */
-export const {{classname}}FetchParamCreator = function (configuration?: Configuration) {
+export const {{className name}}ApiFetchParamCreator = function (configuration?: Configuration) {
     return {
-    {{#operation}}
+    {{#operations}}
         /**
-         * {{&notes}}
-         {{#summary}}
+         * {{&description}}
+         {{#if summary}}
          * @summary {{&summary}}
-         {{/summary}}
+         {{/if}}
          {{#allParams}}
-         * @param {{=<% %>=}}{<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+         * @param {{safe '{'}}{{&nativeType}}{{safe '}'}} {{^required}}[{{/required}}{{identifier name}}{{^required}}]{{/required}} {{description}}
          {{/allParams}}
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options: any = {}): FetchArgs {
+        {{identifier name}}({{#allParams}}{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}}, {{/allParams}}options: any = {}): FetchArgs {
     {{#allParams}}
     {{#required}}
-            // verify required parameter '{{paramName}}' is not null or undefined
-            if ({{paramName}} === null || {{paramName}} === undefined) {
-                throw new RequiredError('{{paramName}}','Required parameter {{paramName}} was null or undefined when calling {{nickname}}.');
+            // verify required parameter '{{identifier name}}' is not null or undefined
+            if ({{identifier name}} === null || {{identifier name}} === undefined) {
+                throw new RequiredError('{{identifier name}}','Required parameter {{identifier name}} was null or undefined when calling {{identifier ../name}}.');
             }
     {{/required}}
     {{/allParams}}
@@ -215,9 +216,11 @@ export const {{classname}}FetchParamCreator = function (configuration?: Configur
             {{^consumes}}
             localVarHeaderParameter['Content-Type'] = 'application/json';
             {{/consumes}}
-            {{#consumes.0}}
-            localVarHeaderParameter['Content-Type'] = '{{{mediaType}}}';
-            {{/consumes.0}}
+            {{#consumes}}
+            {{#if @first}}
+            localVarHeaderParameter['Content-Type'] = '{{{.}}}';
+            {{/if}}
+            {{/consumes}}
 
     {{/bodyParam}}
             localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
@@ -237,128 +240,128 @@ export const {{classname}}FetchParamCreator = function (configuration?: Configur
                 options: localVarRequestOptions,
             };
         },
-    {{/operation}}
+    {{/operations}}
     }
 };
 
 /**
- * {{classname}} - functional programming interface{{#description}}
- * {{{description}}}{{/description}}
+ * {{className name}}Api - functional programming interface{{#if description}}
+ * {{{description}}}{{/if}}
  * @export
  */
-export const {{classname}}Fp = function(configuration?: Configuration) {
+export const {{className name}}ApiFp = function(configuration?: Configuration) {
     return {
-    {{#operation}}
+    {{#operations}}
         /**
-         * {{&notes}}
-         {{#summary}}
+         * {{&description}}
+         {{#if summary}}
          * @summary {{&summary}}
-         {{/summary}}
+         {{/if}}
          {{#allParams}}
-         * @param {{=<% %>=}}{<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+         * @param {{safe '{'}}{{&nativeType}}{{safe '}'}} {{^required}}[{{/required}}{{identifier name}}{{^required}}]{{/required}} {{description}}
          {{/allParams}}
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}Response{{/returnType}}> {
-            const localVarFetchArgs = {{classname}}FetchParamCreator(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options);
+        {{identifier name}}({{#allParams}}{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}}, {{/allParams}}options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<{{#if nativeReturnType}}{{{nativeReturnType}}}{{else}}Response{{/if}}> {
+            const localVarFetchArgs = {{className ../name}}ApiFetchParamCreator(configuration).{{identifier name}}({{#allParams}}{{identifier name}}, {{/allParams}}options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
-                        return response{{#returnType}}.json(){{/returnType}};
+                        return response{{#if nativeReturnType}}.json(){{/if}};
                     } else {
                         throw response;
                     }
                 });
             };
         },
-    {{/operation}}
+    {{/operations}}
     }
 };
 
 /**
- * {{classname}} - factory interface{{#description}}
- * {{&description}}{{/description}}
+ * {{className name}}Api - factory interface{{#if description}}
+ * {{&description}}{{/if}}
  * @export
  */
-export const {{classname}}Factory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
+export const {{className name}}ApiFactory = function (configuration?: Configuration, fetch?: FetchAPI, basePath?: string) {
     return {
-    {{#operation}}
+    {{#operations}}
         /**
-         * {{&notes}}
-         {{#summary}}
+         * {{&description}}
+         {{#if summary}}
          * @summary {{&summary}}
-         {{/summary}}
+         {{/if}}
          {{#allParams}}
-         * @param {{=<% %>=}}{<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+         * @param {{safe '{'}}{{&nativeType}}{{safe '}'}} {{^required}}[{{/required}}{{identifier name}}{{^required}}]{{/required}} {{description}}
          {{/allParams}}
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any) {
-            return {{classname}}Fp(configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options)(fetch, basePath);
+        {{identifier name}}({{#allParams}}{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}}, {{/allParams}}options?: any) {
+            return {{className ../name}}ApiFp(configuration).{{identifier name}}({{#allParams}}{{identifier name}}, {{/allParams}}options)(fetch, basePath);
         },
-    {{/operation}}
+    {{/operations}}
     };
 };
 
 {{#withInterfaces}}
 /**
- * {{classname}} - interface{{#description}}
- * {{&description}}{{/description}}
+ * {{className name}}Api - interface{{#if description}}
+ * {{&description}}{{/if}}
  * @export
- * @interface {{classname}}
+ * @interface {{className name}}Api
  */
-export interface {{classname}}Interface {
-{{#operation}}
+export interface {{className name}}ApiInterface {
+{{#operations}}
     /**
-     * {{&notes}}
+     * {{&description}}
      {{#summary}}
      * @summary {{&summary}}
      {{/summary}}
      {{#allParams}}
-     * @param {{=<% %>=}}{<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+     * @param {{safe '{'}}{{&nativeType}}{{safe '}'}} {{^required}}[{{/required}}{{identifier name}}{{^required}}]{{/required}} {{description}}
      {{/allParams}}
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof {{classname}}Interface
+     * @memberof {{className ../name}}ApiInterface
      */
-    {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any): Promise<{{#returnType}}{{{returnType}}}{{/returnType}}{{^returnType}}{}{{/returnType}}>;
+    {{identifier name}}({{#allParams}}{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}}, {{/allParams}}options?: any): Promise<{{#if nativeReturnType}}{{{nativeReturnType}}}{{else}}{}{{/if}}>;
 
-{{/operation}}
+{{/operations}}
 }
 
 {{/withInterfaces}}
 /**
- * {{classname}} - object-oriented interface{{#description}}
- * {{{description}}}{{/description}}
+ * {{className name}}Api - object-oriented interface{{#if description}}
+ * {{{description}}}{{/if}}
  * @export
- * @class {{classname}}
+ * @class {{className name}}Api
  * @extends {BaseAPI}
  */
 {{#withInterfaces}}
-export class {{classname}} extends BaseAPI implements {{classname}}Interface {
+export class {{className name}}Api extends BaseAPI implements {{className name}}ApiInterface {
 {{/withInterfaces}}
 {{^withInterfaces}}
-export class {{classname}} extends BaseAPI {
+export class {{className name}}Api extends BaseAPI {
 {{/withInterfaces}}
-    {{#operation}}
+    {{#operations}}
     /**
-     * {{&notes}}
-     {{#summary}}
+     * {{&description}}
+     {{#if summary}}
      * @summary {{&summary}}
-     {{/summary}}
+     {{/if}}
      {{#allParams}}
-     * @param {{=<% %>=}}{<%&dataType%>}<%={{ }}=%> {{^required}}[{{/required}}{{paramName}}{{^required}}]{{/required}} {{description}}
+     * @param {{safe '{'}}{{&nativeType}}{{safe '}'}} {{^required}}[{{/required}}{{identifier name}}{{^required}}]{{/required}} {{description}}
      {{/allParams}}
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof {{classname}}
+     * @memberof {{className ../name}}Api
      */
-    public {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: any) {
-        return {{classname}}Fp(this.configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options)(this.fetch, this.basePath);
+    public {{identifier name}}({{#allParams}}{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}}, {{/allParams}}options?: any) {
+        return {{className ../name}}ApiFp(this.configuration).{{identifier name}}({{#allParams}}{{identifier name}}, {{/allParams}}options)(this.fetch, this.basePath);
     }
 
-    {{/operation}}
+    {{/operations}}
 }
-{{/operations}}{{/apis}}{{/apiInfo}}
+{{/groups}}

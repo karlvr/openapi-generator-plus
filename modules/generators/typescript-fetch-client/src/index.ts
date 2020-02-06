@@ -47,18 +47,8 @@ function identifierCamelCase(value: string) {
 
 function escapeString(value: string) {
 	value = value.replace(/\\/g, '\\\\')
-	value = value.replace(/"/g, '\\"')
+	value = value.replace(/'/g, '\\\'')
 	return value
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function prepareApiContext(context: any, state: CodegenState, root?: CodegenRootContext): any {
-	return {
-		...context,
-		...state.options,
-		...root,
-		// classname: config.toApiName(context.name),
-	}
 }
 
 /**
@@ -80,6 +70,7 @@ async function emit(templateName: string, outputPath: string, context: object, r
 		outputString = template(context)
 	} catch (error) {
 		console.error(`Failed to generate template "${templateName}"`, error)
+		return
 	}
 
 	if (outputPath === '-') {
@@ -107,7 +98,7 @@ const config: CodegenConfig = {
 		return identifierCamelCase(name)
 	},
 	toConstantName: (name) => {
-		return constantCase(name)
+		return pascalCase(name)
 	},
 	toEnumName: (name) => {
 		return classCamelCase(name) + 'Enum'
@@ -115,9 +106,9 @@ const config: CodegenConfig = {
 	toOperationName: (path, method) => {
 		return `${method.toLocaleLowerCase()}_${path}`
 	},
-	toLiteral: (value, type, format, required) => {
+	toLiteral: (value, type, format, required, state) => {
 		if (value === undefined) {
-			return undefined
+			return state.config.toDefaultValue(undefined, type, format, required, state)
 		}
 
 		switch (type) {
@@ -153,7 +144,7 @@ const config: CodegenConfig = {
 				} else if (format === 'date-time') {
 					return `java.time.OffsetDateTime.parse("${value}")`
 				} else {
-					return `"${escapeString(value)}"`
+					return `'${escapeString(value)}'`
 				}
 			}
 			case 'boolean':
@@ -167,80 +158,63 @@ const config: CodegenConfig = {
 	},
 	toNativeType: (type, format, required, modelNames, state) => {
 		if (type === 'object' && modelNames) {
-			let modelName = `${(state.options as CodegenOptionsTypescript).modelPackage}`
+			let modelName = ''
 			for (const name of modelNames) {
 				modelName += `.${state.config.toClassName(name, state)}`
 			}
-			return modelName
+			return modelName.substring(1)
 		}
 
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
-				if (format === 'int32' || format === undefined) {
-					return !required ? 'java.lang.Integer' : 'int'
-				} else if (format === 'int64') {
-					return !required ? 'java.lang.Long' : 'long'
-				} else {
-					throw new Error(`Unsupported ${type} format: ${format}`)
-				}
+				return 'number'
 			}
 			case 'number': {
-				if (format === undefined) {
-					return 'java.math.BigDecimal'
-				} else if (format === 'float') {
-					return !required ? 'java.lang.Float' : 'float'
-				} else if (format === 'double') {
-					return !required ? 'java.lang.Double' : 'double'
-				} else {
-					throw new Error(`Unsupported ${type} format: ${format}`)
-				}
+				return 'number'
 			}
 			case 'string': {
-				if (format === 'byte') {
-					return !required ? 'java.lang.Byte' : 'byte'
-				} else if (format === 'binary') {
-					return 'java.lang.Object'
-				} else if (format === 'date') {
-					return 'java.time.LocalDate'
-				} else if (format === 'time') {
-					return 'java.time.LocalTime'
-				} else if (format === 'date-time') {
-					return 'java.time.OffsetDateTime'
-				} else {
-					return 'java.lang.String'
-				}
+				return 'string'
+				// if (format === 'byte') {
+				// 	return !required ? 'java.lang.Byte' : 'byte'
+				// } else if (format === 'binary') {
+				// 	return 'java.lang.Object'
+				// } else if (format === 'date') {
+				// 	return 'java.time.LocalDate'
+				// } else if (format === 'time') {
+				// 	return 'java.time.LocalTime'
+				// } else if (format === 'date-time') {
+				// 	return 'java.time.OffsetDateTime'
+				// } else {
+				// 	return 'java.lang.String'
+				// }
 			}
 			case 'boolean': {
-				return !required ? 'java.lang.Boolean' : 'boolean'
+				return 'boolean'
 			}
 			case 'object': {
-				return 'java.lang.Object'
+				return 'object'
 			}
 			case 'file': {
-				return 'java.io.InputStream'
+				return 'string'
 			}
 		}
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (componentNativeType, uniqueItems) => {
-		if (uniqueItems) {
-			return `java.util.Set<${componentNativeType}>`
-		} else {
-			return `java.util.List<${componentNativeType}>`
-		}
+	toNativeArrayType: (componentNativeType) => {
+		return `${componentNativeType}[]`
 	},
 	toNativeMapType: (keyNativeType, componentNativeType) => {
-		return `java.util.Map<${keyNativeType}, ${componentNativeType}>`
+		return `{ [name: ${keyNativeType}]: ${componentNativeType} }`
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {
-			return `${defaultValue}`
+			return state.config.toLiteral(defaultValue, type, format, required, state)
 		}
 
 		if (!required) {
-			return 'null'
+			return 'undefined'
 		}
 
 		switch (type) {
@@ -253,7 +227,7 @@ const config: CodegenConfig = {
 			case 'object':
 			case 'array':
 			case 'file':
-				return 'null'
+				return 'undefined'
 		}
 
 		throw new Error(`Unsupported type name: ${type}`)
@@ -371,6 +345,10 @@ const config: CodegenConfig = {
 		// Handlebars.registerHelper('helperMissing', function(this: any) {
 		// 	const options = arguments[arguments.length - 1];
 
+		hbs.registerHelper('safe', function(value: string) {
+			return new Handlebars.SafeString(value)
+		})
+
 		hbs.registerHelper('indent', function(this: {}, indentString: string, options: HelperOptions) {
 			const result = options.fn(this)
 			// const indentString = '\t'.repeat(indent)
@@ -390,42 +368,41 @@ const config: CodegenConfig = {
 		const outputPath = commandLineOptions.output
 
 		const apiPackagePath = packageToPath(rootContext.package)
-		for (const groupName in doc.groups) {
-			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}Api.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
-		}
 
-		for (const groupName in doc.groups) {
-			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
-		}
+		await emit('api', `${outputPath}/api.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
 
-		rootContext.package = options.apiServiceImplPackage
+		// for (const groupName in doc.groups) {
+		// 	await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
+		// }
 
-		const apiImplPackagePath = packageToPath(rootContext.package)
-		for (const groupName in doc.groups) {
-			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(groupName, state)}ApiServiceImpl.java`, 
-				prepareApiContext(doc.groups[groupName], state, rootContext), false, hbs)
-		}
+		// rootContext.package = options.apiServiceImplPackage
 
-		rootContext.package = options.modelPackage
+		// const apiImplPackagePath = packageToPath(rootContext.package)
+		// for (const groupName in doc.groups) {
+		// 	await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(groupName, state)}ApiServiceImpl.java`, 
+		// 		prepareApiContext(doc.groups[groupName], state, rootContext), false, hbs)
+		// }
 
-		const modelPackagePath = packageToPath(rootContext.package)
-		for (const modelName in doc.schemas) {
-			const context = {
-				models: {
-					model: [doc.schemas[modelName]],
-				},
-			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
-		}
+		// rootContext.package = options.modelPackage
 
-		for (const modelName in state.anonymousModels) {
-			const context = {
-				models: {
-					model: [state.anonymousModels[modelName]],
-				},
-			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
-		}
+		// const modelPackagePath = packageToPath(rootContext.package)
+		// for (const modelName in doc.schemas) {
+		// 	const context = {
+		// 		models: {
+		// 			model: [doc.schemas[modelName]],
+		// 		},
+		// 	}
+		// 	await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
+		// }
+
+		// for (const modelName in state.anonymousModels) {
+		// 	const context = {
+		// 		models: {
+		// 			model: [state.anonymousModels[modelName]],
+		// 		},
+		// 	}
+		// 	await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
+		// }
 	},
 }
 

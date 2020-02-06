@@ -1,9 +1,9 @@
 /**
  * {{{description}}}
  * @export
- * @interface {{classname}}
+ * @interface {{className name}}
  */
-export interface {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{
+export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
 {{#additionalPropertiesType}}
     [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 
@@ -11,31 +11,36 @@ export interface {{classname}} {{#parent}}extends {{{parent}}} {{/parent}}{
 {{#vars}}
     /**
      * {{{description}}}
-     * @type {{=<% %>=}}{<%&datatype%>}<%={{ }}=%>
-     * @memberof {{classname}}
+     * @type {{safe '{'}}{{{nativeType}}}{{safe '}'}}
+     * @memberof {{className ../name}}
      */
-    {{name}}{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{wireType}}}{{/isEnum}};
+    {{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}};
 {{/vars}}
-}{{#hasEnums}}
+}
+{{#if models}}
 
 /**
  * @export
- * @namespace {{classname}}
+ * @namespace {{className name}}
  */
-export namespace {{classname}} {
-{{#vars}}
+export namespace {{className name}} {
+{{#models}}
     {{#isEnum}}
     /**
      * @export
      * @enum {string}
      */
-    export enum {{enumName}} {
-    {{#allowableValues}}
-        {{#enumVars}}
-        {{{name}}} = <any> {{{value}}}{{^-last}},{{/-last}}
-        {{/enumVars}}
-    {{/allowableValues}}
+    export enum {{className name}} {
+    {{#enumValues}}
+        {{{constantName value}}} = <any> {{{literalValue}}}{{#hasMore}},{{/hasMore}}
+    {{/enumValues}}
     }
     {{/isEnum}}
-{{/vars}}
-}{{/hasEnums}}
+    {{^isEnum}}
+    {{#indent ' '}}
+    {{>modelGeneric}}
+    {{/indent}}
+    {{/isEnum}}
+{{/models}}
+}
+{{/if}}

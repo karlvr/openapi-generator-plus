@@ -23,7 +23,7 @@ export interface CodegenConfig {
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => string
-	toNativeArrayType: (componentNativeType: string, uniqueItems: boolean | undefined, state: CodegenState) => string
+	toNativeArrayType: (componentNativeType: string, required: boolean, uniqueItems: boolean | undefined, state: CodegenState) => string
 	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string

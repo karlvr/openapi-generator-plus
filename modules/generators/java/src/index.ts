@@ -219,7 +219,7 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (componentNativeType, uniqueItems) => {
+	toNativeArrayType: (componentNativeType, required, uniqueItems) => {
 		if (uniqueItems) {
 			return `java.util.Set<${componentNativeType}>`
 		} else {

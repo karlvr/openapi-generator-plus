@@ -13,11 +13,13 @@
   "author": "Karl von Randow",
   "license": "MIT",
   "dependencies": {
+    "lodash": "^4.17.15",
     "swagger-parser": "^8.0.4",
     "typescript": "^3.7.5"
   },
   "devDependencies": {
     "@types/jest": "^25.1.1",
+    "@types/lodash": "^4.14.149",
     "@types/node": "^13.7.0",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.0"

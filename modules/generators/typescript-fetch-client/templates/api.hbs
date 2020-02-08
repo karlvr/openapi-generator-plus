@@ -7,7 +7,14 @@ import * as url from "url";
 import * as portableFetch from "portable-fetch";
 import { Configuration } from "./configuration";
 
-const BASE_PATH = "{{{basePath}}}".replace(/\/+$/, "");
+{{#servers}}
+{{#if @first}}
+const BASE_PATH = "{{{url}}}".replace(/\/+$/, "");
+{{/if}}
+{{/servers}}
+{{^servers}}
+const BASE_PATH = "";
+{{/servers}}
 
 /**
  *

@@ -51,6 +51,7 @@ export interface CodegenDocument {
 	info: CodegenInfo
 	groups: CodegenOperationGroup[]
 	models: CodegenModel[]
+	servers?: CodegenServer[]
 }
 
 export interface CodegenInfo {
@@ -70,6 +71,11 @@ export interface CodegenContactObject {
 export interface CodegenLicenseObject {
 	name: string
 	url?: string
+}
+
+export interface CodegenServer {
+	url: string
+	description?: string
 }
 
 export interface CodegenOperationGroup {

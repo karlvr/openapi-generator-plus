@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -617,6 +617,20 @@ const enum HttpMethods {
 	PUT = 'PUT',
 }
 
+function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
+	if (isOpenAPIV2Document(root)) {
+		if (root.schemes && root.host) {
+			return root.schemes.map(scheme => ({
+				url: `${scheme}://${root.host}${root.basePath ? root.basePath : '/'}`,
+			}))
+		} else {
+			return undefined
+		}
+	} else {
+		return root.servers
+	}
+}
+
 export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 	const operations: CodegenOperation[] = []
 
@@ -636,6 +650,7 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 		info: root.info,
 		groups: [],
 		models: [],
+		servers: toCodegenServers(root),
 	}
 	doc.groups = addOperationsToGroups(operations)
 

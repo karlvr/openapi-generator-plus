@@ -13,8 +13,16 @@ export interface CodegenOptionsJava extends CodegenOptions {
 	dateImplementation: string
 	timeImplementation: string
 	dateTimeImplementation: string
+
+	constantStyle: ConstantStyle
 }
 
 export interface CodegenRootContextJava extends CodegenRootContext {
 	imports?: string[]
+}
+
+export const enum ConstantStyle {
+	snake = 'snake',
+	allCaps = 'allCaps',
+	camelCase = 'camelCase',
 }

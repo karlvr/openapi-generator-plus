@@ -1,7 +1,7 @@
 import { constantCase } from 'change-case'
 import { pascalCase, camelCase, capitalize } from 'openapi-generator-node-core'
 import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
-import { CodegenOptionsJava, CodegenRootContextJava } from './types'
+import { CodegenOptionsJava, CodegenRootContextJava, ConstantStyle } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
@@ -108,8 +108,18 @@ const JavaCodegenConfig: CodegenConfig = {
 	toIdentifier: (name) => {
 		return identifierCamelCase(name)
 	},
-	toConstantName: (name) => {
-		return constantCase(name)
+	toConstantName: (name, state) => {
+		const constantStyle = (state.options as CodegenOptionsJava).constantStyle
+		switch (constantStyle) {
+			case ConstantStyle.allCaps:
+				return constantCase(name).replace(/_/g, '')
+			case ConstantStyle.camelCase:
+				return identifierCamelCase(name)
+			case ConstantStyle.snake:
+				return constantCase(name)
+			default:
+				throw new Error(`Invalid valid for constantStyle: ${constantStyle}`)
+		}
 	},
 	toEnumName: (name) => {
 		return classCamelCase(name) + 'Enum'
@@ -271,6 +281,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			dateImplementation: initialOptions.dateImplementation || 'java.time.LocalDate',
 			timeImplementation: initialOptions.timeImplementation || 'java.time.LocalTime',
 			dateTimeImplementation: initialOptions.dateTimeImplementation || 'java.time.OffsetDateTime',
+			constantStyle: ConstantStyle.snake,
 			...initialOptions,
 		}
 	},

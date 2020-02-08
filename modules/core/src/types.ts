@@ -22,9 +22,9 @@ export interface CodegenConfig {
 
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
-	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => string
-	toNativeArrayType: (componentNativeType: string, required: boolean, uniqueItems: boolean | undefined, state: CodegenState) => string
-	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
+	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => CodegenNativeType
+	toNativeArrayType: (componentNativeType: CodegenNativeType, required: boolean, uniqueItems: boolean | undefined, state: CodegenState) => CodegenNativeType
+	toNativeMapType: (keyNativeType: CodegenNativeType, componentNativeType: CodegenNativeType, state: CodegenState) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 
@@ -98,7 +98,7 @@ export interface CodegenOperation {
 	httpMethod: string
 	path: string
 	returnType?: string
-	returnNativeType?: string
+	returnNativeType?: CodegenNativeType
 	consumes?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 	produces?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 
@@ -128,7 +128,26 @@ export interface CodegenResponse {
 	containerType?: string // TODO what is this?
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
-	nativeType?: string
+	nativeType?: CodegenNativeType
+}
+
+export class CodegenNativeType {
+	/** The type in the native language */
+	public nativeType: string
+	/**
+	 * The type, in the native language, if the property hasn't gone through extra conversion after coming out of, 
+	 * or won't go through extra conversion before going into the communication layer.
+	 */
+	public wireType: string
+
+	public constructor(nativeType: string, wireType?: string) {
+		this.nativeType = nativeType
+		this.wireType = wireType || nativeType
+	}
+
+	public toString() {
+		return this.nativeType
+	}
 }
 
 interface CodegenTypes {
@@ -157,7 +176,7 @@ export interface CodegenProperty extends CodegenTypes {
 	type: string
 
 	/** Type in native language */
-	nativeType: string
+	nativeType: CodegenNativeType
 
 	/* Validation */
 	maximum?: number
@@ -190,7 +209,7 @@ export interface CodegenModel {
 	/** Enums */
 	isEnum: boolean
 	/** The native type of the enum value */
-	enumValueNativeType?: string
+	enumValueNativeType?: CodegenNativeType
 	/** The values making up the enum */
 	enumValues?: CodegenEnumValue[]
 
@@ -207,7 +226,7 @@ export interface CodegenParameter extends CodegenTypes {
 	name: string
 	in: string
 	type?: string
-	nativeType?: string
+	nativeType?: CodegenNativeType
 	description?: string
 	required?: boolean
 	collectionFormat?: string

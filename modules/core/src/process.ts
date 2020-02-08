@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenOperationGroupingStrategy } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -400,8 +400,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	schema = resolveReference(schema, state)
 
 	let type: string
-	let nativeType: string
 	let format: string | undefined
+	let nativeType: CodegenNativeType
 	let models: CodegenModel[] | undefined
 
 	if (!description) {
@@ -532,7 +532,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		}
 	}
 
-	let enumValueNativeType: string | undefined
+	let enumValueNativeType: CodegenNativeType | undefined
 	let enumValues: CodegenEnumValue[] | undefined
 
 	if (schema.allOf) {

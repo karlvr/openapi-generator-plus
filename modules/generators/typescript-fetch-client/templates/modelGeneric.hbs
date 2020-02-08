@@ -14,7 +14,7 @@ export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
 	 * @type {{safe '{'}}{{{nativeType}}}{{safe '}'}}
 	 * @memberof {{className ../name}}
 	 */
-	{{name}}{{^required}}?{{/required}}: {{{nativeType}}};
+	{{name}}{{^required}}?{{/required}}: {{{nativeType.wireType}}};
 {{/vars}}
 }
 {{#if models}}

@@ -1,6 +1,6 @@
 import { constantCase } from 'change-case'
 import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
-import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenState, CodegenRootContext, CodegenNativeType } from 'openapi-generator-node-core'
 import { CodegenOptionsJava, CodegenRootContextJava, ConstantStyle } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
@@ -178,59 +178,59 @@ const JavaCodegenConfig: CodegenConfig = {
 		throw new Error(`Unsupported type name: ${type}`)
 	},
 	toNativeType: (type, format, required, modelNames, state) => {
-		if (type === 'object' && modelNames) {
-			let modelName = `${(state.options as CodegenOptionsJava).modelPackage}`
-			for (const name of modelNames) {
-				modelName += `.${state.config.toClassName(name, state)}`
-			}
-			return modelName
-		}
-
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
 				if (format === 'int32' || format === undefined) {
-					return !required ? 'java.lang.Integer' : 'int'
+					return new CodegenNativeType(!required ? 'java.lang.Integer' : 'int')
 				} else if (format === 'int64') {
-					return !required ? 'java.lang.Long' : 'long'
+					return new CodegenNativeType(!required ? 'java.lang.Long' : 'long')
 				} else {
 					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
 			}
 			case 'number': {
 				if (format === undefined) {
-					return 'java.math.BigDecimal'
+					return new CodegenNativeType('java.math.BigDecimal')
 				} else if (format === 'float') {
-					return !required ? 'java.lang.Float' : 'float'
+					return new CodegenNativeType(!required ? 'java.lang.Float' : 'float')
 				} else if (format === 'double') {
-					return !required ? 'java.lang.Double' : 'double'
+					return new CodegenNativeType(!required ? 'java.lang.Double' : 'double')
 				} else {
 					throw new Error(`Unsupported ${type} format: ${format}`)
 				}
 			}
 			case 'string': {
 				if (format === 'byte') {
-					return !required ? 'java.lang.Byte' : 'byte'
+					return new CodegenNativeType(!required ? 'java.lang.Byte' : 'byte')
 				} else if (format === 'binary') {
-					return 'java.lang.Object'
+					return new CodegenNativeType('java.lang.String')
 				} else if (format === 'date') {
-					return (state.options as CodegenOptionsJava).dateImplementation
+					return new CodegenNativeType((state.options as CodegenOptionsJava).dateImplementation)
 				} else if (format === 'time') {
-					return (state.options as CodegenOptionsJava).timeImplementation
+					return new CodegenNativeType((state.options as CodegenOptionsJava).timeImplementation)
 				} else if (format === 'date-time') {
-					return (state.options as CodegenOptionsJava).dateTimeImplementation
+					return new CodegenNativeType((state.options as CodegenOptionsJava).dateTimeImplementation)
 				} else {
-					return 'java.lang.String'
+					return new CodegenNativeType('java.lang.String')
 				}
 			}
 			case 'boolean': {
-				return !required ? 'java.lang.Boolean' : 'boolean'
+				return new CodegenNativeType(!required ? 'java.lang.Boolean' : 'boolean')
 			}
 			case 'object': {
-				return 'java.lang.Object'
+				if (modelNames) {
+					let modelName = `${(state.options as CodegenOptionsJava).modelPackage}`
+					for (const name of modelNames) {
+						modelName += `.${state.config.toClassName(name, state)}`
+					}
+					return new CodegenNativeType(modelName)
+				} else {
+					return new CodegenNativeType('java.lang.Object')
+				}
 			}
 			case 'file': {
-				return 'java.io.InputStream'
+				return new CodegenNativeType('java.io.InputStream')
 			}
 		}
 
@@ -239,13 +239,13 @@ const JavaCodegenConfig: CodegenConfig = {
 	toNativeArrayType: (componentNativeType, required, uniqueItems) => {
 		if (uniqueItems) {
 			// TODO should we use a LinkedHashSet here
-			return `java.util.List<${componentNativeType}>`
+			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
 		} else {
-			return `java.util.List<${componentNativeType}>`
+			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
 		}
 	},
 	toNativeMapType: (keyNativeType, componentNativeType) => {
-		return `java.util.Map<${keyNativeType}, ${componentNativeType}>`
+		return new CodegenNativeType(`java.util.Map<${keyNativeType}, ${componentNativeType}>`, `java.util.Map<${keyNativeType.wireType}, ${componentNativeType.wireType}>`)
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {

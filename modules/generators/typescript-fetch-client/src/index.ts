@@ -1,6 +1,6 @@
 import { constantCase } from 'change-case'
 import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
-import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenState, CodegenRootContext, CodegenNativeType } from 'openapi-generator-node-core'
 import { CodegenOptionsTypescript, CodegenRootContextTypescript } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
@@ -157,56 +157,51 @@ const config: CodegenConfig = {
 		throw new Error(`Unsupported type name: ${type}`)
 	},
 	toNativeType: (type, format, required, modelNames, state) => {
-		if (type === 'object' && modelNames) {
-			let modelName = ''
-			for (const name of modelNames) {
-				modelName += `.${state.config.toClassName(name, state)}`
-			}
-			return modelName.substring(1)
-		}
-
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
-				return 'number'
+				return new CodegenNativeType('number')
 			}
 			case 'number': {
-				return 'number'
+				return new CodegenNativeType('number')
 			}
 			case 'string': {
-				return 'string'
-				// if (format === 'byte') {
-				// 	return !required ? 'java.lang.Byte' : 'byte'
-				// } else if (format === 'binary') {
-				// 	return 'java.lang.Object'
-				// } else if (format === 'date') {
-				// 	return 'java.time.LocalDate'
-				// } else if (format === 'time') {
-				// 	return 'java.time.LocalTime'
-				// } else if (format === 'date-time') {
-				// 	return 'java.time.OffsetDateTime'
-				// } else {
-				// 	return 'java.lang.String'
-				// }
+				switch (format) {
+					case 'date':
+					case 'time':
+					case 'date-time':
+						/* We don't have a mapping library to convert incoming and outgoing JSON, so the rawType of dates is string */
+						return new CodegenNativeType('Date', 'string')
+					default:
+						return new CodegenNativeType('string')
+				}
 			}
 			case 'boolean': {
-				return 'boolean'
+				return new CodegenNativeType('boolean')
 			}
 			case 'object': {
-				return 'object'
+				if (modelNames) {
+					let modelName = ''
+					for (const name of modelNames) {
+						modelName += `.${state.config.toClassName(name, state)}`
+					}
+					return new CodegenNativeType(modelName.substring(1))
+				} else {
+					return new CodegenNativeType('object')
+				}
 			}
 			case 'file': {
-				return 'string'
+				return new CodegenNativeType('string')
 			}
 		}
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
 	toNativeArrayType: (componentNativeType) => {
-		return `${componentNativeType}[]`
+		return new CodegenNativeType(`${componentNativeType}[]`, `${componentNativeType.wireType}[]`)
 	},
 	toNativeMapType: (keyNativeType, componentNativeType) => {
-		return `{ [name: ${keyNativeType}]: ${componentNativeType} }`
+		return new CodegenNativeType(`{ [name: ${keyNativeType}]: ${componentNativeType} }`, `{ [name: ${keyNativeType.wireType}]: ${componentNativeType.wireType} }`)
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {
 		if (defaultValue !== undefined) {

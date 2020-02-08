@@ -263,7 +263,6 @@ const JavaCodegenConfig: CodegenConfig = {
 	options: (initialOptions): CodegenOptionsJava => {
 		const packageName = initialOptions.package || 'com.example'
 		return {
-			hideGenerationTimestamp: true,
 			apiPackage: `${packageName}`,
 			apiServiceImplPackage: `${packageName}.impl`,
 			modelPackage: `${packageName}.model`,

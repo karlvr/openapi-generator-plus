@@ -191,6 +191,7 @@ export interface CodegenParameter {
 	nativeType?: string
 	description?: string
 	required?: boolean
+	collectionFormat?: string
 
 	isQueryParam?: boolean
 	isPathParam?: boolean

@@ -115,6 +115,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		in: parameter.in,
 		description: parameter.description,
 		required: parameter.required,
+		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 	}
 	switch (parameter.in) {
 		case 'query':

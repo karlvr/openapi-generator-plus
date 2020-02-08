@@ -12,6 +12,5 @@ export interface CodegenOptionsJava extends CodegenOptions {
 }
 
 export interface CodegenRootContextJava extends CodegenRootContext {
-	package: string
 	imports?: string[]
 }

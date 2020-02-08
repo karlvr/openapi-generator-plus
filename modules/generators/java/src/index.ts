@@ -379,13 +379,11 @@ const JavaCodegenConfig: CodegenConfig = {
 		const rootContext: CodegenRootContextJava = {
 			generatorClass: 'openapi-generator-node',
 			generatedDate: new Date().toISOString(),
-
-			package: options.apiPackage,
 		}
 
 		const outputPath = commandLineOptions.output
 
-		const apiPackagePath = packageToPath(rootContext.package)
+		const apiPackagePath = packageToPath(options.apiPackage)
 		for (const group of doc.groups) {
 			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}Api.java`, prepareApiContext(group, state, rootContext), true, hbs)
 		}
@@ -394,17 +392,13 @@ const JavaCodegenConfig: CodegenConfig = {
 			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}ApiService.java`, prepareApiContext(group, state, rootContext), true, hbs)
 		}
 
-		rootContext.package = options.apiServiceImplPackage
-
-		const apiImplPackagePath = packageToPath(rootContext.package)
+		const apiImplPackagePath = packageToPath(options.apiServiceImplPackage)
 		for (const group of doc.groups) {
 			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(group.name, state)}ApiServiceImpl.java`, 
 				prepareApiContext(group, state, rootContext), false, hbs)
 		}
 
-		rootContext.package = options.modelPackage
-
-		const modelPackagePath = packageToPath(rootContext.package)
+		const modelPackagePath = packageToPath(options.modelPackage)
 		for (const model of doc.models) {
 			const context = {
 				models: [model],

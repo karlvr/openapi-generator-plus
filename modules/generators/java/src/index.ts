@@ -1,5 +1,5 @@
 import { constantCase } from 'change-case'
-import { pascalCase, camelCase, capitalize } from 'openapi-generator-node-core'
+import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
 import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
 import { CodegenOptionsJava, CodegenRootContextJava, ConstantStyle } from './types'
 import path from 'path'
@@ -285,6 +285,9 @@ const JavaCodegenConfig: CodegenConfig = {
 			constantStyle: ConstantStyle.snake,
 			...initialOptions,
 		}
+	},
+	operationGroupingStrategy: () => {
+		return GroupingStrategies.addToGroupsByPath
 	},
 
 	exportTemplates: async(doc, commandLineOptions, state) => {

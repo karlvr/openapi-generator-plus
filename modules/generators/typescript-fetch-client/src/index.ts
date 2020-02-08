@@ -1,5 +1,5 @@
 import { constantCase } from 'change-case'
-import { pascalCase, camelCase, capitalize } from 'openapi-generator-node-core'
+import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
 import { CodegenConfig, CodegenState, CodegenRootContext } from 'openapi-generator-node-core'
 import { CodegenOptionsTypescript, CodegenRootContextTypescript } from './types'
 import path from 'path'
@@ -243,6 +243,9 @@ const config: CodegenConfig = {
 			useBeanValidation: true,
 			...initialOptions,
 		}
+	},
+	operationGroupingStrategy: () => {
+		return GroupingStrategies.addToGroupsByTag
 	},
 
 	exportTemplates: async(doc, commandLineOptions, state) => {

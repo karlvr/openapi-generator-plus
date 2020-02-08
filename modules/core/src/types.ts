@@ -27,7 +27,9 @@ export interface CodegenConfig {
 	toNativeMapType: (keyNativeType: string, componentNativeType: string, state: CodegenState) => string
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
+
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
+	operationGroupingStrategy: (state: CodegenState) => CodegenOperationGroupingStrategy
 
 	exportTemplates: (doc: CodegenDocument, commandLineOptions: any, state: CodegenState) => void
 }
@@ -76,6 +78,10 @@ export interface CodegenLicenseObject {
 export interface CodegenServer {
 	url: string
 	description?: string
+}
+
+export interface CodegenOperationGroups {
+	[name: string]: CodegenOperationGroup
 }
 
 export interface CodegenOperationGroup {
@@ -249,3 +255,5 @@ export interface CodegenMediaType {
 
 	// TODO OpenAPIV3
 }
+
+export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void

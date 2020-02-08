@@ -1,55 +1,15 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenOperationGroupingStrategy } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 
-interface CodegenOperationGroups {
-	[name: string]: CodegenOperationGroup
-}
+function groupOperations(operationInfos: CodegenOperation[], state: CodegenState) {
+	const strategy = state.config.operationGroupingStrategy(state)
 
-// TODO this represents a strategy for grouping operations
-/**
- * See JavaJAXRSSpecServerCodegen.addOperationToGroup
- * @param operationInfo 
- * @param apiInfo 
- */
-function addOperationToGroup(operationInfo: CodegenOperation, groups: CodegenOperationGroups) {
-	let basePath = operationInfo.path
-	
-	const pos = basePath.indexOf('/', 1)
-	if (pos > 0) {
-		basePath = basePath.substring(0, pos)
-	}
-	if (basePath === '' || basePath === '/') {
-		basePath = 'default'
-	} else {
-		/* Convert operation path to be relative to basePath */
-		operationInfo = { ...operationInfo }
-		operationInfo.path = operationInfo.path.substring(basePath.length)
-	}
-
-	let groupName = basePath
-	if (groupName.startsWith('/')) {
-		groupName = groupName.substring(1)
-	}
-
-	if (!groups[groupName]) {
-		groups[groupName] = {
-			name: groupName,
-			path: basePath,
-			operations: [],
-			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-		}
-	}
-	groups[groupName].operations.push(operationInfo)
-}
-
-function addOperationsToGroups(operationInfos: CodegenOperation[]) {
 	const groups: CodegenOperationGroups = {}
 	for (const operationInfo of operationInfos) {
-		addOperationToGroup(operationInfo, groups)
+		strategy(operationInfo, groups, state)
 	}
 
 	return _.values(groups)
@@ -68,15 +28,6 @@ function processCodegenDocument(doc: CodegenDocument) {
 
 function processCodegenOperationGroup(group: CodegenOperationGroup) {
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
-}
-
-function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, result: CodegenOperation[], state: CodegenState) {
-	if (!operation) {
-		return
-	}
-
-	const op = toCodegenOperation(path, method, operation, state)
-	result.push(op)
 }
 
 function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, state: CodegenState): CodegenParameter {
@@ -643,16 +594,25 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 	const operations: CodegenOperation[] = []
 
+	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {
+		if (!operation) {
+			return
+		}
+	
+		const op = toCodegenOperation(path, method, operation, state)
+		operations.push(op)
+	}
+
 	for (const path in root.paths) {
 		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
 
-		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete, operations, state)
-		createCodegenOperation(path, HttpMethods.GET, pathItem.get, operations, state)
-		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head, operations, state)
-		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options, operations, state)
-		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch, operations, state)
-		createCodegenOperation(path, HttpMethods.POST, pathItem.post, operations, state)
-		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, operations, state)
+		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete)
+		createCodegenOperation(path, HttpMethods.GET, pathItem.get)
+		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head)
+		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options)
+		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch)
+		createCodegenOperation(path, HttpMethods.POST, pathItem.post)
+		createCodegenOperation(path, HttpMethods.PUT, pathItem.put)
 	}
 
 	const doc: CodegenDocument = {
@@ -661,7 +621,7 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 		models: [],
 		servers: toCodegenServers(root),
 	}
-	doc.groups = addOperationsToGroups(operations)
+	doc.groups = groupOperations(operations, state)
 
 	if (isOpenAPIV2Document(root)) {
 		if (root.definitions) {

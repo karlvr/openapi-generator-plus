@@ -420,6 +420,10 @@ function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault:
 function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: CodegenState): CodegenProperty {
 	/* The name of the schema, which can be used to name custom types */
 	let refName: string | undefined
+
+	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
+	let description: string | undefined = (schema as OpenAPIV2.SchemaObject).description
+
 	if (isOpenAPIVReferenceObject(schema)) {
 		refName = nameFromRef(schema.$ref)
 	}
@@ -429,6 +433,10 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	let type: string
 	let nativeType: string
 	let models: CodegenModel[] | undefined
+
+	if (!description) {
+		description = schema.description
+	}
 
 	if (schema.enum) {
 		if (!schema.type) {
@@ -488,7 +496,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 
 	return {
 		name,
-		description: schema.description,
+		description,
 		title: schema.title,
 		defaultValue: state.config.toDefaultValue(schema.default, type, schema.format, required, state),
 		readOnly: !!schema.readOnly,

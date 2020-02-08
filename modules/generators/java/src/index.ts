@@ -417,13 +417,6 @@ const JavaCodegenConfig: CodegenConfig = {
 			}
 			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
 		}
-
-		for (const model of _.values(state.anonymousModels)) {
-			const context = {
-				models: [model],
-			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
-		}
 	},
 }
 

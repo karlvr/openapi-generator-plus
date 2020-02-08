@@ -641,6 +641,12 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 		// TODO
 	}
 
+	/* Add anonymous models to our document's models */
+	for (const modelName in state.anonymousModels) {
+		const model = state.anonymousModels[modelName]
+		doc.models.push(model)
+	}
+
 	processCodegenDocument(doc)
 	return doc
 }

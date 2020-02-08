@@ -149,11 +149,11 @@ const JavaCodegenConfig: CodegenConfig = {
 				} else if (format === 'binary') {
 					throw new Error(`Cannot format literal for type ${type} format ${format}`)
 				} else if (format === 'date') {
-					return `java.time.LocalDate.parse("${value}")`
+					return `${(state.options as CodegenOptionsJava).dateImplementation}.parse("${value}")`
 				} else if (format === 'time') {
-					return `java.time.LocalTime.parse("${value}")`
+					return `${(state.options as CodegenOptionsJava).timeImplementation}.parse("${value}")`
 				} else if (format === 'date-time') {
-					return `java.time.OffsetDateTime.parse("${value}")`
+					return `${(state.options as CodegenOptionsJava).dateTimeImplementation}.parse("${value}")`
 				} else {
 					return `"${escapeString(value)}"`
 				}
@@ -204,11 +204,11 @@ const JavaCodegenConfig: CodegenConfig = {
 				} else if (format === 'binary') {
 					return 'java.lang.Object'
 				} else if (format === 'date') {
-					return 'java.time.LocalDate'
+					return (state.options as CodegenOptionsJava).dateImplementation
 				} else if (format === 'time') {
-					return 'java.time.LocalTime'
+					return (state.options as CodegenOptionsJava).timeImplementation
 				} else if (format === 'date-time') {
-					return 'java.time.OffsetDateTime'
+					return (state.options as CodegenOptionsJava).dateTimeImplementation
 				} else {
 					return 'java.lang.String'
 				}
@@ -269,6 +269,9 @@ const JavaCodegenConfig: CodegenConfig = {
 			modelPackage: `${packageName}.model`,
 			invokerPackage: `${packageName}.app`,
 			useBeanValidation: true,
+			dateImplementation: initialOptions.dateImplementation || 'java.time.LocalDate',
+			timeImplementation: initialOptions.timeImplementation || 'java.time.LocalTime',
+			dateTimeImplementation: initialOptions.dateTimeImplementation || 'java.time.OffsetDateTime',
 			...initialOptions,
 		}
 	},

@@ -9,6 +9,10 @@ export interface CodegenOptionsJava extends CodegenOptions {
 	modelPackage: string
 	invokerPackage: string
 	useBeanValidation?: boolean
+
+	dateImplementation: string
+	timeImplementation: string
+	dateTimeImplementation: string
 }
 
 export interface CodegenRootContextJava extends CodegenRootContext {

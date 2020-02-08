@@ -67,6 +67,15 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		description: parameter.description,
 		required: parameter.required,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
+
+		isObject: property.isObject,
+		isArray: property.isArray,
+		isBoolean: property.isBoolean,
+		isNumber: property.isNumber,
+		isEnum: property.isEnum,
+		isDateTime: property.isDateTime,
+		isDate: property.isDate,
+		isTime: property.isTime,
 	}
 	switch (parameter.in) {
 		case 'query':
@@ -392,6 +401,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 
 	let type: string
 	let nativeType: string
+	let format: string | undefined
 	let models: CodegenModel[] | undefined
 
 	if (!description) {
@@ -449,7 +459,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
-		nativeType = state.config.toNativeType(type, schema.format, required, undefined, state)
+		format = schema.format
+		nativeType = state.config.toNativeType(type, format, required, undefined, state)
 	} else {
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
@@ -484,6 +495,9 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		isBoolean: type === 'boolean',
 		isNumber: type === 'number' || type === 'integer',
 		isEnum: !!schema.enum,
+		isDateTime: type === 'string' && format === 'date-time',
+		isDate: type === 'string' && format === 'date',
+		isTime: type === 'string' && format === 'time',
 
 		models,
 	}

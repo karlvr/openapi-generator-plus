@@ -131,8 +131,19 @@ export interface CodegenResponse {
 	nativeType?: string
 }
 
+interface CodegenTypes {
+	isObject: boolean
+	isArray: boolean
+	isBoolean: boolean
+	isNumber: boolean
+	isEnum: boolean
+	isDateTime: boolean
+	isDate: boolean
+	isTime: boolean
+}
+
 /* See DefaultCodegen.fromProperty */
-export interface CodegenProperty {
+export interface CodegenProperty extends CodegenTypes {
 	name: string
 	description?: string
 	title?: string
@@ -160,12 +171,6 @@ export interface CodegenProperty {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
-	
-	isObject: boolean
-	isArray: boolean
-	isBoolean: boolean
-	isNumber: boolean
-	isEnum: boolean
 
 	/** Nested models */
 	models?: CodegenModel[]
@@ -198,7 +203,7 @@ export interface CodegenEnumValue {
 	literalValue: string
 }
 
-export interface CodegenParameter {
+export interface CodegenParameter extends CodegenTypes {
 	name: string
 	in: string
 	type?: string

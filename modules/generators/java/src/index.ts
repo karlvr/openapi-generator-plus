@@ -238,7 +238,8 @@ const JavaCodegenConfig: CodegenConfig = {
 	},
 	toNativeArrayType: (componentNativeType, required, uniqueItems) => {
 		if (uniqueItems) {
-			return `java.util.Set<${componentNativeType}>`
+			// TODO should we use a LinkedHashSet here
+			return `java.util.List<${componentNativeType}>`
 		} else {
 			return `java.util.List<${componentNativeType}>`
 		}

@@ -373,12 +373,6 @@ const JavaCodegenConfig: CodegenConfig = {
 		// Handlebars.registerHelper('helperMissing', function(this: any) {
 		// 	const options = arguments[arguments.length - 1];
 
-		hbs.registerHelper('indent', function(this: {}, indentString: string, options: HelperOptions) {
-			const result = options.fn(this)
-			// const indentString = '\t'.repeat(indent)
-			return result.replace(/^/gm, indentString)
-		})
-
 		await loadTemplates(path.resolve(__dirname, '../templates'), hbs)
 
 		const options: CodegenOptionsJava = state.options as CodegenOptionsJava

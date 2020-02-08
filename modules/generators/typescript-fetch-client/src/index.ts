@@ -349,12 +349,6 @@ const config: CodegenConfig = {
 			return new Handlebars.SafeString(value)
 		})
 
-		hbs.registerHelper('indent', function(this: {}, indentString: string, options: HelperOptions) {
-			const result = options.fn(this)
-			// const indentString = '\t'.repeat(indent)
-			return result.replace(/^/gm, indentString)
-		})
-
 		await loadTemplates(path.resolve(__dirname, '../templates'), hbs)
 
 		const options: CodegenOptionsTypescript = state.options as CodegenOptionsTypescript

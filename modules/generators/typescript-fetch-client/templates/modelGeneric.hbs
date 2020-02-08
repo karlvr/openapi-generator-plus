@@ -26,14 +26,10 @@ export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
 export namespace {{className name}} {
 {{#models}}
     {{#isEnum}}
-    {{#indent ' '}}
     {{>modelEnum}}
-    {{/indent}}
     {{/isEnum}}
     {{^isEnum}}
-    {{#indent ' '}}
     {{>modelGeneric}}
-    {{/indent}}
     {{/isEnum}}
 {{/models}}
 }

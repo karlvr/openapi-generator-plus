@@ -1,4 +1,8 @@
 {{#models}}
-{{#isEnum}}{{#indent '	'}}{{>enumNested}}{{/indent}}{{/isEnum}}
-{{^isEnum}}{{#indent '	'}}{{>pojoNested}}{{/indent}}{{/isEnum}}
+	{{#isEnum}}
+	{{>enumNested}}
+	{{/isEnum}}
+	{{^isEnum}}
+	{{>pojoNested}}
+	{{/isEnum}}
 {{/models}}

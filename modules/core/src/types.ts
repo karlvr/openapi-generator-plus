@@ -48,8 +48,28 @@ export interface CodegenRootContext {
 }
 
 export interface CodegenDocument {
+	info: CodegenInfo
 	groups: CodegenOperationGroup[]
 	models: CodegenModel[]
+}
+
+export interface CodegenInfo {
+	title: string
+	description?: string
+	termsOfService?: string
+	contact?: CodegenContactObject
+	license?: CodegenLicenseObject
+	version: string
+}
+
+export interface CodegenContactObject {
+	name?: string
+	url?: string
+	email?: string
+}
+export interface CodegenLicenseObject {
+	name: string
+	url?: string
 }
 
 export interface CodegenOperationGroup {

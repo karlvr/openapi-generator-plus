@@ -633,6 +633,7 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 	}
 
 	const doc: CodegenDocument = {
+		info: root.info,
 		groups: [],
 		models: [],
 	}

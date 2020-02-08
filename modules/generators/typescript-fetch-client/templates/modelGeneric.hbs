@@ -5,16 +5,16 @@
  */
 export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
 {{#additionalPropertiesType}}
-    [key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
+	[key: string]: {{{additionalPropertiesType}}}{{#hasVars}} | any{{/hasVars}};
 
 {{/additionalPropertiesType}}
 {{#vars}}
-    /**
-     * {{{description}}}
-     * @type {{safe '{'}}{{{nativeType}}}{{safe '}'}}
-     * @memberof {{className ../name}}
-     */
-    {{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}};
+	/**
+	 * {{{description}}}
+	 * @type {{safe '{'}}{{{nativeType}}}{{safe '}'}}
+	 * @memberof {{className ../name}}
+	 */
+	{{identifier name}}{{^required}}?{{/required}}: {{{nativeType}}};
 {{/vars}}
 }
 {{#if models}}
@@ -25,12 +25,12 @@ export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
  */
 export namespace {{className name}} {
 {{#models}}
-    {{#isEnum}}
-    {{>modelEnum}}
-    {{/isEnum}}
-    {{^isEnum}}
-    {{>modelGeneric}}
-    {{/isEnum}}
+	{{#isEnum}}
+	{{>modelEnum}}
+	{{/isEnum}}
+	{{^isEnum}}
+	{{>modelGeneric}}
+	{{/isEnum}}
 {{/models}}
 }
 {{/if}}

@@ -95,7 +95,15 @@ export interface CodegenOperation {
 	returnNativeType?: string
 	consumes?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 	produces?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+
 	allParams?: CodegenParameter[]
+	queryParams?: CodegenParameter[]
+	pathParams?: CodegenParameter[]
+	headerParams?: CodegenParameter[]
+	cookieParams?: CodegenParameter[]
+	bodyParam?: CodegenParameter
+	formParams?: CodegenParameter[]
+
 	authMethods?: CodegenAuthMethod[]
 	vendorExtensions?: CodegenVendorExtensions
 	responses?: CodegenResponse[]

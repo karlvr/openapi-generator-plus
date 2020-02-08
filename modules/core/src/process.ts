@@ -195,7 +195,15 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes: toConsumeMediaTypes(operation, state),
 		produces: toProduceMediaTypes(operation, state),
+		
 		allParams: parameters,
+		queryParams: parameters?.filter(p => p.isQueryParam),
+		pathParams: parameters?.filter(p => p.isPathParam),
+		headerParams: parameters?.filter(p => p.isHeaderParam),
+		cookieParams: parameters?.filter(p => p.isCookieParam),
+		bodyParam: parameters?.find(p => p.isBodyParam),
+		formParams: parameters?.filter(p => p.isFormParam),
+
 		authMethods,
 		defaultResponse,
 		responses,

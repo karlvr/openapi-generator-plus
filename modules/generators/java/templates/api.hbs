@@ -45,51 +45,51 @@ public class {{className name}}Api  {
 
 {{>nestedModels}}
 
-    @{{httpMethod}}{{#if authMethods}} @Authenticated{{/if}}{{#isDeprecated}} @Deprecated{{/isDeprecated}}
-    {{#if path}}@Path("{{{path}}}"){{/if}}
-    {{#if consumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/if}}
-    {{#if produces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/if}}
-    @ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
-        {{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
-            {{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
-            {{/unless}}{{/scopes}}
-        }{{/isOAuth}}){{#unless @last}},
-        {{/unless}}{{/authMethods}}
-    }{{/if}}, tags={ {{#tags}}"{{.}}"{{#unless @last}}, {{/unless}}{{/tags}} })
-    @ApiResponses(value = { {{#responses}}
-        @ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
-    })
-    public Response {{name}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
-    	{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
-    	{{#isDeprecated}}log.error("Deprecated API called: {{name}}");{{/isDeprecated}}
-    	try {
-    		{{#@root.useBeanValidation}}{{#allParams}}{{#if vendorExtensions.x-validation}}
-    		javax.validation.ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
+	@{{httpMethod}}{{#if authMethods}} @Authenticated{{/if}}{{#isDeprecated}} @Deprecated{{/isDeprecated}}
+	{{#if path}}@Path("{{{path}}}"){{/if}}
+	{{#if consumes}}@Consumes({ {{#consumes}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/consumes}} }){{/if}}
+	{{#if produces}}@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} }){{/if}}
+	@ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
+		{{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
+			{{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
+			{{/unless}}{{/scopes}}
+		}{{/isOAuth}}){{#unless @last}},
+		{{/unless}}{{/authMethods}}
+	}{{/if}}, tags={ {{#tags}}"{{.}}"{{#unless @last}}, {{/unless}}{{/tags}} })
+	@ApiResponses(value = { {{#responses}}
+		@ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
+	})
+	public Response {{name}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
+		{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}
+		{{#isDeprecated}}log.error("Deprecated API called: {{name}}");{{/isDeprecated}}
+		try {
+			{{#@root.useBeanValidation}}{{#allParams}}{{#if vendorExtensions.x-validation}}
+			javax.validation.ValidatorFactory factory = javax.validation.Validation.buildDefaultValidatorFactory();
 			javax.validation.Validator validator = factory.getValidator();
 			java.util.Set<javax.validation.ConstraintViolation<{{{nativeType}}}>> validations = validator.validate({{identifier name}});
 			if (!validations.isEmpty()) {
 				throw new {{{className @root/name}}}ApiService.{{{className ../name}}}400Exception(validations);
 			}
 			
-    		{{/if}}{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
-    		{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#if isFile}}{{identifier name}}InputStream, {{identifier name}}Detail{{else}}{{identifier name}}{{/if}}, {{/../allParams}}response);
-    		{{#if nativeType}}
-    		response.entity(entity);
-    		{{/if}}
-    		return response.build();
-    		{{/defaultResponse}}
-        {{#responses}}{{^isDefault}}
-        } catch ({{{className @root/name}}}ApiService.{{{className ../name}}}{{{code}}}Exception e) {
-        	response.status({{code}});
-        	{{^vendorExtensions.x-java-is-response-void}}
-        	response.entity(e.getEntity());
-        	{{/vendorExtensions.x-java-is-response-void}}
-        	return response.build();
-        {{/isDefault}}{{/responses}}
-        } finally {
-        
-        }
-    }
+			{{/if}}{{/allParams}}{{/@root.useBeanValidation}}{{#defaultResponse}}
+			{{#if nativeType}}{{nativeType}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#if isFile}}{{identifier name}}InputStream, {{identifier name}}Detail{{else}}{{identifier name}}{{/if}}, {{/../allParams}}response);
+			{{#if nativeType}}
+			response.entity(entity);
+			{{/if}}
+			return response.build();
+			{{/defaultResponse}}
+		{{#responses}}{{^isDefault}}
+		} catch ({{{className @root/name}}}ApiService.{{{className ../name}}}{{{code}}}Exception e) {
+			response.status({{code}});
+			{{^vendorExtensions.x-java-is-response-void}}
+			response.entity(e.getEntity());
+			{{/vendorExtensions.x-java-is-response-void}}
+			return response.build();
+		{{/isDefault}}{{/responses}}
+		} finally {
+		
+		}
+	}
 
 {{/vendorExtensions.x-implementation-provided}}
 {{/operations}}

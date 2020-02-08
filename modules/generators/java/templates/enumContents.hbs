@@ -1,28 +1,28 @@
-    {{#enumValues}}
-    @javax.xml.bind.annotation.XmlEnumValue({{{literalValue}}}) {{constantName value}}({{{literalValue}}}){{#unless @last}}, {{else}};{{/unless}}
-    {{/enumValues}}
+{{#enumValues}}
+@javax.xml.bind.annotation.XmlEnumValue({{{literalValue}}}) {{constantName value}}({{{literalValue}}}){{#unless @last}}, {{else}};{{/unless}}
+{{/enumValues}}
 
 
-    private {{enumValueNativeType}} value;
+private {{enumValueNativeType}} value;
 
-    {{className name}}({{enumValueNativeType}} v) {
-        value = v;
-    }
+{{className name}}({{enumValueNativeType}} v) {
+	value = v;
+}
 
-    @com.fasterxml.jackson.annotation.JsonValue public String value() {
-        return value;
-    }
+@com.fasterxml.jackson.annotation.JsonValue public String value() {
+	return value;
+}
 
-    @Override
-    public String toString() {
-        return String.valueOf(value);
-    }
+@Override
+public String toString() {
+	return String.valueOf(value);
+}
 
-    public static {{className name}} fromValue(String v) {
-        for ({{className name}} b : {{className name}}.values()) {
-            if (String.valueOf(b.value).equals(v)) {
-                return b;
-            }
-        }
-        return null;
-    }
+public static {{className name}} fromValue(String v) {
+	for ({{className name}} b : {{className name}}.values()) {
+		if (String.valueOf(b.value).equals(v)) {
+			return b;
+		}
+	}
+	return null;
+}

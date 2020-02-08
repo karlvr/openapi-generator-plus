@@ -6,7 +6,12 @@ package {{package}};
 {{#if description}}
 /**
  * {{description}}
- **/{{/if}}
-{{#isEnum}}{{>enumClass}}{{/isEnum}}
-{{^isEnum}}{{>pojo}}{{/isEnum}}
+ */
+{{/if}}
+{{#isEnum}}
+{{>enumClass}}
+{{/isEnum}}
+{{^isEnum}}
+{{>pojo}}
+{{/isEnum}}
 {{/models}}

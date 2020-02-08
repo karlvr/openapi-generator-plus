@@ -26,15 +26,9 @@ export interface {{className name}} {{#if parent}}extends {{{parent}}} {{/if}}{
 export namespace {{className name}} {
 {{#models}}
     {{#isEnum}}
-    /**
-     * @export
-     * @enum {string}
-     */
-    export enum {{className name}} {
-    {{#enumValues}}
-        {{{constantName value}}} = <any> {{{literalValue}}}{{#hasMore}},{{/hasMore}}
-    {{/enumValues}}
-    }
+    {{#indent ' '}}
+    {{>modelEnum}}
+    {{/indent}}
     {{/isEnum}}
     {{^isEnum}}
     {{#indent ' '}}

@@ -123,17 +123,17 @@ export const {{className name}}ApiFetchParamCreator = function (configuration?: 
 			{{#isInHeader}}
 			if (configuration && configuration.apiKey) {
 				const localVarApiKeyValue = typeof configuration.apiKey === 'function'
-					? configuration.apiKey("{{paramName}}")
+					? configuration.apiKey("{{identifier name}}")
 					: configuration.apiKey;
-				localVarHeaderParameter["{{paramName}}"] = localVarApiKeyValue;
+				localVarHeaderParameter["{{identifier name}}"] = localVarApiKeyValue;
 			}
 			{{/isInHeader}}
 			{{#isInQuery}}
 			if (configuration && configuration.apiKey) {
 				const localVarApiKeyValue = typeof configuration.apiKey === 'function'
-					? configuration.apiKey("{{paramName}}")
+					? configuration.apiKey("{{identifier name}}")
 					: configuration.apiKey;
-				localVarQueryParameter["{{paramName}}"] = localVarApiKeyValue;
+				localVarQueryParameter["{{identifier name}}"] = localVarApiKeyValue;
 			}
 			{{/isInQuery}}
 			{{/isApiKey}}
@@ -156,7 +156,7 @@ export const {{className name}}ApiFetchParamCreator = function (configuration?: 
 	{{/authMethods}}
 	{{#queryParams}}
 			{{#isListContainer}}
-			if ({{paramName}}) {
+			if ({{identifier name}}) {
 			{{#isCollectionFormatMulti}}
 				localVarQueryParameter['{{name}}'] = {{identifier name}};
 			{{/isCollectionFormatMulti}}

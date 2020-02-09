@@ -1,7 +1,6 @@
-import { constantCase } from 'change-case'
-import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
-import { CodegenConfig, CodegenState, CodegenRootContext, CodegenNativeType } from 'openapi-generator-node-core'
-import { CodegenOptionsTypescript, CodegenRootContextTypescript } from './types'
+import { pascalCase, camelCase, capitalize, GroupingStrategies, CodegenRootContext } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenNativeType } from 'openapi-generator-node-core'
+import { CodegenOptionsTypescript } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
@@ -49,14 +48,6 @@ function escapeString(value: string) {
 	value = value.replace(/\\/g, '\\\\')
 	value = value.replace(/'/g, '\\\'')
 	return value
-}
-
-/**
- * Turns a Java package name into a path
- * @param packageName Java package name
- */
-function packageToPath(packageName: string) {
-	return packageName.replace(/\./g, path.sep)
 }
 
 async function emit(templateName: string, outputPath: string, context: object, replace: boolean, hbs: typeof Handlebars) {
@@ -229,14 +220,9 @@ const config: CodegenConfig = {
 		throw new Error(`Unsupported type name: ${type}`)
 	},
 	options: (initialOptions): CodegenOptionsTypescript => {
-		const packageName = initialOptions.package || 'com.example'
 		return {
 			hideGenerationTimestamp: true,
-			apiPackage: `${packageName}`,
-			apiServiceImplPackage: `${packageName}.impl`,
-			modelPackage: `${packageName}.model`,
-			invokerPackage: `${packageName}.app`,
-			useBeanValidation: true,
+			supportsES6: false,
 			...initialOptions,
 		}
 	},
@@ -350,7 +336,7 @@ const config: CodegenConfig = {
 
 		await loadTemplates(path.resolve(__dirname, '../templates'), hbs)
 
-		const rootContext: CodegenRootContextTypescript = {
+		const rootContext: CodegenRootContext = {
 			generatorClass: 'openapi-generator-node',
 			generatedDate: new Date().toISOString(),
 		}
@@ -358,39 +344,14 @@ const config: CodegenConfig = {
 		const outputPath = state.options.output
 
 		await emit('api', `${outputPath}/api.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
-
-		// for (const groupName in doc.groups) {
-		// 	await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(groupName, state)}ApiService.java`, prepareApiContext(doc.groups[groupName], state, rootContext), true, hbs)
-		// }
-
-		// rootContext.package = options.apiServiceImplPackage
-
-		// const apiImplPackagePath = packageToPath(rootContext.package)
-		// for (const groupName in doc.groups) {
-		// 	await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(groupName, state)}ApiServiceImpl.java`, 
-		// 		prepareApiContext(doc.groups[groupName], state, rootContext), false, hbs)
-		// }
-
-		// rootContext.package = options.modelPackage
-
-		// const modelPackagePath = packageToPath(rootContext.package)
-		// for (const modelName in doc.schemas) {
-		// 	const context = {
-		// 		models: {
-		// 			model: [doc.schemas[modelName]],
-		// 		},
-		// 	}
-		// 	await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
-		// }
-
-		// for (const modelName in state.anonymousModels) {
-		// 	const context = {
-		// 		models: {
-		// 			model: [state.anonymousModels[modelName]],
-		// 		},
-		// 	}
-		// 	await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(modelName, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
-		// }
+		await emit('configuration', `${outputPath}/configuration.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
+		await emit('custom.d', `${outputPath}/custom.d.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
+		await emit('index', `${outputPath}/index.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
+		if (state.options['npmName']) {
+			await emit('package', `${outputPath}/package.json`, { ...doc, ...state.options, ...rootContext }, true, hbs)
+		}
+		await emit('README', `${outputPath}/README.md`, { ...doc, ...state.options, ...rootContext }, true, hbs)
+		await emit('tsconfig', `${outputPath}/tsconfig.json`, { ...doc, ...state.options, ...rootContext }, true, hbs)
 	},
 }
 

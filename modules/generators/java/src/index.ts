@@ -1,7 +1,7 @@
 import { constantCase } from 'change-case'
 import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
 import { CodegenConfig, CodegenState, CodegenRootContext, CodegenNativeType } from 'openapi-generator-node-core'
-import { CodegenOptionsJava, CodegenRootContextJava, ConstantStyle } from './types'
+import { CodegenOptionsJava, ConstantStyle } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
@@ -393,7 +393,7 @@ const JavaCodegenConfig: CodegenConfig = {
 		await loadTemplates(path.resolve(__dirname, '../templates'), hbs)
 
 		const options: CodegenOptionsJava = state.options as CodegenOptionsJava
-		const rootContext: CodegenRootContextJava = {
+		const rootContext: CodegenRootContext = {
 			generatorClass: 'openapi-generator-node',
 			generatedDate: new Date().toISOString(),
 		}

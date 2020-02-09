@@ -244,7 +244,7 @@ const config: CodegenConfig = {
 		return GroupingStrategies.addToGroupsByTag
 	},
 
-	exportTemplates: async(doc, commandLineOptions, state) => {
+	exportTemplates: async(doc, state) => {
 		const hbs = Handlebars.create()
 		const config = state.config
 
@@ -350,17 +350,12 @@ const config: CodegenConfig = {
 
 		await loadTemplates(path.resolve(__dirname, '../templates'), hbs)
 
-		const options: CodegenOptionsTypescript = state.options as CodegenOptionsTypescript
 		const rootContext: CodegenRootContextTypescript = {
 			generatorClass: 'openapi-generator-node',
 			generatedDate: new Date().toISOString(),
-
-			package: options.apiPackage,
 		}
 
-		const outputPath = commandLineOptions.output
-
-		const apiPackagePath = packageToPath(rootContext.package)
+		const outputPath = state.options.output
 
 		await emit('api', `${outputPath}/api.ts`, { ...doc, ...state.options, ...rootContext }, true, hbs)
 

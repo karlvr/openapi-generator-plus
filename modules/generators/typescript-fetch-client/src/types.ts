@@ -12,6 +12,5 @@ export interface CodegenOptionsTypescript extends CodegenOptions {
 }
 
 export interface CodegenRootContextTypescript extends CodegenRootContext {
-	package: string
 	imports?: string[]
 }

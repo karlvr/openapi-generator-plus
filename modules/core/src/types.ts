@@ -9,10 +9,6 @@ export interface CodegenState {
 	anonymousModels: { [name: string]: CodegenModel }
 }
 
-export interface CodegenInitialOptions {
-	[name: string]: any
-}
-
 export interface CodegenConfig {
 	toClassName: (name: string, state: CodegenState) => string
 	toIdentifier: (name: string, state: CodegenState) => string
@@ -31,13 +27,23 @@ export interface CodegenConfig {
 	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
 	operationGroupingStrategy: (state: CodegenState) => CodegenOperationGroupingStrategy
 
-	exportTemplates: (doc: CodegenDocument, commandLineOptions: any, state: CodegenState) => void
+	exportTemplates: (doc: CodegenDocument, state: CodegenState) => void
+}
+
+/**
+ * The options received on the command-line.
+ */
+export interface CodegenInitialOptions {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[name: string]: any
 }
 
 /**
  * Options that the user can provide to the code generation process.
  */
 export interface CodegenOptions {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[name: string]: any
 	hideGenerationTimestamp?: boolean
 }
 

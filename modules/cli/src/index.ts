@@ -56,7 +56,7 @@ export async function run() {
 
 		const doc = processDocument(root, state)
 
-		await config.exportTemplates(doc, commandLineOptions, state)
+		await config.exportTemplates(doc, state)
 	} catch (error) {
 		console.error('API validation failed', error)
 	}

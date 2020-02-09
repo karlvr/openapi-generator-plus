@@ -290,7 +290,7 @@ const JavaCodegenConfig: CodegenConfig = {
 		return GroupingStrategies.addToGroupsByPath
 	},
 
-	exportTemplates: async(doc, commandLineOptions, state) => {
+	exportTemplates: async(doc, state) => {
 		const hbs = Handlebars.create()
 		const config = state.config
 
@@ -398,7 +398,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			generatedDate: new Date().toISOString(),
 		}
 
-		const outputPath = commandLineOptions.output
+		const outputPath = state.options.output
 
 		const apiPackagePath = packageToPath(options.apiPackage)
 		for (const group of doc.groups) {

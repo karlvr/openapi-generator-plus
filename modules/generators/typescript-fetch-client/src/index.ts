@@ -191,7 +191,8 @@ const config: CodegenConfig = {
 				}
 			}
 			case 'file': {
-				return new CodegenNativeType('string')
+				/* JavaScript does have a File type, but it isn't supported by JSON serialization so we don't have a wireType */
+				return new CodegenNativeType('File', null)
 			}
 		}
 

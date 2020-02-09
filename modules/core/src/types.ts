@@ -138,11 +138,11 @@ export class CodegenNativeType {
 	 * The type, in the native language, if the property hasn't gone through extra conversion after coming out of, 
 	 * or won't go through extra conversion before going into the communication layer.
 	 */
-	public wireType: string
+	public wireType?: string
 
-	public constructor(nativeType: string, wireType?: string) {
+	public constructor(nativeType: string, wireType?: string | null) {
 		this.nativeType = nativeType
-		this.wireType = wireType || nativeType
+		this.wireType = wireType !== undefined ? wireType !== null ? wireType : undefined : nativeType
 	}
 
 	public toString() {

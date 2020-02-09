@@ -270,12 +270,12 @@ export const {{className name}}ApiFp = function(configuration?: Configuration) {
 		 * @param {*} [options] Override http request option.
 		 * @throws {RequiredError}
 		 */
-		{{identifier name}}({{#allParams}}{{identifier name}}: {{{nativeType}}}{{^required}} | undefined{{/required}}, {{/allParams}}options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<{{#if returnNativeType}}{{{returnNativeType}}}{{else}}Response{{/if}}> {
+		{{identifier name}}({{#allParams}}{{identifier name}}: {{{nativeType}}}{{^required}} | undefined{{/required}}, {{/allParams}}options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<{{#if returnNativeType.wireType}}{{{returnNativeType}}}{{else}}Response{{/if}}> {
 			const localVarFetchArgs = {{className ../name}}ApiFetchParamCreator(configuration).{{identifier name}}({{#allParams}}{{identifier name}}, {{/allParams}}options);
 			return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
 				return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
 					if (response.status >= 200 && response.status < 300) {
-						return response{{#if returnNativeType}}.json(){{/if}};
+						return response{{#if returnNativeType.wireType}}.json(){{/if}};
 					} else {
 						throw response;
 					}

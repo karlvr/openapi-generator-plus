@@ -8,7 +8,7 @@ export interface CodegenOptionsJava extends CodegenOptions {
 	apiServiceImplPackage: string
 	modelPackage: string
 	invokerPackage: string
-	useBeanValidation?: boolean
+	useBeanValidation: boolean
 
 	dateImplementation: string
 	timeImplementation: string

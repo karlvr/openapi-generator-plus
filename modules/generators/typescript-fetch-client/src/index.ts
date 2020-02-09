@@ -104,36 +104,23 @@ const config: CodegenConfig = {
 
 		switch (type) {
 			case 'integer': {
-				if (format === 'int32' || format === undefined) {
-					return !required ? `java.lang.Integer.valueOf(${value})` : `${value}`
-				} else if (format === 'int64') {
-					return !required ? `java.lang.Long.valueOf(${value}l)` : `${value}l`
-				} else {
-					throw new Error(`Unsupported ${type} format: ${format}`)
-				}
+				return `${value}`
 			}
 			case 'number': {
-				if (format === undefined) {
-					return `new java.math.BigDecimal("${value}")`
-				} else if (format === 'float') {
-					return !required ? `java.lang.Float.valueOf(${value}f)` : `${value}f`
-				} else if (format === 'double') {
-					return !required ? `java.lang.Double.valueOf(${value}d)` : `${value}d`
-				} else {
-					throw new Error(`Unsupported ${type} format: ${format}`)
-				}
+				return `${value}`
 			}
 			case 'string': {
-				if (format === 'byte') {
-					return !required ? `java.lang.Byte.valueOf(${value}b)` : `${value}b`
-				} else if (format === 'binary') {
+				if (format === 'binary') {
 					throw new Error(`Cannot format literal for type ${type} format ${format}`)
 				} else if (format === 'date') {
-					return `java.time.LocalDate.parse("${value}")`
+					/* The date format should be an ISO date, and the timezone doesn't matter */
+					return `new Date("${value}")`
 				} else if (format === 'time') {
-					return `java.time.LocalTime.parse("${value}")`
+					/* Parse the date at 1/1/1970 with a local time (no trailing Z), so it's parsed in the client's locale */
+					return `new Date("1970-01-01T${value}")`
 				} else if (format === 'date-time') {
-					return `java.time.OffsetDateTime.parse("${value}")`
+					/* The date-time format should be an ISO datetime with an offset timezone */
+					return `new Date("${value}")`
 				} else {
 					return `'${escapeString(value)}'`
 				}

@@ -52,16 +52,6 @@ function escapeString(value: string) {
 	return value
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function prepareApiContext(context: any, state: CodegenState, root?: CodegenRootContext): any {
-	return {
-		...context,
-		...state.options,
-		...root,
-		// classname: config.toApiName(context.name),
-	}
-}
-
 /**
  * Turns a Java package name into a path
  * @param packageName Java package name
@@ -402,17 +392,17 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		const apiPackagePath = packageToPath(options.apiPackage)
 		for (const group of doc.groups) {
-			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}Api.java`, prepareApiContext(group, state, rootContext), true, hbs)
+			await emit('api', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}Api.java`, { ...group, ...state.options, ...rootContext }, true, hbs)
 		}
 
 		for (const group of doc.groups) {
-			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}ApiService.java`, prepareApiContext(group, state, rootContext), true, hbs)
+			await emit('apiService', `${outputPath}/${apiPackagePath}/${state.config.toClassName(group.name, state)}ApiService.java`, { ...group, ...state.options, ...rootContext }, true, hbs)
 		}
 
 		const apiImplPackagePath = packageToPath(options.apiServiceImplPackage)
 		for (const group of doc.groups) {
 			await emit('apiServiceImpl', `${outputPath}/${apiImplPackagePath}/${state.config.toClassName(group.name, state)}ApiServiceImpl.java`, 
-				prepareApiContext(group, state, rootContext), false, hbs)
+				{ ...group, ...state.options, ...rootContext }, false, hbs)
 		}
 
 		const modelPackagePath = packageToPath(options.modelPackage)
@@ -420,7 +410,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			const context = {
 				models: [model],
 			}
-			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, prepareApiContext(context, state, rootContext), true, hbs)
+			await emit('model', `${outputPath}/${modelPackagePath}/${state.config.toClassName(model.name, state)}.java`, { ...context, ...state.options, ...rootContext }, true, hbs)
 		}
 	},
 }

@@ -12,7 +12,7 @@
     "url": "git+https://github.com/karlvr/openapi-generator-node.git"
   },
   "author": "Karl von Randow",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/karlvr/openapi-generator-node/issues"
   },

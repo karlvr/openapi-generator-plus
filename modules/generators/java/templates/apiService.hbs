@@ -36,18 +36,10 @@ public interface {{className name}}ApiService {
 		{{else}}
 		private {{{nativeType}}} entity;
 		
-		public {{{className ../name}}}{{{code}}}Exception({{{nativeType}}}Message.CodeEnum code, String message) {
-			this.entity = new {{{nativeType}}}();
-			this.entity.getMessages().add(new {{{nativeType}}}Message().code(code).message(message));
+		public {{{className ../name}}}{{{code}}}Exception({{{nativeType}}} entity) {
+			this.entity = entity;
 		}
-
-		{{#vendorExtensions.x-validation}}
-		public <T> {{{className ../name}}}{{{code}}}Exception(Collection<ConstraintViolation<T>> validations) {
-			this.entity = new {{{nativeType}}}();
-			validations.forEach(v -> this.entity.getMessages().add(new {{{nativeType}}}Message().code({{{nativeType}}}Message.CodeEnum.VALIDATION).message(v.getMessage()).property(v.getPropertyPath().toString())));
-		}
-
-		{{/vendorExtensions.x-validation}}
+		
 		public {{{nativeType}}} getEntity() {
 			return this.entity;
 		}

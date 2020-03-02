@@ -43,7 +43,13 @@ public class {{className name}}Api  {
 {{#operations}}
 {{^vendorExtensions.x-implementation-provided}}
 {{>nestedModels}}
-	@{{httpMethod}}{{#if authMethods}} @Authenticated{{/if}}{{#isDeprecated}} @Deprecated{{/isDeprecated}}
+	@{{httpMethod}}
+	{{#if authMethods}}
+	@Authenticated
+	{{/if}}
+	{{#isDeprecated}}
+	@Deprecated
+	{{/isDeprecated}}
 	{{#if path}}
 	@Path("{{{path}}}")
 	{{/if}}

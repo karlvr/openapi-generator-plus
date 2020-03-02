@@ -28,8 +28,12 @@ import java.util.List;
 // @RequestScoped // This annotation is commented out, which makes the service a Singleton. There seems to be a bug that causes the securityContext to be lost if the service is RequestScoped
 
 @Api(description = "the {{{name}}} API")
-{{#if consumes}}@Consumes({ {{#consumes}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/consumes}} }){{/if}}
-{{#if produces}}@Produces({ {{#produces}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/produces}} }){{/if}}
+{{#if consumes}}
+@Consumes({ {{#consumes}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/consumes}} })
+{{/if}}
+{{#if produces}}
+@Produces({ {{#produces}}"{{{.}}}"{{#unless @last}}, {{/unless}}{{/produces}} })
+{{/if}}
 {{>generatedAnnotation}}
 
 @SuppressWarnings("all")

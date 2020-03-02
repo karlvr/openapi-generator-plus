@@ -6,6 +6,7 @@ import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
 import { promises as fs } from 'fs'
 import * as _ from 'lodash'
+import pluralize from 'pluralize'
 
 async function compileTemplate(templatePath: string, hbs: typeof Handlebars) {
 	const templateSource = await fs.readFile(templatePath, 'UTF-8')
@@ -116,6 +117,9 @@ const JavaCodegenConfig: CodegenConfig = {
 	},
 	toOperationName: (path, method) => {
 		return `${method.toLocaleLowerCase()}_${path}`
+	},
+	toModelNameFromPropertyName: (name, state) => {
+		return state.config.toClassName(pluralize.singular(name), state)
 	},
 	toLiteral: (value, type, format, required, state) => {
 		if (value === undefined) {

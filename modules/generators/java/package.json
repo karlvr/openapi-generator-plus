@@ -14,11 +14,13 @@
     "change-case": "^4.1.1",
     "handlebars": "^4.7.3",
     "lodash": "^4.17.15",
-    "openapi-generator-node-core": "file:../../core"
+    "openapi-generator-node-core": "file:../../core",
+    "pluralize": "^8.0.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.7.0",
+    "@types/pluralize": "0.0.29",
     "typescript": "^3.7.5"
   }
 }

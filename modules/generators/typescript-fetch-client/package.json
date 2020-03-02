@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/jest": "^25.1.2",
     "@types/node": "^13.7.0",
+    "@types/pluralize": "0.0.29",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.0",
     "typescript": "^3.7.5"
@@ -20,6 +21,7 @@
   "dependencies": {
     "change-case": "^4.1.1",
     "handlebars": "^4.7.3",
-    "openapi-generator-node-core": "file:../../core"
+    "openapi-generator-node-core": "file:../../core",
+    "pluralize": "^8.0.0"
   }
 }

@@ -4,7 +4,9 @@ A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js.
 
 ## Using
 
-TODO
+```
+npm start [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>
+```
 
 ## Building
 

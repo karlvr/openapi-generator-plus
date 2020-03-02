@@ -36,6 +36,7 @@ export async function run() {
 		}
 
 		const initialOptions = commandLineOptions.config ? await loadCommandLineConfig(commandLineOptions.config) : {}
+		initialOptions.output = commandLineOptions.output
 
 		const parser = new SwaggerParser()
 		const root = await parser.parse(commandLineOptions._[0])

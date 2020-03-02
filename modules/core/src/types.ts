@@ -221,6 +221,9 @@ export interface CodegenModel {
 	/** The values making up the enum */
 	enumValues?: CodegenEnumValue[]
 
+	/** Parent model */
+	parent?: CodegenNativeType
+
 	/** Nested models */
 	models?: CodegenModel[]
 }

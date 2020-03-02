@@ -81,7 +81,7 @@ public class {{className name}}Api  {
 			{{/allParams}}
 			{{/@root.useBeanValidation}}
 			{{#defaultResponse}}
-			{{#if nativeType}}{{{nativeType}}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#if isFile}}{{identifier name}}InputStream, {{identifier name}}Detail{{else}}{{identifier name}}{{/if}}, {{/../allParams}}response);
+			{{#if nativeType}}{{{nativeType}}} entity = {{/if}}delegate.{{identifier ../name}}({{#../allParams}}{{#if isFile}}{{identifier name}}InputStream, {{identifier name}}Detail{{else}}{{identifier name}}{{/if}}{{#hasMore}}, {{/hasMore}}{{/../allParams}}{{#unless nativeType}}, response{{/unless}});
 			{{#if nativeType}}
 			response.entity(entity);
 			{{/if}}

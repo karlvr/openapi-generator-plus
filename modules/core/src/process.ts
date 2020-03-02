@@ -428,8 +428,6 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 		type = schema.type
 
-		// TODO maybe need to de-pluralize the property name in order to use it to make an anonymous model name
-		// for the array components (if schema.items isn't a reference)
 		const componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
 		nativeType = state.config.toNativeArrayType(componentProperty.nativeType, required, schema.uniqueItems, state)
 		models = componentProperty.models

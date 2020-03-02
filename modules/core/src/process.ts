@@ -446,16 +446,18 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			nativeType = state.config.toNativeMapType(keyNativeType, componentProperty.nativeType, state)
 			models = componentProperty.models
 		} else {
-			nativeType = state.config.toNativeType(type, schema.format, required, refName ? [refName] : [...parentNames, name], state)
+			const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
+			nativeType = state.config.toNativeType(type, schema.format, required, refName ? [refName] : [...parentNames, modelNameForPropertyName], state)
 			if (!refName) {
-				models = [toCodegenModel(name, refName ? [refName] : parentNames, schema, state)]
+				models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
 			}
 		}
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
 		nativeType = state.config.toNativeType(type, schema.format, required, refName ? [refName] : [...parentNames, name], state)
 		if (!refName) {
-			models = [toCodegenModel(name, refName ? [refName] : parentNames, schema, state)]
+			const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
+			models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
 		}
 	} else if (typeof schema.type === 'string') {
 		type = schema.type

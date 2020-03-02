@@ -15,6 +15,8 @@ export interface CodegenConfig {
 	toConstantName: (name: string, state: CodegenState) => string
 	toEnumName: (name: string, state: CodegenState) => string
 	toOperationName: (path: string, method: string, state: CodegenState) => string
+	/** Convert a property name to a name suitable for a model class */
+	toModelNameFromPropertyName: (name: string, state: CodegenState) => string
 
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string

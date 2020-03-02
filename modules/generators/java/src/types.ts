@@ -19,7 +19,7 @@ export interface CodegenOptionsJava extends CodegenOptions {
 }
 
 export const enum ConstantStyle {
-	snake = 'snake',
+	allCapsSnake = 'snake',
 	allCaps = 'allCaps',
 	camelCase = 'camelCase',
 }

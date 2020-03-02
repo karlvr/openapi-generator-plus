@@ -106,7 +106,7 @@ const JavaCodegenConfig: CodegenConfig = {
 				return constantCase(name).replace(/_/g, '')
 			case ConstantStyle.camelCase:
 				return identifierCamelCase(name)
-			case ConstantStyle.snake:
+			case ConstantStyle.allCapsSnake:
 				return constantCase(name)
 			default:
 				throw new Error(`Invalid valid for constantStyle: ${constantStyle}`)
@@ -284,7 +284,7 @@ const JavaCodegenConfig: CodegenConfig = {
 			dateImplementation: initialOptions.dateImplementation || 'java.time.LocalDate',
 			timeImplementation: initialOptions.timeImplementation || 'java.time.LocalTime',
 			dateTimeImplementation: initialOptions.dateTimeImplementation || 'java.time.OffsetDateTime',
-			constantStyle: ConstantStyle.snake,
+			constantStyle: ConstantStyle.allCapsSnake,
 			...initialOptions,
 		}
 	},

@@ -8,6 +8,15 @@ TODO
 
 ## Building
 
+This project uses [nvm](https://github.com/nvm-sh/nvm) to specify the preferred version of Node:
+
+```
+nvm install
+nvm use
+```
+
+To install and build the project:
+
 ```
 npm install
 npm run build

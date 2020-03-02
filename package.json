@@ -4,8 +4,10 @@
   "description": "",
   "scripts": {
     "build": "(cd modules/core && npm run build) && (cd modules/cli && npm run build) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm run build); fi; done)",
+    "postinstall": "(cd modules/core && npm install) && (cd modules/cli && npm install) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm install); fi; done)",
     "start": "node ./modules/cli/dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "(cd modules/core && npm run watch &) && (cd modules/cli && npm run watch &) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm run watch &); fi; done)"
   },
   "repository": {
     "type": "git",

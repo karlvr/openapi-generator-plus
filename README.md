@@ -6,6 +6,13 @@ A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js.
 
 TODO
 
+## Building
+
+```
+npm install
+npm run build
+```
+
 ## Status
 
 OGN is currently working for OpenAPI 2 (Swagger) specifications, for the two code generation templates that the author

@@ -97,6 +97,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		case 'formData':
 			result.isFormParam = true
 			break
+		default:
+			throw new Error(`Unsupported parameter "in" value: ${parameter.in}`)
 	}
 
 	return result

@@ -20,9 +20,9 @@ export interface CodegenConfig {
 
 	/** Format a value as a literal in the language */
 	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
-	toNativeType: (type: string, format: string | undefined, required: boolean, modelNames: string[] | undefined, state: CodegenState) => CodegenNativeType
-	toNativeArrayType: (componentNativeType: CodegenNativeType, required: boolean, uniqueItems: boolean | undefined, state: CodegenState) => CodegenNativeType
-	toNativeMapType: (keyNativeType: CodegenNativeType, componentNativeType: CodegenNativeType, state: CodegenState) => CodegenNativeType
+	toNativeType: (options: CodegenTypeOptions, state: CodegenState) => CodegenNativeType
+	toNativeArrayType: (options: CodegenArrayTypeOptions, state: CodegenState) => CodegenNativeType
+	toNativeMapType: (options: CodegenMapTypeOptions, state: CodegenState) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 
@@ -228,6 +228,55 @@ export interface CodegenModel {
 	models?: CodegenModel[]
 }
 
+export enum CodegenTypePurpose {
+	/** A type for an object property */
+	PROPERTY = 'PROPERTY',
+	/** A type for an enum */
+	ENUM = 'ENUM',
+	/** A type for a model parent */
+	PARENT = 'PARENT',
+	/** A type for a Map key */
+	KEY = 'KEY',
+}
+
+export interface CodegenTypeOptions {
+	type: string
+	format?: string
+	required?: boolean
+	modelNames?: string[]
+	purpose: CodegenTypePurpose
+}
+
+export enum CodegenArrayTypePurpose {
+	/** A type for an object property */
+	PROPERTY = 'PROPERTY',
+	/** A type for a model parent */
+	PARENT = 'PARENT',
+}
+
+export interface CodegenArrayTypeOptions {
+	componentNativeType: CodegenNativeType
+	required?: boolean
+	/** The uniqueItems property from the API spec */
+	uniqueItems?: boolean
+	modelNames?: string[]
+	purpose: CodegenArrayTypePurpose
+}
+
+export enum CodegenMapTypePurpose {
+	/** A type for an object property */
+	PROPERTY = 'PROPERTY',
+	/** A type for a model parent */
+	PARENT = 'PARENT',
+}
+
+export interface CodegenMapTypeOptions {
+	keyNativeType: CodegenNativeType
+	componentNativeType: CodegenNativeType
+	modelNames?: string[]
+	purpose: CodegenMapTypePurpose
+}
+
 export interface CodegenEnumValue {
 	value: any
 	literalValue: string
@@ -292,3 +341,13 @@ export interface CodegenMediaType {
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void
+
+/**
+ * Error thrown when a model cannot be generated because it doesn't represent a valid model in
+ * the current generator.
+ */
+export class InvalidModelError extends Error {
+	public constructor(message?: string) {
+		super(message)
+	}
+}

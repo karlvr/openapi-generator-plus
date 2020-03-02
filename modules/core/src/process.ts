@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -418,7 +418,11 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 
 		const enumName = state.config.toEnumName(name, state)
-		nativeType = state.config.toNativeType('object', undefined, false, refName ? [refName] : [...parentNames, enumName], state)
+		nativeType = state.config.toNativeType({
+			type: 'object',
+			modelNames: refName ? [refName] : [...parentNames, enumName],
+			purpose: CodegenTypePurpose.ENUM,
+		}, state)
 		if (!refName) {
 			models = [toCodegenModel(enumName, parentNames, schema, state)]
 		}
@@ -429,7 +433,13 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		type = schema.type
 
 		const componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
-		nativeType = state.config.toNativeArrayType(componentProperty.nativeType, required, schema.uniqueItems, state)
+		nativeType = state.config.toNativeArrayType({
+			componentNativeType: componentProperty.nativeType,
+			required,
+			uniqueItems: schema.uniqueItems,
+			modelNames: refName ? [refName] : undefined,
+			purpose: CodegenArrayTypePurpose.PROPERTY,
+		}, state)
 		models = componentProperty.models
 	} else if (schema.type === 'object') {
 		type = schema.type
@@ -438,29 +448,55 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			/* Map
 			 * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#model-with-mapdictionary-properties
 			 */
-			const keyNativeType = state.config.toNativeType('string', undefined, true, undefined, state)
+			const keyNativeType = state.config.toNativeType({
+				type: 'string',
+				purpose: CodegenTypePurpose.KEY,
+			}, state)
 			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, refName ? [refName] : parentNames, state)
 
-			nativeType = state.config.toNativeMapType(keyNativeType, componentProperty.nativeType, state)
+			nativeType = state.config.toNativeMapType({
+				keyNativeType,
+				componentNativeType: componentProperty.nativeType,
+				modelNames: refName ? [refName] : undefined,
+				purpose: CodegenMapTypePurpose.PROPERTY,
+			}, state)
 			models = componentProperty.models
 		} else {
 			const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
-			nativeType = state.config.toNativeType(type, schema.format, required, refName ? [refName] : [...parentNames, modelNameForPropertyName], state)
+			nativeType = state.config.toNativeType({
+				type,
+				format: schema.format,
+				required,
+				modelNames: refName ? [refName] : [...parentNames, modelNameForPropertyName],
+				purpose: CodegenTypePurpose.PROPERTY,
+			}, state)
 			if (!refName) {
 				models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
 			}
 		}
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
-		nativeType = state.config.toNativeType(type, schema.format, required, refName ? [refName] : [...parentNames, name], state)
+
+		const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
+		nativeType = state.config.toNativeType({
+			type,
+			format: schema.format,
+			required,
+			modelNames: refName ? [refName] : [...parentNames, modelNameForPropertyName],
+			purpose: CodegenTypePurpose.PROPERTY,
+		}, state)
 		if (!refName) {
-			const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
 			models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
 		}
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
 		format = schema.format
-		nativeType = state.config.toNativeType(type, format, required, undefined, state)
+		nativeType = state.config.toNativeType({
+			type,
+			format,
+			required,
+			purpose: CodegenTypePurpose.PROPERTY,
+		}, state)
 	} else {
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
@@ -534,6 +570,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 
 	let enumValueNativeType: CodegenNativeType | undefined
 	let enumValues: CodegenEnumValue[] | undefined
+	let parent: CodegenNativeType | undefined
 
 	if (schema.allOf) {
 		for (const subSchema of schema.allOf) {
@@ -558,13 +595,41 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		const enumValueType = type
 		const enumValueFormat = schema.format
 
-		enumValueNativeType = state.config.toNativeType(type, schema.format, false, undefined, state)
+		enumValueNativeType = state.config.toNativeType({
+			type,
+			format: schema.format,
+			purpose: CodegenTypePurpose.ENUM,
+		}, state)
 		enumValues = schema.enum ? schema.enum.map(value => ({
 			value,
 			literalValue: state.config.toLiteral(value, enumValueType, enumValueFormat, false, state),
 		})) : undefined
+	} else if (schema.type === 'array') {
+		if (!schema.items) {
+			throw new Error('items missing for schema type "array"')
+		}
+
+		const componentProperty = toCodegenProperty(name, schema.items, true, [], state)
+		parent = state.config.toNativeArrayType({
+			componentNativeType: componentProperty.nativeType,
+			uniqueItems: schema.uniqueItems,
+			purpose: CodegenArrayTypePurpose.PARENT,
+		}, state)
 	} else if (schema.type === 'object') {
 		/* Nothing to do */
+		if (schema.additionalProperties) {
+			const keyNativeType = state.config.toNativeType({
+				type: 'string',
+				purpose: CodegenTypePurpose.KEY,
+			}, state)
+			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, [], state)
+
+			parent = state.config.toNativeMapType({
+				keyNativeType,
+				componentNativeType: componentProperty.nativeType,
+				purpose: CodegenMapTypePurpose.PARENT,
+			}, state)
+		}
 	} else {
 		throw new Error(`Unsupported schema type "${schema.type}" for model in ${JSON.stringify(schema)}`)
 	}
@@ -578,6 +643,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		isEnum: enumValues !== undefined,
 		enumValueNativeType,
 		enumValues,
+		parent,
 	}
 }
 
@@ -640,8 +706,16 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 	if (isOpenAPIV2Document(root)) {
 		if (root.definitions) {
 			for (const schemaName in root.definitions) {
-				const model = toCodegenModel(schemaName, undefined, root.definitions[schemaName], state)
-				doc.models.push(model)
+				try {
+					const model = toCodegenModel(schemaName, undefined, root.definitions[schemaName], state)
+					doc.models.push(model)
+				} catch (error) {
+					if (error instanceof InvalidModelError) {
+						/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
+					} else {
+						throw error
+					}
+				}
 			}
 		}
 	} else {

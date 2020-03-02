@@ -1,6 +1,6 @@
 import { constantCase } from 'change-case'
 import { pascalCase, camelCase, capitalize, GroupingStrategies } from 'openapi-generator-node-core'
-import { CodegenConfig, CodegenState, CodegenRootContext, CodegenNativeType } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenArrayTypePurpose, CodegenRootContext, CodegenMapTypePurpose, CodegenNativeType, InvalidModelError } from 'openapi-generator-node-core'
 import { CodegenOptionsJava, ConstantStyle } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
@@ -171,7 +171,7 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeType: (type, format, required, modelNames, state) => {
+	toNativeType: ({ type, format, required, modelNames }, state) => {
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
@@ -230,7 +230,12 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (componentNativeType, required, uniqueItems) => {
+	toNativeArrayType: ({ componentNativeType, uniqueItems, purpose }) => {
+		if (purpose === CodegenArrayTypePurpose.PARENT) {
+			/* We don't support array types as superclasses as we don't use model names for our non-parent type */
+			throw new InvalidModelError('Array types are not supported as superclasses')
+		}
+
 		if (uniqueItems) {
 			// TODO should we use a LinkedHashSet here
 			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
@@ -238,7 +243,10 @@ const JavaCodegenConfig: CodegenConfig = {
 			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
 		}
 	},
-	toNativeMapType: (keyNativeType, componentNativeType) => {
+	toNativeMapType: ({ keyNativeType, componentNativeType, purpose }) => {
+		if (purpose === CodegenMapTypePurpose.PARENT) {
+			throw new InvalidModelError('Map types are not supported as superclasses')
+		}
 		return new CodegenNativeType(`java.util.Map<${keyNativeType}, ${componentNativeType}>`, `java.util.Map<${keyNativeType.wireType}, ${componentNativeType.wireType}>`)
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {

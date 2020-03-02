@@ -1,5 +1,5 @@
 import { pascalCase, camelCase, capitalize, GroupingStrategies, CodegenRootContext } from 'openapi-generator-node-core'
-import { CodegenConfig, CodegenNativeType } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenNativeType, InvalidModelError, CodegenMapTypePurpose, CodegenArrayTypePurpose } from 'openapi-generator-node-core'
 import { CodegenOptionsTypescript } from './types'
 import path from 'path'
 import Handlebars, { HelperOptions } from 'handlebars'
@@ -138,7 +138,7 @@ const config: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeType: (type, format, required, modelNames, state) => {
+	toNativeType: ({ type, format, modelNames }, state) => {
 		/* See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#data-types */
 		switch (type) {
 			case 'integer': {
@@ -180,10 +180,16 @@ const config: CodegenConfig = {
 
 		throw new Error(`Unsupported type name: ${type}`)
 	},
-	toNativeArrayType: (componentNativeType) => {
+	toNativeArrayType: ({ componentNativeType, purpose }) => {
+		if (purpose === CodegenArrayTypePurpose.PARENT) {
+			throw new InvalidModelError()
+		}
 		return new CodegenNativeType(`${componentNativeType}[]`, `${componentNativeType.wireType}[]`)
 	},
-	toNativeMapType: (keyNativeType, componentNativeType) => {
+	toNativeMapType: ({ keyNativeType, componentNativeType, purpose }) => {
+		if (purpose === CodegenMapTypePurpose.PARENT) {
+			throw new InvalidModelError()
+		}
 		return new CodegenNativeType(`{ [name: ${keyNativeType}]: ${componentNativeType} }`, `{ [name: ${keyNativeType.wireType}]: ${componentNativeType.wireType} }`)
 	},
 	toDefaultValue: (defaultValue, type, format, required, state) => {

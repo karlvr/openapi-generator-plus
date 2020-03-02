@@ -59,7 +59,7 @@ public class {{className name}}Api  {
 	{{#if produces}}
 	@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} })
 	{{/if}}
-	@ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
+	@ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType.literalType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
 		{{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
 			{{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
 			{{/unless}}{{/scopes}}
@@ -67,7 +67,7 @@ public class {{className name}}Api  {
 		{{/unless}}{{/authMethods}}
 	}{{/if}}, tags={ {{#tags}}"{{.}}"{{#unless @last}}, {{/unless}}{{/tags}} })
 	@ApiResponses(value = { {{#responses}}
-		@ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
+		@ApiResponse(code = {{{code}}}, message = "{{{description}}}", response = {{#if nativeType}}{{{nativeType.literalType}}}{{else}}Void{{/if}}.class{{#containerType}}, responseContainer = "{{{containerType}}}"{{/containerType}}){{#hasMore}},{{/hasMore}}{{/responses}}
 	})
 	public Response {{name}}({{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{#hasMore}}, {{/hasMore}}{{/allParams}}) {
 		{{#responses}}{{#isDefault}}final ResponseBuilder response = Response.status({{code}}).cacheControl(CacheControl.valueOf("{{{vendorExtensions.x-cache-control}}}{{^vendorExtensions.x-cache-control}}no-cache, no-store, must-revalidate, private{{/vendorExtensions.x-cache-control}}"));{{/isDefault}}{{/responses}}

@@ -238,9 +238,9 @@ const JavaCodegenConfig: CodegenConfig = {
 
 		if (uniqueItems) {
 			// TODO should we use a LinkedHashSet here
-			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
+			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`, 'java.util.List')
 		} else {
-			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`)
+			return new CodegenNativeType(`java.util.List<${componentNativeType}>`, `java.util.List<${componentNativeType.wireType}>`, 'java.util.List')
 		}
 	},
 	toNativeMapType: ({ keyNativeType, componentNativeType, purpose }) => {

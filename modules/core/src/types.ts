@@ -147,10 +147,16 @@ export class CodegenNativeType {
 	 * or won't go through extra conversion before going into the communication layer.
 	 */
 	public wireType?: string
+	/**
+	 * The type, in the native language, when expressing this type as a type literal, e.g. in java `java.util.List.class`
+	 * as opposed to `java.util.List<java.lang.String>.class`, which is not valid as a type literal.
+	 */
+	public literalType?: string
 
-	public constructor(nativeType: string, wireType?: string | null) {
+	public constructor(nativeType: string, wireType?: string | null, literalType?: string | null) {
 		this.nativeType = nativeType
 		this.wireType = wireType !== undefined ? wireType !== null ? wireType : undefined : nativeType
+		this.literalType = literalType !== undefined ? literalType !== null ? literalType : undefined : nativeType
 	}
 
 	public toString() {

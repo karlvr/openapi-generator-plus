@@ -51,15 +51,23 @@ public boolean equals(java.lang.Object o) {
 	if (o == null || getClass() != o.getClass()) {
 		return false;
 	}
-	{{className name}} {{identifier name}} = ({{className name}}) o;{{#if vars}}
+	{{#if parent}}
+	if (!super.equals(o)) {
+		return false;
+	}
+	{{/if}}
+	{{#if vars}}
+	{{className name}} {{identifier name}} = ({{className name}}) o;
 	return {{#vars}}Objects.equals(this.{{identifier name}}, {{identifier ../name}}.{{identifier name}}){{#hasMore}} &&
-			{{/hasMore}}{{^hasMore}};{{/hasMore}}{{/vars}}{{else}}
-	return true;{{/if}}
+			{{/hasMore}}{{/vars}};
+	{{else}}
+	return true;
+	{{/if}}
 }
 
 @Override
 public int hashCode() {
-	return Objects.hash({{#vars}}this.{{identifier name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
+	return {{#if parent}}31 * super.hashCode() + {{/if}}Objects.hash({{#vars}}this.{{identifier name}}{{#hasMore}}, {{/hasMore}}{{/vars}});
 }
 
 @Override

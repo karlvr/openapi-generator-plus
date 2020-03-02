@@ -19,7 +19,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
-import com.cactuslab.jaxrs.auth.Authenticated;
 
 import java.util.Map;
 import java.util.List;
@@ -49,7 +48,9 @@ public class {{className name}}Api  {
 {{>nestedModels}}
 	@{{httpMethod}}
 	{{#if authMethods}}
-	@Authenticated
+	{{#if @root.authenticatedOperationAnnotation}}
+	{{@root.authenticatedOperationAnnotation}}
+	{{/if}}
 	{{/if}}
 	{{#isDeprecated}}
 	@Deprecated
@@ -63,7 +64,7 @@ public class {{className name}}Api  {
 	{{#if produces}}
 	@Produces({ {{#produces}}"{{{mediaType}}}"{{#hasMore}}, {{/hasMore}}{{/produces}} })
 	{{/if}}
-	@ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}", response = {{#if returnNativeType}}{{{returnNativeType.literalType}}}{{else}}Void{{/if}}.class{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
+	@ApiOperation(value = "{{{summary}}}", notes = "{{{notes}}}"{{#if returnNativeType}}, response = {{{returnNativeType.literalType}}}.class{{/if}}{{#returnContainer}}, responseContainer = "{{{returnContainer}}}"{{/returnContainer}}{{#if authMethods}}, authorizations = {
 		{{#authMethods}}@Authorization(value = "{{name}}"{{#isOAuth}}, scopes = {
 			{{#scopes}}@AuthorizationScope(scope = "{{scope}}", description = "{{description}}"){{#unless @last}},
 			{{/unless}}{{/scopes}}

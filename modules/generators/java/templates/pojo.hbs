@@ -7,6 +7,6 @@ import javax.xml.bind.annotation.*;
 {{#if description}}@ApiModel(description = "{{{description}}}"){{/if}}
 
 @SuppressWarnings({"unused", "serial"})
-public class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable, APIBean{{#if vendorExtensions.x-is-api-response-envelope}}, APIResponseBean<{{{className name}}}>{{/if}}{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
+public class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
 	{{>pojoContents}}
 }

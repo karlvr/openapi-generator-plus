@@ -1,24 +1,3 @@
-{{#if vendorExtensions.x-is-api-response-envelope}}
-private Map<String, Map<String, APIBean>> __refs = new LinkedHashMap<>();
-public Map<String, Map<String, APIBean>> refBeans() {
-	return __refs;
-}
-public {{className name}} addRef(String fieldName, String ref, APIBeanFactoryFunction creator) {
-	Map<String, APIBean> existingRefs = refBeans().get(fieldName);
-	if (existingRefs == null) {
-		existingRefs = new LinkedHashMap<>();
-		refBeans().put(fieldName, existingRefs);
-	}
-	if (existingRefs.get(ref) == null) {
-		APIBean bean = creator.create();
-		if (bean != null) {
-			existingRefs.put(ref, bean);
-		}
-	}
-	return this;
-}
-{{/if}}
-
 {{>nestedModels}}
 
 {{#vars}}

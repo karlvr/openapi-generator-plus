@@ -277,7 +277,7 @@ const JavaCodegenConfig: CodegenConfig = {
 		const packageName = initialOptions.package || 'com.example'
 		return {
 			apiPackage: `${packageName}`,
-			apiServiceImplPackage: `${packageName}.impl`,
+			apiServiceImplPackage: `${initialOptions.apiPackage || packageName}.impl`,
 			modelPackage: `${packageName}.model`,
 			invokerPackage: `${packageName}.app`,
 			useBeanValidation: true,

@@ -4,7 +4,8 @@
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
   "bin": {
-    "ogplus": "./bin/ogplus.js"
+    "ogplus": "./bin/ogplus.js",
+    "openapi-generator-plus": "./bin/ogplus.js"
   },
   "scripts": {
     "build": "tsc",

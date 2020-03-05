@@ -15,7 +15,7 @@ async function loadConfig(path: string): Promise<CodegenConfig> {
 	if (path.endsWith('.yml') || path.endsWith('.yaml')) {
 		return YAML.parse(configContents, {
 			prettyErrors: true,
-		} as any)
+		} as any) // TODO the YAML types don't include prettyErrors
 	} else {
 		return JSON.parse(configContents)
 	}
@@ -38,30 +38,58 @@ export async function run() {
 		},
 	})
 
-	if (commandLineOptions._.length === 0 || !commandLineOptions.output || !commandLineOptions.generator) {
+	let config: CodegenConfig
+	if (commandLineOptions.config) {
+		config = await loadConfig(commandLineOptions.config)
+		config.config = commandLineOptions.config
+		if (commandLineOptions.generator) {
+			config.generator = commandLineOptions.generator
+		}
+		if (commandLineOptions.output) {
+			config.output = commandLineOptions.output
+		}
+		if (commandLineOptions._.length) {
+			config.input = commandLineOptions._[0]
+		}
+	} else {
+		config = {
+			generator: commandLineOptions.generator,
+			output: commandLineOptions.output,
+			input: commandLineOptions._[0],
+		}
+	}
+
+	if (!config.input) {
+		console.warn('API specification not specified')
+		usage()
+		process.exit(1)
+	}
+	if (!config.output) {
+		console.warn('Output path not specified')
+		usage()
+		process.exit(1)
+	}
+	if (!config.generator) {
+		console.warn('Generator not specified')
 		usage()
 		process.exit(1)
 	}
 
-	const initialOptions = commandLineOptions.config ? await loadConfig(commandLineOptions.config) : {}
-	initialOptions.output = commandLineOptions.output
-
 	const parser = new SwaggerParser()
-	const apiPath = commandLineOptions._[0]
 
 	let root: OpenAPI.Document
 	try {
-		root = await parser.parse(apiPath)
+		root = await parser.parse(config.input)
 	} catch (error) {
-		console.error(`Failed to load API specification: ${apiPath} (${error.message})`)
+		console.error(`Failed to load API specification: ${config.input} (${error.message})`)
 		process.exit(1)
 	}
 
 	let generator: CodegenGenerator
 	try {
-		generator = require(path.resolve(commandLineOptions.generator)).default
+		generator = require(path.resolve(config.generator)).default
 	} catch (error) {
-		console.error(`Failed to load generator module: ${commandLineOptions.generator} (${error.message})`)
+		console.error(`Failed to load generator module: ${config.generator} (${error.message})`)
 		process.exit(1)
 	}
 
@@ -69,7 +97,8 @@ export async function run() {
 		parser,
 		root,
 		generator,
-		options: generator.options(initialOptions),
+		config,
+		options: generator.options(config),
 		anonymousModels: {},
 	}
 

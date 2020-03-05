@@ -5,6 +5,7 @@ export interface CodegenState {
 	parser: SwaggerParser
 	root: OpenAPI.Document
 	generator: CodegenGenerator
+	config: CodegenConfig
 	options: CodegenOptions
 	anonymousModels: { [name: string]: CodegenModel }
 }
@@ -41,15 +42,23 @@ export interface CodegenGenerator {
 export interface CodegenConfig {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[name: string]: any
+
+	/** The path to the config file, if any */
+	config?: string
+	/** The generator module to use */
+	generator: string
+	/** The path to output the generated code */
+	output: string
+	/** The path to the API specification */
+	input: string
 }
 
 /**
- * Options that the user can provide to the code generation process.
+ * Options to the code generation process. Extended by generators to provide their
+ * own options. These options are usually provided to the code generation process.
  */
 export interface CodegenOptions {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[name: string]: any
-	hideGenerationTimestamp?: boolean
+	config: CodegenConfig
 }
 
 /**

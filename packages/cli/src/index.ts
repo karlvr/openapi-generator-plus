@@ -68,7 +68,7 @@ export async function run() {
 	const state: CodegenState = {
 		parser,
 		root,
-		config: generator,
+		generator,
 		options: generator.options(initialOptions),
 		anonymousModels: {},
 	}

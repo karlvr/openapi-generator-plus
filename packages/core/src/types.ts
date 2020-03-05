@@ -4,7 +4,7 @@ import SwaggerParser = require('swagger-parser')
 export interface CodegenState {
 	parser: SwaggerParser
 	root: OpenAPI.Document
-	config: CodegenGenerator
+	generator: CodegenGenerator
 	options: CodegenOptions
 	anonymousModels: { [name: string]: CodegenModel }
 }

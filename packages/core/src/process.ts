@@ -5,7 +5,7 @@ import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 
 function groupOperations(operationInfos: CodegenOperation[], state: CodegenState) {
-	const strategy = state.config.operationGroupingStrategy(state)
+	const strategy = state.generator.operationGroupingStrategy(state)
 
 	const groups: CodegenOperationGroups = {}
 	for (const operationInfo of operationInfos) {
@@ -128,7 +128,7 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 		return operation.operationId
 	}
 
-	return state.config.toOperationName(path, method, state)
+	return state.generator.toOperationName(path, method, state)
 }
 
 function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState): CodegenOperation {
@@ -419,8 +419,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
 		}
 
-		const enumName = state.config.toEnumName(name, state)
-		nativeType = state.config.toNativeType({
+		const enumName = state.generator.toEnumName(name, state)
+		nativeType = state.generator.toNativeType({
 			type: 'object',
 			modelNames: refName ? [refName] : [...parentNames, enumName],
 			purpose: CodegenTypePurpose.ENUM,
@@ -435,7 +435,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		type = schema.type
 
 		const componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
-		nativeType = state.config.toNativeArrayType({
+		nativeType = state.generator.toNativeArrayType({
 			componentNativeType: componentProperty.nativeType,
 			required,
 			uniqueItems: schema.uniqueItems,
@@ -450,13 +450,13 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			/* Map
 			 * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#model-with-mapdictionary-properties
 			 */
-			const keyNativeType = state.config.toNativeType({
+			const keyNativeType = state.generator.toNativeType({
 				type: 'string',
 				purpose: CodegenTypePurpose.KEY,
 			}, state)
 			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, refName ? [refName] : parentNames, state)
 
-			nativeType = state.config.toNativeMapType({
+			nativeType = state.generator.toNativeMapType({
 				keyNativeType,
 				componentNativeType: componentProperty.nativeType,
 				modelNames: refName ? [refName] : undefined,
@@ -464,8 +464,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			}, state)
 			models = componentProperty.models
 		} else {
-			const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
-			nativeType = state.config.toNativeType({
+			const modelNameForPropertyName = state.generator.toModelNameFromPropertyName(name, state)
+			nativeType = state.generator.toNativeType({
 				type,
 				format: schema.format,
 				required,
@@ -479,8 +479,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
 
-		const modelNameForPropertyName = state.config.toModelNameFromPropertyName(name, state)
-		nativeType = state.config.toNativeType({
+		const modelNameForPropertyName = state.generator.toModelNameFromPropertyName(name, state)
+		nativeType = state.generator.toNativeType({
 			type,
 			format: schema.format,
 			required,
@@ -493,7 +493,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
 		format = schema.format
-		nativeType = state.config.toNativeType({
+		nativeType = state.generator.toNativeType({
 			type,
 			format,
 			required,
@@ -507,7 +507,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		name,
 		description,
 		title: schema.title,
-		defaultValue: state.config.toDefaultValue(schema.default, type, schema.format, required, state),
+		defaultValue: state.generator.toDefaultValue(schema.default, type, schema.format, required, state),
 		readOnly: !!schema.readOnly,
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),
@@ -597,14 +597,14 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		const enumValueType = type
 		const enumValueFormat = schema.format
 
-		enumValueNativeType = state.config.toNativeType({
+		enumValueNativeType = state.generator.toNativeType({
 			type,
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
 		enumValues = schema.enum ? schema.enum.map(value => ({
 			value,
-			literalValue: state.config.toLiteral(value, enumValueType, enumValueFormat, false, state),
+			literalValue: state.generator.toLiteral(value, enumValueType, enumValueFormat, false, state),
 		})) : undefined
 	} else if (schema.type === 'array') {
 		if (!schema.items) {
@@ -612,7 +612,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		}
 
 		const componentProperty = toCodegenProperty(name, schema.items, true, [], state)
-		parent = state.config.toNativeArrayType({
+		parent = state.generator.toNativeArrayType({
 			componentNativeType: componentProperty.nativeType,
 			uniqueItems: schema.uniqueItems,
 			purpose: CodegenArrayTypePurpose.PARENT,
@@ -620,13 +620,13 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	} else if (schema.type === 'object') {
 		/* Nothing to do */
 		if (schema.additionalProperties) {
-			const keyNativeType = state.config.toNativeType({
+			const keyNativeType = state.generator.toNativeType({
 				type: 'string',
 				purpose: CodegenTypePurpose.KEY,
 			}, state)
 			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, [], state)
 
-			parent = state.config.toNativeMapType({
+			parent = state.generator.toNativeMapType({
 				keyNativeType,
 				componentNativeType: componentProperty.nativeType,
 				purpose: CodegenMapTypePurpose.PARENT,

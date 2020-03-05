@@ -10,8 +10,16 @@
     "test": "jest",
     "watch": "tsc --watch"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karlvr/openapi-generator-plus.git"
+  },
   "author": "Karl von Randow",
   "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/karlvr/openapi-generator-plus/issues"
+  },
+  "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
     "lodash": "^4.17.15",
     "swagger-parser": "^8.0.4"

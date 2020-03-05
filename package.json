@@ -22,6 +22,7 @@
     "@types/jest": "^25.1.2",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.7.0",
+    "@types/yaml": "^1.2.0",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
     "eslint": "^6.8.0",
@@ -32,7 +33,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "openapi-generator-plus": "file:packages/cli",
-    "@openapi-generator-plus/core": "file:packages/core"
+    "@openapi-generator-plus/core": "file:packages/core",
+    "openapi-generator-plus": "file:packages/cli"
   }
 }

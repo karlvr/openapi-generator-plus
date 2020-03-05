@@ -209,8 +209,8 @@ function toCodegenAuthMethod(name: string, scopes: string[] | undefined, state: 
 					type: scheme.type,
 					description: scheme.description,
 					name,
-					paramName: scheme.name,
-					in: scheme.in,
+					paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+					in: (scheme as any).in, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
 					isApiKey: true,
 					vendorExtensions: toCodegenVendorExtensions(scheme),
 				}

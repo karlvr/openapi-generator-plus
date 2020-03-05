@@ -5,7 +5,6 @@
   "description": "",
   "scripts": {
     "build": "lerna run build",
-    "postinstall": "./scripts/patches.sh",
     "test": "lerna run test",
     "watch": "lerna run --parallel watch"
   },

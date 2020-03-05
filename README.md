@@ -32,7 +32,7 @@ nvm use
 To install and build the project:
 
 ```
-npm install
+npx lerna bootstrap
 npm run build
 ```
 

@@ -1,5 +1,0 @@
-{{#if description}}@ApiModel(description = "{{{description}}}"){{/if}}
-
-public static class {{className name}}{{#if parent}} extends {{{parent}}}{{/if}} implements Serializable{{#vendorExtensions.x-implements-interfaces}}, {{{.}}}{{/vendorExtensions.x-implements-interfaces}} {
-	{{>pojoContents}}
-}

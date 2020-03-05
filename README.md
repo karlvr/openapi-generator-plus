@@ -4,8 +4,20 @@ A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with
 
 ## Using
 
+Install locally:
+
+```shell
+npm install --save-dev openapi-generator-plus
+npx ogplus [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>
 ```
-npm start [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>
+
+You need to install a generator module to use with `-g`.
+
+Or, if you prefer, install globally:
+
+```
+npm install -g openapi-generator-plus
+ogplus [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>
 ```
 
 ## Building

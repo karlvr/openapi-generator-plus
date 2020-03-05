@@ -1,30 +1,39 @@
 {
-  "name": "openapi-generator-plus",
+  "name": "openapi-generator-plus-root",
+  "private": true,
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "build": "(cd modules/core && npm run build) && (cd modules/cli && npm run build) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm run build); fi; done)",
-    "postinstall": "(cd modules/core && npm install) && (cd modules/cli && npm install) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm install); fi; done)",
-    "start": "node ./modules/cli/dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "(cd modules/core && npm run watch &) && (cd modules/cli && npm run watch &) && (cd modules/generators && for i in * ; do if [ -d $i ]; then (cd $i && npm run watch &); fi; done)"
+    "build": "lerna run build",
+    "postinstall": "./scripts/patches.sh",
+    "test": "lerna run test",
+    "watch": "lerna run --parallel watch"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/karlvr/openapi-generator-node.git"
+    "url": "git+https://github.com/karlvr/openapi-generator-plus.git"
   },
   "author": "Karl von Randow",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/karlvr/openapi-generator-node/issues"
+    "url": "https://github.com/karlvr/openapi-generator-plus/issues"
   },
-  "homepage": "https://github.com/karlvr/openapi-generator-node#readme",
+  "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "devDependencies": {
     "@types/jest": "^25.1.2",
+    "@types/lodash": "^4.14.149",
+    "@types/node": "^13.7.0",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
     "@typescript-eslint/parser": "^2.19.0",
     "eslint": "^6.8.0",
     "eslint-plugin-jest": "^23.6.0",
+    "jest": "^25.1.0",
+    "lerna": "^3.20.2",
+    "ts-jest": "^25.2.0",
     "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "openapi-generator-plus": "file:packages/cli",
+    "@openapi-generator-plus/core": "file:packages/core"
   }
 }

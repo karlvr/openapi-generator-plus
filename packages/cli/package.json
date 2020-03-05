@@ -1,5 +1,5 @@
 {
-  "name": "openapi-generator-plus-cli",
+  "name": "openapi-generator-plus",
   "version": "0.0.1",
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
@@ -14,20 +14,9 @@
   },
   "author": "Karl von Randow",
   "license": "Apache-2.0",
-  "devDependencies": {
-    "@types/jest": "^25.1.1",
-    "@types/node": "^13.1.7",
-    "@typescript-eslint/eslint-plugin": "^2.18.0",
-    "@typescript-eslint/parser": "^2.18.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-jest": "^23.6.0",
-    "jest": "^25.1.0",
-    "ts-jest": "^25.1.0",
-    "typescript": "^3.7.4"
-  },
   "dependencies": {
     "getopts": "^2.2.5",
-    "openapi-generator-plus-core": "file:../core",
+    "@openapi-generator-plus/core": "file:../core",
     "swagger-parser": "^8.0.4"
   }
 }

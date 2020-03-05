@@ -1,8 +1,8 @@
 import SwaggerParser from 'swagger-parser'
 import { promises as fs } from 'fs'
-import { CodegenConfig, CodegenState, CodegenInitialOptions } from 'openapi-generator-node-core'
+import { CodegenConfig, CodegenState, CodegenInitialOptions, processDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
-import { processDocument } from 'openapi-generator-node-core'
+
 import path from 'path'
 
 async function loadCommandLineConfig(path: string): Promise<CodegenInitialOptions> {

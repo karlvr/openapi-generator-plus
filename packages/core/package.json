@@ -1,12 +1,11 @@
 {
-  "name": "openapi-generator-plus-core",
+  "name": "@openapi-generator-plus/core",
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "postinstall": "./scripts/patches.sh",
     "test": "jest",
     "watch": "tsc --watch"
   },
@@ -14,14 +13,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "lodash": "^4.17.15",
-    "swagger-parser": "^8.0.4",
-    "typescript": "^3.7.5"
-  },
-  "devDependencies": {
-    "@types/jest": "^25.1.1",
-    "@types/lodash": "^4.14.149",
-    "@types/node": "^13.7.0",
-    "jest": "^25.1.0",
-    "ts-jest": "^25.2.0"
+    "swagger-parser": "^8.0.4"
   }
 }

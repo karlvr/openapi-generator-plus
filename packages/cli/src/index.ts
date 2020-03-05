@@ -39,32 +39,39 @@ export async function run() {
 	})
 
 	let config: CodegenConfig
-	if (commandLineOptions.config) {
-		config = await loadConfig(commandLineOptions.config)
-		config.config = commandLineOptions.config
+	const configPath = commandLineOptions.config
+	if (configPath) {
+		config = await loadConfig(configPath)
+		config.configPath = configPath
+		if (config.outputPath) {
+			config.outputPath = path.resolve(path.dirname(configPath), config.outputPath)
+		}
+		if (config.inputPath) {
+			config.inputPath = path.resolve(path.dirname(configPath), config.inputPath)
+		}
 		if (commandLineOptions.generator) {
 			config.generator = commandLineOptions.generator
 		}
 		if (commandLineOptions.output) {
-			config.output = commandLineOptions.output
+			config.outputPath = commandLineOptions.output
 		}
 		if (commandLineOptions._.length) {
-			config.input = commandLineOptions._[0]
+			config.inputPath = commandLineOptions._[0]
 		}
 	} else {
 		config = {
 			generator: commandLineOptions.generator,
-			output: commandLineOptions.output,
-			input: commandLineOptions._[0],
+			outputPath: commandLineOptions.output,
+			inputPath: commandLineOptions._[0],
 		}
 	}
 
-	if (!config.input) {
+	if (!config.inputPath) {
 		console.warn('API specification not specified')
 		usage()
 		process.exit(1)
 	}
-	if (!config.output) {
+	if (!config.outputPath) {
 		console.warn('Output path not specified')
 		usage()
 		process.exit(1)
@@ -79,7 +86,7 @@ export async function run() {
 
 	let root: OpenAPI.Document
 	try {
-		root = await parser.parse(config.input)
+		root = await parser.parse(config.inputPath)
 	} catch (error) {
 		console.error(`Failed to load API specification: ${config.input} (${error.message})`)
 		process.exit(1)

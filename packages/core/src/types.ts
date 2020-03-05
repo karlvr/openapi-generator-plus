@@ -44,13 +44,13 @@ export interface CodegenConfig {
 	[name: string]: any
 
 	/** The path to the config file, if any */
-	config?: string
+	configPath?: string
 	/** The generator module to use */
 	generator: string
 	/** The path to output the generated code */
-	output: string
+	outputPath: string
 	/** The path to the API specification */
-	input: string
+	inputPath: string
 }
 
 /**

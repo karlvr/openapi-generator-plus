@@ -4,12 +4,15 @@ import SwaggerParser = require('swagger-parser')
 export interface CodegenState {
 	parser: SwaggerParser
 	root: OpenAPI.Document
-	config: CodegenConfig
+	config: CodegenGenerator
 	options: CodegenOptions
 	anonymousModels: { [name: string]: CodegenModel }
 }
 
-export interface CodegenConfig {
+/**
+ * The interface implemented by language-specific generator modules.
+ */
+export interface CodegenGenerator {
 	toClassName: (name: string, state: CodegenState) => string
 	toIdentifier: (name: string, state: CodegenState) => string
 	toConstantName: (name: string, state: CodegenState) => string
@@ -33,7 +36,7 @@ export interface CodegenConfig {
 }
 
 /**
- * The options received on the command-line.
+ * The options from a config file.
  */
 export interface CodegenInitialOptions {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

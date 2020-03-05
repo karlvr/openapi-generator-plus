@@ -1,7 +1,7 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenConfig, CodegenState, CodegenInitialOptions, processDocument } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, CodegenInitialOptions, processDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import YAML from 'yaml'
 
@@ -57,9 +57,9 @@ export async function run() {
 		process.exit(1)
 	}
 
-	let config: CodegenConfig
+	let generator: CodegenGenerator
 	try {
-		config = require(path.resolve(commandLineOptions.generator)).default
+		generator = require(path.resolve(commandLineOptions.generator)).default
 	} catch (error) {
 		console.error(`Failed to load generator module: ${commandLineOptions.generator} (${error.message})`)
 		process.exit(1)
@@ -68,14 +68,14 @@ export async function run() {
 	const state: CodegenState = {
 		parser,
 		root,
-		config,
-		options: config.options(initialOptions),
+		config: generator,
+		options: generator.options(initialOptions),
 		anonymousModels: {},
 	}
 
 	const doc = processDocument(root, state)
 
-	await config.exportTemplates(doc, state)
+	await generator.exportTemplates(doc, state)
 }
 
 run()

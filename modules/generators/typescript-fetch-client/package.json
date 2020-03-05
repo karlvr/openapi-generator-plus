@@ -21,7 +21,7 @@
   "dependencies": {
     "change-case": "^4.1.1",
     "handlebars": "^4.7.3",
-    "openapi-generator-node-core": "file:../../core",
+    "openapi-generator-plus-core": "file:../../core",
     "pluralize": "^8.0.0"
   }
 }

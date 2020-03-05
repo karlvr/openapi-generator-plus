@@ -1,8 +1,12 @@
 {
-  "name": "openapi-generator-node-cli",
+  "name": "openapi-generator-plus-cli",
   "version": "0.0.1",
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
+  "bin": {
+    "og+": "./dist/index.js",
+    "ogplus": "./dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -23,7 +27,7 @@
   },
   "dependencies": {
     "getopts": "^2.2.5",
-    "openapi-generator-node-core": "file:../core",
+    "openapi-generator-plus-core": "file:../core",
     "swagger-parser": "^8.0.4"
   }
 }

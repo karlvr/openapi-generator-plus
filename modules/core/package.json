@@ -1,5 +1,5 @@
 {
-  "name": "openapi-generator-node-core",
+  "name": "openapi-generator-plus-core",
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",

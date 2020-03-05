@@ -1,4 +1,4 @@
-# OpenAPI Generator ++
+# OpenAPI Generator +
 
 A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with modular language-specific generators.
 

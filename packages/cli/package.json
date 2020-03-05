@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "getopts": "^2.2.5",
-    "@openapi-generator-plus/core": "file:../core",
+    "@openapi-generator-plus/core": "0.0.1",
     "swagger-parser": "^8.0.4"
   }
 }

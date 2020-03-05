@@ -1,13 +1,13 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenGenerator, CodegenState, CodegenInitialOptions, processDocument } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, CodegenConfig, processDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import YAML from 'yaml'
 
 import path from 'path'
 
-async function loadCommandLineConfig(path: string): Promise<CodegenInitialOptions> {
+async function loadConfig(path: string): Promise<CodegenConfig> {
 	const configContents = await fs.readFile(path, {
 		encoding: 'UTF-8',
 	}) as string
@@ -43,7 +43,7 @@ export async function run() {
 		process.exit(1)
 	}
 
-	const initialOptions = commandLineOptions.config ? await loadCommandLineConfig(commandLineOptions.config) : {}
+	const initialOptions = commandLineOptions.config ? await loadConfig(commandLineOptions.config) : {}
 	initialOptions.output = commandLineOptions.output
 
 	const parser = new SwaggerParser()

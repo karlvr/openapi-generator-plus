@@ -29,7 +29,7 @@ export interface CodegenGenerator {
 	/** Return the default value to use for a property as a literal in the language */
 	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
 
-	options: (initialOptions: CodegenInitialOptions) => CodegenOptions
+	options: (config: CodegenConfig) => CodegenOptions
 	operationGroupingStrategy: (state: CodegenState) => CodegenOperationGroupingStrategy
 
 	exportTemplates: (doc: CodegenDocument, state: CodegenState) => void
@@ -38,7 +38,7 @@ export interface CodegenGenerator {
 /**
  * The options from a config file.
  */
-export interface CodegenInitialOptions {
+export interface CodegenConfig {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[name: string]: any
 }

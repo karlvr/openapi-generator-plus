@@ -2,18 +2,26 @@ import SwaggerParser from 'swagger-parser'
 import { promises as fs } from 'fs'
 import { CodegenConfig, CodegenState, CodegenInitialOptions, processDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
+import YAML from 'yaml'
 
 import path from 'path'
 
 async function loadCommandLineConfig(path: string): Promise<CodegenInitialOptions> {
-	const configJSON = await fs.readFile(path, {
+	const configContents = await fs.readFile(path, {
 		encoding: 'UTF-8',
 	}) as string
-	return JSON.parse(configJSON)
+
+	if (path.endsWith('.yml') || path.endsWith('.yaml')) {
+		return YAML.parse(configContents, {
+			prettyErrors: true,
+		} as any)
+	} else {
+		return JSON.parse(configContents)
+	}
 }
 
 function usage() {
-	console.log(`usage: ${process.argv[1]} [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>`)
+	console.log(`usage: ${process.argv[1]} [-c <config file>] -o <output dir> -g <generator module or path> <path or url to api spec>`)
 }
 
 export async function run() {

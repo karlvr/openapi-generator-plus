@@ -26,6 +26,10 @@
   "dependencies": {
     "@openapi-generator-plus/core": "^0.0.2",
     "getopts": "^2.2.5",
-    "swagger-parser": "^8.0.4"
+    "swagger-parser": "^8.0.4",
+    "yaml": "^1.7.2"
+  },
+  "devDependencies": {
+    "@types/yaml": "^1.2.0"
   }
 }

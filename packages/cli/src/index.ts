@@ -94,7 +94,15 @@ export async function run() {
 
 	let generator: CodegenGenerator
 	try {
-		generator = require(path.resolve(config.generator)).default
+		const generatorPath = path.resolve(config.generator)
+		try {
+			await fs.access(generatorPath)
+			generator = require(generatorPath).default
+		} catch (error) {
+			/* Resolve generator as a local module */
+			const resolved = require.resolve(config.generator, { paths: ['.'] })
+			generator = require(resolved).default
+		}
 	} catch (error) {
 		console.error(`Failed to load generator module: ${config.generator} (${error.message})`)
 		process.exit(1)

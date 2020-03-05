@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
   "bin": {
@@ -15,8 +15,8 @@
   "author": "Karl von Randow",
   "license": "Apache-2.0",
   "dependencies": {
+    "@openapi-generator-plus/core": "^0.0.1",
     "getopts": "^2.2.5",
-    "@openapi-generator-plus/core": "0.0.0",
     "swagger-parser": "^8.0.4"
   }
 }

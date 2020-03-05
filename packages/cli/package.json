@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "OpenAPI code generator written in Node",
   "main": "dist/index.js",
   "bin": {

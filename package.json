@@ -1,7 +1,7 @@
 {
   "name": "openapi-generator-plus-root",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "",
   "scripts": {
     "build": "lerna run build",

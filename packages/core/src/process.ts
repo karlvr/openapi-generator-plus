@@ -712,7 +712,7 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 					const model = toCodegenModel(schemaName, undefined, root.definitions[schemaName], state)
 					doc.models.push(model)
 				} catch (error) {
-					if (error instanceof InvalidModelError) {
+					if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
 						/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
 					} else {
 						throw error

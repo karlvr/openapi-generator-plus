@@ -23,12 +23,14 @@ export interface CodegenGenerator<O = CodegenOptions> {
 	toModelNameFromPropertyName: (name: string, state: CodegenState<O>) => string
 
 	/** Format a value as a literal in the language */
-	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState<O>) => string
-	toNativeType: (options: CodegenTypeOptions, state: CodegenState<O>) => CodegenNativeType
-	toNativeArrayType: (options: CodegenArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
-	toNativeMapType: (options: CodegenMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	toLiteral: (value: any, options: CodegenTypeOptions, state: CodegenState<O>) => string
+	toNativeType: (options: CodegenNativeTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toNativeArrayType: (options: CodegenNativeArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toNativeMapType: (options: CodegenNativeMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
-	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState<O>) => string
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	toDefaultValue: (defaultValue: any, options: CodegenTypeOptions, state: CodegenState<O>) => string
 
 	options: (config: CodegenConfig) => O
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
@@ -246,6 +248,12 @@ export interface CodegenModel {
 	models?: CodegenModel[]
 }
 
+export interface CodegenTypeOptions {
+	type: string
+	format?: string
+	required?: boolean
+}
+
 export enum CodegenTypePurpose {
 	/** A type for an object property */
 	PROPERTY = 'PROPERTY',
@@ -257,10 +265,7 @@ export enum CodegenTypePurpose {
 	KEY = 'KEY',
 }
 
-export interface CodegenTypeOptions {
-	type: string
-	format?: string
-	required?: boolean
+export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
 	modelNames?: string[]
 	purpose: CodegenTypePurpose
 }
@@ -272,7 +277,7 @@ export enum CodegenArrayTypePurpose {
 	PARENT = 'PARENT',
 }
 
-export interface CodegenArrayTypeOptions {
+export interface CodegenNativeArrayTypeOptions {
 	componentNativeType: CodegenNativeType
 	required?: boolean
 	/** The uniqueItems property from the API spec */
@@ -288,7 +293,7 @@ export enum CodegenMapTypePurpose {
 	PARENT = 'PARENT',
 }
 
-export interface CodegenMapTypeOptions {
+export interface CodegenNativeMapTypeOptions {
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]

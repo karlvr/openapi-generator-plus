@@ -507,7 +507,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		name,
 		description,
 		title: schema.title,
-		defaultValue: state.generator.toDefaultValue(schema.default, type, schema.format, required, state),
+		defaultValue: state.generator.toDefaultValue(schema.default, { type, format: schema.format, required }, state),
 		readOnly: !!schema.readOnly,
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),
@@ -604,7 +604,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		}, state)
 		enumValues = schema.enum ? schema.enum.map(value => ({
 			value,
-			literalValue: state.generator.toLiteral(value, enumValueType, enumValueFormat, false, state),
+			literalValue: state.generator.toLiteral(value, { type: enumValueType, format: enumValueFormat }, state),
 		})) : undefined
 	} else if (schema.type === 'array') {
 		if (!schema.items) {

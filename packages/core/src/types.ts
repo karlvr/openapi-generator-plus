@@ -1,39 +1,39 @@
 import { OpenAPI } from 'openapi-types'
 import SwaggerParser = require('swagger-parser')
 
-export interface CodegenState {
+export interface CodegenState<O = CodegenOptions> {
 	parser: SwaggerParser
 	root: OpenAPI.Document
 	generator: CodegenGenerator
 	config: CodegenConfig
-	options: CodegenOptions
+	options: O
 	anonymousModels: { [name: string]: CodegenModel }
 }
 
 /**
  * The interface implemented by language-specific generator modules.
  */
-export interface CodegenGenerator {
-	toClassName: (name: string, state: CodegenState) => string
-	toIdentifier: (name: string, state: CodegenState) => string
-	toConstantName: (name: string, state: CodegenState) => string
-	toEnumName: (name: string, state: CodegenState) => string
-	toOperationName: (path: string, method: string, state: CodegenState) => string
+export interface CodegenGenerator<O = CodegenOptions> {
+	toClassName: (name: string, state: CodegenState<O>) => string
+	toIdentifier: (name: string, state: CodegenState<O>) => string
+	toConstantName: (name: string, state: CodegenState<O>) => string
+	toEnumName: (name: string, state: CodegenState<O>) => string
+	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
 	/** Convert a property name to a name suitable for a model class */
-	toModelNameFromPropertyName: (name: string, state: CodegenState) => string
+	toModelNameFromPropertyName: (name: string, state: CodegenState<O>) => string
 
 	/** Format a value as a literal in the language */
-	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
-	toNativeType: (options: CodegenTypeOptions, state: CodegenState) => CodegenNativeType
-	toNativeArrayType: (options: CodegenArrayTypeOptions, state: CodegenState) => CodegenNativeType
-	toNativeMapType: (options: CodegenMapTypeOptions, state: CodegenState) => CodegenNativeType
+	toLiteral: (value: any, type: string, format: string | undefined, required: boolean, state: CodegenState<O>) => string
+	toNativeType: (options: CodegenTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toNativeArrayType: (options: CodegenArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toNativeMapType: (options: CodegenMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
-	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState) => string
+	toDefaultValue: (defaultValue: any, type: string, format: string | undefined, required: boolean, state: CodegenState<O>) => string
 
-	options: (config: CodegenConfig) => CodegenOptions
-	operationGroupingStrategy: (state: CodegenState) => CodegenOperationGroupingStrategy
+	options: (config: CodegenConfig) => O
+	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
 
-	exportTemplates: (doc: CodegenDocument, state: CodegenState) => void
+	exportTemplates: (doc: CodegenDocument, state: CodegenState<O>) => void
 }
 
 /**

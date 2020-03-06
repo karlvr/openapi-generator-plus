@@ -1,7 +1,7 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenGenerator, CodegenState, CodegenConfig, processDocument } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, CodegenConfig, processDocument, CodegenDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import YAML from 'yaml'
 
@@ -117,9 +117,20 @@ export async function run() {
 		anonymousModels: {},
 	}
 
-	const doc = processDocument(root, state)
+	let doc: CodegenDocument
+	try {
+		doc = processDocument(root, state)
+	} catch (error) {
+		console.error(`Failed to process the API specification: ${error.message}`)
+		process.exit(1)
+	}
 
-	await generator.exportTemplates(doc, state)
+	try {
+		await generator.exportTemplates(doc, state)
+	} catch (error) {
+		console.error(`Failed to generate templates: ${error.message}`)
+		process.exit(1)
+	}
 }
 
 run()

@@ -633,7 +633,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			}, state)
 		}
 	} else {
-		throw new Error(`Unsupported schema type "${schema.type}" for model in ${JSON.stringify(schema)}`)
+		throw new Error(`Unsupported schema type "${schema.type}" for model "${name}": ${JSON.stringify(schema)}`)
 	}
 
 	return {

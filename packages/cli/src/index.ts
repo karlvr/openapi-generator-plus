@@ -31,12 +31,19 @@ export async function run() {
 			config: 'c',
 			output: 'o',
 			generator: 'g',
+			version: 'v',
 		},
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false
 		},
 	})
+
+	if (commandLineOptions.version) {
+		const version = require(path.resolve(__dirname, '../package.json')).version
+		console.log(version)
+		process.exit(0)
+	}
 
 	let config: CodegenConfig
 	const configPath = commandLineOptions.config

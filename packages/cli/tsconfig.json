@@ -66,5 +66,5 @@
     /* Fix issue with typechecking of nested core dependency when using npm link */
     "skipLibCheck": true
   },
-  "include": [ "./src" ]
+  "include": [ "./src", "./__tests__" ],
 }

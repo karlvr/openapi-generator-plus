@@ -1,0 +1,69 @@
+---
+swagger: '2.0'
+info:
+  description: Lorem ipsum
+  version: 1.0.1
+  title: Example
+host: example.com/api
+basePath: /v1
+schemes:
+- http
+- https
+paths:
+  /test1:
+    get:
+      tags: [test]
+      summary: Lorem ipsum
+      description: Lorem ipsum
+      operationId: getTest1
+      produces: [application/json; charset=UTF-8]
+      parameters:
+      - name: arg1
+        in: query
+        required: true
+        description: Lorem ipsum
+        type: string
+      responses:
+        200:
+          description: OK
+          # x-cache-control: 'max-age=60'
+          schema:
+            $ref: '#/definitions/Test1Response'
+    post:
+      tags: [test]
+      summary: Quisque interdum
+      description: Quisque interdum
+      operationId: postTest1
+      consumes: [application/json; charset=UTF-8]
+      produces: [application/json; charset=UTF-8]
+      parameters:
+      - name: arg1
+        in: body
+        required: true
+        description: Lorem ipsum
+        schema:
+          $ref: '#/definitions/Test1Request'
+  /test2:
+    get:
+      parameters:
+      - name: arg1
+        in: query
+        required: true
+        description: Lorem ipsum
+        type: string
+definitions:
+  Test1Response:
+    type: object
+    description: Lorem ipsum
+    required: [prop1]
+    properties:
+      prop1:
+        type: string
+        description: Lorem ipsum
+  Test1Request:
+    type: object
+    properties:
+      prop1:
+        type: string
+      prop2:
+        type: number

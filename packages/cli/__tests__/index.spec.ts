@@ -1,4 +1,4 @@
-import { createConfig } from './config'
+import { createConfig } from '../src/config'
 
 test('no config specified', async() => {
 	const config = await createConfig({ _: [] }, async() => ({ outputPath: 'test output', inputPath: 'test input', generator: 'test generator' }))

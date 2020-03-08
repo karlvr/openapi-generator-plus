@@ -126,7 +126,7 @@ export async function run() {
 
 	let doc: CodegenDocument
 	try {
-		doc = processDocument(root, state)
+		doc = processDocument(state)
 	} catch (error) {
 		console.error(`Failed to process the API specification: ${error.message}`)
 		process.exit(1)

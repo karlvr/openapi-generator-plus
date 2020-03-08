@@ -673,7 +673,7 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 	}
 }
 
-export function processDocument(root: OpenAPI.Document, state: CodegenState) {
+export function processDocument(state: CodegenState) {
 	const operations: CodegenOperation[] = []
 
 	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {
@@ -684,6 +684,8 @@ export function processDocument(root: OpenAPI.Document, state: CodegenState) {
 		const op = toCodegenOperation(path, method, operation, state)
 		operations.push(op)
 	}
+
+	const root = state.root
 
 	for (const path in root.paths) {
 		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]

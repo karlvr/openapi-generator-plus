@@ -8,7 +8,7 @@ Install locally:
 
 ```shell
 npm install --save-dev openapi-generator-plus
-npx ogplus [-c <config file>] -o <output dir> -g <generator module or path> <path or url to api spec>
+npx openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]
 ```
 
 You need to install a generator module to use with `-g`.
@@ -17,8 +17,53 @@ Or, if you prefer, install globally:
 
 ```
 npm install -g openapi-generator-plus
-ogplus [-c <config json>] -o <output dir> -g <generator module or path> <path or url to api spec>
+openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]
 ```
+
+### Generators
+
+Then you must install a generator module in order to generate code in your target language and style.
+
+For example, we'll install a generator for a [Java server using the CXF library with CDI](https://github.com/karlvr/openapi-generator-plus-generators/tree/master/packages/java-cxf-cdi-server):
+
+```shell
+npm install --save-dev @openapi-generator-plus/java-cxf-cdi-server-generator
+```
+
+### Running
+
+Each generator module has different configuration, which you can determine from the generator's README.
+
+First try running without any configuration:
+
+```shell
+npm openapi-generator-plus -o build -g @openapi-generator-plus/java-cxf-cdi-server-generator api.yml
+```
+
+### Command-line options
+
+Options to the generation process can be specified on the command-line or in a configuration file.
+
+|Option|Description|
+|------|-----------|
+|`-c <path>`|The path to a configuration file to load (see below)|
+|`-o <path>`|The path to the output directory.|
+|`-g <module or path>`|The module name or path to a generator module.|
+|`<path>`|The path to the input API specification.|
+
+Command-line options override their respective configuration options (see below).
+
+### Configuration
+
+The configuration file may be YAML or JSON. A basic configuration file contains:
+
+|Property|Type|Description|Default|
+|--------|----|-----------|-------|
+|`inputPath`|`string`|The path to the input API specification, relative to the config file.|`undefined`|
+|`outputPath`|`string`|The path to the output directory, relative to the config file.|`undefined`|
+|`generator`|`string`|The name of the generator module, or the path relative to the config file for the generator module.|`undefined`|
+
+See the README for the generator module you're using for additional configuration options supported by that generator.
 
 ## Building
 

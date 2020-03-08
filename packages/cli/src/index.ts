@@ -8,7 +8,7 @@ import { CommandLineOptions } from './types'
 import { createConfig } from './config'
 
 function usage() {
-	console.log(`usage: ${process.argv[1]} [-c <config file>] -o <output dir> -g <generator module or path> <path or url to api spec>`)
+	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]`)
 }
 
 

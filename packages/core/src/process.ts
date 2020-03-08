@@ -707,23 +707,20 @@ export function processDocument(state: CodegenState) {
 	}
 	doc.groups = groupOperations(operations, state)
 
-	if (isOpenAPIV2Document(root)) {
-		if (root.definitions) {
-			for (const schemaName in root.definitions) {
-				try {
-					const model = toCodegenModel(schemaName, undefined, root.definitions[schemaName], state)
-					doc.models.push(model)
-				} catch (error) {
-					if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
-						/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
-					} else {
-						throw error
-					}
+	const models = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
+	if (models) {
+		for (const schemaName in models) {
+			try {
+				const model = toCodegenModel(schemaName, undefined, models[schemaName], state)
+				doc.models.push(model)
+			} catch (error) {
+				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
+					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
+				} else {
+					throw error
 				}
 			}
 		}
-	} else {
-		// TODO
 	}
 
 	/* Add anonymous models to our document's models */

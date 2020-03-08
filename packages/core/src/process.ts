@@ -204,16 +204,20 @@ function toCodegenAuthMethod(name: string, scopes: string[] | undefined, state: 
 					isBasic: true,
 					vendorExtensions: toCodegenVendorExtensions(scheme),
 				}
-			case 'apiKey':
+			case 'apiKey': {
+				const apiKeyIn: string | undefined = (scheme as any).in // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
 				return {
 					type: scheme.type,
 					description: scheme.description,
 					name,
 					paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
-					in: (scheme as any).in, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+					in: apiKeyIn,
 					isApiKey: true,
+					isInHeader: apiKeyIn === 'header',
+					isInQuery: apiKeyIn === 'query',
 					vendorExtensions: toCodegenVendorExtensions(scheme),
 				}
+			}
 			case 'oauth2':
 				return {
 					type: scheme.type,

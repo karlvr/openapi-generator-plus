@@ -95,7 +95,7 @@ export async function run() {
 	try {
 		root = await parser.parse(config.inputPath)
 	} catch (error) {
-		console.error(`Failed to load API specification: ${config.input} (${error.message})`)
+		console.error(`Failed to load API specification: ${config.inputPath} (${error.message})`)
 		process.exit(1)
 	}
 

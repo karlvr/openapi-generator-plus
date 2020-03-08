@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "prepare": "tsc",
-    "test": "jest",
-    "watch": "tsc --watch"
+    "build": "../../node_modules/.bin/tsc",
+    "prepare": "../../node_modules/.bin/tsc",
+    "test": "../../node_modules/.bin/jest",
+    "watch": "../../node_modules/.bin/tsc --watch"
   },
   "repository": {
     "type": "git",

@@ -1,32 +1,20 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenGenerator, CodegenState, CodegenConfig, processDocument, CodegenDocument } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, processDocument, CodegenDocument } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
-import YAML from 'yaml'
-
 import path from 'path'
-
-async function loadConfig(path: string): Promise<CodegenConfig> {
-	const configContents = await fs.readFile(path, {
-		encoding: 'UTF-8',
-	}) as string
-
-	if (path.endsWith('.yml') || path.endsWith('.yaml')) {
-		return YAML.parse(configContents, {
-			prettyErrors: true,
-		} as any) // TODO the YAML types don't include prettyErrors
-	} else {
-		return JSON.parse(configContents)
-	}
-}
+import { CommandLineOptions } from './types'
+import { createConfig } from './config'
 
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] -o <output dir> -g <generator module or path> <path or url to api spec>`)
 }
 
+
+
 export async function run() {
-	const commandLineOptions = getopts(process.argv.slice(2), {
+	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
 		alias: {
 			config: 'c',
 			output: 'o',
@@ -45,33 +33,7 @@ export async function run() {
 		process.exit(0)
 	}
 
-	let config: CodegenConfig
-	const configPath = commandLineOptions.config
-	if (configPath) {
-		config = await loadConfig(configPath)
-		config.configPath = configPath
-		if (config.outputPath) {
-			config.outputPath = path.resolve(path.dirname(configPath), config.outputPath)
-		}
-		if (config.inputPath) {
-			config.inputPath = path.resolve(path.dirname(configPath), config.inputPath)
-		}
-		if (commandLineOptions.generator) {
-			config.generator = commandLineOptions.generator
-		}
-		if (commandLineOptions.output) {
-			config.outputPath = commandLineOptions.output
-		}
-		if (commandLineOptions._.length) {
-			config.inputPath = commandLineOptions._[0]
-		}
-	} else {
-		config = {
-			generator: commandLineOptions.generator,
-			outputPath: commandLineOptions.output,
-			inputPath: commandLineOptions._[0],
-		}
-	}
+	const config = await createConfig(commandLineOptions)
 
 	if (!config.inputPath) {
 		console.warn('API specification not specified')

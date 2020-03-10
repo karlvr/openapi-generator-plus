@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenResponseContent } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -133,7 +133,7 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 
 function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState): CodegenOperation {
 	const name = toCodegenOperationName(path, method, operation, state)
-	const responses: CodegenResponse[] | undefined = operation.responses ? toCodegenResponses(operation.responses, name, state) : undefined
+	const responses: CodegenResponse[] | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? responses.find(r => r.isDefault) : undefined
 
 	let parameters: CodegenParameter[] | undefined
@@ -155,8 +155,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
-		consumes: toConsumeMediaTypes(operation, state),
-		produces: toProduceMediaTypes(operation, state),
+		consumes: getConsumeMediaTypes(operation, state),
+		produces: getProduceMediaTypes(operation, state), // TODO get from responses
 		
 		allParams: parameters,
 		queryParams: parameters?.filter(p => p.isQueryParam),
@@ -265,19 +265,6 @@ function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2
 	return result
 }
 
-function toConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
-	if (isOpenAPIV2Operation(op)) {
-		return op.consumes?.map(mediaType => ({
-			mediaType,
-		}))
-	} else if (op.requestBody) {
-		const requestBody = resolveReference(op.requestBody, state)
-		return toCodegenMediaTypes(requestBody.content)
-	} else {
-		return undefined
-	}
-}
-
 /**
  * Resolve anything that may also be a ReferenceObject to the base type.
  * @param ob 
@@ -291,25 +278,63 @@ function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.Refer
 	}
 }
 
-function toProduceMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
+function getConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
 	if (isOpenAPIV2Operation(op)) {
-		return op.produces?.map(mediaType => ({
-			mediaType,
-		}))
-	} else if (op.responses) {
-		const defaultResponse = toCodegenResponses(op.responses, '', state).find(r => r.isDefault)
-		if (defaultResponse) {
-			let response = op.responses[defaultResponse.code]
-			if (response) {
-				response = resolveReference(response, state)
-				if (response.content) {
-					return toCodegenMediaTypes(response.content)
-				}
+		if (op.consumes) {
+			return op.consumes?.map(mediaType => ({
+				mediaType,
+			}))
+		} else {
+			const doc = state.root as OpenAPIV2.Document
+			if (doc.consumes) {
+				return doc.consumes.map(mediaType => ({
+					mediaType,
+				}))
+			} else {
+				return undefined
 			}
 		}
-		return undefined
+	} else if (op.requestBody) {
+		const requestBody = resolveReference(op.requestBody, state)
+		return toCodegenMediaTypes(requestBody.content)
 	} else {
 		return undefined
+	}
+}
+
+function getProduceMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
+	if (isOpenAPIV2Operation(op)) {
+		if (op.produces) {
+			return op.produces.map(mediaType => ({
+				mediaType,
+			}))
+		} else {
+			const doc = state.root as OpenAPIV2.Document
+			if (doc.produces) {
+				return doc.produces.map(mediaType => ({
+					mediaType,
+				}))
+			} else {
+				return undefined
+			}
+		}
+	} else {
+		const responses = toCodegenResponses(op, '', state)
+		if (responses) {
+			const defaultResponse = responses.find(r => r.isDefault)
+			if (defaultResponse) {
+				let response = op.responses![defaultResponse.code]
+				if (response) {
+					response = resolveReference(response, state)
+					if (response.content) {
+						return toCodegenMediaTypes(response.content)
+					}
+				}
+			}
+			return undefined
+		} else {
+			return undefined
+		}
 	}
 }
 
@@ -323,7 +348,12 @@ function toCodegenMediaTypes(content: { [media: string]: OpenAPIV3.MediaTypeObje
 	return result
 }
 
-function toCodegenResponses(responses: OpenAPIX.ResponsesObject, parentName: string, state: CodegenState): CodegenResponse[] {
+function toCodegenResponses(operation: OpenAPI.Operation, parentName: string, state: CodegenState): CodegenResponse[] | undefined {
+	const responses = operation.responses
+	if (!responses) {
+		return undefined
+	}
+
 	const result: CodegenResponse[] = []
 
 	let bestCode: number | undefined
@@ -331,7 +361,7 @@ function toCodegenResponses(responses: OpenAPIX.ResponsesObject, parentName: str
 
 	for (const responseCodeString in responses) {
 		const responseCode = responseCodeString === 'default' ? 0 : parseInt(responseCodeString, 10)
-		const response = toCodegenResponse(responseCode, responses[responseCodeString], false, parentName, state)
+		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString], false, parentName, state)
 
 		result.push(response)
 
@@ -356,39 +386,63 @@ function toCodegenResponses(responses: OpenAPIX.ResponsesObject, parentName: str
  * @param $ref 
  */
 function nameFromRef($ref: string): string | undefined {
-	if ($ref.startsWith('#/definitions/')) {
-		return $ref.substring('#/definitions/'.length)
-	}
-	return undefined
+	const components = $ref.split('/')
+	return components[components.length - 1]
 }
 
-function toCodegenResponse(code: number, response: OpenAPIX.Response, isDefault: boolean, parentName: string, state: CodegenState): CodegenResponse {
+function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, parentName: string, state: CodegenState): CodegenResponse {
 	response = resolveReference(response, state)
 
 	if (code === 0) {
 		code = 200
 	}
 	
+	let contents: CodegenResponseContent[] | undefined
+
 	if (isOpenAPIV2ResponseObject(response)) {
 		const property = response.schema ? toCodegenProperty('response', response.schema, true, [parentName], state) : undefined
 		
-		return {
-			code,
-			description: response.description,
-			isDefault,
-			type: property ? property.type : undefined,
-			nativeType: property ? property.nativeType : undefined,
-			vendorExtensions: toCodegenVendorExtensions(response),
-		}
+		const mediaTypes = getProduceMediaTypes(operation, state)
+		contents = mediaTypes ? mediaTypes.map(mediaType => {
+			const result: CodegenResponseContent = {
+				mediaType,
+				type: property ? property.type : undefined,
+				nativeType: property ? property.nativeType : undefined,
+			}
+			return result
+		}) : undefined
 	} else if (isOpenAPIV3ResponseObject(response)) {
-		return {
-			code,
-			description: response.description,
-			isDefault,
-			vendorExtensions: toCodegenVendorExtensions(response),
+		if (response.content) {
+			contents = []
+			for (const mediaType in response.content) {
+				const mediaTypeContent = response.content[mediaType]
+
+				const property = mediaTypeContent.schema ? toCodegenProperty('response', mediaTypeContent.schema, true, [parentName], state) : undefined
+				
+				const content: CodegenResponseContent = {
+					mediaType: { mediaType },
+					type: property ? property.type : undefined,
+					nativeType: property ? property.nativeType : undefined,
+				}
+				contents.push(content)
+			}
 		}
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
+	}
+
+	/* Determine if there's a common type and nativeType */
+	const type = contents && contents.length ? contents.reduce((existing, content) => (existing === content.type ? existing : undefined), contents[0].type) : undefined
+	const nativeType = contents && contents.length ? contents.reduce((existing, content) => (existing && existing.equals(content.nativeType) ? existing : undefined), contents[0].nativeType) : undefined
+
+	return {
+		code,
+		description: response.description,
+		isDefault,
+		type,
+		nativeType,
+		contents,
+		vendorExtensions: toCodegenVendorExtensions(response),
 	}
 }
 

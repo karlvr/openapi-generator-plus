@@ -121,8 +121,8 @@ export interface CodegenOperation {
 	path: string
 	returnType?: string
 	returnNativeType?: CodegenNativeType
-	consumes?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-	produces?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+	consumes?: CodegenMediaType[]
+	produces?: CodegenMediaType[]
 
 	allParams?: CodegenParameter[]
 	queryParams?: CodegenParameter[]
@@ -144,13 +144,33 @@ export interface CodegenOperation {
 
 export interface CodegenResponse {
 	code: number
-	description: string // TODO called message in swagger-codegen
-	// schema?: CodegenProperty
+	description: string
+
+	/** The common type of all response contents */
 	type?: string
-	containerType?: string // TODO what is this?
+	/** The common native type of all response contents */
+	nativeType?: CodegenNativeType
+
+	/** The responses contents */
+	contents?: CodegenResponseContent[]
+
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
+	headers?: CodegenProperty[]
+}
+
+export interface CodegenResponseContent {
+	mediaType?: CodegenMediaType
+	type?: string
 	nativeType?: CodegenNativeType
+	examples?: CodegenExample[]
+}
+
+export interface CodegenExample {
+	name?: string
+	summary?: string
+	description?: string
+	value?: any
 }
 
 export class CodegenNativeType {
@@ -175,6 +195,13 @@ export class CodegenNativeType {
 
 	public toString() {
 		return this.nativeType
+	}
+
+	public equals(other: CodegenNativeType | undefined): boolean {
+		if (!other) {
+			return false
+		}
+		return this.nativeType === other.nativeType && this.wireType === other.wireType && this.literalType === other.literalType
 	}
 }
 

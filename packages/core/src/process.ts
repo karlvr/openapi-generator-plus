@@ -306,36 +306,17 @@ function getConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): Codeg
 	}
 }
 
-function getProduceMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
-	if (isOpenAPIV2Operation(op)) {
-		if (op.produces) {
-			return op.produces.map(mediaType => ({
+function getProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
+	if (op.produces) {
+		return op.produces.map(mediaType => ({
+			mediaType,
+		}))
+	} else {
+		const doc = state.root as OpenAPIV2.Document
+		if (doc.produces) {
+			return doc.produces.map(mediaType => ({
 				mediaType,
 			}))
-		} else {
-			const doc = state.root as OpenAPIV2.Document
-			if (doc.produces) {
-				return doc.produces.map(mediaType => ({
-					mediaType,
-				}))
-			} else {
-				return undefined
-			}
-		}
-	} else {
-		const responses = toCodegenResponses(op, '', state)
-		if (responses) {
-			const defaultResponse = responses.find(r => r.isDefault)
-			if (defaultResponse) {
-				let response = op.responses![defaultResponse.code]
-				if (response) {
-					response = resolveReference(response, state)
-					if (response.content) {
-						return toCodegenMediaTypes(response.content)
-					}
-				}
-			}
-			return undefined
 		} else {
 			return undefined
 		}
@@ -406,7 +387,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	if (isOpenAPIV2ResponseObject(response)) {
 		const property = response.schema ? toCodegenProperty('response', response.schema, true, [parentName], state) : undefined
 		
-		const mediaTypes = getProduceMediaTypes(operation, state)
+		const mediaTypes = getProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
 		contents = mediaTypes ? mediaTypes.map(mediaType => {
 			const result: CodegenResponseContent = {
 				mediaType,

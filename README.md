@@ -1,6 +1,6 @@
-# OpenAPI Generator +
+# OpenAPI Generator+
 
-A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with modular language-specific generators.
+A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with modular language-specific generator modules.
 
 ## Using
 
@@ -20,9 +20,12 @@ npm install -g openapi-generator-plus
 openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]
 ```
 
-### Generators
+### Generator modules
 
 Then you must install a generator module in order to generate code in your target language and style.
+
+You can find [known generator modules](https://github.com/karlvr/openapi-generator-plus/wiki/Generators) on the OG+ wiki
+or by searching for the [#openapi-generator-plus-generator](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator) keyword on npm.
 
 For example, we'll install a generator for a [Java server using the CXF library with CDI](https://github.com/karlvr/openapi-generator-plus-generators/tree/master/packages/java-cxf-cdi-server):
 
@@ -81,31 +84,27 @@ npx lerna bootstrap
 npm run build
 ```
 
-## Status
-
-OGN is currently working for OpenAPI 2 (Swagger) specifications, for the two code generation templates that the author
-uses. It is ready for others to take a look to see if this approach suits your needs and aspirations.
-
 ## Background
 
-OpenAPI Generator Node (OGN) is a reimplementation of code generation for OpenAPI specifications, following
+OpenAPI Generator+ is a reimplementation of code generation for OpenAPI specifications, following
 in the footsteps of
 [swagger-codegen](https://github.com/swagger-api/swagger-codegen) and
 [openapi-generator](https://github.com/OpenAPITools/openapi-generator).
 
-OGN is written in TypeScript and uses Node.js. OGN aims to provide a strong core to transform API specifications for code generation,
+OG+ is written in TypeScript and uses Node.js. OG+ aims to provide a strong core to transform API specifications for code generation,
 and to rely on separate code generation modules for the final code generation step. This separation enables the templates and
-minimal code required for each new language to be developed, packaged and published separately, making customisation more powerful
+minimal code required for each new language to be developed, packaged and published independently, making customisation more powerful
 and easily accessible.
 
 ## Templates
 
-OGN has an incompatible object model and approach to other Swagger / OpenAPI code generators so templates
-must be rewritten or modified in order to be used with OGN. This is usually not a complicated process.
+OG+ has an incompatible object model and approach to other Swagger / OpenAPI code generators so templates
+must be rewritten or modified in order to be used with OGN. This is usually not a complicated process as the
+properties available to templates are well-defined by TypeScript interfaces.
 
 ### Handlebars
 
-OGN uses [Handlebars](https://handlebarsjs.com) for templating. Handlebars builds on the functionality of the
+OG+ uses [Handlebars](https://handlebarsjs.com) for templating. Handlebars builds on the functionality of the
 [mustache](https://mustache.github.io) templates used in [swagger-codegen](https://github.com/swagger-api/swagger-codegen)
 making templates more powerful and easy to customise. Handlebars also supports custom helpers to put more
 capability into templates, such as case transformations.

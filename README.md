@@ -1,87 +1,34 @@
 # OpenAPI Generator+
 
-A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with modular language-specific generator modules.
+A code generator platform for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with modular language-specific generator modules.
 
-## Using
+## Installing and using
 
-Install locally:
+See [OpenAPI Generator+ CLI](https://github.com/karlvr/openapi-generator-plus/tree/master/packages/cli) for more information.
 
-```shell
-npm install --save-dev openapi-generator-plus
-npx openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]
-```
+## Building the project
 
-You need to install a generator module to use with `-g`.
+This project uses [nvm](https://github.com/nvm-sh/nvm) for managing the versions of node and npm, and [lerna](https://github.com/lerna/lerna) for managing the monorepo project structure.
 
-Or, if you prefer, install globally:
-
-```
-npm install -g openapi-generator-plus
-openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]
-```
-
-### Generator modules
-
-Then you must install a generator module in order to generate code in your target language and style.
-
-You can find [known generator modules](https://github.com/karlvr/openapi-generator-plus/wiki/Generators) on the OG+ wiki
-or by searching for the [#openapi-generator-plus-generator](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator) keyword on npm.
-
-For example, we'll install a generator for a [Java server using the CXF library with CDI](https://github.com/karlvr/openapi-generator-plus-generators/tree/master/packages/java-cxf-cdi-server):
+To setup `nvm`:
 
 ```shell
-npm install --save-dev @openapi-generator-plus/java-cxf-cdi-server-generator
-```
-
-### Running
-
-Each generator module has different configuration, which you can determine from the generator's README.
-
-First try running without any configuration:
-
-```shell
-npm openapi-generator-plus -o build -g @openapi-generator-plus/java-cxf-cdi-server-generator api.yml
-```
-
-### Command-line options
-
-Options to the generation process can be specified on the command-line or in a configuration file.
-
-|Option|Description|
-|------|-----------|
-|`-c <path>`|The path to a configuration file to load (see below)|
-|`-o <path>`|The path to the output directory.|
-|`-g <module or path>`|The module name or path to a generator module.|
-|`<path>`|The path to the input API specification.|
-
-Command-line options override their respective configuration options (see below).
-
-### Configuration
-
-The configuration file may be YAML or JSON. A basic configuration file contains:
-
-|Property|Type|Description|Default|
-|--------|----|-----------|-------|
-|`inputPath`|`string`|The path to the input API specification, relative to the config file.|`undefined`|
-|`outputPath`|`string`|The path to the output directory, relative to the config file.|`undefined`|
-|`generator`|`string`|The name of the generator module, or the path relative to the config file for the generator module.|`undefined`|
-
-See the README for the generator module you're using for additional configuration options supported by that generator.
-
-## Building
-
-This project uses [nvm](https://github.com/nvm-sh/nvm) to specify the preferred version of Node:
-
-```
 nvm install
 nvm use
 ```
 
 To install and build the project:
 
-```
+```shell
 npx lerna bootstrap
 npm run build
+npm run watch
+```
+
+To run the tests:
+
+```shell
+npm test
 ```
 
 ## Background

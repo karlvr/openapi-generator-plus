@@ -1,57 +1,7 @@
-import SwaggerParser from 'swagger-parser'
-import { OpenAPI } from 'openapi-types'
-import path from 'path'
+import { createTestState } from './common'
 import { processDocument } from '../src/process'
-import { CodegenState, CodegenGenerator, CodegenConfig, CodegenOptions, CodegenTypeOptions, CodegenNativeTypeOptions, CodegenNativeMapTypeOptions, CodegenNativeType, CodegenNativeArrayTypeOptions } from '../src/types'
-import { addToGroupsByPath } from '../src/operation-grouping'
 
-interface TestCodegenOptions extends CodegenOptions {
-
-}
-
-const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
-	toClassName: (name: string) => `class ${name}`,
-	toIdentifier: (name: string) => `identifier ${name}`,
-	toConstantName: (name: string) => `constant ${name}`,
-	toEnumName: (name: string) => `enum ${name}`,
-	toOperationName: (path: string, method: string) => `operation ${method} ${path}`,
-	toModelNameFromPropertyName: (name: string) => `model ${name}`,
-	toLiteral: (value: any) => `literal ${value}`,
-	toNativeType: (options: CodegenNativeTypeOptions) => options.modelNames ? new CodegenNativeType(options.modelNames[options.modelNames.length - 1]) : new CodegenNativeType(options.type),
-	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => new CodegenNativeType(`array ${options.componentNativeType}`),
-	toNativeMapType: (options: CodegenNativeMapTypeOptions) => new CodegenNativeType(`map ${options.componentNativeType}`),
-	toDefaultValue: (defaultValue: any, options: CodegenTypeOptions) => `default ${options.type}`,
-	options: (config: CodegenConfig) => ({ config }),
-	operationGroupingStrategy: () => addToGroupsByPath,
-	exportTemplates: () => {
-		// NOOP
-	},
-}
-
-async function createTestState(specName: string): Promise<CodegenState> {
-	const parser = new SwaggerParser()
-
-	const root: OpenAPI.Document = await parser.parse(path.resolve(__dirname, specName))
-
-	const config: CodegenConfig = {
-		inputPath: '',
-		outputPath: '',
-		generator: '',
-	}
-	const state: CodegenState = {
-		root,
-		parser,
-		generator: TestGenerator,
-		config,
-		options: {
-			config,
-		},
-		anonymousModels: {},
-	}
-	return state
-}
-
-test('parse OpenAPIv2 info', async() => {
+test('parse info', async() => {
 	const state = await createTestState('openapiv2-1.yml')
 	const result = processDocument(state)
 
@@ -63,7 +13,7 @@ test('parse OpenAPIv2 info', async() => {
 	expect(result.servers![1].url).toEqual('https://example.com/api/v1')
 })
 
-test('parse OpenAPIv2 groups', async() => {
+test('parse groups', async() => {
 	const state = await createTestState('openapiv2-1.yml')
 	const result = processDocument(state)
 

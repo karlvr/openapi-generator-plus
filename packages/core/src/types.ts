@@ -153,6 +153,7 @@ export interface CodegenResponse {
 
 	/** The responses contents */
 	contents?: CodegenResponseContent[]
+	produces?: CodegenMediaType[]
 
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions

@@ -156,7 +156,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes: getConsumeMediaTypes(operation, state),
-		produces: getProduceMediaTypes(operation, state), // TODO get from responses
+		produces: responses ? _.uniqWith(responses.reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[]), mediaTypeEquals) : undefined,
 		
 		allParams: parameters,
 		queryParams: parameters?.filter(p => p.isQueryParam),
@@ -176,6 +176,10 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
 	return op
+}
+
+function mediaTypeEquals(a: CodegenMediaType, b: CodegenMediaType): boolean {
+	return a.mediaType === b.mediaType
 }
 
 function toCodegenAuthMethods(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenAuthMethod[] {
@@ -435,6 +439,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	const type = contents && contents.length ? contents.reduce((existing, content) => (existing === content.type ? existing : undefined), contents[0].type) : undefined
 	const nativeType = contents && contents.length ? contents.reduce((existing, content) => (existing && existing.equals(content.nativeType) ? existing : undefined), contents[0].nativeType) : undefined
 
+	const produces = contents ? contents.reduce((existing, content) => content.mediaType ? [...existing, content.mediaType] : existing, [] as CodegenMediaType[]) : undefined
 	return {
 		code,
 		description: response.description,
@@ -442,6 +447,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		type,
 		nativeType,
 		contents,
+		produces,
 		vendorExtensions: toCodegenVendorExtensions(response),
 	}
 }

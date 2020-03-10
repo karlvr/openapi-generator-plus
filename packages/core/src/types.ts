@@ -152,7 +152,7 @@ export interface CodegenResponse {
 	nativeType?: CodegenNativeType
 
 	/** The responses contents */
-	contents?: CodegenResponseContent[]
+	contents?: CodegenContent[]
 	produces?: CodegenMediaType[]
 
 	isDefault: boolean
@@ -160,7 +160,7 @@ export interface CodegenResponse {
 	headers?: CodegenProperty[]
 }
 
-export interface CodegenResponseContent {
+export interface CodegenContent extends CodegenTypes {
 	mediaType?: CodegenMediaType
 	type?: string
 	nativeType?: CodegenNativeType
@@ -206,7 +206,7 @@ export class CodegenNativeType {
 	}
 }
 
-interface CodegenTypes {
+export interface CodegenTypes {
 	isObject: boolean
 	isArray: boolean
 	isBoolean: boolean
@@ -333,11 +333,15 @@ export interface CodegenEnumValue {
 	literalValue: string
 }
 
+export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
+
 export interface CodegenParameter extends CodegenTypes {
 	name: string
-	in: string
+	in: CodegenParameterIn
+
 	type?: string
 	nativeType?: CodegenNativeType
+	
 	description?: string
 	required?: boolean
 	collectionFormat?: string
@@ -387,8 +391,6 @@ export interface CodegenAuthScope {
 
 export interface CodegenMediaType {
 	mediaType: string
-
-	// TODO OpenAPIV3
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void

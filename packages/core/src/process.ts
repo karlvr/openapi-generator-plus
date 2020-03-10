@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenResponseContent } from './types'
-import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Operation, isOpenAPIV2Document } from './openapi-type-guards'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenContent, CodegenParameterIn, CodegenTypes } from './types'
+import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 
@@ -35,7 +35,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 
 	let property: CodegenProperty | undefined
 	if (parameter.schema) {
-		/* We pass [] as parentName so we create any nested models at the room of the models package,
+		/* We pass [] as parentName so we create any nested models at the root of the models package,
 		 * as we reference all models relative to the models package, but a parameter is in an
 		 * operation. TODO it would be nice to improve this; maybe we can declare an enum in an Api
 		 * interface... we'd just need to make sure that the nativeTypes referring to it were fixed.
@@ -63,19 +63,12 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		name: parameter.name,
 		type: property.type,
 		nativeType: property.nativeType,
-		in: parameter.in,
+		in: parameter.in as CodegenParameterIn,
 		description: parameter.description,
 		required: parameter.required,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 
-		isObject: property.isObject,
-		isArray: property.isArray,
-		isBoolean: property.isBoolean,
-		isNumber: property.isNumber,
-		isEnum: property.isEnum,
-		isDateTime: property.isDateTime,
-		isDate: property.isDate,
-		isTime: property.isTime,
+		...extractCodegenTypes(property),
 	}
 	switch (parameter.in) {
 		case 'query':
@@ -102,6 +95,20 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 	}
 
 	return result
+}
+
+/** Extract just the CodegenTypes from an object */
+function extractCodegenTypes(object: CodegenTypes | undefined): CodegenTypes {
+	return {
+		isObject: object ? object.isObject : false,
+		isArray: object ? object.isArray : false,
+		isBoolean: object ? object.isBoolean : false,
+		isNumber: object ? object.isNumber : false,
+		isEnum: object ? object.isEnum : false,
+		isDateTime: object ? object.isDateTime : false,
+		isDate: object ? object.isDate : false,
+		isTime: object ? object.isTime : false,
+	}
 }
 
 interface IndexedObject {
@@ -144,6 +151,40 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		}
 	}
 
+	let consumes: CodegenMediaType[] | undefined
+
+	if (isOpenAPIV3Operation(operation) && operation.requestBody) {
+		let requestBody = operation.requestBody
+		requestBody = resolveReference(requestBody, state)
+		const requestBodyContents = toCodegenContentArray('request', requestBody.content, name, state)
+
+		const requestBodyType = findCommonContentType(requestBodyContents)
+		const requestBodyNativeType = findCommonContentNativeType(requestBodyContents)
+		consumes = findAllContentMediaTypes(requestBodyContents)
+
+		const requestBodyParameter: CodegenParameter = {
+			name: 'body',
+			in: 'body',
+
+			type: requestBodyType,
+			nativeType: requestBodyNativeType,
+
+			description: requestBody.description,
+			required: requestBody.required,
+
+			isBodyParam: true,
+
+			...extractCodegenTypes(requestBodyType && requestBodyContents ? requestBodyContents[0] : undefined),
+		}
+
+		if (!parameters) {
+			parameters = []
+		}
+		parameters.push(requestBodyParameter)
+	} else {
+		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
+	}
+
 	let authMethods: CodegenAuthMethod[] | undefined
 	if (operation.security) {
 		authMethods = toCodegenAuthMethods(operation.security, state)
@@ -155,8 +196,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
-		consumes: getConsumeMediaTypes(operation, state),
-		produces: responses ? _.uniqWith(responses.reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[]), mediaTypeEquals) : undefined,
+		consumes,
+		produces: responses ? toUniqueMediaTypes(responses.reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
 		
 		allParams: parameters,
 		queryParams: parameters?.filter(p => p.isQueryParam),
@@ -176,6 +217,10 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
 	return op
+}
+
+function toUniqueMediaTypes(mediaTypes: CodegenMediaType[]): CodegenMediaType[] {
+	return _.uniqWith(mediaTypes, mediaTypeEquals)
 }
 
 function mediaTypeEquals(a: CodegenMediaType, b: CodegenMediaType): boolean {
@@ -282,31 +327,24 @@ function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.Refer
 	}
 }
 
-function getConsumeMediaTypes(op: OpenAPI.Operation, state: CodegenState): CodegenMediaType[] | undefined {
-	if (isOpenAPIV2Operation(op)) {
-		if (op.consumes) {
-			return op.consumes?.map(mediaType => ({
+function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
+	if (op.consumes) {
+		return op.consumes?.map(mediaType => ({
+			mediaType,
+		}))
+	} else {
+		const doc = state.root as OpenAPIV2.Document
+		if (doc.consumes) {
+			return doc.consumes.map(mediaType => ({
 				mediaType,
 			}))
 		} else {
-			const doc = state.root as OpenAPIV2.Document
-			if (doc.consumes) {
-				return doc.consumes.map(mediaType => ({
-					mediaType,
-				}))
-			} else {
-				return undefined
-			}
+			return undefined
 		}
-	} else if (op.requestBody) {
-		const requestBody = resolveReference(op.requestBody, state)
-		return toCodegenMediaTypes(requestBody.content)
-	} else {
-		return undefined
 	}
 }
 
-function getProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
+function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
 	if (op.produces) {
 		return op.produces.map(mediaType => ({
 			mediaType,
@@ -321,16 +359,6 @@ function getProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState
 			return undefined
 		}
 	}
-}
-
-function toCodegenMediaTypes(content: { [media: string]: OpenAPIV3.MediaTypeObject }) {
-	const result: CodegenMediaType[] = []
-	for (const mediaType in content) {
-		result.push({
-			mediaType,
-		})
-	}
-	return result
 }
 
 function toCodegenResponses(operation: OpenAPI.Operation, parentName: string, state: CodegenState): CodegenResponse[] | undefined {
@@ -382,45 +410,32 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		code = 200
 	}
 	
-	let contents: CodegenResponseContent[] | undefined
+	let contents: CodegenContent[] | undefined
 
 	if (isOpenAPIV2ResponseObject(response)) {
 		const property = response.schema ? toCodegenProperty('response', response.schema, true, [parentName], state) : undefined
 		
-		const mediaTypes = getProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
+		const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
 		contents = mediaTypes ? mediaTypes.map(mediaType => {
-			const result: CodegenResponseContent = {
+			const result: CodegenContent = {
 				mediaType,
 				type: property ? property.type : undefined,
 				nativeType: property ? property.nativeType : undefined,
+				...extractCodegenTypes(property),
 			}
 			return result
 		}) : undefined
 	} else if (isOpenAPIV3ResponseObject(response)) {
-		if (response.content) {
-			contents = []
-			for (const mediaType in response.content) {
-				const mediaTypeContent = response.content[mediaType]
-
-				const property = mediaTypeContent.schema ? toCodegenProperty('response', mediaTypeContent.schema, true, [parentName], state) : undefined
-				
-				const content: CodegenResponseContent = {
-					mediaType: { mediaType },
-					type: property ? property.type : undefined,
-					nativeType: property ? property.nativeType : undefined,
-				}
-				contents.push(content)
-			}
-		}
+		contents = toCodegenContentArray('response', response.content, parentName, state)
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
 	}
 
 	/* Determine if there's a common type and nativeType */
-	const type = contents && contents.length ? contents.reduce((existing, content) => (existing === content.type ? existing : undefined), contents[0].type) : undefined
-	const nativeType = contents && contents.length ? contents.reduce((existing, content) => (existing && existing.equals(content.nativeType) ? existing : undefined), contents[0].nativeType) : undefined
+	const type = findCommonContentType(contents)
+	const nativeType = findCommonContentNativeType(contents)
+	const produces = findAllContentMediaTypes(contents)
 
-	const produces = contents ? contents.reduce((existing, content) => content.mediaType ? [...existing, content.mediaType] : existing, [] as CodegenMediaType[]) : undefined
 	return {
 		code,
 		description: response.description,
@@ -431,6 +446,53 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		produces,
 		vendorExtensions: toCodegenVendorExtensions(response),
 	}
+}
+
+function findCommonContentType(contents: CodegenContent[] | undefined): string | undefined {
+	if (!contents || !contents.length) {
+		return undefined
+	}
+
+	return contents.reduce((existing, content) => (existing === content.type ? existing : undefined), contents[0].type)
+}
+
+function findCommonContentNativeType(contents: CodegenContent[] | undefined): CodegenNativeType | undefined {
+	if (!contents || !contents.length) {
+		return undefined
+	}
+
+	return contents.reduce((existing, content) => (existing && existing.equals(content.nativeType) ? existing : undefined), contents[0].nativeType)
+}
+
+function findAllContentMediaTypes(contents: CodegenContent[] | undefined): CodegenMediaType[] | undefined {
+	if (!contents || !contents.length) {
+		return undefined
+	}
+
+	return contents.reduce((existing, content) => content.mediaType ? [...existing, content.mediaType] : existing, [] as CodegenMediaType[])
+}
+
+function toCodegenContentArray(name: string, content: { [media: string]: OpenAPIV3.MediaTypeObject } | undefined, parentName: string, state: CodegenState): CodegenContent[] | undefined {
+	if (!content) {
+		return undefined
+	}
+
+	const result: CodegenContent[] = []
+	for (const mediaType in content) {
+		const mediaTypeContent = content[mediaType]
+
+		const property = mediaTypeContent.schema ? toCodegenProperty(name, mediaTypeContent.schema, true, [parentName], state) : undefined
+		
+		const item: CodegenContent = {
+			mediaType: { mediaType },
+			type: property ? property.type : undefined,
+			nativeType: property ? property.nativeType : undefined,
+			...extractCodegenTypes(property),
+		}
+		result.push(item)
+	}
+
+	return result
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: CodegenState): CodegenProperty {
@@ -450,12 +512,14 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	let format: string | undefined
 	let nativeType: CodegenNativeType
 	let models: CodegenModel[] | undefined
+	let isEnum = false
 
 	if (!description) {
 		description = schema.description
 	}
 
 	if (schema.enum) {
+		isEnum = true
 		if (!schema.type) {
 			type = 'string'
 		} else if (typeof schema.type === 'string') {
@@ -573,16 +637,22 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		uniqueItems: schema.uniqueItems,
 		multipleOf: schema.multipleOf,
 
+		...toCodegenTypes(type, format, isEnum),
+
+		models,
+	}
+}
+
+function toCodegenTypes(type: string, format: string | undefined, isEnum: boolean): CodegenTypes {
+	return {
 		isObject: type === 'object',
 		isArray: type === 'array',
 		isBoolean: type === 'boolean',
 		isNumber: type === 'number' || type === 'integer',
-		isEnum: !!schema.enum,
+		isEnum,
 		isDateTime: type === 'string' && format === 'date-time',
 		isDate: type === 'string' && format === 'date',
 		isTime: type === 'string' && format === 'time',
-
-		models,
 	}
 }
 

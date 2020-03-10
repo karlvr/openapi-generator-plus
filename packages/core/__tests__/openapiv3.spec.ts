@@ -27,10 +27,18 @@ test('parse operation params', async() => {
 	expect(op1.name).toEqual('getTest1')
 	expect(op1.allParams).toBeDefined()
 	expect(op1.allParams!.length).toEqual(2)
+})
+
+test('parse operation body params', async() => {
+	const state = await createTestState('openapiv3-1.yml')
+	const result = processDocument(state)
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
 	expect(op2.allParams!.length).toEqual(1)
+	expect(op2.allParams![0].in).toEqual('body')
+	expect(op2.allParams![0].type).toEqual('object')
+	expect(op2.allParams![0].nativeType?.toString()).toEqual('Test2Request')
 })
 
 test('parse operation response', async() => {

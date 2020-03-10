@@ -2,6 +2,7 @@
   "name": "openapi-generator-plus",
   "version": "0.0.7",
   "description": "OpenAPI code generator written in Node",
+  "keywords": ["openapi", "swagger", "open api", "generator", "typescript"],
   "main": "dist/index.js",
   "bin": {
     "ogplus": "./bin/ogplus.js",

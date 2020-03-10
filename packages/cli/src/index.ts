@@ -1,7 +1,7 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenGenerator, CodegenState, processDocument, CodegenDocument } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, processDocument, CodegenDocument, toSpecVersion } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions } from './types'
@@ -10,8 +10,6 @@ import { createConfig } from './config'
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [<path or url to api spec>]`)
 }
-
-
 
 export async function run() {
 	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
@@ -84,6 +82,7 @@ export async function run() {
 		config,
 		options: generator.options(config),
 		anonymousModels: {},
+		specVersion: toSpecVersion(root),
 	}
 
 	let doc: CodegenDocument

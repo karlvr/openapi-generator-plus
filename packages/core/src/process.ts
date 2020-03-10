@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenContent, CodegenParameterIn, CodegenTypes } from './types'
-import { isOpenAPIV2ResponseObject, isOpenAPIVReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation } from './openapi-type-guards'
+import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 
@@ -45,7 +45,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
 		property = toCodegenProperty(parameter.name, parameter.schema, parameter.required || false, [], state)
-	} else if (isOpenAPIV2GeneralParameterObject(parameter)) {
+	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		property = toCodegenProperty(parameter.name, parameter, parameter.required || false, [], state)
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
@@ -66,7 +66,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 		in: parameter.in as CodegenParameterIn,
 		description: parameter.description,
 		required: parameter.required,
-		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
+		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 
 		...extractCodegenTypes(property),
 	}
@@ -153,34 +153,37 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 	let consumes: CodegenMediaType[] | undefined
 
-	if (isOpenAPIV3Operation(operation) && operation.requestBody) {
+	if (isOpenAPIV3Operation(operation, state.specVersion)) {
 		let requestBody = operation.requestBody
-		requestBody = resolveReference(requestBody, state)
-		const requestBodyContents = toCodegenContentArray('request', requestBody.content, name, state)
+		requestBody = requestBody && resolveReference(requestBody, state)
 
-		const requestBodyType = findCommonContentType(requestBodyContents)
-		const requestBodyNativeType = findCommonContentNativeType(requestBodyContents)
-		consumes = findAllContentMediaTypes(requestBodyContents)
+		if (requestBody) {
+			const requestBodyContents = toCodegenContentArray('request', requestBody.content, name, state)
 
-		const requestBodyParameter: CodegenParameter = {
-			name: 'body',
-			in: 'body',
+			const requestBodyType = findCommonContentType(requestBodyContents)
+			const requestBodyNativeType = findCommonContentNativeType(requestBodyContents)
+			consumes = findAllContentMediaTypes(requestBodyContents)
 
-			type: requestBodyType,
-			nativeType: requestBodyNativeType,
+			const requestBodyParameter: CodegenParameter = {
+				name: 'body',
+				in: 'body',
 
-			description: requestBody.description,
-			required: requestBody.required,
+				type: requestBodyType,
+				nativeType: requestBodyNativeType,
 
-			isBodyParam: true,
+				description: requestBody.description,
+				required: requestBody.required,
 
-			...extractCodegenTypes(requestBodyType && requestBodyContents ? requestBodyContents[0] : undefined),
+				isBodyParam: true,
+
+				...extractCodegenTypes(requestBodyType && requestBodyContents ? requestBodyContents[0] : undefined),
+			}
+
+			if (!parameters) {
+				parameters = []
+			}
+			parameters.push(requestBodyParameter)
 		}
-
-		if (!parameters) {
-			parameters = []
-		}
-		parameters.push(requestBodyParameter)
 	} else {
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
 	}
@@ -320,7 +323,7 @@ function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2
  * @param state 
  */
 function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: CodegenState): T {
-	if (isOpenAPIVReferenceObject(ob)) {
+	if (isOpenAPIReferenceObject(ob)) {
 		return state.parser.$refs.get(ob.$ref)
 	} else {
 		return ob
@@ -412,7 +415,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	
 	let contents: CodegenContent[] | undefined
 
-	if (isOpenAPIV2ResponseObject(response)) {
+	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
 		const property = response.schema ? toCodegenProperty('response', response.schema, true, [parentName], state) : undefined
 		
 		const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
@@ -425,7 +428,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 			}
 			return result
 		}) : undefined
-	} else if (isOpenAPIV3ResponseObject(response)) {
+	} else if (isOpenAPIV3ResponseObject(response, state.specVersion)) {
 		contents = toCodegenContentArray('response', response.content, parentName, state)
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
@@ -502,7 +505,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
 	let description: string | undefined = (schema as OpenAPIV2.SchemaObject).description
 
-	if (isOpenAPIVReferenceObject(schema)) {
+	if (isOpenAPIReferenceObject(schema)) {
 		refName = nameFromRef(schema.$ref)
 	}
 
@@ -657,7 +660,7 @@ function toCodegenTypes(type: string, format: string | undefined, isEnum: boolea
 }
 
 function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, state: CodegenState): CodegenModel {
-	if (isOpenAPIVReferenceObject(schema)) {
+	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {
 			/* We are nested, but we're a ref to a top-level model */

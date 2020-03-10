@@ -3,6 +3,7 @@ import { OpenAPI } from 'openapi-types'
 import path from 'path'
 import { CodegenState, CodegenConfig } from '../src/types'
 import { TestGenerator } from './generator'
+import { toSpecVersion } from '../src'
 
 export async function createTestState(specName: string): Promise<CodegenState> {
 	const parser = new SwaggerParser()
@@ -23,6 +24,7 @@ export async function createTestState(specName: string): Promise<CodegenState> {
 			config,
 		},
 		anonymousModels: {},
+		specVersion: toSpecVersion(root),
 	}
 	return state
 }

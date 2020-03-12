@@ -101,6 +101,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 function extractCodegenTypes(object: CodegenTypes | undefined): CodegenTypes {
 	return {
 		isObject: object ? object.isObject : false,
+		isMap: object ? object.isMap : false,
 		isArray: object ? object.isArray : false,
 		isBoolean: object ? object.isBoolean : false,
 		isNumber: object ? object.isNumber : false,
@@ -518,6 +519,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	let nativeType: CodegenNativeType
 	let models: CodegenModel[] | undefined
 	let isEnum = false
+	let isMap = false
 
 	if (!description) {
 		description = schema.description
@@ -561,6 +563,8 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		type = schema.type
 
 		if (schema.additionalProperties) {
+			isMap = true
+
 			/* Map
 			 * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#model-with-mapdictionary-properties
 			 */
@@ -642,15 +646,16 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		uniqueItems: schema.uniqueItems,
 		multipleOf: schema.multipleOf,
 
-		...toCodegenTypes(type, format, isEnum),
+		...toCodegenTypes(type, format, isEnum, isMap),
 
 		models,
 	}
 }
 
-function toCodegenTypes(type: string, format: string | undefined, isEnum: boolean): CodegenTypes {
+function toCodegenTypes(type: string, format: string | undefined, isEnum: boolean, isMap: boolean): CodegenTypes {
 	return {
-		isObject: type === 'object',
+		isObject: type === 'object' && !isMap && !isEnum,
+		isMap,
 		isArray: type === 'array',
 		isBoolean: type === 'boolean',
 		isNumber: type === 'number' || type === 'integer',

@@ -214,6 +214,7 @@ export class CodegenNativeType {
 
 export interface CodegenTypes {
 	isObject: boolean
+	isMap: boolean
 	isArray: boolean
 	isBoolean: boolean
 	isNumber: boolean

@@ -148,7 +148,7 @@ export interface CodegenOperation {
 	tags?: string[]
 }
 
-export interface CodegenResponse {
+export interface CodegenResponse extends CodegenTypes {
 	code: number
 	description: string
 

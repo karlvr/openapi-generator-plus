@@ -448,6 +448,8 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		contents,
 		produces,
 		vendorExtensions: toCodegenVendorExtensions(response),
+
+		...extractCodegenTypes(contents ? contents[0] : undefined),
 	}
 }
 

@@ -520,6 +520,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 	let models: CodegenModel[] | undefined
 	let isEnum = false
 	let isMap = false
+	let componentProperty: CodegenProperty | undefined
 
 	if (!description) {
 		description = schema.description
@@ -550,7 +551,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 		type = schema.type
 
-		const componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
+		componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
 		nativeType = state.generator.toNativeArrayType({
 			componentNativeType: componentProperty.nativeType,
 			required,
@@ -572,7 +573,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 				type: 'string',
 				purpose: CodegenTypePurpose.KEY,
 			}, state)
-			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, refName ? [refName] : parentNames, state)
+			componentProperty = toCodegenProperty(name, schema.additionalProperties, false, refName ? [refName] : parentNames, state)
 
 			nativeType = state.generator.toNativeMapType({
 				keyNativeType,
@@ -632,6 +633,9 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 
 		type,
 		nativeType,
+
+		componentType: componentProperty && componentProperty.type,
+		componentNativeType: componentProperty && componentProperty.nativeType,
 
 		/* Validation */
 		maximum: schema.maximum,

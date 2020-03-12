@@ -241,6 +241,9 @@ export interface CodegenProperty extends CodegenTypes {
 	/** Type in native language */
 	nativeType: CodegenNativeType
 
+	componentType?: string
+	componentNativeType?: CodegenNativeType
+
 	/* Validation */
 	maximum?: number
 	exclusiveMaximum?: boolean

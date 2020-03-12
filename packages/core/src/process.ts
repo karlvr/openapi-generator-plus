@@ -210,6 +210,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		cookieParams: parameters?.filter(p => p.isCookieParam),
 		bodyParam: parameters?.find(p => p.isBodyParam),
 		formParams: parameters?.filter(p => p.isFormParam),
+		nonBodyParams: parameters?.filter(p => !p.isBodyParam),
 
 		authMethods,
 		defaultResponse,

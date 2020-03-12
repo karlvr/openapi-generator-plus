@@ -138,6 +138,7 @@ export interface CodegenOperation {
 	cookieParams?: CodegenParameter[]
 	bodyParam?: CodegenParameter
 	formParams?: CodegenParameter[]
+	nonBodyParams?: CodegenParameter[]
 
 	authMethods?: CodegenSecurityScheme[]
 	vendorExtensions?: CodegenVendorExtensions

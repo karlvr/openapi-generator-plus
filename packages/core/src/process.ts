@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenAuthMethod, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenContent, CodegenParameterIn, CodegenTypes } from './types'
-import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation } from './openapi-type-guards'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, InvalidModelError, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow } from './types'
+import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 
@@ -189,9 +189,9 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
 	}
 
-	let authMethods: CodegenAuthMethod[] | undefined
+	let authMethods: CodegenSecurityScheme[] | undefined
 	if (operation.security) {
-		authMethods = toCodegenAuthMethods(operation.security, state)
+		authMethods = toCodegenSecuritySchemesFromRequirements(operation.security, state)
 	}
 
 	const op: CodegenOperation = {
@@ -231,70 +231,181 @@ function mediaTypeEquals(a: CodegenMediaType, b: CodegenMediaType): boolean {
 	return a.mediaType === b.mediaType
 }
 
-function toCodegenAuthMethods(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenAuthMethod[] {
-	const result: CodegenAuthMethod[] = []
+function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] | undefined {
+	if (isOpenAPIV2Document(state.root)) {
+		if (!state.root.securityDefinitions) {
+			return undefined
+		}
+
+		const result: CodegenSecurityScheme[] = []
+		for (const name in state.root.securityDefinitions) {
+			const securityDefinition = state.root.securityDefinitions[name]
+			result.push(toCodegenSecurityScheme(name, securityDefinition, undefined, state))
+		}
+		return result
+	} else if (isOpenAPIV3Document(state.root)) {
+		const schemes = state.root.components?.securitySchemes
+		if (!schemes) {
+			throw new Error('security requirement found but no security schemes found')
+		}
+
+		const result: CodegenSecurityScheme[] = []
+		for (const name in schemes) {
+			const securityDefinition = resolveReference(schemes[name], state)
+			result.push(toCodegenSecurityScheme(name, securityDefinition, undefined, state))
+		}
+		return result
+	} else {
+		throw new Error(`Unsupported spec version: ${state.specVersion}`)
+	}
+}
+
+function toCodegenSecuritySchemesFromRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenSecurityScheme[] {
+	const result: CodegenSecurityScheme[] = []
 	for (const securityElement of security) { /* Don't know why it's an array at the top level */
 		for (const name in securityElement) {
-			result.push(toCodegenAuthMethod(name, securityElement[name], state))
+			result.push(toCodegenSecuritySchemeFromRequirement(name, securityElement[name], state))
 		}
 	}
 	return result
 }
 
-function toCodegenAuthMethod(name: string, scopes: string[] | undefined, state: CodegenState): CodegenAuthMethod {
+function toCodegenSecuritySchemeFromRequirement(name: string, scopes: string[], state: CodegenState): CodegenSecurityScheme {
+	let definition: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject
 	if (isOpenAPIV2Document(state.root)) {
 		if (!state.root.securityDefinitions) {
 			throw new Error('security requirement found but no security definitions found')
 		}
 
-		const scheme = state.root.securityDefinitions[name]
-		switch (scheme.type) {
-			case 'basic':
-				return {
-					type: scheme.type,
-					description: scheme.description,
-					name,
-					isBasic: true,
-					vendorExtensions: toCodegenVendorExtensions(scheme),
-				}
-			case 'apiKey': {
-				const apiKeyIn: string | undefined = (scheme as any).in // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
-				return {
-					type: scheme.type,
-					description: scheme.description,
-					name,
-					paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
-					in: apiKeyIn,
-					isApiKey: true,
-					isInHeader: apiKeyIn === 'header',
-					isInQuery: apiKeyIn === 'query',
-					vendorExtensions: toCodegenVendorExtensions(scheme),
-				}
-			}
-			case 'oauth2':
-				return {
-					type: scheme.type,
-					description: scheme.description,
-					name,
-					flow: scheme.flow,
-					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl : undefined,
-					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl : undefined,
-					scopes: toCodegenAuthScopes(scopes, scheme.scopes, state),
-					isOAuth: true,
-					vendorExtensions: toCodegenVendorExtensions(scheme),
-				}
-		}
-	} else {
+		definition = state.root.securityDefinitions[name]
+	} else if (isOpenAPIV3Document(state.root)) {
 		const schemes = state.root.components?.securitySchemes
 		if (!schemes) {
 			throw new Error('security requirement found but no security schemes found')
 		}
-		
-		throw new Error('OpenAPIV3 document not yet supported for toAuthMethd')
+
+		definition = resolveReference(schemes[name], state)
+	} else {
+		throw new Error(`Unsupported spec version: ${state.specVersion}`)
+	}
+	
+	if (!definition) {
+		throw new Error(`Security requirement references non-existent security definition: ${name}`)
+	}
+
+	return toCodegenSecurityScheme(name, definition, scopes, state)
+}
+
+function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, scopes: string[] | undefined, state: CodegenState): CodegenSecurityScheme {
+	switch (scheme.type) {
+		case 'basic':
+			return {
+				type: scheme.type,
+				description: scheme.description,
+				name,
+				scheme: 'basic',
+				isBasic: true,
+				isHttp: true,
+				vendorExtensions: toCodegenVendorExtensions(scheme),
+			}
+		case 'http':
+			return {
+				type: scheme.type,
+				description: scheme.description,
+				name,
+				scheme: scheme.scheme,
+				isBasic: true,
+				isHttp: true,
+				vendorExtensions: toCodegenVendorExtensions(scheme),
+			}
+		case 'apiKey': {
+			const apiKeyIn: string | undefined = (scheme as any).in // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+			return {
+				type: scheme.type,
+				description: scheme.description,
+				name,
+				paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+				in: apiKeyIn as any,
+				isApiKey: true,
+				isInHeader: apiKeyIn === 'header',
+				isInQuery: apiKeyIn === 'query',
+				vendorExtensions: toCodegenVendorExtensions(scheme),
+			}
+		}
+		case 'oauth2': {
+			let flows: CodegenOAuthFlow[] | undefined
+			if (isOpenAPIV2SecurityScheme(scheme, state.specVersion)) {
+				flows = [{
+					type: scheme.flow,
+					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl : undefined,
+					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl : undefined,
+					scopes: toCodegenAuthScopes(scopes, scheme.scopes),
+				}]
+			} else if (isOpenAPIV3SecurityScheme(scheme, state.specVersion)) {
+				flows = toCodegenOAuthFlows(scheme, scopes)
+			}
+			return {
+				type: scheme.type,
+				description: (scheme as any).description,
+				name,
+				flows,
+				isOAuth: true,
+				vendorExtensions: toCodegenVendorExtensions(scheme),
+			}
+		}
+		case 'openIdConnect':
+			return {
+				type: scheme.type,
+				description: scheme.description,
+				name,
+				openIdConnectUrl: scheme.openIdConnectUrl,
+			}
+		default:
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			throw new Error(`Unsupported security scheme type: ${(scheme as any).type}`)
 	}
 }
 
-function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2.ScopesObject, state: CodegenState): CodegenAuthScope[] | undefined {
+function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme, scopes: string[] | undefined): CodegenOAuthFlow[] {
+	const result: CodegenOAuthFlow[] = []
+	if (scheme.flows.implicit) {
+		result.push({
+			type: 'implicit',
+			authorizationUrl: scheme.flows.implicit.authorizationUrl,
+			refreshUrl: scheme.flows.implicit.refreshUrl,
+			scopes: toCodegenAuthScopes(scopes, scheme.flows.implicit.scopes),
+			vendorExtensions: toCodegenVendorExtensions(scheme.flows.implicit),
+		})
+	}
+	if (scheme.flows.password) {
+		result.push({
+			type: 'password',
+			tokenUrl: scheme.flows.password.tokenUrl,
+			refreshUrl: scheme.flows.password.refreshUrl,
+			scopes: toCodegenAuthScopes(scopes, scheme.flows.password.scopes),
+		})
+	}
+	if (scheme.flows.authorizationCode) {
+		result.push({
+			type: 'authorizationCode',
+			authorizationUrl: scheme.flows.authorizationCode.authorizationUrl,
+			tokenUrl: scheme.flows.authorizationCode.tokenUrl,
+			refreshUrl: scheme.flows.authorizationCode.refreshUrl,
+			scopes: toCodegenAuthScopes(scopes, scheme.flows.authorizationCode.scopes),
+		})
+	}
+	if (scheme.flows.clientCredentials) {
+		result.push({
+			type: 'clientCredentials',
+			tokenUrl: scheme.flows.clientCredentials.tokenUrl,
+			refreshUrl: scheme.flows.clientCredentials.refreshUrl,
+			scopes: toCodegenAuthScopes(scopes, scheme.flows.clientCredentials.scopes),
+		})
+	}
+	return result
+}
+
+function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2.ScopesObject): CodegenAuthScope[] | undefined {
 	if (!scopeNames) {
 		return undefined
 	}
@@ -307,10 +418,10 @@ function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2
 	}
 
 	const result: CodegenAuthScope[] = []
-	for (const scopeName of scopeNames) {
-		const scopeDescription = scopes[scopeName]
+	for (const name of scopeNames) {
+		const scopeDescription = scopes[name]
 		result.push({
-			scope: scopeName,
+			name: name,
 			description: scopeDescription,
 			vendorExtensions,
 		})
@@ -840,6 +951,7 @@ export function processDocument(state: CodegenState) {
 		groups: [],
 		models: [],
 		servers: toCodegenServers(root),
+		securitySchemes: toCodegenSecuritySchemes(state),
 	}
 	doc.groups = groupOperations(operations, state)
 

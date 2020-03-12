@@ -25,7 +25,7 @@ export function isOpenAPIV2Operation(ob: OpenAPI.Operation, specVersion: Codegen
 }
 
 export function isOpenAPIV3Operation(ob: OpenAPI.Operation, specVersion: CodegenSpecVersion): ob is OpenAPIV3.OperationObject {
-	return !isOpenAPIV2Operation(ob, specVersion)
+	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
 
 export function isOpenAPIV2Document(ob: OpenAPI.Document): ob is OpenAPIV2.Document {
@@ -36,4 +36,12 @@ export function isOpenAPIV2Document(ob: OpenAPI.Document): ob is OpenAPIV2.Docum
 export function isOpenAPIV3Document(ob: OpenAPI.Document): ob is OpenAPIV3.Document {
 	const anyOb = ob as any
 	return (anyOb.openapi !== undefined)
+}
+
+export function isOpenAPIV2SecurityScheme(ob: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, specVersion: CodegenSpecVersion): ob is OpenAPIV2.SecuritySchemeObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV2
+}
+
+export function isOpenAPIV3SecurityScheme(ob: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.SecuritySchemeObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV3
 }

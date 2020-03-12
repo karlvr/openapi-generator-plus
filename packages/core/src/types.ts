@@ -82,6 +82,7 @@ export interface CodegenDocument {
 	groups: CodegenOperationGroup[]
 	models: CodegenModel[]
 	servers?: CodegenServer[]
+	securitySchemes?: CodegenSecurityScheme[]
 }
 
 export interface CodegenInfo {
@@ -138,7 +139,7 @@ export interface CodegenOperation {
 	bodyParam?: CodegenParameter
 	formParams?: CodegenParameter[]
 
-	authMethods?: CodegenAuthMethod[]
+	authMethods?: CodegenSecurityScheme[]
 	vendorExtensions?: CodegenVendorExtensions
 	responses?: CodegenResponse[]
 	defaultResponse?: CodegenResponse
@@ -372,23 +373,26 @@ export interface CodegenVendorExtensions {
 	[name: string]: any
 }
 
-export interface CodegenAuthMethod {
+export interface CodegenSecurityScheme {
+	name: string
 	type: string
 	description?: string
-	name: string
 
 	/** The header or query parameter name for apiKey */
 	paramName?: string
-	in?: string
+	in?: 'header' | 'query' | 'cookie'
+
+	/** The http auth scheme for http auth */
+	scheme?: string
 	
-	flow?: string
-	authorizationUrl?: string
-	tokenUrl?: string
-	scopes?: CodegenAuthScope[]
+	flows?: CodegenOAuthFlow[]
+	openIdConnectUrl?: string
 
 	isBasic?: boolean
+	isHttp?: boolean
 	isApiKey?: boolean
 	isOAuth?: boolean
+	isOpenIdConnect?: boolean
 
 	isInQuery?: boolean
 	isInHeader?: boolean
@@ -396,8 +400,18 @@ export interface CodegenAuthMethod {
 	vendorExtensions?: CodegenVendorExtensions
 }
 
+export interface CodegenOAuthFlow {
+	type: string
+	authorizationUrl?: string
+	tokenUrl?: string
+	refreshUrl?: string
+	scopes?: CodegenAuthScope[]
+
+	vendorExtensions?: CodegenVendorExtensions
+}
+
 export interface CodegenAuthScope {
-	scope: string
+	name: string
 	description?: string
 	
 	vendorExtensions?: CodegenVendorExtensions

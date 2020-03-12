@@ -272,6 +272,8 @@ export interface CodegenModel {
 	properties: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions
 
+	nativeType: CodegenNativeType
+
 	/** Enums */
 	isEnum: boolean
 	/** The native type of the enum value */
@@ -293,6 +295,8 @@ export interface CodegenTypeOptions {
 }
 
 export enum CodegenTypePurpose {
+	/** A type for a model class */
+	MODEL = 'MODEL',
 	/** A type for an object property */
 	PROPERTY = 'PROPERTY',
 	/** A type for an enum */

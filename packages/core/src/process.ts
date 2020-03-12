@@ -765,12 +765,19 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		throw new Error(`Unsupported schema type "${schema.type}" for model "${name}": ${JSON.stringify(schema)}`)
 	}
 
+	const nativeType = state.generator.toNativeType({
+		type: 'object',
+		purpose: CodegenTypePurpose.MODEL,
+		modelNames: parentNames ? [...parentNames, name] : [name],
+	}, state)
+
 	return {
 		name,
 		description: schema.description,
 		properties,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 		models: models.length ? models : undefined,
+		nativeType,
 		isEnum: enumValues !== undefined,
 		enumValueNativeType,
 		enumValues,

@@ -1,9 +1,5 @@
 import { CodegenOperation, CodegenOperationGroups } from './types'
 
-function addToGroups(groupName: string, operation: CodegenOperation, groups: CodegenOperationGroups) {
-
-}
-
 /**
  * See JavaJAXRSSpecServerCodegen.addOperationToGroup
  * @param operationInfo 

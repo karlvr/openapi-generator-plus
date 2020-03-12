@@ -265,7 +265,7 @@ export interface CodegenModelContext {
 export interface CodegenModel {
 	name: string
 	description?: string
-	vars: CodegenProperty[]
+	properties: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions
 
 	/** Enums */

@@ -670,7 +670,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	}
 	schema = resolveReference(schema, state)
 	
-	const vars: CodegenProperty[] = []
+	const properties: CodegenProperty[] = []
 	const models: CodegenModel[] = []
 
 	const nestedParentNames = parentNames ? [...parentNames, name] : [name]
@@ -680,7 +680,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			const required = typeof schema.required === 'object' ? schema.required.indexOf(propertyName) !== -1 : false
 			const propertySchema = schema.properties[propertyName]
 			const property = toCodegenProperty(propertyName, propertySchema, required, nestedParentNames, state)
-			vars.push(property)
+			properties.push(property)
 
 			if (property.models) {
 				models.push(...property.models)
@@ -696,7 +696,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		for (const subSchema of schema.allOf) {
 			/* We don't actually care about the model name, as we just use the vars */
 			const subModel = toCodegenModel(name, nestedParentNames, subSchema, state)
-			vars.push(...subModel.vars)
+			properties.push(...subModel.properties)
 		}
 	} else if (schema.anyOf) {
 		throw new Error('anyOf not supported')
@@ -757,7 +757,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	return {
 		name,
 		description: schema.description,
-		vars,
+		properties,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 		models: models.length ? models : undefined,
 		isEnum: enumValues !== undefined,

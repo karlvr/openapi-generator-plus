@@ -6,7 +6,7 @@
   "scripts": {
     "build": "lerna run build",
     "test": "lerna run test",
-    "watch": "lerna run --parallel watch"
+    "watch": "lerna run build && lerna run --parallel watch"
   },
   "repository": {
     "type": "git",

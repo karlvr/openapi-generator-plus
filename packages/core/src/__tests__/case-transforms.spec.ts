@@ -1,4 +1,4 @@
-import { camelCase, pascalCase } from '../src/case-transforms'
+import { camelCase, pascalCase } from '../case-transforms'
 
 test('camelCase', () => {
 	expect(camelCase('one_two')).toBe('oneTwo')

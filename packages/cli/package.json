@@ -15,7 +15,7 @@
     "openapi-generator-plus": "./bin/ogplus.js"
   },
   "scripts": {
-    "build": "../../node_modules/.bin/tsc -p tsconfig.prod.json",
+    "build": "../../node_modules/.bin/rimraf dist && ../../node_modules/.bin/tsc -p tsconfig.prod.json",
     "prepare": "../../node_modules/.bin/tsc -p tsconfig.prod.json",
     "test": "../../node_modules/.bin/jest",
     "watch": "../../node_modules/.bin/tsc --watch"

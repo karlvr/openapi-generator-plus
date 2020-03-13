@@ -1,5 +1,5 @@
 import { createTestState } from './common'
-import { processDocument } from '../src/process'
+import { processDocument } from '../process'
 
 test('parse info', async() => {
 	const state = await createTestState('openapiv2-1.yml')

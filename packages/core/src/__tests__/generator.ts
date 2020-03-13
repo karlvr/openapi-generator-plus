@@ -1,5 +1,5 @@
-import { CodegenGenerator, CodegenConfig, CodegenOptions, CodegenTypeOptions, CodegenNativeTypeOptions, CodegenNativeMapTypeOptions, CodegenNativeType, CodegenNativeArrayTypeOptions } from '../src/types'
-import { addToGroupsByPath } from '../src/operation-grouping'
+import { CodegenGenerator, CodegenConfig, CodegenOptions, CodegenTypeOptions, CodegenNativeTypeOptions, CodegenNativeMapTypeOptions, CodegenNativeType, CodegenNativeArrayTypeOptions } from '../types'
+import { addToGroupsByPath } from '../operation-grouping'
 
 export interface TestCodegenOptions extends CodegenOptions {
 

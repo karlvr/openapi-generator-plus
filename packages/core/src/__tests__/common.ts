@@ -1,9 +1,9 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import path from 'path'
-import { CodegenState, CodegenConfig } from '../src/types'
+import { CodegenState, CodegenConfig } from '../types'
 import { TestGenerator } from './generator'
-import { toSpecVersion } from '../src'
+import { toSpecVersion } from '../'
 
 export async function createTestState(specName: string): Promise<CodegenState> {
 	const parser = new SwaggerParser()

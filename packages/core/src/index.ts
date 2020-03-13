@@ -1,4 +1,4 @@
-export { processDocument } from './process'
+export { InvalidModelError, processDocument } from './process'
 export * from './types'
 export * from './case-transforms'
 export { toSpecVersion } from './utils'

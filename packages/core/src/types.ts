@@ -423,13 +423,3 @@ export interface CodegenMediaType {
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void
-
-/**
- * Error thrown when a model cannot be generated because it doesn't represent a valid model in
- * the current generator.
- */
-export class InvalidModelError extends Error {
-	public constructor(message?: string) {
-		super(message)
-	}
-}

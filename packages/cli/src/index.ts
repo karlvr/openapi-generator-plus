@@ -89,7 +89,11 @@ export async function run() {
 	try {
 		doc = processDocument(state)
 	} catch (error) {
-		console.error(`Failed to process the API specification: ${error.message}`)
+		if (error.message) {
+			console.error(`Failed to process the API specification: ${error.message}`)
+		} else {
+			console.error('Failed to process the API specification', error)
+		}
 		process.exit(1)
 	}
 

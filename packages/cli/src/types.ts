@@ -3,5 +3,6 @@ export interface CommandLineOptions {
 	output?: string
 	generator?: string
 	version?: string
+	watch?: string
 	_: string[]
 }

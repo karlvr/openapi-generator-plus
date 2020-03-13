@@ -42,6 +42,9 @@ export interface CodegenGenerator<O = CodegenOptions> {
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
 
 	exportTemplates: (doc: CodegenDocument, state: CodegenState<O>) => void
+
+	/** Return an array of paths to include in fs.watch when in watch mode */
+	watchPaths: (config: CodegenConfig) => string[] | undefined
 }
 
 /**

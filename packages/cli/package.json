@@ -33,6 +33,7 @@
   "dependencies": {
     "@openapi-generator-plus/core": "file:../core",
     "getopts": "^2.2.5",
+    "node-watch": "^0.6.3",
     "swagger-parser": "^8.0.4",
     "yaml": "^1.7.2"
   }

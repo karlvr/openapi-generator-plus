@@ -554,7 +554,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 			return result
 		}) : undefined
 	} else if (isOpenAPIV3ResponseObject(response, state.specVersion)) {
-		contents = toCodegenContentArray('response', response.content, parentName, state)
+		contents = toCodegenContentArray(`response${code}`, response.content, parentName, state)
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
 	}

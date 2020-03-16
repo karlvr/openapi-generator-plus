@@ -208,7 +208,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	const op: CodegenOperation = {
 		name,
 		httpMethod: method,
-		path,
+		path, /* Path will later be made relative to a CodegenOperationGroup */
+		fullPath: path,
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes,

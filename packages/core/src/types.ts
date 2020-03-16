@@ -108,6 +108,7 @@ export interface CodegenLicenseObject {
 }
 
 export interface CodegenServer {
+	/** The base URL of the API */
 	url: string
 	description?: string
 }
@@ -118,6 +119,7 @@ export interface CodegenOperationGroups {
 
 export interface CodegenOperationGroup {
 	name: string
+	/** The base path for operations in this group, relative to the server URLs */
 	path: string
 	
 	operations: CodegenOperation[]
@@ -128,7 +130,11 @@ export interface CodegenOperationGroup {
 export interface CodegenOperation {
 	name: string
 	httpMethod: string
+	/** The operation path, relative to the containing CodegenOperationGroup */
 	path: string
+	/** The full operation path, relative to the server URLs */
+	fullPath: string
+
 	returnType?: string
 	returnNativeType?: CodegenNativeType
 	consumes?: CodegenMediaType[]

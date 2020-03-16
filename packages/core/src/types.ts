@@ -428,7 +428,12 @@ export interface CodegenAuthScope {
 }
 
 export interface CodegenMediaType {
+	/** The media type as it appears in the API spec */
 	mediaType: string
+	/** Just the mimeType part of the media type */
+	mimeType: string
+	/** The encoding / charset part of the media type, if present */
+	encoding?: string
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void

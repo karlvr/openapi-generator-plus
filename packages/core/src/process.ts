@@ -457,15 +457,11 @@ function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.Refer
 
 function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
 	if (op.consumes) {
-		return op.consumes?.map(mediaType => ({
-			mediaType,
-		}))
+		return op.consumes?.map(mediaType => toCodegenMediaType(mediaType))
 	} else {
 		const doc = state.root as OpenAPIV2.Document
 		if (doc.consumes) {
-			return doc.consumes.map(mediaType => ({
-				mediaType,
-			}))
+			return doc.consumes.map(mediaType => toCodegenMediaType(mediaType))
 		} else {
 			return undefined
 		}
@@ -474,15 +470,11 @@ function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState)
 
 function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
 	if (op.produces) {
-		return op.produces.map(mediaType => ({
-			mediaType,
-		}))
+		return op.produces.map(mediaType => toCodegenMediaType(mediaType))
 	} else {
 		const doc = state.root as OpenAPIV2.Document
 		if (doc.produces) {
-			return doc.produces.map(mediaType => ({
-				mediaType,
-			}))
+			return doc.produces.map(mediaType => toCodegenMediaType(mediaType))
 		} else {
 			return undefined
 		}
@@ -614,7 +606,7 @@ function toCodegenContentArray(name: string, content: { [media: string]: OpenAPI
 		const property = mediaTypeContent.schema ? toCodegenProperty(name, mediaTypeContent.schema, true, [parentName], state) : undefined
 		
 		const item: CodegenContent = {
-			mediaType: { mediaType },
+			mediaType: toCodegenMediaType(mediaType),
 			type: property ? property.type : undefined,
 			nativeType: property ? property.nativeType : undefined,
 			...extractCodegenTypes(property),
@@ -623,6 +615,29 @@ function toCodegenContentArray(name: string, content: { [media: string]: OpenAPI
 	}
 
 	return result
+}
+
+function toCodegenMediaType(mediaType: string): CodegenMediaType {
+	const i = mediaType.indexOf(';')
+	if (i === -1) {
+		return {
+			mediaType,
+			mimeType: mediaType,
+		}
+	}
+
+	let charset: string | undefined
+
+	const matches = mediaType.match(/charset\s*=\s*([-a-zA-Z0-9_]+)/i)
+	if (matches) {
+		charset = matches[1]
+	}
+	
+	return {
+		mediaType,
+		mimeType: mediaType.substring(0, i),
+		encoding: charset,
+	}
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: CodegenState): CodegenProperty {

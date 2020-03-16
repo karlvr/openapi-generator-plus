@@ -574,7 +574,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 				mediaType,
 				type: property ? property.type : undefined,
 				nativeType: property ? property.nativeType : undefined,
-				examples: examples?.filter(example => example.mediaType?.mimeType === mediaType.mimeType),
+				examples: examples?.filter(example => example.mediaType?.mediaType === mediaType.mediaType),
 				...extractCodegenTypes(property),
 			}
 			return result

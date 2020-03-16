@@ -641,6 +641,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 		return [{
 			value: example,
 			valueString: toCodegenExampleValueString(example, mediaType, state),
+			valuePretty: toCodegenExampleValuePretty(example),
 		}]
 	}
 
@@ -656,6 +657,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 				mediaType: toCodegenMediaType(mediaTypeOrName),
 				value: example,
 				valueString: toCodegenExampleValueString(example, mediaTypeOrName, state),
+				valuePretty: toCodegenExampleValuePretty(example),
 			})
 		} else if (isOpenAPIV3ExampleObject(example, state.specVersion)) {
 			const value = example.value || example.externalValue // TODO handle externalValue
@@ -666,6 +668,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 				summary: example.summary,
 				value,
 				valueString: toCodegenExampleValueString(example, mediaType, state),
+				valuePretty: toCodegenExampleValuePretty(example),
 			})
 		} else {
 			throw new Error(`Unsupported spec version: ${state.specVersion}`)
@@ -680,8 +683,17 @@ function toCodegenExampleValueString(value: any, mediaType: string | undefined, 
 		return state.generator.toLiteral(value, { type: 'string' }, state)
 	} else {
 		// TODO we're assuming that we're transforming an object to JSON, which is appropriate is the mediaType is JSON
-		const stringValue = JSON.stringify(value, undefined, 4)
+		const stringValue = JSON.stringify(value)
 		return state.generator.toLiteral(stringValue, { type: 'string' }, state)
+	}
+}
+
+function toCodegenExampleValuePretty(value: any) {
+	if (typeof value === 'string') {
+		return value
+	} else {
+		// TODO we're assuming that we're transforming an object to JSON, which is appropriate is the mediaType is JSON
+		return JSON.stringify(value, undefined, 4)
 	}
 }
 

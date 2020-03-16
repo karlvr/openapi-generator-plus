@@ -205,6 +205,7 @@ export interface CodegenExample {
 	value: any
 	/** The example value formatted as a string literal by the generator */
 	valueString: string
+	valuePretty: string
 }
 
 export class CodegenNativeType {

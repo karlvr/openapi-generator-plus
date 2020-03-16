@@ -45,3 +45,11 @@ export function isOpenAPIV2SecurityScheme(ob: OpenAPIV2.SecuritySchemeObject | O
 export function isOpenAPIV3SecurityScheme(ob: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.SecuritySchemeObject {
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
+
+export function isOpenAPIV2ExampleObject(ob: OpenAPIV2.ExampleObject | OpenAPIV3.ExampleObject, specVersion: CodegenSpecVersion): ob is OpenAPIV2.ExampleObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV2
+}
+
+export function isOpenAPIV3ExampleObject(ob: OpenAPIV2.ExampleObject | OpenAPIV3.ExampleObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.ExampleObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV3
+}

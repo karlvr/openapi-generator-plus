@@ -171,6 +171,7 @@ export interface CodegenResponse extends CodegenTypes {
 	/** The responses contents */
 	contents?: CodegenContent[]
 	produces?: CodegenMediaType[]
+	examples?: CodegenExample[]
 
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
@@ -186,9 +187,11 @@ export interface CodegenContent extends CodegenTypes {
 
 export interface CodegenExample {
 	name?: string
+	mediaType?: CodegenMediaType
 	summary?: string
 	description?: string
-	value?: any
+	value: any
+	valueString: string
 }
 
 export class CodegenNativeType {
@@ -370,6 +373,8 @@ export interface CodegenParameter extends CodegenTypes {
 	description?: string
 	required?: boolean
 	collectionFormat?: string
+
+	examples?: CodegenExample[]
 
 	isQueryParam?: boolean
 	isPathParam?: boolean

@@ -541,7 +541,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	let contents: CodegenContent[] | undefined
 
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
-		const property = response.schema ? toCodegenProperty('response', response.schema, true, [parentName], state) : undefined
+		const property = response.schema ? toCodegenProperty(`response${code}`, response.schema, true, [parentName], state) : undefined
 		
 		const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
 		contents = mediaTypes ? mediaTypes.map(mediaType => {

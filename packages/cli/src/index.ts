@@ -138,7 +138,7 @@ export async function run() {
 		}
 		
 		let running = false
-		watch(watchPaths, () => {
+		watch(watchPaths, { recursive: true }, () => {
 			if (running) {
 				return
 			}

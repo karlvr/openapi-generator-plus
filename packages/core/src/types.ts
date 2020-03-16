@@ -193,6 +193,7 @@ export interface CodegenContent extends CodegenTypes {
 	type?: string
 	nativeType?: CodegenNativeType
 	examples?: CodegenExample[]
+	models?: CodegenModel[]
 }
 
 export interface CodegenExample {

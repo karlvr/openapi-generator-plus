@@ -239,7 +239,32 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		tags: operation.tags,
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
+	op.hasParamExamples = parametersHaveExamples(op.allParams)
+	op.hasQueryParamExamples = parametersHaveExamples(op.queryParams)
+	op.hasPathParamExamples = parametersHaveExamples(op.pathParams)
+	op.hasHeaderParamExamples = parametersHaveExamples(op.headerParams)
+	op.hasCookieParamExamples = parametersHaveExamples(op.cookieParams)
+	op.hasBodyParamExamples = op.bodyParam ? parametersHaveExamples([op.bodyParam]) : undefined
+	op.hasFormParamExamples = parametersHaveExamples(op.formParams)
+	op.hasNonBodyParamExamples = parametersHaveExamples(op.nonBodyParams)
+	op.hasResponseExamples = responsesHaveExamples(op.responses)
 	return op
+}
+
+function parametersHaveExamples(parameters: CodegenParameter[] | undefined): boolean | undefined {
+	if (!parameters) {
+		return undefined
+	}
+
+	return !!parameters.find(param => !!param.examples?.length)
+}
+
+function responsesHaveExamples(responses: CodegenResponse[] | undefined): boolean | undefined {
+	if (!responses) {
+		return undefined
+	}
+
+	return !!responses.find(response => !!response.examples?.length)
 }
 
 function toUniqueMediaTypes(mediaTypes: CodegenMediaType[]): CodegenMediaType[] {

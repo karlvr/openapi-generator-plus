@@ -157,6 +157,16 @@ export interface CodegenOperation {
 	summary?: string
 	description?: string
 	tags?: string[]
+
+	hasParamExamples?: boolean
+	hasQueryParamExamples?: boolean
+	hasPathParamExamples?: boolean
+	hasHeaderParamExamples?: boolean
+	hasCookieParamExamples?: boolean
+	hasBodyParamExamples?: boolean
+	hasFormParamExamples?: boolean
+	hasNonBodyParamExamples?: boolean
+	hasResponseExamples?: boolean
 }
 
 export interface CodegenResponse extends CodegenTypes {
@@ -190,7 +200,9 @@ export interface CodegenExample {
 	mediaType?: CodegenMediaType
 	summary?: string
 	description?: string
+	/** The raw example value, may be a string or any other JSON/YAML type */
 	value: any
+	/** The example value formatted as a string literal by the generator */
 	valueString: string
 }
 

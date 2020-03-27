@@ -55,3 +55,11 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 	}
 	groups[tag].operations.push(operation)
 }
+
+export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups) {
+	if (operation.tags && operation.tags.length) {
+		return addToGroupsByTag(operation, groups)
+	} else {
+		return addToGroupsByPath(operation, groups)
+	}
+}

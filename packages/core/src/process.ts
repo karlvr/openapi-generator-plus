@@ -12,6 +12,7 @@ export class InvalidModelError extends Error {
 	public constructor(message?: string) {
 		super(message)
 		Object.setPrototypeOf(this, InvalidModelError.prototype)
+		this.name = 'InvalidModelError'
 	}
 }
 

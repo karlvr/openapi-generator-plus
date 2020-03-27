@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "OpenAPI code generator written in Node",
   "keywords": [
     "openapi",

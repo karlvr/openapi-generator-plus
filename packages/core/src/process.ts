@@ -232,6 +232,9 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	let securityRequirements: CodegenSecurityRequirement[] | undefined
 	if (operation.security) {
 		securityRequirements = toCodegenSecurityRequirements(operation.security, state)
+	} else if (state.root.security) {
+		/* Use document-wide security requirements if the operation doesn't specify any */
+		securityRequirements = toCodegenSecurityRequirements(state.root.security, state)
 	}
 
 	const op: CodegenOperation = {
@@ -1091,7 +1094,7 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 	}
 }
 
-export function processDocument(state: CodegenState) {
+export function processDocument(state: CodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
 	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {
@@ -1104,6 +1107,14 @@ export function processDocument(state: CodegenState) {
 	}
 
 	const root = state.root
+	const doc: CodegenDocument = {
+		info: root.info,
+		groups: [],
+		models: [],
+		servers: toCodegenServers(root),
+		securitySchemes: toCodegenSecuritySchemes(state),
+		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,
+	}
 
 	for (const path in root.paths) {
 		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
@@ -1117,13 +1128,6 @@ export function processDocument(state: CodegenState) {
 		createCodegenOperation(path, HttpMethods.PUT, pathItem.put)
 	}
 
-	const doc: CodegenDocument = {
-		info: root.info,
-		groups: [],
-		models: [],
-		servers: toCodegenServers(root),
-		securitySchemes: toCodegenSecuritySchemes(state),
-	}
 	doc.groups = groupOperations(operations, state)
 
 	const models = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas

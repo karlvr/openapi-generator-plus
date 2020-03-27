@@ -86,6 +86,7 @@ export interface CodegenDocument {
 	models: CodegenModel[]
 	servers?: CodegenServer[]
 	securitySchemes?: CodegenSecurityScheme[]
+	securityRequirements?: CodegenSecurityRequirement[]
 }
 
 export interface CodegenInfo {

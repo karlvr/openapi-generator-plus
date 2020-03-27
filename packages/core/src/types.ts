@@ -405,7 +405,7 @@ export interface CodegenVendorExtensions {
 
 export interface CodegenSecurityRequirement {
 	scheme: CodegenSecurityScheme
-	scopes?: string[]
+	scopes?: CodegenAuthScope[]
 }
 
 export interface CodegenSecurityScheme {

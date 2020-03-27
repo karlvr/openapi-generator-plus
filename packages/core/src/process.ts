@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -363,10 +363,45 @@ function toCodegenSecurityRequirement(name: string, scopes: string[], state: Cod
 		throw new Error(`Security requirement references non-existent security definition: ${name}`)
 	}
 
-	return {
-		scheme: toCodegenSecurityScheme(name, definition, state),
-		scopes,
+	const scheme = toCodegenSecurityScheme(name, definition, state)
+	let scopeObjects: CodegenSecurityScope[] | undefined
+
+	if (scopes && scheme.flows) {
+		scopeObjects = []
+		for (const scope of scopes) {
+			const scopeObject = findSecurityScope(scope, scheme)
+			if (scopeObject) {
+				scopeObjects.push(scopeObject)
+			} else {
+				scopeObjects.push({
+					name: scope,
+				})
+			}
+		}
 	}
+
+	return {
+		scheme,
+		scopes: scopeObjects,
+	}
+}
+
+function findSecurityScope(scope: string, scheme: CodegenSecurityScheme): CodegenSecurityScope | undefined {
+	if (!scheme.flows) {
+		return undefined
+	}
+
+	for (const flow of scheme.flows) {
+		if (flow.scopes) {
+			for (const flowScope of flow.scopes) {
+				if (flowScope.name === scope) {
+					return flowScope
+				}
+			}
+		}
+	}
+
+	return undefined
 }
 
 function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, state: CodegenState): CodegenSecurityScheme {
@@ -478,7 +513,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAu
 	return result
 }
 
-function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenAuthScope[] | undefined {
+function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenSecurityScope[] | undefined {
 	const vendorExtensions = toCodegenVendorExtensions(scopes)
 
 	/* A bug in the swagger parser? The openapi-types don't suggest that scopes should be an array */
@@ -486,7 +521,7 @@ function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenAuthScope[]
 		scopes = scopes[0]
 	}
 
-	const result: CodegenAuthScope[] = []
+	const result: CodegenSecurityScope[] = []
 	for (const name in scopes) {
 		const scopeDescription = scopes[name]
 		result.push({

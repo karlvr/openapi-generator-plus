@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -229,9 +229,9 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
 	}
 
-	let authMethods: CodegenSecurityScheme[] | undefined
+	let securityRequirements: CodegenSecurityRequirement[] | undefined
 	if (operation.security) {
-		authMethods = toCodegenSecuritySchemesFromRequirements(operation.security, state)
+		securityRequirements = toCodegenSecurityRequirements(operation.security, state)
 	}
 
 	const op: CodegenOperation = {
@@ -253,7 +253,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		formParams: parameters?.filter(p => p.isFormParam),
 		nonBodyParams: parameters?.filter(p => !p.isBodyParam),
 
-		authMethods,
+		securityRequirements,
 		defaultResponse,
 		responses,
 		isDeprecated: operation.deprecated,
@@ -307,7 +307,7 @@ function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] 
 		const result: CodegenSecurityScheme[] = []
 		for (const name in state.root.securityDefinitions) {
 			const securityDefinition = state.root.securityDefinitions[name]
-			result.push(toCodegenSecurityScheme(name, securityDefinition, undefined, state))
+			result.push(toCodegenSecurityScheme(name, securityDefinition, state))
 		}
 		return result
 	} else if (isOpenAPIV3Document(state.root)) {
@@ -319,7 +319,7 @@ function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] 
 		const result: CodegenSecurityScheme[] = []
 		for (const name in schemes) {
 			const securityDefinition = resolveReference(schemes[name], state)
-			result.push(toCodegenSecurityScheme(name, securityDefinition, undefined, state))
+			result.push(toCodegenSecurityScheme(name, securityDefinition, state))
 		}
 		return result
 	} else {
@@ -327,17 +327,17 @@ function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] 
 	}
 }
 
-function toCodegenSecuritySchemesFromRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenSecurityScheme[] {
-	const result: CodegenSecurityScheme[] = []
+function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenSecurityRequirement[] {
+	const result: CodegenSecurityRequirement[] = []
 	for (const securityElement of security) { /* Don't know why it's an array at the top level */
 		for (const name in securityElement) {
-			result.push(toCodegenSecuritySchemeFromRequirement(name, securityElement[name], state))
+			result.push(toCodegenSecurityRequirement(name, securityElement[name], state))
 		}
 	}
 	return result
 }
 
-function toCodegenSecuritySchemeFromRequirement(name: string, scopes: string[], state: CodegenState): CodegenSecurityScheme {
+function toCodegenSecurityRequirement(name: string, scopes: string[], state: CodegenState): CodegenSecurityRequirement {
 	let definition: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject
 	if (isOpenAPIV2Document(state.root)) {
 		if (!state.root.securityDefinitions) {
@@ -360,10 +360,13 @@ function toCodegenSecuritySchemeFromRequirement(name: string, scopes: string[], 
 		throw new Error(`Security requirement references non-existent security definition: ${name}`)
 	}
 
-	return toCodegenSecurityScheme(name, definition, scopes, state)
+	return {
+		scheme: toCodegenSecurityScheme(name, definition, state),
+		scopes,
+	}
 }
 
-function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, scopes: string[] | undefined, state: CodegenState): CodegenSecurityScheme {
+function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, state: CodegenState): CodegenSecurityScheme {
 	switch (scheme.type) {
 		case 'basic':
 			return {
@@ -406,10 +409,10 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 					type: scheme.flow,
 					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl : undefined,
 					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl : undefined,
-					scopes: toCodegenAuthScopes(scopes, scheme.scopes),
+					scopes: toCodegenAuthScopes(scheme.scopes),
 				}]
 			} else if (isOpenAPIV3SecurityScheme(scheme, state.specVersion)) {
-				flows = toCodegenOAuthFlows(scheme, scopes)
+				flows = toCodegenOAuthFlows(scheme)
 			}
 			return {
 				type: scheme.type,
@@ -433,14 +436,14 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 	}
 }
 
-function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme, scopes: string[] | undefined): CodegenOAuthFlow[] {
+function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAuthFlow[] {
 	const result: CodegenOAuthFlow[] = []
 	if (scheme.flows.implicit) {
 		result.push({
 			type: 'implicit',
 			authorizationUrl: scheme.flows.implicit.authorizationUrl,
 			refreshUrl: scheme.flows.implicit.refreshUrl,
-			scopes: toCodegenAuthScopes(scopes, scheme.flows.implicit.scopes),
+			scopes: toCodegenAuthScopes(scheme.flows.implicit.scopes),
 			vendorExtensions: toCodegenVendorExtensions(scheme.flows.implicit),
 		})
 	}
@@ -449,7 +452,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme, scopes: str
 			type: 'password',
 			tokenUrl: scheme.flows.password.tokenUrl,
 			refreshUrl: scheme.flows.password.refreshUrl,
-			scopes: toCodegenAuthScopes(scopes, scheme.flows.password.scopes),
+			scopes: toCodegenAuthScopes(scheme.flows.password.scopes),
 		})
 	}
 	if (scheme.flows.authorizationCode) {
@@ -458,7 +461,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme, scopes: str
 			authorizationUrl: scheme.flows.authorizationCode.authorizationUrl,
 			tokenUrl: scheme.flows.authorizationCode.tokenUrl,
 			refreshUrl: scheme.flows.authorizationCode.refreshUrl,
-			scopes: toCodegenAuthScopes(scopes, scheme.flows.authorizationCode.scopes),
+			scopes: toCodegenAuthScopes(scheme.flows.authorizationCode.scopes),
 		})
 	}
 	if (scheme.flows.clientCredentials) {
@@ -466,17 +469,13 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme, scopes: str
 			type: 'clientCredentials',
 			tokenUrl: scheme.flows.clientCredentials.tokenUrl,
 			refreshUrl: scheme.flows.clientCredentials.refreshUrl,
-			scopes: toCodegenAuthScopes(scopes, scheme.flows.clientCredentials.scopes),
+			scopes: toCodegenAuthScopes(scheme.flows.clientCredentials.scopes),
 		})
 	}
 	return result
 }
 
-function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2.ScopesObject): CodegenAuthScope[] | undefined {
-	if (!scopeNames) {
-		return undefined
-	}
-
+function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenAuthScope[] | undefined {
 	const vendorExtensions = toCodegenVendorExtensions(scopes)
 
 	/* A bug in the swagger parser? The openapi-types don't suggest that scopes should be an array */
@@ -485,7 +484,7 @@ function toCodegenAuthScopes(scopeNames: string[] | undefined, scopes: OpenAPIV2
 	}
 
 	const result: CodegenAuthScope[] = []
-	for (const name of scopeNames) {
+	for (const name in scopes) {
 		const scopeDescription = scopes[name]
 		result.push({
 			name: name,

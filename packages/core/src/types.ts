@@ -149,7 +149,7 @@ export interface CodegenOperation {
 	formParams?: CodegenParameter[]
 	nonBodyParams?: CodegenParameter[]
 
-	authMethods?: CodegenSecurityScheme[]
+	securityRequirements?: CodegenSecurityRequirement[]
 	vendorExtensions?: CodegenVendorExtensions
 	responses?: CodegenResponse[]
 	defaultResponse?: CodegenResponse
@@ -400,6 +400,11 @@ export interface CodegenParameter extends CodegenTypes {
 
 export interface CodegenVendorExtensions {
 	[name: string]: any
+}
+
+export interface CodegenSecurityRequirement {
+	scheme: CodegenSecurityScheme
+	scopes?: string[]
 }
 
 export interface CodegenSecurityScheme {

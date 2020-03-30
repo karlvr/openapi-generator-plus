@@ -319,7 +319,7 @@ function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] 
 	} else if (isOpenAPIV3Document(state.root)) {
 		const schemes = state.root.components?.securitySchemes
 		if (!schemes) {
-			throw new Error('security requirement found but no security schemes found')
+			return undefined
 		}
 
 		const result: CodegenSecurityScheme[] = []

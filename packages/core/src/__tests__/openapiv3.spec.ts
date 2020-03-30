@@ -50,13 +50,13 @@ test('parse operation response', async() => {
 	expect(op1.name).toEqual('getTest1')
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
-	expect(op1.produces).toEqual([{ mediaType: 'application/json' }])
+	expect(op1.produces).toEqual([{ mediaType: 'application/json', mimeType: 'application/json' }])
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
 	expect(op2.returnType).toEqual('object')
 	expect(op2.returnNativeType?.toString()).toEqual('Test2Response')
-	expect(op2.produces).toEqual([{ mediaType: 'application/json' }])
+	expect(op2.produces).toEqual([{ mediaType: 'application/json', mimeType: 'application/json' }])
 })
 
 test('parse groups', async() => {

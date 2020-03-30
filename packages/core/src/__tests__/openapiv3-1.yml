@@ -39,7 +39,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Test1Error'
     post:
-      summary: Felis podis      
+      summary: Felis podis
+      responses:
+        204:
+          description: Success
   /test2:
     post:
       summary: Donec felis turpis

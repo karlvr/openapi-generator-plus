@@ -212,21 +212,43 @@ export interface CodegenExample {
 export class CodegenNativeType {
 	/** The type in the native language */
 	public nativeType: string
+
 	/**
-	 * The type, in the native language, if the property hasn't gone through extra conversion after coming out of, 
-	 * or won't go through extra conversion before going into the communication layer.
+	 * The native language type to use if no translation is done from the communication layer.
+	 * e.g. the type as it will be when deserialised from JSON.
 	 */
 	public wireType?: string
 	/**
-	 * The type, in the native language, when expressing this type as a type literal, e.g. in java `java.util.List.class`
-	 * as opposed to `java.util.List<java.lang.String>.class`, which is not valid as a type literal.
+	 * The native language type when expressing this type as a type literal, e.g. in java `java.util.List`
+	 * as opposed to `java.util.List<java.lang.String>`, which is not valid as a type literal.
 	 */
 	public literalType?: string
+	/**
+	 * The concrete native language type to use when creating an object of this type. 
+	 */
+	public concreteType?: string
 
-	public constructor(nativeType: string, wireType?: string | null, literalType?: string | null) {
+	/**
+	 * 
+	 * @param nativeType The type in the native language
+	 * @param additionalTypes Special-purpose versions of the native type. Any omitted properties will default to the `nativeType`, 
+	 * 	any null properties will end up `undefined`.
+	 */
+	public constructor(nativeType: string, additionalTypes?: {
+		wireType?: string | null
+		literalType?: string | null
+		concreteType?: string | null
+	}) {
 		this.nativeType = nativeType
-		this.wireType = wireType !== undefined ? wireType !== null ? wireType : undefined : nativeType
-		this.literalType = literalType !== undefined ? literalType !== null ? literalType : undefined : nativeType
+		if (additionalTypes) {
+			this.wireType = additionalTypes.wireType !== undefined ? additionalTypes.wireType !== null ? additionalTypes.wireType : undefined : nativeType
+			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType !== null ? additionalTypes.literalType : undefined : nativeType
+			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType !== null ? additionalTypes.concreteType : undefined : nativeType
+		} else {
+			this.wireType = nativeType
+			this.literalType = nativeType
+			this.concreteType = nativeType
+		}
 	}
 
 	public toString() {

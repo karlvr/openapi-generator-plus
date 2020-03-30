@@ -276,7 +276,7 @@ export interface CodegenTypes {
 	isDateTime: boolean
 	isDate: boolean
 	isTime: boolean
-	propertyType: CodegenPropertyType
+	propertyType?: CodegenPropertyType
 }
 
 export enum CodegenPropertyType {
@@ -291,7 +291,6 @@ export enum CodegenPropertyType {
 	DATE,
 	TIME,
 	FILE,
-	UNKNOWN,
 }
 
 /* See DefaultCodegen.fromProperty */
@@ -366,7 +365,7 @@ interface CodegenTypeOptions {
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
-	propertyType: CodegenPropertyType
+	propertyType?: CodegenPropertyType
 	nativeType: CodegenNativeType
 }
 

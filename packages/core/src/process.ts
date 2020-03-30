@@ -146,7 +146,7 @@ function extractCodegenTypes(object: CodegenTypes | undefined): CodegenTypes {
 		isDateTime: object ? object.isDateTime : false,
 		isDate: object ? object.isDate : false,
 		isTime: object ? object.isTime : false,
-		propertyType: object ? object.propertyType : CodegenPropertyType.UNKNOWN,
+		propertyType: object ? object.propertyType : undefined,
 	}
 }
 

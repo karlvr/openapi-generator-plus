@@ -19,7 +19,7 @@ export interface CodegenState<O = CodegenOptions> {
 /**
  * The interface implemented by language-specific generator modules.
  */
-export interface CodegenGenerator<O = CodegenOptions> {
+export interface CodegenGenerator<O extends CodegenOptions = CodegenOptions> {
 	toClassName: (name: string, state: CodegenState<O>) => string
 	toIdentifier: (name: string, state: CodegenState<O>) => string
 	toConstantName: (name: string, state: CodegenState<O>) => string

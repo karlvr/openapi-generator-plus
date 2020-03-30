@@ -953,6 +953,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		vendorExtensions: toCodegenVendorExtensions(schema),
 
 		type,
+		format: schema.format,
 		nativeType,
 
 		componentType: componentProperty && componentProperty.type,

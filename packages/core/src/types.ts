@@ -266,6 +266,7 @@ export interface CodegenProperty extends CodegenTypes {
 
 	/** OpenAPI type */
 	type: string
+	format?: string
 
 	/** Type in native language */
 	nativeType: CodegenNativeType

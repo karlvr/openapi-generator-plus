@@ -1,4 +1,4 @@
-import { CodegenGenerator, CodegenConfig, CodegenOptions, CodegenTypeOptions, CodegenNativeTypeOptions, CodegenNativeMapTypeOptions, CodegenNativeType, CodegenNativeArrayTypeOptions } from '../types'
+import { CodegenGenerator, CodegenOptions, CodegenNativeType } from '../types'
 import { addToGroupsByPath } from '../operation-grouping'
 
 export interface TestCodegenOptions extends CodegenOptions {
@@ -6,20 +6,21 @@ export interface TestCodegenOptions extends CodegenOptions {
 }
 
 export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
-	toClassName: (name: string) => `class ${name}`,
-	toIdentifier: (name: string) => `identifier ${name}`,
-	toConstantName: (name: string) => `constant ${name}`,
-	toEnumName: (name: string) => `enum ${name}`,
-	toOperationName: (path: string, method: string) => `operation ${method} ${path}`,
-	toModelNameFromPropertyName: (name: string) => `model ${name}`,
-	toLiteral: (value: any) => `literal ${value}`,
-	toNativeType: (options: CodegenNativeTypeOptions) => options.modelNames ? new CodegenNativeType(options.modelNames[options.modelNames.length - 1]) : new CodegenNativeType(options.type),
-	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => new CodegenNativeType(`array ${options.componentNativeType}`),
-	toNativeMapType: (options: CodegenNativeMapTypeOptions) => new CodegenNativeType(`map ${options.componentNativeType}`),
-	toDefaultValue: (defaultValue: any, options: CodegenTypeOptions) => `default ${options.type}`,
-	options: (config: CodegenConfig) => ({ config }),
+	toClassName: (name) => `class ${name}`,
+	toIdentifier: (name) => `identifier ${name}`,
+	toConstantName: (name) => `constant ${name}`,
+	toEnumName: (name) => `enum ${name}`,
+	toOperationName: (path, method) => `operation ${method} ${path}`,
+	toModelNameFromPropertyName: (name) => `model ${name}`,
+	toLiteral: (value) => `literal ${value}`,
+	toNativeType: (options) => options.modelNames ? new CodegenNativeType(options.modelNames[options.modelNames.length - 1]) : new CodegenNativeType(options.type),
+	toNativeArrayType: (options) => new CodegenNativeType(`array ${options.componentNativeType}`),
+	toNativeMapType: (options) => new CodegenNativeType(`map ${options.componentNativeType}`),
+	toDefaultValue: (defaultValue, options) => `default ${options.type}`,
+	options: (config) => ({ config }),
 	operationGroupingStrategy: () => addToGroupsByPath,
 	exportTemplates: () => {
 		// NOOP
 	},
+	watchPaths: () => [],
 }

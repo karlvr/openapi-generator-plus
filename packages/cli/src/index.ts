@@ -144,25 +144,27 @@ export async function run() {
 		}
 		
 		let running = false
-		watch(watchPaths, { recursive: true }, () => {
+		watch(watchPaths, { recursive: true }, async() => {
 			if (running) {
 				return
 			}
 			running = true
-			
-			console.log(`Rebuilding ${config.inputPath} to ${config.outputPath}…`)
-			generate(config).then(result => {
+
+			console.log(`Rebuilding: ${config.inputPath}…`)
+			try {
+				const result = await generate(config)
 				if (result) {
-					console.log('Complete')
+					console.log(`Generated: ${config.outputPath}`)
 				}
 				running = false
-			}).catch(error => {
+			} catch (error) {
 				if (error.message) {
 					console.error(`Failed to generate: ${error.message}`)
 				} else {
 					console.error('Failed to generate', error)
 				}
-			})
+				running = false
+			}
 		})
 	}
 }

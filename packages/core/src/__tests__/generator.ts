@@ -23,4 +23,5 @@ export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
 		// NOOP
 	},
 	watchPaths: () => [],
+	cleanPathPatterns: () => undefined,
 }

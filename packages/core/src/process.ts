@@ -1,8 +1,9 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
+import { stringLiteralValueOptions } from './utils'
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in
@@ -145,6 +146,7 @@ function extractCodegenTypes(object: CodegenTypes | undefined): CodegenTypes {
 		isDateTime: object ? object.isDateTime : false,
 		isDate: object ? object.isDate : false,
 		isTime: object ? object.isTime : false,
+		propertyType: object ? object.propertyType : CodegenPropertyType.UNKNOWN,
 	}
 }
 
@@ -718,11 +720,11 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 
 function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: CodegenState) {
 	if (typeof value === 'string') {
-		return state.generator.toLiteral(value, { type: 'string' }, state)
+		return state.generator.toLiteral(value, stringLiteralValueOptions(state), state)
 	} else {
 		// TODO we're assuming that we're transforming an object to JSON, which is appropriate is the mediaType is JSON
 		const stringValue = JSON.stringify(value)
-		return state.generator.toLiteral(stringValue, { type: 'string' }, state)
+		return state.generator.toLiteral(stringValue, stringLiteralValueOptions(state), state)
 	}
 }
 
@@ -943,11 +945,10 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
 
-	return {
+	const property: CodegenProperty = {
 		name,
 		description,
 		title: schema.title,
-		defaultValue: state.generator.toDefaultValue(schema.default, { type, format: schema.format, required }, state),
 		readOnly: !!schema.readOnly,
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),
@@ -976,19 +977,50 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 
 		models,
 	}
+
+	property.defaultValue = state.generator.toDefaultValue(schema.default, property, state)
+	return property
 }
 
 function toCodegenTypes(type: string, format: string | undefined, isEnum: boolean, isMap: boolean): CodegenTypes {
+	let propertyType: CodegenPropertyType
+	if (isMap) {
+		propertyType = CodegenPropertyType.MAP
+	} else if (isEnum) {
+		propertyType = CodegenPropertyType.ENUM
+	} else if (type === 'object') {
+		propertyType = CodegenPropertyType.OBJECT
+	} else if (type === 'array') {
+		propertyType = CodegenPropertyType.ARRAY
+	} else if (type === 'boolean') {
+		propertyType = CodegenPropertyType.BOOLEAN
+	} else if (type === 'number' || type === 'integer') {
+		propertyType = CodegenPropertyType.NUMBER
+	} else if (type === 'string' && format === 'date-time') {
+		propertyType = CodegenPropertyType.DATETIME
+	} else if (type === 'string' && format === 'date') {
+		propertyType = CodegenPropertyType.DATE
+	} else if (type === 'string' && format === 'time') {
+		propertyType = CodegenPropertyType.TIME
+	} else if (type === 'string') {
+		propertyType = CodegenPropertyType.STRING
+	} else if (type === 'file') {
+		propertyType = CodegenPropertyType.FILE
+	} else {
+		throw new Error(`Unsupported property type: ${type}`)
+	}
+
 	return {
-		isObject: type === 'object' && !isMap && !isEnum,
-		isMap,
-		isArray: type === 'array',
-		isBoolean: type === 'boolean',
-		isNumber: type === 'number' || type === 'integer',
-		isEnum,
-		isDateTime: type === 'string' && format === 'date-time',
-		isDate: type === 'string' && format === 'date',
-		isTime: type === 'string' && format === 'time',
+		isObject: propertyType === CodegenPropertyType.OBJECT,
+		isMap: propertyType === CodegenPropertyType.MAP,
+		isArray: propertyType === CodegenPropertyType.ARRAY,
+		isBoolean: propertyType === CodegenPropertyType.BOOLEAN,
+		isNumber: propertyType === CodegenPropertyType.NUMBER,
+		isEnum: propertyType === CodegenPropertyType.ENUM,
+		isDateTime: propertyType === CodegenPropertyType.DATETIME,
+		isDate: propertyType === CodegenPropertyType.DATE,
+		isTime: propertyType === CodegenPropertyType.TIME,
+		propertyType,
 	}
 }
 
@@ -1053,9 +1085,15 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
+		const enumValueLiteralOptions: CodegenLiteralValueOptions = {
+			type: enumValueType,
+			format: enumValueFormat,
+			propertyType: CodegenPropertyType.ENUM,
+			nativeType: enumValueNativeType,
+		}
 		enumValues = schema.enum ? schema.enum.map(value => ({
 			value,
-			literalValue: state.generator.toLiteral(value, { type: enumValueType, format: enumValueFormat }, state),
+			literalValue: state.generator.toLiteral(value, enumValueLiteralOptions, state),
 		})) : undefined
 	} else if (schema.type === 'array') {
 		if (!schema.items) {

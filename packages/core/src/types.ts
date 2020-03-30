@@ -30,13 +30,13 @@ export interface CodegenGenerator<O = CodegenOptions> {
 
 	/** Format a value as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toLiteral: (value: any, options: CodegenTypeOptions, state: CodegenState<O>) => string
+	toLiteral: (value: any, options: CodegenLiteralValueOptions, state: CodegenState<O>) => string
 	toNativeType: (options: CodegenNativeTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	toNativeArrayType: (options: CodegenNativeArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	toNativeMapType: (options: CodegenNativeMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toDefaultValue: (defaultValue: any, options: CodegenTypeOptions, state: CodegenState<O>) => string
+	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => string
 
 	options: (config: CodegenConfig) => O
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
@@ -273,6 +273,22 @@ export interface CodegenTypes {
 	isDateTime: boolean
 	isDate: boolean
 	isTime: boolean
+	propertyType: CodegenPropertyType
+}
+
+export enum CodegenPropertyType {
+	OBJECT,
+	MAP,
+	ARRAY,
+	BOOLEAN,
+	NUMBER,
+	ENUM,
+	STRING,
+	DATETIME,
+	DATE,
+	TIME,
+	FILE,
+	UNKNOWN,
 }
 
 /* See DefaultCodegen.fromProperty */
@@ -340,11 +356,18 @@ export interface CodegenModel {
 	models?: CodegenModel[]
 }
 
-export interface CodegenTypeOptions {
+interface CodegenTypeOptions {
 	type: string
 	format?: string
 	required?: boolean
 }
+
+export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
+	propertyType: CodegenPropertyType
+	nativeType: CodegenNativeType
+}
+
+export type CodegenLiteralValueOptions = CodegenDefaultValueOptions
 
 export enum CodegenTypePurpose {
 	/** A type for a model class */

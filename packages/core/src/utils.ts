@@ -1,5 +1,5 @@
 import { OpenAPI } from 'openapi-types'
-import { CodegenSpecVersion } from './types'
+import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose } from './types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
@@ -21,5 +21,13 @@ export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 		}
 	} else {
 		throw new Error(`API specification document not recognised as Swagger or OpenAPI: ${JSON.stringify(root)}`)
+	}
+}
+
+export function stringLiteralValueOptions(state: CodegenState): CodegenLiteralValueOptions {
+	return {
+		type: 'string', 
+		propertyType: CodegenPropertyType.STRING, 
+		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY }, state),
 	}
 }

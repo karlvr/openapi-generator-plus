@@ -4,5 +4,6 @@ export interface CommandLineOptions {
 	generator?: string
 	version?: string
 	watch?: string
+	clean?: boolean
 	_: string[]
 }

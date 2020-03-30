@@ -7,6 +7,7 @@ import path from 'path'
 import { CommandLineOptions } from './types'
 import { createConfig } from './config'
 import watch from 'node-watch'
+import glob from 'glob-promise'
 
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
@@ -75,6 +76,37 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 	return true
 }
 
+async function clean(config: CodegenConfig) {
+	const generator = await createGenerator(config)
+	const options = generator.options(config)
+	const cleanPathPatterns = generator.cleanPathPatterns(options)
+	if (!cleanPathPatterns) {
+		return
+	}
+
+	console.log(`Cleaning: ${cleanPathPatterns.join(' ')}`)
+
+	const outputPath = config.outputPath
+	const paths: string[] = []
+	for (const pattern of cleanPathPatterns) {
+		paths.push(...await glob(pattern, {
+			cwd: outputPath,
+			nodir: true,
+			follow: false,
+		}))
+	}
+
+	for (const aPath of paths) {
+		const absolutePath = path.resolve(outputPath, aPath)
+		if (!absolutePath.startsWith(outputPath)) {
+			console.warn(`Invalid clean path not under outputPath: ${absolutePath}`)
+			continue
+		}
+
+		await fs.unlink(absolutePath)
+	}
+}
+
 export async function run() {
 	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
 		alias: {
@@ -83,7 +115,7 @@ export async function run() {
 			generator: 'g',
 			version: 'v',
 		},
-		boolean: ['watch'],
+		boolean: ['watch', 'clean'],
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false
@@ -120,10 +152,16 @@ export async function run() {
 		process.exit(1)
 	}
 
+	if (commandLineOptions.clean) {
+		await clean(config)
+	}
+
 	const result = await generate(config)
 	if (!result) {
 		process.exit(1)
 	}
+
+	console.log(`Generated: ${config.outputPath}`)
 	
 	if (commandLineOptions.watch) {
 		const watchPaths: string[] = []
@@ -149,6 +187,10 @@ export async function run() {
 				return
 			}
 			running = true
+
+			if (commandLineOptions.clean) {
+				await clean(config)
+			}
 
 			console.log(`Rebuilding: ${config.inputPath}…`)
 			try {

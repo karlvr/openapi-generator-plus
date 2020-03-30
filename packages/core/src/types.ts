@@ -45,6 +45,9 @@ export interface CodegenGenerator<O extends CodegenOptions = CodegenOptions> {
 
 	/** Return an array of paths to include in fs.watch when in watch mode */
 	watchPaths: (config: CodegenConfig) => string[] | undefined
+
+	/** Return an array of file patterns, relative to the output path, to delete before exporting in clean mode  */
+	cleanPathPatterns: (options: O) => string[] | undefined
 }
 
 /**

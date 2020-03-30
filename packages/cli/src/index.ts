@@ -96,7 +96,13 @@ export async function run() {
 		process.exit(0)
 	}
 
-	const config = await createConfig(commandLineOptions)
+	let config: CodegenConfig
+	try {
+		config = await createConfig(commandLineOptions)
+	} catch (error) {
+		console.error(`Failed to open config file: ${error}`)
+		process.exit(1)
+	}
 
 	if (!config.inputPath) {
 		console.warn('API specification not specified')

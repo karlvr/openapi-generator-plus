@@ -64,7 +64,9 @@ function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefin
 	}
 
 	for (const content of contents) {
-		collectAnonymousModels(content.models, state)
+		if (content.property) {
+			collectAnonymousModels(content.property.models, state)
+		}
 	}
 }
 
@@ -200,8 +202,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			/* See toCodegenParameter for rationale about parentNames */
 			const requestBodyContents = toCodegenContentArray(`${name}_request`, requestBody.content, [], state)
 
-			const requestBodyType = findCommonContentType(requestBodyContents)
-			const requestBodyNativeType = findCommonContentNativeType(requestBodyContents)
+			const commonTypes = findCommonTypes(requestBodyContents)
 			consumes = findAllContentMediaTypes(requestBodyContents)
 
 			collectAnonymousModelsFromContents(requestBodyContents, state)
@@ -210,8 +211,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				name: 'body',
 				in: 'body',
 
-				type: requestBodyType,
-				nativeType: requestBodyNativeType,
+				type: commonTypes ? commonTypes.type : undefined,
+				nativeType: commonTypes ? commonTypes.nativeType : undefined,
 
 				description: requestBody.description,
 				required: requestBody.required,
@@ -220,7 +221,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 				isBodyParam: true,
 
-				...extractCodegenTypes(requestBodyType && requestBodyContents ? requestBodyContents[0] : undefined),
+				...extractCodegenTypes(commonTypes && requestBodyContents ? requestBodyContents[0] : undefined),
 			}
 
 			if (!parameters) {
@@ -627,23 +628,23 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	let contents: CodegenContent[] | undefined
 
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
-		/* We don't pass parentNames to toCodegenProperty; see toCodegenParameter for rationale */
-		const property = response.schema ? toCodegenProperty(`${parentName}_${code}_response`, response.schema, true, [], state) : undefined
+		if (response.schema) {
+			/* We don't pass parentNames to toCodegenProperty; see toCodegenParameter for rationale */
+			const property = toCodegenProperty(`${parentName}_${code}_response`, response.schema, true, [], state)
 
-		const examples = toCodegenExamples(undefined, response.examples, undefined, state)
+			const examples = toCodegenExamples(undefined, response.examples, undefined, state)
 
-		const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
-		contents = mediaTypes ? mediaTypes.map(mediaType => {
-			const result: CodegenContent = {
-				mediaType,
-				type: property ? property.type : undefined,
-				nativeType: property ? property.nativeType : undefined,
-				examples: examples?.filter(example => example.mediaType?.mediaType === mediaType.mediaType),
-				models: property?.models,
-				...extractCodegenTypes(property),
-			}
-			return result
-		}) : undefined
+			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
+			contents = mediaTypes ? mediaTypes.map(mediaType => {
+				const result: CodegenContent = {
+					mediaType,
+					property,
+					examples: examples?.filter(example => example.mediaType?.mediaType === mediaType.mediaType),
+					...extractCodegenTypes(property),
+				}
+				return result
+			}) : undefined
+		}
 	} else if (isOpenAPIV3ResponseObject(response, state.specVersion)) {
 		/* We don't pass parentNames to toCodegenProperty; see toCodegenParameter for rationale */
 		contents = toCodegenContentArray(`${parentName}_${code}_response`, response.content, [], state)
@@ -652,8 +653,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	}
 
 	/* Determine if there's a common type and nativeType */
-	const type = findCommonContentType(contents)
-	const nativeType = findCommonContentNativeType(contents)
+	const commonTypes = findCommonTypes(contents)
 	const produces = findAllContentMediaTypes(contents)
 
 	/** Collect anonymous models as we can't add models to responses (YET) */
@@ -663,8 +663,11 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		code,
 		description: response.description,
 		isDefault,
-		type,
-		nativeType,
+		type: commonTypes ? commonTypes.type : undefined,
+		format: commonTypes ? commonTypes.format : undefined,
+		nativeType: commonTypes ? commonTypes.nativeType : undefined,
+		componentType: commonTypes ? commonTypes.componentType : undefined,
+		componentNativeType: commonTypes ? commonTypes.componentNativeType : undefined,
 		contents,
 		produces,
 		examples: collectExamplesFromContents(contents),
@@ -750,20 +753,49 @@ function collectExamplesFromContents(contents: CodegenContent[] | undefined): Co
 	return result
 }
 
-function findCommonContentType(contents: CodegenContent[] | undefined): string | undefined {
-	if (!contents || !contents.length) {
-		return undefined
-	}
-
-	return contents.reduce((existing, content) => (existing === content.type ? existing : undefined), contents[0].type)
+interface CommonTypes {
+	type?: string
+	format?: string
+	nativeType?: CodegenNativeType
+	componentType?: string
+	componentNativeType?: CodegenNativeType
 }
 
-function findCommonContentNativeType(contents: CodegenContent[] | undefined): CodegenNativeType | undefined {
+function findCommonTypes(contents: CodegenContent[] | undefined): CommonTypes | undefined {
 	if (!contents || !contents.length) {
 		return undefined
 	}
 
-	return contents.reduce((existing, content) => (existing && existing.equals(content.nativeType) ? existing : undefined), contents[0].nativeType)
+	let result: CommonTypes | undefined
+	
+	for (const content of contents) {
+		if (!result) {
+			result = {
+				type: content.property.type,
+				format: content.property.format,
+				nativeType: content.property.nativeType,
+				componentType: content.property.componentType,
+				componentNativeType: content.property.componentNativeType,
+			}
+		} else {
+			if (content.property.type !== result.type) {
+				return undefined
+			}
+			if (content.property.format !== result.format) {
+				return undefined
+			}
+			if (content.property.nativeType !== result.nativeType) {
+				return undefined
+			}
+			if (content.property.componentType !== result.componentType) {
+				return undefined
+			}
+			if (content.property.componentNativeType !== result.componentNativeType) {
+				return undefined
+			}
+		}
+	}
+	return result
 }
 
 function findAllContentMediaTypes(contents: CodegenContent[] | undefined): CodegenMediaType[] | undefined {
@@ -785,14 +817,15 @@ function toCodegenContentArray(name: string, content: { [media: string]: OpenAPI
 
 		const examples: CodegenExample[] | undefined = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, state)
 
-		const property = mediaTypeContent.schema ? toCodegenProperty(name, mediaTypeContent.schema, true, parentNames, state) : undefined
+		if (!mediaTypeContent.schema) {
+			throw new Error('Media type content without a schema')
+		}
+		const property = toCodegenProperty(name, mediaTypeContent.schema, true, parentNames, state)
 		
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),
-			type: property ? property.type : undefined,
-			nativeType: property ? property.nativeType : undefined,
+			property,
 			examples,
-			models: property?.models,
 			...extractCodegenTypes(property),
 		}
 		result.push(item)

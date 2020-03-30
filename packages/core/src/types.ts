@@ -179,8 +179,13 @@ export interface CodegenResponse extends CodegenTypes {
 
 	/** The common type of all response contents */
 	type?: string
+	format?: string
+	
 	/** The common native type of all response contents */
 	nativeType?: CodegenNativeType
+
+	componentType?: string
+	componentNativeType?: CodegenNativeType
 
 	/** The responses contents */
 	contents?: CodegenContent[]
@@ -193,11 +198,9 @@ export interface CodegenResponse extends CodegenTypes {
 }
 
 export interface CodegenContent extends CodegenTypes {
-	mediaType?: CodegenMediaType
-	type?: string
-	nativeType?: CodegenNativeType
+	mediaType: CodegenMediaType
+	property: CodegenProperty
 	examples?: CodegenExample[]
-	models?: CodegenModel[]
 }
 
 export interface CodegenExample {

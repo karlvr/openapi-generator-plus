@@ -173,19 +173,9 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-export interface CodegenResponse extends CodegenTypes {
+export interface CodegenResponse extends CodegenPropertyTypeInfoPartial, CodegenTypes {
 	code: number
 	description: string
-
-	/** The common type of all response contents */
-	type?: string
-	format?: string
-	
-	/** The common native type of all response contents */
-	nativeType?: CodegenNativeType
-
-	componentType?: string
-	componentNativeType?: CodegenNativeType
 
 	/** The responses contents */
 	contents?: CodegenContent[]
@@ -296,17 +286,9 @@ export enum CodegenPropertyType {
 	FILE,
 }
 
-/* See DefaultCodegen.fromProperty */
-export interface CodegenProperty extends CodegenTypes {
-	name: string
-	description?: string
-	title?: string
-	exampleValue?: string
-	defaultValue?: string
-	readOnly: boolean
-	required: boolean
-	vendorExtensions?: CodegenVendorExtensions
+export type CodegenPropertyTypeInfoPartial = Partial<CodegenPropertyTypeInfo>
 
+export interface CodegenPropertyTypeInfo {
 	/** OpenAPI type */
 	type: string
 	format?: string
@@ -316,6 +298,18 @@ export interface CodegenProperty extends CodegenTypes {
 
 	componentType?: string
 	componentNativeType?: CodegenNativeType
+}
+
+/* See DefaultCodegen.fromProperty */
+export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
+	name: string
+	description?: string
+	title?: string
+	exampleValue?: string
+	defaultValue?: string
+	readOnly: boolean
+	required: boolean
+	vendorExtensions?: CodegenVendorExtensions
 
 	/* Validation */
 	maximum?: number
@@ -429,12 +423,9 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-export interface CodegenParameter extends CodegenTypes {
+export interface CodegenParameter extends CodegenPropertyTypeInfo, CodegenTypes {
 	name: string
 	in: CodegenParameterIn
-
-	type?: string
-	nativeType?: CodegenNativeType
 	
 	description?: string
 	required?: boolean

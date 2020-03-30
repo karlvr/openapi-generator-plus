@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -99,8 +99,9 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 
 	const result: CodegenParameter = {
 		name: parameter.name,
-		type: property.type,
-		nativeType: property.nativeType,
+
+		...extractCodegenPropertyTypesInfo(property),
+
 		in: parameter.in as CodegenParameterIn,
 		description: parameter.description,
 		required: parameter.required,
@@ -149,6 +150,19 @@ function extractCodegenTypes(object: CodegenTypes | undefined): CodegenTypes {
 		isDate: object ? object.isDate : false,
 		isTime: object ? object.isTime : false,
 		propertyType: object ? object.propertyType : undefined,
+	}
+}
+
+/**
+ * Extract _just_ the CodegenPropertyTypeInfo properties from the source.
+ */
+function extractCodegenPropertyTypesInfo(source: CodegenPropertyTypeInfo): CodegenPropertyTypeInfo {
+	return {
+		type: source.type,
+		format: source.format,
+		nativeType: source.nativeType,
+		componentType: source.componentType,
+		componentNativeType: source.componentNativeType,
 	}
 }
 
@@ -202,7 +216,10 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			/* See toCodegenParameter for rationale about parentNames */
 			const requestBodyContents = toCodegenContentArray(`${name}_request`, requestBody.content, [], state)
 
-			const commonTypes = findCommonTypes(requestBodyContents)
+			const commonTypes = commonPropertyTypeInfo(requestBodyContents)
+			if (!commonTypes) {
+				throw new Error(`Cannot find common types for request body contents: ${path}`)
+			}
 			consumes = findAllContentMediaTypes(requestBodyContents)
 
 			collectAnonymousModelsFromContents(requestBodyContents, state)
@@ -211,8 +228,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				name: 'body',
 				in: 'body',
 
-				type: commonTypes ? commonTypes.type : undefined,
-				nativeType: commonTypes ? commonTypes.nativeType : undefined,
+				...commonTypes,
 
 				description: requestBody.description,
 				required: requestBody.required,
@@ -653,7 +669,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	}
 
 	/* Determine if there's a common type and nativeType */
-	const commonTypes = findCommonTypes(contents)
+	const commonTypes = commonPropertyTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
 
 	/** Collect anonymous models as we can't add models to responses (YET) */
@@ -663,11 +679,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		code,
 		description: response.description,
 		isDefault,
-		type: commonTypes ? commonTypes.type : undefined,
-		format: commonTypes ? commonTypes.format : undefined,
-		nativeType: commonTypes ? commonTypes.nativeType : undefined,
-		componentType: commonTypes ? commonTypes.componentType : undefined,
-		componentNativeType: commonTypes ? commonTypes.componentNativeType : undefined,
+		...commonTypes,
 		contents,
 		produces,
 		examples: collectExamplesFromContents(contents),
@@ -753,20 +765,16 @@ function collectExamplesFromContents(contents: CodegenContent[] | undefined): Co
 	return result
 }
 
-interface CommonTypes {
-	type?: string
-	format?: string
-	nativeType?: CodegenNativeType
-	componentType?: string
-	componentNativeType?: CodegenNativeType
-}
-
-function findCommonTypes(contents: CodegenContent[] | undefined): CommonTypes | undefined {
+/**
+ * Finds the common property type info from the array of CodegenContent, or returns `undefined` if there
+ * is no common property type info.
+ */
+function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): CodegenPropertyTypeInfo | undefined {
 	if (!contents || !contents.length) {
 		return undefined
 	}
 
-	let result: CommonTypes | undefined
+	let result: CodegenPropertyTypeInfo | undefined
 	
 	for (const content of contents) {
 		if (!result) {

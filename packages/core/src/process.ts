@@ -1100,9 +1100,15 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 
 	if (schema.allOf) {
 		for (const subSchema of schema.allOf) {
-			/* We don't actually care about the model name, as we just use the vars */
-			const subModel = toCodegenModel(name, nestedParentNames, subSchema, state)
+			/* We don't actually care about the model name, as we just use the vars, but
+			   we do care about the parent names so any nested models are nested inside
+			   _this_ model.
+			 */
+			const subModel = toCodegenModel(name, parentNames, subSchema, state)
 			properties.push(...subModel.properties)
+			if (subModel.models) {
+				models.push(...subModel.models)
+			}
 		}
 	} else if (schema.anyOf) {
 		throw new Error('anyOf not supported')

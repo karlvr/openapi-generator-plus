@@ -918,6 +918,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 		}
 		type = schema.type
 
+		/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
 		componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : parentNames, state)
 		nativeType = state.generator.toNativeArrayType({
 			componentNativeType: componentProperty.nativeType,

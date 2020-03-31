@@ -1,5 +1,5 @@
 import { OpenAPI } from 'openapi-types'
-import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose } from './types'
+import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose, HttpMethods } from './types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
@@ -30,4 +30,28 @@ export function stringLiteralValueOptions(state: CodegenState): CodegenLiteralVa
 		propertyType: CodegenPropertyType.STRING, 
 		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY }, state),
 	}
+}
+
+export function compareHttpMethods(a: string, b: string): number {
+	const aa = httpMethodToNumber(a)
+	const bb = httpMethodToNumber(b)
+	if (aa < bb) {
+		return -1
+	} else if (aa > bb) {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+function httpMethodToNumber(method: string): number {
+	let i = 0
+	for (const aMethod in HttpMethods) {
+		if (method === aMethod) {
+			return i
+		}
+		i += 1
+	}
+
+	return i
 }

@@ -504,3 +504,17 @@ export interface CodegenMediaType {
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void
+
+/**
+ * The different HTTP methods supported by OpenAPI.
+ * NB. The order of entries in the enum may be used for sorting, see compareHttpMethods
+ */
+export enum HttpMethods {
+	GET = 'GET',
+	HEAD = 'HEAD',
+	OPTIONS = 'OPTIONS',
+	POST = 'POST',
+	PUT = 'PUT',
+	PATCH = 'PATCH',
+	DELETE = 'DELETE',
+}

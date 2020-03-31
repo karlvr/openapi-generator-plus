@@ -89,7 +89,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, st
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
-		property = toCodegenProperty(`${parentName}_${parameter.name}`, parameter, parameter.required || false, [parentName], state)
+		property = toCodegenProperty(`${parentName}_${parameter.name}`, parameter, parameter.required || false, [], state)
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
 	}

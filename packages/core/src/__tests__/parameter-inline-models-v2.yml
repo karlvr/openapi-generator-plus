@@ -1,0 +1,29 @@
+---
+swagger: '2.0'
+info:
+  description: Lorem ipsum
+  version: 1.0.1
+  title: Example
+host: example.com
+basePath: /v1
+schemes:
+- http
+- https
+paths:
+  /test1:
+    get:
+      tags: [test]
+      summary: Lorem ipsum
+      description: Lorem ipsum
+      operationId: getTest1
+      produces: [application/json; charset=UTF-8]
+      parameters:
+      - name: arg1
+        in: query
+        required: true
+        type: string
+        enum: [a, b, c, d]
+      responses:
+        200:
+          description: OK
+          

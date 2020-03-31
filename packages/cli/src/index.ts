@@ -1,7 +1,7 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { CodegenGenerator, CodegenState, processDocument, CodegenDocument, toSpecVersion, CodegenConfig } from '@openapi-generator-plus/core'
+import { CodegenGenerator, CodegenState, processDocument, CodegenDocument, toSpecVersion, CodegenConfig, CodegenOptions } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions } from './types'
@@ -13,7 +13,7 @@ function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
 }
 
-async function createGenerator(config: CodegenConfig): Promise<CodegenGenerator> {
+async function createGenerator(config: CodegenConfig): Promise<CodegenGenerator<CodegenOptions>> {
 	const generatorPath = path.resolve(config.generator)
 	try {
 		await fs.access(generatorPath)
@@ -36,7 +36,7 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 		return false
 	}
 
-	let generator: CodegenGenerator
+	let generator: CodegenGenerator<CodegenOptions>
 	try {
 		generator = await createGenerator(config)
 	} catch (error) {
@@ -44,7 +44,7 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 		return false
 	}
 
-	const state: CodegenState = {
+	const state: CodegenState<CodegenOptions> = {
 		parser,
 		root,
 		generator,

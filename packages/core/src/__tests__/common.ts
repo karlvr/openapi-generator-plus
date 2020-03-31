@@ -1,11 +1,11 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import path from 'path'
-import { CodegenState, CodegenConfig } from '../types'
+import { CodegenState, CodegenConfig, CodegenOptions } from '../types'
 import { TestGenerator } from './generator'
 import { toSpecVersion } from '../'
 
-export async function createTestState(specName: string): Promise<CodegenState> {
+export async function createTestState(specName: string): Promise<CodegenState<CodegenOptions>> {
 	const parser = new SwaggerParser()
 
 	const root: OpenAPI.Document = await parser.parse(path.resolve(__dirname, specName))
@@ -15,7 +15,7 @@ export async function createTestState(specName: string): Promise<CodegenState> {
 		outputPath: '',
 		generator: '',
 	}
-	const state: CodegenState = {
+	const state: CodegenState<CodegenOptions> = {
 		root,
 		parser,
 		generator: TestGenerator,

@@ -1,5 +1,5 @@
 import { OpenAPI } from 'openapi-types'
-import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose, HttpMethods } from './types'
+import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose, HttpMethods, CodegenOptions } from './types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
@@ -24,7 +24,7 @@ export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 	}
 }
 
-export function stringLiteralValueOptions(state: CodegenState): CodegenLiteralValueOptions {
+export function stringLiteralValueOptions<O extends CodegenOptions>(state: CodegenState<O>): CodegenLiteralValueOptions {
 	return {
 		type: 'string', 
 		propertyType: CodegenPropertyType.STRING, 

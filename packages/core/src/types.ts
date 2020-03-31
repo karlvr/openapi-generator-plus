@@ -6,10 +6,10 @@ export enum CodegenSpecVersion {
 	OpenAPIV3 = 300, /* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md */
 }
 
-export interface CodegenState<O = CodegenOptions> {
+export interface CodegenState<O extends CodegenOptions> {
 	parser: SwaggerParser
 	root: OpenAPI.Document
-	generator: CodegenGenerator
+	generator: CodegenGenerator<O>
 	config: CodegenConfig
 	options: O
 	anonymousModels: { [name: string]: CodegenModel }
@@ -19,7 +19,7 @@ export interface CodegenState<O = CodegenOptions> {
 /**
  * The interface implemented by language-specific generator modules.
  */
-export interface CodegenGenerator<O extends CodegenOptions = CodegenOptions> {
+export interface CodegenGenerator<O extends CodegenOptions> {
 	toClassName: (name: string, state: CodegenState<O>) => string
 	toIdentifier: (name: string, state: CodegenState<O>) => string
 	toConstantName: (name: string, state: CodegenState<O>) => string
@@ -39,7 +39,7 @@ export interface CodegenGenerator<O extends CodegenOptions = CodegenOptions> {
 	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => string
 
 	options: (config: CodegenConfig) => O
-	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
+	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy<O>
 
 	exportTemplates: (doc: CodegenDocument, state: CodegenState<O>) => void
 
@@ -506,7 +506,7 @@ export interface CodegenMediaType {
 	encoding?: string
 }
 
-export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void
+export type CodegenOperationGroupingStrategy<O extends CodegenOptions> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
 
 /**
  * The different HTTP methods supported by OpenAPI.

@@ -1,9 +1,12 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState as _CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenOptions } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
+
+/* Work around CodegenState requiring a type */
+type CodegenState = _CodegenState<CodegenOptions>
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in
@@ -1206,7 +1209,11 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 	}
 }
 
-export function processDocument(state: CodegenState): CodegenDocument {
+export function processDocument<O extends CodegenOptions>(state: _CodegenState<O>): CodegenDocument {
+	return actuallyProcessDocument(state as any as CodegenState)
+}
+
+function actuallyProcessDocument(state: CodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
 	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {

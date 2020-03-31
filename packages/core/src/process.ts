@@ -1224,7 +1224,10 @@ export function processDocument(state: CodegenState): CodegenDocument {
 
 	for (const path in root.paths) {
 		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
-
+		if (!pathItem) {
+			continue
+		}
+		
 		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete)
 		createCodegenOperation(path, HttpMethods.GET, pathItem.get)
 		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head)

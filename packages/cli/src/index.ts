@@ -165,11 +165,11 @@ export async function run() {
 		process.exit(1)
 	}
 
+	console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
+
 	if (commandLineOptions.clean) {
 		await clean(beforeGeneration, config)
 	}
-
-	console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 	
 	if (commandLineOptions.watch) {
 		const watchPaths: string[] = []

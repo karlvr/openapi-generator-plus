@@ -5,6 +5,7 @@
   "description": "",
   "scripts": {
     "build": "lerna run build",
+    "clean": "lerna run clean",
     "link": "lerna exec npm link",
     "test": "lerna run test",
     "watch": "lerna run build && lerna run --parallel watch"

@@ -76,7 +76,7 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 	return true
 }
 
-async function clean(config: CodegenConfig) {
+async function clean(notModifiedSince: number, config: CodegenConfig) {
 	const generator = await createGenerator(config)
 	const options = generator.options(config)
 	const cleanPathPatterns = generator.cleanPathPatterns(options)
@@ -103,7 +103,14 @@ async function clean(config: CodegenConfig) {
 			continue
 		}
 
-		await fs.unlink(absolutePath)
+		try {
+			const stats = await fs.stat(absolutePath)
+			if (stats.mtime.getTime() < notModifiedSince) {
+				await fs.unlink(absolutePath)
+			}
+		} catch (error) {
+			console.warn(`Failed to clean path: ${absolutePath}: ${error.message}`)
+		}
 	}
 }
 
@@ -152,16 +159,17 @@ export async function run() {
 		process.exit(1)
 	}
 
-	if (commandLineOptions.clean) {
-		await clean(config)
-	}
-
+	const beforeGeneration = Date.now()
 	const result = await generate(config)
 	if (!result) {
 		process.exit(1)
 	}
 
-	console.log(`Generated: ${config.outputPath}`)
+	if (commandLineOptions.clean) {
+		await clean(beforeGeneration, config)
+	}
+
+	console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 	
 	if (commandLineOptions.watch) {
 		const watchPaths: string[] = []
@@ -188,15 +196,16 @@ export async function run() {
 			}
 			running = true
 
-			if (commandLineOptions.clean) {
-				await clean(config)
-			}
-
+			const beforeGeneration = Date.now()
 			console.log(`Rebuilding: ${config.inputPath}…`)
 			try {
 				const result = await generate(config)
 				if (result) {
-					console.log(`Generated: ${config.outputPath}`)
+					console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
+
+					if (commandLineOptions.clean) {
+						await clean(beforeGeneration, config)
+					}
 				}
 				running = false
 			} catch (error) {

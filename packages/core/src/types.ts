@@ -226,6 +226,14 @@ export class CodegenNativeType {
 	 * The concrete native language type to use when creating an object of this type. 
 	 */
 	public concreteType?: string
+	/**
+	 * The native language type when this type is a component of another type, e.g. an array
+	 */
+	public componentType?: string
+	/**
+	 * The wire type when this type is a component of another type. Defaults to `componentType`
+	 */
+	public componentWireType?: string
 
 	/**
 	 * 
@@ -237,16 +245,22 @@ export class CodegenNativeType {
 		wireType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
+		componentType?: string | null
+		componentWireType?: string | null
 	}) {
 		this.nativeType = nativeType
 		if (additionalTypes) {
 			this.wireType = additionalTypes.wireType !== undefined ? additionalTypes.wireType !== null ? additionalTypes.wireType : undefined : nativeType
 			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType !== null ? additionalTypes.literalType : undefined : nativeType
 			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType !== null ? additionalTypes.concreteType : undefined : nativeType
+			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType !== null ? additionalTypes.componentType : undefined : nativeType
+			this.componentWireType = additionalTypes.componentWireType !== undefined ? additionalTypes.componentWireType !== null ? additionalTypes.componentWireType : undefined : this.componentType
 		} else {
 			this.wireType = nativeType
 			this.literalType = nativeType
 			this.concreteType = nativeType
+			this.componentType = nativeType
+			this.componentWireType = nativeType
 		}
 	}
 

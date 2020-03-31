@@ -1,19 +1,20 @@
 import { CodegenGenerator, CodegenOptions, CodegenNativeType } from '../types'
 import { addToGroupsByPath } from '../operation-grouping'
+import { pascalCase, camelCase } from '../case-transforms'
 
 export interface TestCodegenOptions extends CodegenOptions {
 
 }
 
 export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
-	toClassName: (name) => `class ${name}`,
-	toIdentifier: (name) => `identifier ${name}`,
-	toConstantName: (name) => `constant ${name}`,
-	toEnumName: (name) => `enum ${name}`,
-	toOperationName: (path, method) => `operation ${method} ${path}`,
-	toModelNameFromPropertyName: (name) => `model ${name}`,
+	toClassName: (name) => pascalCase(`${name}_class`),
+	toIdentifier: (name) => camelCase(`${name}_identifier`),
+	toConstantName: (name) => camelCase(`${name}_contant`),
+	toEnumName: (name) => pascalCase(`${name}_enum`),
+	toOperationName: (path, method) => camelCase(`${method} ${path} operation`),
+	toModelNameFromPropertyName: (name) => pascalCase(`${name}_model`),
 	toLiteral: (value) => `literal ${value}`,
-	toNativeType: (options) => options.modelNames ? new CodegenNativeType(options.modelNames[options.modelNames.length - 1]) : new CodegenNativeType(options.type),
+	toNativeType: (options) => options.modelNames ? new CodegenNativeType(options.modelNames.join('.')) : new CodegenNativeType(options.type),
 	toNativeArrayType: (options) => new CodegenNativeType(`array ${options.componentNativeType}`),
 	toNativeMapType: (options) => new CodegenNativeType(`map ${options.componentNativeType}`),
 	toDefaultValue: (defaultValue, options) => `default ${options.type}`,

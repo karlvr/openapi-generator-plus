@@ -55,3 +55,21 @@ function httpMethodToNumber(method: string): number {
 
 	return i
 }
+
+export type CompareFunction<T> = (a: T, b: T) => number
+
+/**
+ * Chain CompareFunctions for multi-factor sorting.
+ * @param compares 
+ */
+export function chainedCompare<T>(...compares: CompareFunction<T>[]): CompareFunction<T> {
+	return function(a: T, b: T) {
+		for (const f of compares) {
+			const result = f(a, b)
+			if (result !== 0) {
+				return result
+			}
+		}
+		return 0
+	}
+}

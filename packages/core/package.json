@@ -22,7 +22,6 @@
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
     "lodash": "^4.17.15",
-    "pluralize": "^8.0.0",
     "swagger-parser": "^8.0.4"
   },
   "publishConfig": {

@@ -1108,8 +1108,13 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		if (refName) {
 			name = refName
 			parentNames = undefined
-			modelType = CodegenModelType.DEFINED
 		}
+
+		/* Ensure the modelType is defined, as this is a defined model.
+		   The modelType might not be defined in the case of allOf, which loads
+		   models and doesn't check the type.
+		 */
+		modelType = CodegenModelType.DEFINED
 	}
 
 	if (modelType !== CodegenModelType.DEFINED) {

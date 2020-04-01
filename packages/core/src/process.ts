@@ -1106,9 +1106,9 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {
-			/* We are nested, but we're a ref to a top-level model */
 			name = refName
 			parentNames = undefined
+			modelType = CodegenModelType.DEFINED
 		}
 	}
 

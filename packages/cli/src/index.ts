@@ -50,7 +50,8 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 		generator,
 		config,
 		options: generator.options(config),
-		anonymousModels: {},
+		models: {},
+		anonymousModels: [],
 		specVersion: toSpecVersion(root),
 	}
 

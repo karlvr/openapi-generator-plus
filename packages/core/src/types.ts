@@ -12,7 +12,8 @@ export interface CodegenState<O extends CodegenOptions> {
 	generator: CodegenGenerator<O>
 	config: CodegenConfig
 	options: O
-	anonymousModels: { [name: string]: CodegenModel }
+	models: { [name: string]: CodegenModel }
+	anonymousModels: CodegenModel[]
 	specVersion: CodegenSpecVersion
 }
 
@@ -27,6 +28,16 @@ export interface CodegenGenerator<O extends CodegenOptions> {
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
 	/** Convert a property name to a name suitable for a model class */
 	toModelNameFromPropertyName: (name: string, state: CodegenState<O>) => string
+	/**
+	 * Return an iteration of a model name in order to generate a unique model name.
+	 * The method MUST return a different name for each iteration.
+	 * @param name the model name
+	 * @param parentNames the parent model names, if any, for reference
+	 * @param iteration the iteration number of searching for a unique name, starts from 1
+	 * @param state the state
+	 * @returns an iterated model name
+	 */
+	toIteratedModelName: (name: string, parentNames: string[] | undefined, iteration: number, state: CodegenState<O>) => string
 
 	/** Format a value as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -23,7 +23,8 @@ export async function createTestState(specName: string): Promise<CodegenState<Co
 		options: {
 			config,
 		},
-		anonymousModels: {},
+		models: {},
+		anonymousModels: [],
 		specVersion: toSpecVersion(root),
 	}
 	return state

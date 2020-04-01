@@ -53,11 +53,7 @@ function processCodegenOperationGroup(group: CodegenOperationGroup) {
  */
 function collectAnonymousModels(models: CodegenModel[] | undefined, state: CodegenState) {
 	if (models) {
-		for (const model of models) {
-			// TODO need to uniqueness check the model.name, and if we have to change it, then we need to change
-			// the nativeType on the property, but that's a bit invasive... so we might need a better approach
-			state.anonymousModels[model.name] = model
-		}
+		state.anonymousModels.push(...models)
 	}
 }
 
@@ -1069,6 +1065,38 @@ function toCodegenTypes(type: string, format: string | undefined, isEnum: boolea
 	}
 }
 
+/**
+ * Returns a fully qualified model name using an internal format for creating fully qualified
+ * model names. This format does not need to reflect a native format as it is only used internally
+ * to track unique model names.
+ * @param name the model name
+ * @param parentNames the parent model names, if any
+ */
+function fullyQualifiedModelName(name: string, parentNames: string[] | undefined): string {
+	return parentNames && parentNames.length ? `${parentNames.join('.')}.${name}` : name
+}
+
+/**
+ * Returns a unique model name for a proposed model name.
+ * @param proposedName the proposed model name
+ * @param parentNames the parent model names, if any
+ * @param state the state
+ */
+function uniqueModelName(proposedName: string, parentNames: string[] | undefined, state: CodegenState): string {
+	if (!state.models[fullyQualifiedModelName(proposedName, parentNames)]) {
+		return proposedName
+	}
+
+	let name = proposedName
+	let iteration = 0
+	do {
+		iteration += 1
+		name = state.generator.toIteratedModelName(proposedName, parentNames, iteration, state)
+	} while (state.models[fullyQualifiedModelName(name, parentNames)])
+
+	return name
+}
+
 function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, state: CodegenState): CodegenModel {
 	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
@@ -1078,6 +1106,9 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			parentNames = undefined
 		}
 	}
+
+	name = uniqueModelName(name, parentNames, state)
+
 	schema = resolveReference(schema, state)
 	
 	const properties: CodegenProperty[] = []
@@ -1182,7 +1213,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		modelNames: parentNames ? [...parentNames, name] : [name],
 	}, state)
 
-	return {
+	const model: CodegenModel = {
 		name,
 		description: schema.description,
 		properties,
@@ -1194,6 +1225,8 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		enumValues,
 		parent,
 	}
+	state.models[fullyQualifiedModelName(name, parentNames)] = model
+	return model
 }
 
 function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
@@ -1227,13 +1260,24 @@ function actuallyProcessDocument(state: CodegenState): CodegenDocument {
 	}
 
 	const root = state.root
-	const doc: CodegenDocument = {
-		info: root.info,
-		groups: [],
-		models: [],
-		servers: toCodegenServers(root),
-		securitySchemes: toCodegenSecuritySchemes(state),
-		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,
+
+	/* Process models first so we can check for duplicate names when creating new anonymous models */
+	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
+	const models: CodegenModel[] = []
+	if (specModels) {
+		for (const schemaName in specModels) {
+			try {
+				const model = toCodegenModel(schemaName, undefined, specModels[schemaName], state)
+				models.push(model)
+				state.models[schemaName] = model
+			} catch (error) {
+				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
+					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
+				} else {
+					throw error
+				}
+			}
+		}
 	}
 
 	for (const path in root.paths) {
@@ -1251,28 +1295,18 @@ function actuallyProcessDocument(state: CodegenState): CodegenDocument {
 		createCodegenOperation(path, HttpMethods.PUT, pathItem.put)
 	}
 
-	doc.groups = groupOperations(operations, state)
+	const groups = groupOperations(operations, state)
 
-	const models = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
-	if (models) {
-		for (const schemaName in models) {
-			try {
-				const model = toCodegenModel(schemaName, undefined, models[schemaName], state)
-				doc.models.push(model)
-			} catch (error) {
-				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
-					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
-				} else {
-					throw error
-				}
-			}
-		}
-	}
+	/* Add in the anonymous models */
+	models.push(...state.anonymousModels)
 
-	/* Add anonymous models to our document's models */
-	for (const modelName in state.anonymousModels) {
-		const model = state.anonymousModels[modelName]
-		doc.models.push(model)
+	const doc: CodegenDocument = {
+		info: root.info,
+		groups,
+		models,
+		servers: toCodegenServers(root),
+		securitySchemes: toCodegenSecuritySchemes(state),
+		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,
 	}
 
 	processCodegenDocument(doc)

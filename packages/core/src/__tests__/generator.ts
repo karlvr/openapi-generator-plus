@@ -13,6 +13,7 @@ export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
 	toEnumName: (name) => pascalCase(`${name}_enum`),
 	toOperationName: (path, method) => camelCase(`${method} ${path} operation`),
 	toModelNameFromPropertyName: (name) => pascalCase(`${name}_model`),
+	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
 	toLiteral: (value) => `literal ${value}`,
 	toNativeType: (options) => options.modelNames ? new CodegenNativeType(options.modelNames.join('.')) : new CodegenNativeType(options.type),
 	toNativeArrayType: (options) => new CodegenNativeType(`array ${options.componentNativeType}`),

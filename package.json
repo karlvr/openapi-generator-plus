@@ -6,7 +6,7 @@
   "scripts": {
     "build": "lerna run build",
     "clean": "lerna clean --yes && lerna run clean",
-    "link": "lerna exec npm link",
+    "link": "lerna exec npm link && lerna clean --yes && rimraf packages/*/package-lock.json",
     "release": "npm run clean && npm run build && npm test && lerna publish",
     "test": "lerna run test",
     "watch": "lerna run --parallel watch"

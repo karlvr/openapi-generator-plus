@@ -1,12 +1,13 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState as _CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenOptions } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenOptions } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
 
-/* Work around CodegenState requiring a type */
-type CodegenState = _CodegenState<CodegenOptions>
+/** An internal view of the CodegenState. */
+interface InternalCodegenState extends CodegenState<CodegenOptions> {
+}
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in
@@ -20,7 +21,7 @@ export class InvalidModelError extends Error {
 	}
 }
 
-function groupOperations(operationInfos: CodegenOperation[], state: CodegenState) {
+function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy(state)
 
 	const groups: CodegenOperationGroups = {}
@@ -51,13 +52,13 @@ function processCodegenOperationGroup(group: CodegenOperationGroup) {
  * @param property 
  * @param state 
  */
-function collectAnonymousModels(models: CodegenModel[] | undefined, state: CodegenState) {
+function collectAnonymousModels(models: CodegenModel[] | undefined, state: InternalCodegenState) {
 	if (models) {
 		state.anonymousModels.push(...models)
 	}
 }
 
-function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefined, state: CodegenState) {
+function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefined, state: InternalCodegenState) {
 	if (!contents) {
 		return
 	}
@@ -69,7 +70,7 @@ function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefin
 	}
 }
 
-function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, state: CodegenState): CodegenParameter {
+function toCodegenParameter(parameter: OpenAPI.Parameter, parentName: string, state: InternalCodegenState): CodegenParameter {
 	parameter = resolveReference(parameter, state)
 
 	let property: CodegenProperty | undefined
@@ -184,7 +185,7 @@ function toCodegenVendorExtensions(ob: IndexedObject): CodegenVendorExtensions |
 	return found ? result : undefined
 }
 
-function toCodegenOperationName(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState) {
+function toCodegenOperationName(path: string, method: string, operation: OpenAPI.Operation, state: InternalCodegenState) {
 	if (operation.operationId) {
 		return operation.operationId
 	}
@@ -192,7 +193,7 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 	return state.generator.toOperationName(path, method, state)
 }
 
-function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: CodegenState): CodegenOperation {
+function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: InternalCodegenState): CodegenOperation {
 	const name = toCodegenOperationName(path, method, operation, state)
 	const responses: CodegenResponse[] | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? responses.find(r => r.isDefault) : undefined
@@ -320,7 +321,7 @@ function mediaTypeEquals(a: CodegenMediaType, b: CodegenMediaType): boolean {
 	return a.mediaType === b.mediaType
 }
 
-function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] | undefined {
+function toCodegenSecuritySchemes(state: InternalCodegenState): CodegenSecurityScheme[] | undefined {
 	if (isOpenAPIV2Document(state.root)) {
 		if (!state.root.securityDefinitions) {
 			return undefined
@@ -349,7 +350,7 @@ function toCodegenSecuritySchemes(state: CodegenState): CodegenSecurityScheme[] 
 	}
 }
 
-function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: CodegenState): CodegenSecurityRequirement[] {
+function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: InternalCodegenState): CodegenSecurityRequirement[] {
 	const result: CodegenSecurityRequirement[] = []
 	for (const securityElement of security) { /* Don't know why it's an array at the top level */
 		for (const name in securityElement) {
@@ -359,7 +360,7 @@ function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementOb
 	return result
 }
 
-function toCodegenSecurityRequirement(name: string, scopes: string[], state: CodegenState): CodegenSecurityRequirement {
+function toCodegenSecurityRequirement(name: string, scopes: string[], state: InternalCodegenState): CodegenSecurityRequirement {
 	let definition: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject
 	if (isOpenAPIV2Document(state.root)) {
 		if (!state.root.securityDefinitions) {
@@ -423,7 +424,7 @@ function findSecurityScope(scope: string, scheme: CodegenSecurityScheme): Codege
 	return undefined
 }
 
-function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, state: CodegenState): CodegenSecurityScheme {
+function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, state: InternalCodegenState): CodegenSecurityScheme {
 	switch (scheme.type) {
 		case 'basic':
 			return {
@@ -557,7 +558,7 @@ function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenSecuritySco
  * @param ob 
  * @param state 
  */
-function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: CodegenState): T {
+function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: InternalCodegenState): T {
 	if (isOpenAPIReferenceObject(ob)) {
 		return state.parser.$refs.get(ob.$ref)
 	} else {
@@ -565,7 +566,7 @@ function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.Refer
 	}
 }
 
-function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
+function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: InternalCodegenState): CodegenMediaType[] | undefined {
 	if (op.consumes) {
 		return op.consumes?.map(mediaType => toCodegenMediaType(mediaType))
 	} else {
@@ -578,7 +579,7 @@ function toConsumeMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState)
 	}
 }
 
-function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState): CodegenMediaType[] | undefined {
+function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: InternalCodegenState): CodegenMediaType[] | undefined {
 	if (op.produces) {
 		return op.produces.map(mediaType => toCodegenMediaType(mediaType))
 	} else {
@@ -591,7 +592,7 @@ function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: CodegenState)
 	}
 }
 
-function toCodegenResponses(operation: OpenAPI.Operation, parentName: string, state: CodegenState): CodegenResponse[] | undefined {
+function toCodegenResponses(operation: OpenAPI.Operation, parentName: string, state: InternalCodegenState): CodegenResponse[] | undefined {
 	const responses = operation.responses
 	if (!responses) {
 		return undefined
@@ -633,7 +634,7 @@ function nameFromRef($ref: string): string | undefined {
 	return components[components.length - 1]
 }
 
-function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, parentName: string, state: CodegenState): CodegenResponse {
+function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, parentName: string, state: InternalCodegenState): CodegenResponse {
 	response = resolveReference(response, state)
 
 	if (code === 0) {
@@ -690,7 +691,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
-function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, state: CodegenState): CodegenExample[] | undefined {
+function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, state: InternalCodegenState): CodegenExample[] | undefined {
 	if (example) {
 		return [{
 			value: example,
@@ -732,7 +733,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 	return result
 }
 
-function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: CodegenState) {
+function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: InternalCodegenState) {
 	if (typeof value === 'string') {
 		return state.generator.toLiteral(value, stringLiteralValueOptions(state), state)
 	} else {
@@ -813,7 +814,7 @@ function findAllContentMediaTypes(contents: CodegenContent[] | undefined): Codeg
 	return contents.reduce((existing, content) => content.mediaType ? [...existing, content.mediaType] : existing, [] as CodegenMediaType[])
 }
 
-function toCodegenContentArray(name: string, content: { [media: string]: OpenAPIV3.MediaTypeObject } | undefined, parentNames: string[], state: CodegenState): CodegenContent[] | undefined {
+function toCodegenContentArray(name: string, content: { [media: string]: OpenAPIV3.MediaTypeObject } | undefined, parentNames: string[], state: InternalCodegenState): CodegenContent[] | undefined {
 	if (!content) {
 		return undefined
 	}
@@ -864,7 +865,7 @@ function toCodegenMediaType(mediaType: string): CodegenMediaType {
 	}
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: CodegenState): CodegenProperty {
+function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: InternalCodegenState): CodegenProperty {
 	/* The name of the schema, which can be used to name custom types */
 	let refName: string | undefined
 
@@ -1082,7 +1083,7 @@ function fullyQualifiedModelName(name: string, parentNames: string[] | undefined
  * @param parentNames the parent model names, if any
  * @param state the state
  */
-function uniqueModelName(proposedName: string, parentNames: string[] | undefined, state: CodegenState): string {
+function uniqueModelName(proposedName: string, parentNames: string[] | undefined, state: InternalCodegenState): string {
 	if (!state.models[fullyQualifiedModelName(proposedName, parentNames)]) {
 		return proposedName
 	}
@@ -1097,7 +1098,7 @@ function uniqueModelName(proposedName: string, parentNames: string[] | undefined
 	return name
 }
 
-function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, state: CodegenState): CodegenModel {
+function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, state: InternalCodegenState): CodegenModel {
 	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {
@@ -1243,11 +1244,13 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 	}
 }
 
-export function processDocument<O extends CodegenOptions>(state: _CodegenState<O>): CodegenDocument {
-	return actuallyProcessDocument(state as any as CodegenState)
+export function processDocument<O extends CodegenOptions>(state: CodegenState<O>): CodegenDocument {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const internalState: InternalCodegenState = state as any
+	return actuallyProcessDocument(internalState)
 }
 
-function actuallyProcessDocument(state: CodegenState): CodegenDocument {
+function actuallyProcessDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
 	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {

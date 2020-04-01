@@ -1,7 +1,7 @@
 import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import path from 'path'
-import { CodegenState, CodegenConfig, CodegenOptions } from '../types'
+import { CodegenState, CodegenConfig, CodegenOptions } from '@openapi-generator-plus/types'
 import { TestGenerator } from './generator'
 import { toSpecVersion } from '../'
 

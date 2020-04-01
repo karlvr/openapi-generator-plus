@@ -1,4 +1,4 @@
-import { CodegenConfig } from '@openapi-generator-plus/core'
+import { CodegenConfig } from '@openapi-generator-plus/types'
 import { CommandLineOptions } from './types'
 import { promises as fs } from 'fs'
 import path from 'path'

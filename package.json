@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@openapi-generator-plus/core": "file:packages/core",
+    "@openapi-generator-plus/types": "file:packages/types",
     "openapi-generator-plus": "file:packages/cli"
   }
 }

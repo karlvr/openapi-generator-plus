@@ -1,4 +1,4 @@
-import { CodegenOperation, CodegenOperationGroups } from './types'
+import { CodegenOperation, CodegenOperationGroups } from '@openapi-generator-plus/types'
 
 /**
  * See JavaJAXRSSpecServerCodegen.addOperationToGroup

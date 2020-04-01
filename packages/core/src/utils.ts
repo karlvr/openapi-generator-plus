@@ -1,5 +1,5 @@
 import { OpenAPI } from 'openapi-types'
-import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose, HttpMethods, CodegenOptions } from './types'
+import { CodegenSpecVersion, CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose, HttpMethods, CodegenOptions } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {

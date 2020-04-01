@@ -1,4 +1,4 @@
-import { CodegenGenerator, CodegenOptions, CodegenNativeType } from '../types'
+import { CodegenGenerator, CodegenOptions, CodegenNativeType } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { pascalCase, camelCase } from '../case-transforms'
 

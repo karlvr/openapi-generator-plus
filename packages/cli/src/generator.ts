@@ -1,4 +1,5 @@
-import { defaultGeneratorOptions, CodegenConfig, CodegenGenerator, CodegenGeneratorConstructor, CodegenOptions } from '@openapi-generator-plus/core'
+import { defaultGeneratorOptions } from '@openapi-generator-plus/core'
+import { CodegenConfig, CodegenGenerator, CodegenGeneratorConstructor, CodegenOptions } from '@openapi-generator-plus/types'
 import path from 'path'
 import { promises as fs } from 'fs'
 
@@ -20,7 +21,7 @@ export async function createGenerator<O extends CodegenOptions>(config: CodegenC
 	if (typeof generatorConstructor === 'object') {
 		return generatorConstructor
 	} else if (typeof generatorConstructor === 'function') {
-		const options = defaultGeneratorOptions()
+		const options = defaultGeneratorOptions<O>()
 		return generatorConstructor(options)
 	} else {
 		throw new Error(`Unexpected result when loading generator module "${config.generator}. Not an object or a function.`)

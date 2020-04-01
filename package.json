@@ -9,7 +9,7 @@
     "link": "lerna exec npm link",
     "release": "npm run clean && npm run build && npm test && lerna publish",
     "test": "lerna run test",
-    "watch": "lerna run build && lerna run --parallel watch"
+    "watch": "lerna run --parallel watch"
   },
   "repository": {
     "type": "git",

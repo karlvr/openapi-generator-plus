@@ -12,8 +12,6 @@ export interface CodegenState<O extends CodegenOptions> {
 	generator: CodegenGenerator<O>
 	config: CodegenConfig
 	options: O
-	models: { [name: string]: CodegenModel }
-	anonymousModels: CodegenModel[]
 	specVersion: CodegenSpecVersion
 }
 
@@ -356,13 +354,14 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
 	models?: CodegenModel[]
 }
 
-/** The context for model output */
-export interface CodegenModelContext {
-	model: CodegenModel[]
+export enum CodegenModelType {
+	DEFINED = 'DEFINED',
+	INLINE = 'INLINE',
 }
 
 export interface CodegenModel {
 	name: string
+	modelType: CodegenModelType
 	description?: string
 	properties: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions

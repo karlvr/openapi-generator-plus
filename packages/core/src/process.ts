@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenOptions } from './types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenEnumValue, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenOptions, CodegenModelType } from './types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -7,6 +7,10 @@ import { stringLiteralValueOptions } from './utils'
 
 /** An internal view of the CodegenState. */
 interface InternalCodegenState extends CodegenState<CodegenOptions> {
+	/** A hash of fully qualified model names that have been used */
+	usedModelFullyQualifiedNames: { [name: string]: boolean }
+	/** An array of inline models to be added to the export */
+	inlineModels: CodegenModel[]
 }
 
 /**
@@ -54,7 +58,7 @@ function processCodegenOperationGroup(group: CodegenOperationGroup) {
  */
 function collectAnonymousModels(models: CodegenModel[] | undefined, state: InternalCodegenState) {
 	if (models) {
-		state.anonymousModels.push(...models)
+		state.inlineModels.push(...models)
 	}
 }
 
@@ -907,7 +911,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
 		if (!refName) {
-			models = [toCodegenModel(enumName, parentNames, schema, state)]
+			models = [toCodegenModel(enumName, parentNames, schema, CodegenModelType.INLINE, state)]
 		}
 	} else if (schema.type === 'array') {
 		if (!schema.items) {
@@ -938,7 +942,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 				type: 'string',
 				purpose: CodegenTypePurpose.KEY,
 			}, state)
-			componentProperty = toCodegenProperty(name, schema.additionalProperties, false, refName ? [refName] : parentNames, state)
+			componentProperty = toCodegenProperty(name, schema.additionalProperties, true, refName ? [refName] : parentNames, state)
 
 			nativeType = state.generator.toNativeMapType({
 				keyNativeType,
@@ -957,7 +961,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 				purpose: CodegenTypePurpose.PROPERTY,
 			}, state)
 			if (!refName) {
-				models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
+				models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)]
 			}
 		}
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
@@ -972,7 +976,7 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			purpose: CodegenTypePurpose.PROPERTY,
 		}, state)
 		if (!refName) {
-			models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, state)]
+			models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)]
 		}
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
@@ -1084,7 +1088,7 @@ function fullyQualifiedModelName(name: string, parentNames: string[] | undefined
  * @param state the state
  */
 function uniqueModelName(proposedName: string, parentNames: string[] | undefined, state: InternalCodegenState): string {
-	if (!state.models[fullyQualifiedModelName(proposedName, parentNames)]) {
+	if (!state.usedModelFullyQualifiedNames[fullyQualifiedModelName(proposedName, parentNames)]) {
 		return proposedName
 	}
 
@@ -1093,12 +1097,12 @@ function uniqueModelName(proposedName: string, parentNames: string[] | undefined
 	do {
 		iteration += 1
 		name = state.generator.toIteratedModelName(proposedName, parentNames, iteration, state)
-	} while (state.models[fullyQualifiedModelName(name, parentNames)])
+	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, parentNames)])
 
 	return name
 }
 
-function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, state: InternalCodegenState): CodegenModel {
+function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, modelType: CodegenModelType, state: InternalCodegenState): CodegenModel {
 	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {
@@ -1108,7 +1112,10 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		}
 	}
 
-	name = uniqueModelName(name, parentNames, state)
+	if (modelType !== CodegenModelType.DEFINED) {
+		/* Model types that aren't defined in the spec need to be made unique */
+		name = uniqueModelName(name, parentNames, state)
+	}
 
 	schema = resolveReference(schema, state)
 	
@@ -1140,7 +1147,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			   we do care about the parent names so any nested models are nested inside
 			   _this_ model.
 			 */
-			const subModel = toCodegenModel(name, parentNames, subSchema, state)
+			const subModel = toCodegenModel(name, parentNames, subSchema, CodegenModelType.INLINE, state)
 			properties.push(...subModel.properties)
 			if (subModel.models) {
 				models.push(...subModel.models)
@@ -1196,7 +1203,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 				type: 'string',
 				purpose: CodegenTypePurpose.KEY,
 			}, state)
-			const componentProperty = toCodegenProperty(name, schema.additionalProperties, false, [], state)
+			const componentProperty = toCodegenProperty(name, schema.additionalProperties, true, [], state)
 
 			parent = state.generator.toNativeMapType({
 				keyNativeType,
@@ -1216,6 +1223,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 
 	const model: CodegenModel = {
 		name,
+		modelType,
 		description: schema.description,
 		properties,
 		vendorExtensions: toCodegenVendorExtensions(schema),
@@ -1226,7 +1234,10 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		enumValues,
 		parent,
 	}
-	state.models[fullyQualifiedModelName(name, parentNames)] = model
+
+	if (modelType !== CodegenModelType.DEFINED) {
+		state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, parentNames)] = true
+	}
 	return model
 }
 
@@ -1247,6 +1258,9 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 export function processDocument<O extends CodegenOptions>(state: CodegenState<O>): CodegenDocument {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const internalState: InternalCodegenState = state as any
+	internalState.usedModelFullyQualifiedNames = {}
+	internalState.inlineModels = []
+
 	return actuallyProcessDocument(internalState)
 }
 
@@ -1268,11 +1282,15 @@ function actuallyProcessDocument(state: InternalCodegenState): CodegenDocument {
 	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
 	const models: CodegenModel[] = []
 	if (specModels) {
+		/* Collect defined schema names first, so no inline models can use those names */
+		for (const schemaName in specModels) {
+			state.usedModelFullyQualifiedNames[fullyQualifiedModelName(schemaName, undefined)] = true
+		}
+
 		for (const schemaName in specModels) {
 			try {
-				const model = toCodegenModel(schemaName, undefined, specModels[schemaName], state)
+				const model = toCodegenModel(schemaName, undefined, specModels[schemaName], CodegenModelType.DEFINED, state)
 				models.push(model)
-				state.models[schemaName] = model
 			} catch (error) {
 				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
 					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
@@ -1300,8 +1318,8 @@ function actuallyProcessDocument(state: InternalCodegenState): CodegenDocument {
 
 	const groups = groupOperations(operations, state)
 
-	/* Add in the anonymous models */
-	models.push(...state.anonymousModels)
+	/* Add in the inline models */
+	models.push(...state.inlineModels)
 
 	const doc: CodegenDocument = {
 		info: root.info,

@@ -904,15 +904,17 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
 		}
 
-		const enumName = state.generator.toEnumName(name, state)
+		let enumName = state.generator.toEnumName(name, state)
+		if (!refName) {
+			const model = toCodegenModel(enumName, parentNames, schema, CodegenModelType.INLINE, state)
+			enumName = model.name
+			models = [model]
+		}
 		nativeType = state.generator.toNativeType({
 			type: 'object',
 			modelNames: refName ? [refName] : [...parentNames, enumName],
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
-		if (!refName) {
-			models = [toCodegenModel(enumName, parentNames, schema, CodegenModelType.INLINE, state)]
-		}
 	} else if (schema.type === 'array') {
 		if (!schema.items) {
 			throw new Error('items missing for schema type "array"')
@@ -952,32 +954,36 @@ function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.Sc
 			}, state)
 			models = componentProperty.models
 		} else {
-			const modelNameForPropertyName = state.generator.toModelNameFromPropertyName(name, state)
+			let modelName = state.generator.toModelNameFromPropertyName(name, state)
+			if (!refName) {
+				const model = toCodegenModel(modelName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)
+				modelName = model.name
+				models = [model]
+			}
 			nativeType = state.generator.toNativeType({
 				type,
 				format: schema.format,
 				required,
-				modelNames: refName ? [refName] : [...parentNames, modelNameForPropertyName],
+				modelNames: refName ? [refName] : [...parentNames, modelName],
 				purpose: CodegenTypePurpose.PROPERTY,
 			}, state)
-			if (!refName) {
-				models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)]
-			}
 		}
 	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
 		type = 'object'
 
-		const modelNameForPropertyName = state.generator.toModelNameFromPropertyName(name, state)
+		let modelName = state.generator.toModelNameFromPropertyName(name, state)
+		if (!refName) {
+			const model = toCodegenModel(modelName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)
+			modelName = model.name
+			models = [model]
+		}
 		nativeType = state.generator.toNativeType({
 			type,
 			format: schema.format,
 			required,
-			modelNames: refName ? [refName] : [...parentNames, modelNameForPropertyName],
+			modelNames: refName ? [refName] : [...parentNames, modelName],
 			purpose: CodegenTypePurpose.PROPERTY,
 		}, state)
-		if (!refName) {
-			models = [toCodegenModel(modelNameForPropertyName, refName ? [refName] : parentNames, schema, CodegenModelType.INLINE, state)]
-		}
 	} else if (typeof schema.type === 'string') {
 		type = schema.type
 		format = schema.format

@@ -8,21 +8,10 @@ import { CommandLineOptions } from './types'
 import { createConfig } from './config'
 import watch from 'node-watch'
 import glob from 'glob-promise'
+import { createGenerator } from './generator'
 
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
-}
-
-async function createGenerator(config: CodegenConfig): Promise<CodegenGenerator<CodegenOptions>> {
-	const generatorPath = path.resolve(config.generator)
-	try {
-		await fs.access(generatorPath)
-		return require(generatorPath).default
-	} catch (error) {
-		/* Resolve generator as a local module */
-		const resolved = require.resolve(config.generator, { paths: ['.'] })
-		return require(resolved).default
-	}
 }
 
 async function generate(config: CodegenConfig): Promise<boolean> {

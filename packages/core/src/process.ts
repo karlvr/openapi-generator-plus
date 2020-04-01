@@ -1117,12 +1117,19 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		modelType = CodegenModelType.DEFINED
 	}
 
+	schema = resolveReference(schema, state)
+
+	const vendorExtensions = toCodegenVendorExtensions(schema)
+
 	if (modelType !== CodegenModelType.DEFINED) {
+		/* Support vendor extension to override the automatic naming of inline models */
+		if (vendorExtensions && vendorExtensions['x-inline-model-name']) {
+			name = vendorExtensions['x-inline-model-name']
+		}
+
 		/* Model types that aren't defined in the spec need to be made unique */
 		name = uniqueModelName(name, parentNames, state)
 	}
-
-	schema = resolveReference(schema, state)
 	
 	const properties: CodegenProperty[] = []
 	const models: CodegenModel[] = []
@@ -1231,7 +1238,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		modelType,
 		description: schema.description,
 		properties,
-		vendorExtensions: toCodegenVendorExtensions(schema),
+		vendorExtensions,
 		models: models.length ? models : undefined,
 		nativeType,
 		isEnum: enumValues !== undefined,

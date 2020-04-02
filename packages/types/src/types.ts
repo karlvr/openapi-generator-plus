@@ -163,7 +163,7 @@ export interface CodegenOperation {
 	vendorExtensions?: CodegenVendorExtensions
 	responses?: CodegenResponse[]
 	defaultResponse?: CodegenResponse
-	isDeprecated?: boolean
+	deprecated?: boolean
 	summary?: string
 	description?: string
 	tags?: string[]

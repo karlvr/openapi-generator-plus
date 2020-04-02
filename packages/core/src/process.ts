@@ -281,7 +281,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		securityRequirements,
 		defaultResponse,
 		responses,
-		isDeprecated: operation.deprecated,
+		deprecated: operation.deprecated,
 		summary: operation.summary,
 		description: operation.description,
 		tags: operation.tags,

@@ -1257,6 +1257,10 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		parent,
 	}
 
+	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
+		model.deprecated = schema.deprecated
+	}
+
 	if (modelType !== CodegenModelType.DEFINED) {
 		state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, parentNames)] = true
 	}

@@ -359,6 +359,8 @@ export interface CodegenModel {
 
 	/** Nested models */
 	models?: CodegenModel[]
+
+	deprecated?: boolean
 }
 
 interface CodegenTypeOptions {

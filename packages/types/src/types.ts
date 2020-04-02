@@ -308,7 +308,6 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
 	title?: string
 	exampleValue?: string
 	defaultValue?: string
-	readOnly: boolean
 	required: boolean
 	vendorExtensions?: CodegenVendorExtensions
 
@@ -324,6 +323,11 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
+
+	nullable?: boolean
+	readOnly?: boolean
+	writeOnly?: boolean
+	deprecated?: boolean
 
 	/** Nested models */
 	models?: CodegenModel[]

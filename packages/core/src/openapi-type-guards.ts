@@ -53,3 +53,7 @@ export function isOpenAPIV2ExampleObject(ob: OpenAPIV2.ExampleObject | OpenAPIV3
 export function isOpenAPIV3ExampleObject(ob: OpenAPIV2.ExampleObject | OpenAPIV3.ExampleObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.ExampleObject {
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
+
+export function isOpenAPIv3SchemaObject(ob: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.SchemaObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV3
+}

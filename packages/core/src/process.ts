@@ -160,6 +160,11 @@ function extractCodegenPropertyTypesInfo(source: CodegenPropertyTypeInfo): Codeg
 		nativeType: source.nativeType,
 		componentType: source.componentType,
 		componentNativeType: source.componentNativeType,
+
+		nullable: source.nullable,
+		readOnly: source.readOnly,
+		writeOnly: source.writeOnly,
+		deprecated: source.deprecated,
 	}
 }
 

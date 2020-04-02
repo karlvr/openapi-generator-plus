@@ -299,6 +299,11 @@ export interface CodegenPropertyTypeInfo {
 
 	componentType?: string
 	componentNativeType?: CodegenNativeType
+
+	nullable?: boolean
+	readOnly?: boolean
+	writeOnly?: boolean
+	deprecated?: boolean
 }
 
 /* See DefaultCodegen.fromProperty */
@@ -323,11 +328,6 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
-
-	nullable?: boolean
-	readOnly?: boolean
-	writeOnly?: boolean
-	deprecated?: boolean
 
 	/** Nested models */
 	models?: CodegenModel[]

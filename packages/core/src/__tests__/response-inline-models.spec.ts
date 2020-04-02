@@ -9,10 +9,10 @@ test('inline response model', async() => {
 	const op1 = group1.operations[0]
 
 	expect(op1.returnType).toEqual('object')
-	expect(op1.returnNativeType?.toString()).toEqual('GetTest1200ResponseModel')
+	expect(op1.returnNativeType?.toString()).toEqual('getTest1_200_response_model')
 
 	expect(result.models.length).toEqual(1)
 
 	const model1 = result.models[0]
-	expect(model1.name).toEqual('GetTest1200ResponseModel')
+	expect(model1.name).toEqual('getTest1_200_response_model')
 })

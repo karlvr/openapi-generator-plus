@@ -12,10 +12,10 @@ test('inline response model', async() => {
 
 	const param1 = op1.allParams![0]
 	expect(param1.name).toEqual('arg1')
-	expect(param1.nativeType.toString()).toEqual('GetTest1Arg1Enum')
+	expect(param1.nativeType.toString()).toEqual('getTest1_arg1_enum')
 
 	expect(result.models.length).toEqual(1)
 
 	const model1 = result.models[0]
-	expect(model1.name).toEqual('GetTest1Arg1Enum')
+	expect(model1.name).toEqual('getTest1_arg1_enum')
 })

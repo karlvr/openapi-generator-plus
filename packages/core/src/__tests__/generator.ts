@@ -1,23 +1,22 @@
-import { CodegenGenerator, CodegenOptions, CodegenNativeType } from '@openapi-generator-plus/types'
+import { CodegenOptions, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
-import { pascalCase, camelCase } from '../case-transforms'
 
 export interface TestCodegenOptions extends CodegenOptions {
 
 }
 
-export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
-	toClassName: (name) => pascalCase(`${name}_class`),
-	toIdentifier: (name) => camelCase(`${name}_identifier`),
-	toConstantName: (name) => camelCase(`${name}_contant`),
-	toEnumName: (name) => pascalCase(`${name}_enum`),
-	toOperationName: (path, method) => camelCase(`${method} ${path} operation`),
-	toModelNameFromPropertyName: (name) => pascalCase(`${name}_model`),
+export const createTestGenerator: CodegenGeneratorConstructor<TestCodegenOptions> = (generatorOptions) => ({
+	toClassName: (name) => `${name}_class`,
+	toIdentifier: (name) => `${name}_identifier`,
+	toConstantName: (name) => `${name}_contant`,
+	toEnumName: (name) => `${name}_enum`,
+	toOperationName: (path, method) => `${method} ${path} operation`,
+	toModelNameFromPropertyName: (name) => `${name}_model`,
 	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
 	toLiteral: (value) => `literal ${value}`,
-	toNativeType: (options) => options.modelNames ? new CodegenNativeType(options.modelNames.join('.')) : new CodegenNativeType(options.type),
-	toNativeArrayType: (options) => new CodegenNativeType(`array ${options.componentNativeType}`),
-	toNativeMapType: (options) => new CodegenNativeType(`map ${options.componentNativeType}`),
+	toNativeType: (options) => options.modelNames ? new generatorOptions.NativeType(options.modelNames.join('.')) : new generatorOptions.NativeType(options.type),
+	toNativeArrayType: (options) => new generatorOptions.NativeType(`array ${options.componentNativeType}`),
+	toNativeMapType: (options) => new generatorOptions.NativeType(`map ${options.componentNativeType}`),
 	toDefaultValue: (defaultValue, options) => `default ${options.type}`,
 	options: (config) => ({ config }),
 	operationGroupingStrategy: () => addToGroupsByPath,
@@ -26,4 +25,4 @@ export const TestGenerator: CodegenGenerator<TestCodegenOptions> = {
 	},
 	watchPaths: () => [],
 	cleanPathPatterns: () => undefined,
-}
+})

@@ -1163,16 +1163,43 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	let enumValues: CodegenEnumValue[] | undefined
 	let parent: CodegenNativeType | undefined
 
+	function absorbSubSchema(subSchema: OpenAPIX.SchemaObject) {
+		/* We don't actually care about the model name, as we just use the properties, but
+		 * we do care about the parent names so any nested models are nested inside
+		 * _this_ model.
+		 */
+		const subModel = toCodegenModel(name, parentNames, subSchema, CodegenModelType.INLINE, state)
+		properties.push(...subModel.properties)
+		if (subModel.models) {
+			models.push(...subModel.models)
+		}
+	}
+
 	if (schema.allOf) {
-		for (const subSchema of schema.allOf) {
-			/* We don't actually care about the model name, as we just use the vars, but
-			   we do care about the parent names so any nested models are nested inside
-			   _this_ model.
-			 */
-			const subModel = toCodegenModel(name, parentNames, subSchema, CodegenModelType.INLINE, state)
-			properties.push(...subModel.properties)
-			if (subModel.models) {
-				models.push(...subModel.models)
+		const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
+
+		/* We support single parent inheritance, so check if that's possible */
+		if (allOf.length === 2) {
+			const possibleParentSchema = allOf[0]
+			const possibleChildSchema = allOf[1]
+			if (isOpenAPIReferenceObject(possibleParentSchema) && !isOpenAPIReferenceObject(possibleChildSchema)) {
+				const parentSchemaName = nameFromRef(possibleParentSchema.$ref)
+
+				if (parentSchemaName) {
+					parent = state.generator.toNativeType({
+						type: 'object',
+						purpose: CodegenTypePurpose.PARENT,
+						modelNames: [parentSchemaName],
+					}, state)
+
+					absorbSubSchema(possibleChildSchema)
+				}
+			}
+		}
+
+		if (!parent) {
+			for (const subSchema of allOf) {
+				absorbSubSchema(subSchema)
 			}
 		}
 	} else if (schema.anyOf) {

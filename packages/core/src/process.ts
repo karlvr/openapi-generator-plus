@@ -867,7 +867,7 @@ function toCodegenMediaType(mediaType: string): CodegenMediaType {
 	}
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIV2.Schema | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject, required: boolean, parentNames: string[], state: InternalCodegenState): CodegenProperty {
+function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, parentNames: string[], state: InternalCodegenState): CodegenProperty {
 	/* The name of the schema, which can be used to name custom types */
 	let refName: string | undefined
 
@@ -1112,7 +1112,7 @@ function uniqueModelName(proposedName: string, parentNames: string[] | undefined
 	return name
 }
 
-function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIV2.SchemaObject | OpenAPIV2.GeneralParameterObject | OpenAPIV3.SchemaObject, modelType: CodegenModelType, state: InternalCodegenState): CodegenModel {
+function toCodegenModel(name: string, parentNames: string[] | undefined, schema: OpenAPIX.SchemaObject, modelType: CodegenModelType, state: InternalCodegenState): CodegenModel {
 	if (isOpenAPIReferenceObject(schema)) {
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {

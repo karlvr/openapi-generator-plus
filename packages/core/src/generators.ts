@@ -2,6 +2,7 @@ import { CodegenOptions, CodegenGenerator, CodegenGeneratorOptions } from '@open
 import pluralize from 'pluralize'
 import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
+import CodegenNativeTypeImpl from './native-type'
 
 /**
  * A partial generator implementation that should be the base of all generators.
@@ -17,11 +18,11 @@ function baseGenerator<O extends CodegenOptions>(): Pick<CodegenGenerator<O>, 't
 	}
 }
 
-
 export function defaultGeneratorOptions<O extends CodegenOptions>(): CodegenGeneratorOptions<O> {
 	return {
 		baseGenerator,
 		InvalidModelError: InvalidModelError as ErrorConstructor,
+		NativeType: CodegenNativeTypeImpl,
 		utils: {
 			stringLiteralValueOptions,
 		},

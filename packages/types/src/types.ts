@@ -217,72 +217,53 @@ export interface CodegenExample {
 	valuePretty: string
 }
 
-export class CodegenNativeType {
-	/** The type in the native language */
-	public nativeType: string
-
-	/**
-	 * The native language type to use if no translation is done from the communication layer.
-	 * e.g. the type as it will be when deserialised from JSON.
-	 */
-	public wireType?: string
-	/**
-	 * The native language type when expressing this type as a type literal, e.g. in java `java.util.List`
-	 * as opposed to `java.util.List<java.lang.String>`, which is not valid as a type literal.
-	 */
-	public literalType?: string
-	/**
-	 * The concrete native language type to use when creating an object of this type. 
-	 */
-	public concreteType?: string
-	/**
-	 * The native language type when this type is a component of another type, e.g. an array
-	 */
-	public componentType?: string
-	/**
-	 * The wire type when this type is a component of another type. Defaults to `componentType`
-	 */
-	public componentWireType?: string
-
+export interface CodegenNativeTypeConstructor {
 	/**
 	 * 
 	 * @param nativeType The type in the native language
 	 * @param additionalTypes Special-purpose versions of the native type. Any omitted properties will default to the `nativeType`, 
 	 * 	any null properties will end up `undefined`.
 	 */
-	public constructor(nativeType: string, additionalTypes?: {
+	new(nativeType: string, additionalTypes?: {
 		wireType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
 		componentType?: string | null
 		componentWireType?: string | null
-	}) {
-		this.nativeType = nativeType
-		if (additionalTypes) {
-			this.wireType = additionalTypes.wireType !== undefined ? additionalTypes.wireType !== null ? additionalTypes.wireType : undefined : nativeType
-			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType !== null ? additionalTypes.literalType : undefined : nativeType
-			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType !== null ? additionalTypes.concreteType : undefined : nativeType
-			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType !== null ? additionalTypes.componentType : undefined : nativeType
-			this.componentWireType = additionalTypes.componentWireType !== undefined ? additionalTypes.componentWireType !== null ? additionalTypes.componentWireType : undefined : this.componentType
-		} else {
-			this.wireType = nativeType
-			this.literalType = nativeType
-			this.concreteType = nativeType
-			this.componentType = nativeType
-			this.componentWireType = nativeType
-		}
-	}
+	}): CodegenNativeType
+}
 
-	public toString() {
-		return this.nativeType
-	}
+export interface CodegenNativeType {
+	/** The type in the native language */
+	nativeType: string
 
-	public equals(other: CodegenNativeType | undefined): boolean {
-		if (!other) {
-			return false
-		}
-		return this.nativeType === other.nativeType && this.wireType === other.wireType && this.literalType === other.literalType
-	}
+	/**
+	 * The native language type to use if no translation is done from the communication layer.
+	 * e.g. the type as it will be when deserialised from JSON.
+	 */
+	wireType?: string
+	/**
+	 * The native language type when expressing this type as a type literal, e.g. in java `java.util.List`
+	 * as opposed to `java.util.List<java.lang.String>`, which is not valid as a type literal.
+	 */
+	literalType?: string
+	/**
+	 * The concrete native language type to use when creating an object of this type. 
+	 */
+	concreteType?: string
+	/**
+	 * The native language type when this type is a component of another type, e.g. an array
+	 */
+	componentType?: string
+	/**
+	 * The wire type when this type is a component of another type. Defaults to `componentType`
+	 */
+	componentWireType?: string
+
+	toString(): string
+
+	equals(other: CodegenNativeType | undefined): boolean
+
 }
 
 export interface CodegenTypes {

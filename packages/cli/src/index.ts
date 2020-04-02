@@ -2,7 +2,6 @@ import SwaggerParser from 'swagger-parser'
 import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
 import { processDocument } from '@openapi-generator-plus/core'
-import { toSpecVersion } from '@openapi-generator-plus/core/dist/utils'
 import { CodegenGenerator, CodegenState, CodegenDocument, CodegenConfig, CodegenOptions } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
@@ -41,7 +40,6 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 		generator,
 		config,
 		options: generator.options(config),
-		specVersion: toSpecVersion(root),
 	}
 
 	let doc: CodegenDocument

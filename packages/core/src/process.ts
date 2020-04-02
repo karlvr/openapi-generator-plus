@@ -3,15 +3,8 @@ import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenState, Codeg
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
-import { stringLiteralValueOptions } from './utils'
-
-/** An internal view of the CodegenState. */
-interface InternalCodegenState extends CodegenState<CodegenOptions> {
-	/** A hash of fully qualified model names that have been used */
-	usedModelFullyQualifiedNames: { [name: string]: boolean }
-	/** An array of inline models to be added to the export */
-	inlineModels: CodegenModel[]
-}
+import { stringLiteralValueOptions, toSpecVersion } from './utils'
+import { InternalCodegenState } from './types'
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in
@@ -1278,6 +1271,7 @@ export function processDocument<O extends CodegenOptions>(state: CodegenState<O>
 	const internalState: InternalCodegenState = state as any
 	internalState.usedModelFullyQualifiedNames = {}
 	internalState.inlineModels = []
+	internalState.specVersion = toSpecVersion(state.root)
 
 	return actuallyProcessDocument(internalState)
 }

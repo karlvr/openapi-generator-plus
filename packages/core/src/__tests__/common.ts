@@ -3,7 +3,6 @@ import { OpenAPI } from 'openapi-types'
 import path from 'path'
 import { CodegenState, CodegenConfig, CodegenOptions } from '@openapi-generator-plus/types'
 import { createTestGenerator } from './generator'
-import { toSpecVersion } from '../utils'
 import { defaultGeneratorOptions } from '../generators'
 
 export async function createTestState(specName: string): Promise<CodegenState<CodegenOptions>> {
@@ -24,7 +23,6 @@ export async function createTestState(specName: string): Promise<CodegenState<Co
 		options: {
 			config,
 		},
-		specVersion: toSpecVersion(root),
 	}
 	return state
 }

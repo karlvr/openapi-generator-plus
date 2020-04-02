@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { OpenAPIX } from './types/patches'
-import { CodegenSpecVersion } from '@openapi-generator-plus/types'
+import { CodegenSpecVersion } from './types'
 
 export function isOpenAPIReferenceObject(ob: any): ob is OpenAPIV2.ReferenceObject | OpenAPIV3.ReferenceObject {
 	return ((ob as any).$ref)

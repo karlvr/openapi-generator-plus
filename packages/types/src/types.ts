@@ -1,18 +1,12 @@
 import { OpenAPI } from 'openapi-types'
 import SwaggerParser = require('swagger-parser')
 
-export enum CodegenSpecVersion {
-	OpenAPIV2 = 200, /* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md */
-	OpenAPIV3 = 300, /* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md */
-}
-
 export interface CodegenState<O extends CodegenOptions> {
 	parser: SwaggerParser
 	root: OpenAPI.Document
 	generator: CodegenGenerator<O>
 	config: CodegenConfig
 	options: O
-	specVersion: CodegenSpecVersion
 }
 
 /**

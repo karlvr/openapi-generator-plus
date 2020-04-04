@@ -1,14 +1,11 @@
-import { createTestState } from './common'
-import { processDocument } from '../process'
+import { createTestDocument, createTestResult } from './common'
 
 test('process document', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	processDocument(state)
+	await createTestDocument('openapiv3-1.yml')
 })
 
 test('parse info', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	const result = processDocument(state)
+	const result = await createTestDocument('openapiv3-1.yml')
 
 	expect(result.info.description).toEqual('Lorem ipsum')
 	expect(result.info.version).toEqual('1.0.1')
@@ -19,8 +16,7 @@ test('parse info', async() => {
 })
 
 test('parse operation params', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	const result = processDocument(state)
+	const result = await createTestDocument('openapiv3-1.yml')
 
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
@@ -30,8 +26,7 @@ test('parse operation params', async() => {
 })
 
 test('parse operation body params', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	const result = processDocument(state)
+	const result = await createTestDocument('openapiv3-1.yml')
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
@@ -42,8 +37,7 @@ test('parse operation body params', async() => {
 })
 
 test('parse operation response', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	const result = processDocument(state)
+	const result = await createTestDocument('openapiv3-1.yml')
 
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
@@ -60,8 +54,7 @@ test('parse operation response', async() => {
 })
 
 test('parse groups', async() => {
-	const state = await createTestState('openapiv3-1.yml')
-	const result = processDocument(state)
+	const { result, state } = await createTestResult('openapiv3-1.yml')
 
 	expect(result.groups.length).toEqual(2)
 	const group1 = result.groups[0]

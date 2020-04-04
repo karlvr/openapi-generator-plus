@@ -1,0 +1,10 @@
+---
+swagger: '2.0'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+definitions:
+  UUID:
+    type: string
+    format: uuid

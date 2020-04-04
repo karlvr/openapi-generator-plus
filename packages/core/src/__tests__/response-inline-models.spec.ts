@@ -1,9 +1,7 @@
-import { createTestState } from './common'
-import { processDocument } from '../process'
+import { createTestDocument } from './common'
 
 test('inline response model', async() => {
-	const state = await createTestState('response-inline-models-v2.yml')
-	const result = processDocument(state)
+	const result = await createTestDocument('response-inline-models-v2.yml')
 
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]

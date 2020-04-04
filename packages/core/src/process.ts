@@ -1267,7 +1267,8 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			}, state)
 		}
 	} else {
-		throw new Error(`Unsupported schema type "${schema.type}" for model "${name}": ${JSON.stringify(schema)}`)
+		/* Other types aren't represented as models, they are just inline type definitions like a string with a format */
+		throw new InvalidModelError()
 	}
 
 	const nativeType = state.generator.toNativeType({

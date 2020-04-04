@@ -1185,10 +1185,9 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
 
 		/* We support single parent inheritance, so check if that's possible */
-		if (allOf.length === 2) {
+		if (allOf.length) {
 			const possibleParentSchema = allOf[0]
-			const possibleChildSchema = allOf[1]
-			if (isOpenAPIReferenceObject(possibleParentSchema) && !isOpenAPIReferenceObject(possibleChildSchema)) {
+			if (isOpenAPIReferenceObject(possibleParentSchema)) {
 				const parentSchemaName = nameFromRef(possibleParentSchema.$ref)
 
 				if (parentSchemaName) {
@@ -1198,15 +1197,13 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 						modelNames: [parentSchemaName],
 					}, state)
 
-					absorbSubSchema(possibleChildSchema)
+					allOf.shift()
 				}
 			}
 		}
 
-		if (!parent) {
-			for (const subSchema of allOf) {
-				absorbSubSchema(subSchema)
-			}
+		for (const subSchema of allOf) {
+			absorbSubSchema(subSchema)
 		}
 	} else if (schema.anyOf) {
 		throw new Error('anyOf not supported')

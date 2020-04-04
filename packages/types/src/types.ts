@@ -1,18 +1,17 @@
 import { OpenAPI } from 'openapi-types'
-import SwaggerParser = require('swagger-parser')
+import SwaggerParser from '@apidevtools/swagger-parser'
 
-export interface CodegenState<O extends CodegenOptions> {
+export interface CodegenState<O = {}> {
 	parser: SwaggerParser
 	root: OpenAPI.Document
 	generator: CodegenGenerator<O>
-	config: CodegenConfig
 	options: O
 }
 
 /**
  * The interface implemented by language-specific generator modules.
  */
-export interface CodegenGenerator<O extends CodegenOptions> {
+export interface CodegenGenerator<O> {
 	toClassName: (name: string, state: CodegenState<O>) => string
 	toIdentifier: (name: string, state: CodegenState<O>) => string
 	toConstantName: (name: string, state: CodegenState<O>) => string
@@ -44,7 +43,7 @@ export interface CodegenGenerator<O extends CodegenOptions> {
 	options: (config: CodegenConfig) => O
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy<O>
 
-	exportTemplates: (doc: CodegenDocument, state: CodegenState<O>) => void
+	exportTemplates: (outputPath: string, doc: CodegenDocument, state: CodegenState<O>) => void
 
 	/** Return an array of paths to include in fs.watch when in watch mode */
 	watchPaths: (config: CodegenConfig) => string[] | undefined
@@ -71,14 +70,6 @@ export interface CodegenConfig {
 	outputPath: string
 	/** The path to the API specification */
 	inputPath: string
-}
-
-/**
- * Options to the code generation process. Extended by generators to provide their
- * own options. These options are usually provided to the code generation process.
- */
-export interface CodegenOptions {
-	config: CodegenConfig
 }
 
 /**
@@ -511,7 +502,7 @@ export interface CodegenMediaType {
 	encoding?: string
 }
 
-export type CodegenOperationGroupingStrategy<O extends CodegenOptions> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
+export type CodegenOperationGroupingStrategy<O> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
 
 /**
  * The different HTTP methods supported by OpenAPI.

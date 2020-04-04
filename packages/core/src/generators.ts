@@ -1,4 +1,4 @@
-import { CodegenOptions, CodegenGenerator, CodegenGeneratorOptions } from '@openapi-generator-plus/types'
+import { CodegenGenerator, CodegenGeneratorOptions } from '@openapi-generator-plus/types'
 import pluralize from 'pluralize'
 import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
@@ -9,7 +9,7 @@ import CodegenNativeTypeImpl from './native-type'
  * This enables the core to introduce new CodegenGenerator methods and add default
  * implementations here, if appropriate.
  */
-function baseGenerator<O extends CodegenOptions>(): Pick<CodegenGenerator<O>, 'toIteratedModelName' | 'toModelNameFromPropertyName'> {
+function baseGenerator<O>(): Pick<CodegenGenerator<O>, 'toIteratedModelName' | 'toModelNameFromPropertyName'> {
 	return {
 		toIteratedModelName: (name, _, iteration) => `${name}${iteration + 1}`,
 		toModelNameFromPropertyName: (name, state) => {
@@ -18,7 +18,7 @@ function baseGenerator<O extends CodegenOptions>(): Pick<CodegenGenerator<O>, 't
 	}
 }
 
-export function defaultGeneratorOptions<O extends CodegenOptions>(): CodegenGeneratorOptions<O> {
+export function defaultGeneratorOptions<O>(): CodegenGeneratorOptions {
 	return {
 		baseGenerator,
 		InvalidModelError: InvalidModelError as ErrorConstructor,

@@ -1,57 +1,33 @@
-import SwaggerParser from 'swagger-parser'
-import { OpenAPI } from 'openapi-types'
 import { promises as fs } from 'fs'
-import { processDocument } from '@openapi-generator-plus/core'
-import { CodegenGenerator, CodegenState, CodegenDocument, CodegenConfig, CodegenOptions } from '@openapi-generator-plus/types'
+import { constructGenerator, createCodegenDocument, createCodegenState } from '@openapi-generator-plus/core'
+import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions } from './types'
 import { createConfig } from './config'
 import watch from 'node-watch'
 import glob from 'glob-promise'
-import { createGenerator } from './generator'
+import { loadGeneratorConstructor } from './generator'
 
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
 }
 
-async function generate(config: CodegenConfig): Promise<boolean> {
-	const parser = new SwaggerParser()
+async function generate(config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor<{}>): Promise<boolean> {
+	const generator = constructGenerator(generatorConstructor)
 
-	let root: OpenAPI.Document
-	try {
-		root = await parser.parse(config.inputPath)
-	} catch (error) {
-		console.error(`Failed to load API specification: ${config.inputPath} (${error.message})`)
-		return false
-	}
-
-	let generator: CodegenGenerator<CodegenOptions>
-	try {
-		generator = await createGenerator(config)
-	} catch (error) {
-		console.error(`Failed to load generator module: ${config.generator} (${error.message})`)
-		return false
-	}
-
-	const state: CodegenState<CodegenOptions> = {
-		parser,
-		root,
-		generator,
-		config,
-		options: generator.options(config),
-	}
+	const state = await createCodegenState(config, generator)
 
 	let doc: CodegenDocument
 	try {
-		doc = processDocument(state)
+		doc = createCodegenDocument(state)
 	} catch (error) {
 		console.error('Failed to process the API specification', error)
 		return false
 	}
 
 	try {
-		await generator.exportTemplates(doc, state)
+		generator.exportTemplates(config.outputPath, doc, state)
 	} catch (error) {
 		console.error('Failed to generate templates', error)
 		return false
@@ -60,8 +36,8 @@ async function generate(config: CodegenConfig): Promise<boolean> {
 	return true
 }
 
-async function clean(notModifiedSince: number, config: CodegenConfig) {
-	const generator = await createGenerator(config)
+async function clean(notModifiedSince: number, config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor<{}>) {
+	const generator = constructGenerator(generatorConstructor)
 	const options = generator.options(config)
 	const cleanPathPatterns = generator.cleanPathPatterns(options)
 	if (!cleanPathPatterns) {
@@ -143,8 +119,16 @@ export async function run() {
 		process.exit(1)
 	}
 
+	let generatorConstructor: CodegenGeneratorConstructor<{}>
+	try {
+		generatorConstructor = await loadGeneratorConstructor(config.generator)
+	} catch (error) {
+		console.error(`Failed to load generator module: ${config.generator}`, error)
+		process.exit(1)
+	}
+
 	const beforeGeneration = Date.now()
-	const result = await generate(config)
+	const result = await generate(config, generatorConstructor)
 	if (!result) {
 		process.exit(1)
 	}
@@ -152,7 +136,7 @@ export async function run() {
 	console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 
 	if (commandLineOptions.clean) {
-		await clean(beforeGeneration, config)
+		await clean(beforeGeneration, config, generatorConstructor)
 	}
 	
 	if (commandLineOptions.watch) {
@@ -163,7 +147,7 @@ export async function run() {
 			console.warn('Not watching for API specification changes as it is not a local file path')
 		}
 
-		const generatorWatchPaths = (await createGenerator(config)).watchPaths(config)
+		const generatorWatchPaths = constructGenerator(generatorConstructor).watchPaths(config)
 		if (generatorWatchPaths) {
 			watchPaths.push(...generatorWatchPaths)
 		}
@@ -183,12 +167,12 @@ export async function run() {
 			const beforeGeneration = Date.now()
 			console.log(`Rebuilding: ${config.inputPath}…`)
 			try {
-				const result = await generate(config)
+				const result = await generate(config, generatorConstructor)
 				if (result) {
 					console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 
 					if (commandLineOptions.clean) {
-						await clean(beforeGeneration, config)
+						await clean(beforeGeneration, config, generatorConstructor)
 					}
 				}
 				running = false

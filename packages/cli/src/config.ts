@@ -1,10 +1,10 @@
 import { CodegenConfig } from '@openapi-generator-plus/types'
-import { CommandLineOptions } from './types'
+import { CommandLineOptions, CommandLineConfig } from './types'
 import { promises as fs } from 'fs'
 import path from 'path'
 import YAML from 'yaml'
 
-async function loadConfig(path: string): Promise<CodegenConfig> {
+async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
 		encoding: 'UTF-8',
 	}) as string
@@ -18,7 +18,7 @@ async function loadConfig(path: string): Promise<CodegenConfig> {
 	}
 }
 
-export async function createConfig(commandLineOptions: CommandLineOptions, loadConfigFunction: (path: string) => Promise<CodegenConfig> = loadConfig): Promise<CodegenConfig> {
+export async function createConfig(commandLineOptions: CommandLineOptions, loadConfigFunction: (path: string) => Promise<CommandLineConfig> = loadConfig): Promise<CommandLineConfig> {
 	const configPath = commandLineOptions.config
 	if (configPath) {
 		const config = await loadConfigFunction(configPath)

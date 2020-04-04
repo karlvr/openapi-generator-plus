@@ -562,7 +562,7 @@ function toCodegenAuthScopes(scopes: OpenAPIV2.ScopesObject): CodegenSecuritySco
  */
 function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: InternalCodegenState): T {
 	if (isOpenAPIReferenceObject(ob)) {
-		return state.parser.$refs.get(ob.$ref)
+		return state.$refs.get(ob.$ref)
 	} else {
 		return ob
 	}

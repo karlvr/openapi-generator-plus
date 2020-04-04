@@ -1,9 +1,13 @@
 import { OpenAPI } from 'openapi-types'
-import SwaggerParser from '@apidevtools/swagger-parser'
+
+export interface CodegenInputDocument {
+	$refs: {
+		get: <T>(name: string) => T
+	}
+	root: OpenAPI.Document
+}
 
 export interface CodegenState<O = {}> {
-	parser: SwaggerParser
-	root: OpenAPI.Document
 	generator: CodegenGenerator<O>
 	options: O
 }
@@ -64,12 +68,6 @@ export interface CodegenConfig {
 
 	/** The path to the config file, if any */
 	configPath?: string
-	/** The generator module to use */
-	generator: string
-	/** The path to output the generated code */
-	outputPath: string
-	/** The path to the API specification */
-	inputPath: string
 }
 
 /**

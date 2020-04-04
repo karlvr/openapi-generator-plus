@@ -1,6 +1,6 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenConfig, CodegenDocument, CodegenState } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
-import { constructGenerator, createCodegenState, createCodegenDocument } from '..'
+import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
 
 export interface TestCodegenOptions {
@@ -33,15 +33,6 @@ export function createTestGenerator(): CodegenGenerator<TestCodegenOptions> {
 	return constructGenerator(testGeneratorConstructor)
 }
 
-export function createTestConfig(inputPath: string): CodegenConfig {
-	const config: CodegenConfig = {
-		inputPath: path.resolve(__dirname, inputPath),
-		generator: 'TODO', // TODO
-		outputPath: 'TODO', // TODO
-	}
-	return config
-}
-
 export async function createTestDocument(inputPath: string): Promise<CodegenDocument> {
 	return (await createTestResult(inputPath)).result
 }
@@ -53,9 +44,9 @@ export interface TestResult {
 
 export async function createTestResult(inputPath: string): Promise<TestResult> {
 	const generator = createTestGenerator()
-	const config = createTestConfig(inputPath)
-	const state = await createCodegenState(config, generator)
-	const result = createCodegenDocument(state)
+	const state = createCodegenState({}, generator)
+	const input = await createCodegenInput(path.resolve(__dirname, inputPath))
+	const result = createCodegenDocument(input, state)
 	return {
 		result,
 		state,

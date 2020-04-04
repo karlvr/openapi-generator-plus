@@ -1,9 +1,9 @@
 import { promises as fs } from 'fs'
-import { constructGenerator, createCodegenDocument, createCodegenState } from '@openapi-generator-plus/core'
+import { constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput } from '@openapi-generator-plus/core'
 import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
-import { CommandLineOptions } from './types'
+import { CommandLineOptions, CommandLineConfig } from './types'
 import { createConfig } from './config'
 import watch from 'node-watch'
 import glob from 'glob-promise'
@@ -13,14 +13,15 @@ function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
 }
 
-async function generate(config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor<{}>): Promise<boolean> {
+async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor<{}>): Promise<boolean> {
 	const generator = constructGenerator(generatorConstructor)
 
-	const state = await createCodegenState(config, generator)
+	const state = createCodegenState(config, generator)
+	const input = await createCodegenInput(config.inputPath)
 
 	let doc: CodegenDocument
 	try {
-		doc = createCodegenDocument(state)
+		doc = createCodegenDocument(input, state)
 	} catch (error) {
 		console.error('Failed to process the API specification', error)
 		return false
@@ -95,7 +96,7 @@ export async function run() {
 		process.exit(0)
 	}
 
-	let config: CodegenConfig
+	let config: CommandLineConfig
 	try {
 		config = await createConfig(commandLineOptions)
 	} catch (error) {

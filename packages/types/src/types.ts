@@ -331,7 +331,7 @@ export interface CodegenModel {
 	name: string
 	modelType: CodegenModelType
 	description?: string
-	properties: CodegenProperty[]
+	properties?: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions
 
 	nativeType: CodegenNativeType

@@ -1141,12 +1141,13 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		name = uniqueModelName(name, parentNames, state)
 	}
 	
-	const properties: CodegenProperty[] = []
+	let properties: CodegenProperty[] | undefined
 	const models: CodegenModel[] = []
 
 	const nestedParentNames = parentNames ? [...parentNames, name] : [name]
 
 	if (typeof schema.properties === 'object') {
+		properties = []
 		for (const propertyName in schema.properties) {
 			const required = typeof schema.required === 'object' ? schema.required.indexOf(propertyName) !== -1 : false
 			const propertySchema = schema.properties[propertyName]
@@ -1169,7 +1170,12 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		 * _this_ model.
 		 */
 		const subModel = toCodegenModel(name, parentNames, subSchema, CodegenModelType.INLINE, state)
-		properties.push(...subModel.properties)
+		if (!properties) {
+			properties = []
+		}
+		if (subModel.properties) {
+			properties.push(...subModel.properties)
+		}
 		if (subModel.models) {
 			models.push(...subModel.models)
 		}

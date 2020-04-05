@@ -37,7 +37,7 @@ function processCodegenDocument(doc: CodegenDocument) {
 	}
 
 	/* Sort models */
-	doc.models.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
+	doc.models.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function processCodegenOperationGroup(group: CodegenOperationGroup) {

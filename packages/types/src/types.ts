@@ -437,6 +437,8 @@ export interface CodegenParameter extends CodegenPropertyTypeInfo, CodegenTypes 
 	isCookieParam?: boolean
 	isBodyParam?: boolean
 	isFormParam?: boolean
+
+	consumes?: CodegenMediaType[]
 }
 
 export interface CodegenVendorExtensions {

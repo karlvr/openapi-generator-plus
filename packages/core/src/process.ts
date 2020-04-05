@@ -251,6 +251,15 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
 	}
 
+	/* Apply special body param properties */
+	if (parameters) {
+		for (const p of parameters) {
+			if (p.isBodyParam) {
+				p.consumes = consumes
+			}
+		}
+	}
+
 	let securityRequirements: CodegenSecurityRequirement[] | undefined
 	if (operation.security) {
 		securityRequirements = toCodegenSecurityRequirements(operation.security, state)

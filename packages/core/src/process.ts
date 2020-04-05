@@ -227,7 +227,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			collectAnonymousModelsFromContents(requestBodyContents, state)
 
 			const requestBodyParameter: CodegenParameter = {
-				name: 'body',
+				name: 'request',
 				in: 'body',
 
 				...commonTypes,

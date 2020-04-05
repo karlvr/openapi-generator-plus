@@ -9,6 +9,8 @@ export enum CodegenSpecVersion {
 export interface InternalCodegenState<O = {}> extends CodegenState<O>, CodegenInputDocument {
 	/** A hash of fully qualified model names that have been used */
 	usedModelFullyQualifiedNames: { [name: string]: boolean }
+	/** A hash of generated models indexed by fully qualified model name */
+	fullyQualifiedModels: { [name: string]: CodegenModel }
 	/** An array of inline models to be added to the export */
 	inlineModels: CodegenModel[]
 	specVersion: CodegenSpecVersion

@@ -345,6 +345,7 @@ export interface CodegenModel {
 
 	/** Parent model */
 	parent?: CodegenNativeType
+	parentModel?: CodegenModel
 
 	/** Nested models */
 	models?: CodegenModel[]

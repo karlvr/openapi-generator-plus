@@ -1140,6 +1140,13 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		/* Model types that aren't defined in the spec need to be made unique */
 		name = uniqueModelName(name, parentNames, state)
 	}
+
+	const fqmn = fullyQualifiedModelName(name, parentNames)
+
+	/* Check if we've already generated this model, and return it */
+	if (state.fullyQualifiedModels[fqmn]) {
+		return state.fullyQualifiedModels[fqmn]
+	}
 	
 	let properties: CodegenProperty[] | undefined
 	const models: CodegenModel[] = []
@@ -1163,6 +1170,7 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	let enumValueNativeType: CodegenNativeType | undefined
 	let enumValues: CodegenEnumValue[] | undefined
 	let parent: CodegenNativeType | undefined
+	let parentModel: CodegenModel | undefined
 
 	function absorbSubSchema(subSchema: OpenAPIX.SchemaObject) {
 		/* We don't actually care about the model name, as we just use the properties, but
@@ -1188,17 +1196,15 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		if (allOf.length) {
 			const possibleParentSchema = allOf[0]
 			if (isOpenAPIReferenceObject(possibleParentSchema)) {
-				const parentSchemaName = nameFromRef(possibleParentSchema.$ref)
+				parentModel = toCodegenModel(name, parentNames, possibleParentSchema, CodegenModelType.INLINE, state)
 
-				if (parentSchemaName) {
-					parent = state.generator.toNativeType({
-						type: 'object',
-						purpose: CodegenTypePurpose.PARENT,
-						modelNames: [parentSchemaName],
-					}, state)
+				parent = state.generator.toNativeType({
+					type: 'object',
+					purpose: CodegenTypePurpose.PARENT,
+					modelNames: [parentModel.name],
+				}, state)
 
-					allOf.shift()
-				}
+				allOf.shift()
 			}
 		}
 
@@ -1286,15 +1292,15 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 		enumValueNativeType,
 		enumValues,
 		parent,
+		parentModel,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
 		model.deprecated = schema.deprecated
 	}
 
-	if (modelType !== CodegenModelType.DEFINED) {
-		state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, parentNames)] = true
-	}
+	state.usedModelFullyQualifiedNames[fqmn] = true
+	state.fullyQualifiedModels[fqmn] = model
 	return model
 }
 

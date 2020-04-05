@@ -1,0 +1,25 @@
+---
+swagger: '2.0'
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test1:
+    get:
+      operationId: getTest1
+      produces: [application/json; charset=UTF-8]
+      responses:
+        200:
+          description: OK
+          schema:
+            type: object
+            required: [prop1]
+            properties:
+              prop1:
+                type: string
+definitions:
+  getTest1_200_response_model:
+    type: object
+    properties:
+      prop2:
+        type: string

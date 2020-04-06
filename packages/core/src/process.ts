@@ -172,6 +172,8 @@ function extractCodegenPropertyTypesInfo(source: CodegenPropertyTypeInfo): Codeg
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,
 		deprecated: source.deprecated,
+
+		...extractCodegenTypes(source),
 	}
 }
 
@@ -814,6 +816,7 @@ function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): Codegen
 				nativeType: content.property.nativeType,
 				componentType: content.property.componentType,
 				componentNativeType: content.property.componentNativeType,
+				...toCodegenTypes(content.property.propertyType),
 			}
 		} else {
 			if (content.property.type !== result.type) {
@@ -1294,6 +1297,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 				type: 'string',
 				propertyType: CodegenPropertyType.STRING,
 				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }, state),
+				...toCodegenTypes(CodegenPropertyType.STRING),
 			}
 			
 			for (const subSchema of oneOf) {

@@ -168,7 +168,7 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-export interface CodegenResponse extends CodegenPropertyTypeInfoPartial, CodegenTypesPartial {
+export interface CodegenResponse extends CodegenPropertyTypeInfoPartial {
 	code: number
 	description: string
 
@@ -262,8 +262,6 @@ export interface CodegenTypes {
 	propertyType: CodegenPropertyType
 }
 
-export type CodegenTypesPartial = Partial<CodegenTypes>
-
 export enum CodegenPropertyType {
 	OBJECT = 'OBJECT',
 	MAP = 'MAP',
@@ -280,7 +278,7 @@ export enum CodegenPropertyType {
 
 export type CodegenPropertyTypeInfoPartial = Partial<CodegenPropertyTypeInfo>
 
-export interface CodegenPropertyTypeInfo {
+export interface CodegenPropertyTypeInfo extends CodegenTypes {
 	/** OpenAPI type */
 	type: string
 	format?: string
@@ -299,7 +297,7 @@ export interface CodegenPropertyTypeInfo {
 }
 
 /* See DefaultCodegen.fromProperty */
-export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
+export interface CodegenProperty extends CodegenPropertyTypeInfo {
 	name: string
 	description?: string
 	title?: string
@@ -457,7 +455,7 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-export interface CodegenParameter extends CodegenPropertyTypeInfo, CodegenTypes {
+export interface CodegenParameter extends CodegenPropertyTypeInfo {
 	name: string
 	in: CodegenParameterIn
 	

@@ -218,8 +218,7 @@ export interface CodegenNativeTypeConstructor {
 		wireType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
-		componentType?: string | null
-		componentWireType?: string | null
+		componentType?: CodegenNativeType | null
 	}): CodegenNativeType
 }
 
@@ -242,13 +241,10 @@ export interface CodegenNativeType {
 	 */
 	concreteType?: string
 	/**
-	 * The native language type when this type is a component of another type, e.g. an array
+	 * The native language type when this type is a component of another type, e.g. an array.
+	 * NOTE: The `componentType` may be set to `this` if there is no special component type for this type.
 	 */
-	componentType?: string
-	/**
-	 * The wire type when this type is a component of another type. Defaults to `componentType`
-	 */
-	componentWireType?: string
+	componentType?: CodegenNativeType
 
 	toString(): string
 

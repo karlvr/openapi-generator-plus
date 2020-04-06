@@ -641,6 +641,12 @@ function toCodegenResponses(operation: OpenAPI.Operation, parentName: string, st
  * @param $ref 
  */
 function nameFromRef($ref: string): string | undefined {
+	const i = $ref.indexOf('#')
+	if (i === -1) {
+		return undefined
+	}
+
+	$ref = $ref.substring(i + 1)
 	const components = $ref.split('/')
 	return components[components.length - 1]
 }

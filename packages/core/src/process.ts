@@ -810,13 +810,11 @@ function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): Codegen
 			if (content.property.format !== result.format) {
 				return undefined
 			}
-			if (content.property.nativeType !== result.nativeType) {
-				return undefined
-			}
-			if (content.property.componentType !== result.componentType) {
-				return undefined
-			}
-			if (content.property.componentNativeType !== result.componentNativeType) {
+			if (content.property.nativeType && result.nativeType) {
+				if (!content.property.nativeType.equals(result.nativeType)) {
+					return undefined
+				}
+			} else if (content.property.nativeType !== result.nativeType) {
 				return undefined
 			}
 		}

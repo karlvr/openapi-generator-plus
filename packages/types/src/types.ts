@@ -254,6 +254,13 @@ export interface CodegenNativeType {
 
 	equals(other: CodegenNativeType | undefined): boolean
 
+	/**
+	 * Transform this native type in-place.
+	 * We transform in place so that all the places that this native type are used will
+	 * receive the changes.
+	 */
+	transform(transformer: CodegenNativeTypeTransformer): void
+
 }
 
 export enum CodegenPropertyType {

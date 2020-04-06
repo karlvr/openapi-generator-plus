@@ -46,6 +46,14 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 	public toString() {
 		return this.nativeType
 	}
+
+	public transform(transformer: CodegenNativeTypeTransformer) {
+		const saveTransformer = this.transformer
+		this.transformer = (nativeTypeString) => {
+			const t = saveTransformer(nativeTypeString)
+			return t && transformer(t)
+		}
+	}
 }
 export class CodegenNativeTypeImpl implements CodegenNativeType {
 
@@ -85,6 +93,16 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 		}
 		return this.nativeType === other.nativeType && this.wireType === other.wireType && this.literalType === other.literalType
 			&& this.concreteType === other.concreteType && (this.componentType === other.componentType || (!!this.componentType && this.componentType.equals(other.componentType)))
+	}
+
+	public transform(transformer: CodegenNativeTypeTransformer) {
+		this.nativeType = transformer(this.nativeType)!
+		this.wireType = this.wireType && transformer(this.wireType)
+		this.literalType = this.literalType && transformer(this.literalType)
+		this.concreteType = this.concreteType && transformer(this.concreteType)
+		if (this.componentType && this.componentType !== this) {
+			this.componentType = new CodegenTransformingNativeTypeImpl(this.componentType, transformer)
+		}
 	}
 }
 
@@ -140,6 +158,10 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.nativeType
 	}
 
+	public transform() {
+		throw new Error('Transforming not supported here yet')
+	}
+
 	private compose(nativeTypes: (string | undefined)[]): string | undefined {
 		const filteredNativeTypes = allOrNothing(nativeTypes)
 		return filteredNativeTypes && this.composer(filteredNativeTypes)
@@ -186,6 +208,10 @@ export class CodegenFullTransformingNativeTypeImpl {
 
 	public toString() {
 		return this.nativeType
+	}
+
+	public transform() {
+		throw new Error('Transforming not supported here yet')
 	}
 
 	private get wrapped(): CodegenNativeType {
@@ -239,6 +265,10 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 
 	public toString() {
 		return this.nativeType
+	}
+
+	public transform() {
+		throw new Error('Transforming not supported here yet')
 	}
 
 	private compose(nativeTypes: (string | undefined)[], composer: CodegenNativeTypeComposer): string | undefined {

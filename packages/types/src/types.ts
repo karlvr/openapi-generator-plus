@@ -224,6 +224,8 @@ export interface CodegenNativeTypeConstructor {
 	}): CodegenNativeType
 }
 
+export type CodegenNativeTypeTransformer = (nativeTypeString: string) => string | undefined
+
 export interface CodegenNativeType {
 	/** The type in the native language */
 	nativeType: string

@@ -870,133 +870,66 @@ function toCodegenMediaType(mediaType: string): CodegenMediaType {
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scopeNames: string[], state: InternalCodegenState): CodegenProperty {
 	/* The name of the schema, which can be used to name custom types */
-	let refName: string | undefined
-
-	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
-	let description: string | undefined = (schema as OpenAPIV2.SchemaObject).description
-
-	if (isOpenAPIReferenceObject(schema)) {
-		refName = nameFromRef(schema.$ref)
-	}
-
-	schema = resolveReference(schema, state)
-
+	const refName = isOpenAPIReferenceObject(schema) ? nameFromRef(schema.$ref) : undefined
+	
 	let type: string
 	let format: string | undefined
 	let nativeType: CodegenNativeType
 	let models: CodegenModel[] | undefined
-	let isEnum = false
-	let isMap = false
 	let componentProperty: CodegenProperty | undefined
+	let propertyType: CodegenPropertyType
+
+	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
+	let description = (schema as OpenAPIV2.SchemaObject).description
+
+	const originalSchema = schema
+	schema = resolveReference(schema, state)
+
+	if (isModelSchema(schema, state)) {
+		const model = toCodegenModel(name, scopeNames, originalSchema, state)
+		type = model.type
+		format = model.format
+		nativeType = model.nativeType
+		if (!refName) {
+			models = [model]
+		}
+		propertyType = model.propertyType
+	} else {
+		if (schema.type === 'array') {
+			if (!schema.items) {
+				throw new Error('items missing for schema type "array"')
+			}
+			type = schema.type
+	
+			/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
+			componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : scopeNames, state)
+			nativeType = state.generator.toNativeArrayType({
+				componentNativeType: componentProperty.nativeType,
+				required,
+				uniqueItems: schema.uniqueItems,
+				modelNames: refName ? [refName] : undefined,
+				purpose: CodegenArrayTypePurpose.PROPERTY,
+			}, state)
+			models = componentProperty.models
+			propertyType = CodegenPropertyType.ARRAY
+		} else if (typeof schema.type === 'string') {
+			type = schema.type
+			format = schema.format
+			nativeType = state.generator.toNativeType({
+				type,
+				format,
+				required,
+				purpose: CodegenTypePurpose.PROPERTY,
+			}, state)
+			propertyType = toCodegenPropertyType(type, format, false, false)
+		} else {
+			throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
+		}
+	}
 
 	if (!description) {
 		description = schema.description
 	}
-
-	if (schema.enum) {
-		isEnum = true
-		if (!schema.type) {
-			type = 'string'
-		} else if (typeof schema.type === 'string') {
-			type = schema.type
-		} else {
-			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
-		}
-
-		let enumName = state.generator.toEnumName(name, state)
-		if (!refName) {
-			const model = toCodegenModel(enumName, scopeNames, schema, state)
-			enumName = model.name
-			models = [model]
-		}
-		nativeType = state.generator.toNativeType({
-			type: 'object',
-			modelNames: refName ? [refName] : [...scopeNames, enumName],
-			purpose: CodegenTypePurpose.ENUM,
-		}, state)
-	} else if (schema.type === 'array') {
-		if (!schema.items) {
-			throw new Error('items missing for schema type "array"')
-		}
-		type = schema.type
-
-		/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-		componentProperty = toCodegenProperty(name, schema.items, true, refName ? [refName] : scopeNames, state)
-		nativeType = state.generator.toNativeArrayType({
-			componentNativeType: componentProperty.nativeType,
-			required,
-			uniqueItems: schema.uniqueItems,
-			modelNames: refName ? [refName] : undefined,
-			purpose: CodegenArrayTypePurpose.PROPERTY,
-		}, state)
-		models = componentProperty.models
-	} else if (schema.type === 'object') {
-		type = schema.type
-
-		if (schema.additionalProperties) {
-			isMap = true
-
-			/* Map
-			 * See https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#model-with-mapdictionary-properties
-			 */
-			const keyNativeType = state.generator.toNativeType({
-				type: 'string',
-				purpose: CodegenTypePurpose.KEY,
-			}, state)
-			componentProperty = toCodegenProperty(name, schema.additionalProperties, true, refName ? [refName] : scopeNames, state)
-
-			nativeType = state.generator.toNativeMapType({
-				keyNativeType,
-				componentNativeType: componentProperty.nativeType,
-				modelNames: refName ? [refName] : undefined,
-				purpose: CodegenMapTypePurpose.PROPERTY,
-			}, state)
-			models = componentProperty.models
-		} else {
-			let modelName = state.generator.toModelNameFromPropertyName(name, state)
-			if (!refName) {
-				const model = toCodegenModel(modelName, refName ? [refName] : scopeNames, schema, state)
-				modelName = model.name
-				models = [model]
-			}
-			nativeType = state.generator.toNativeType({
-				type,
-				format: schema.format,
-				required,
-				modelNames: refName ? [refName] : [...scopeNames, modelName],
-				purpose: CodegenTypePurpose.PROPERTY,
-			}, state)
-		}
-	} else if (schema.allOf || schema.anyOf || schema.oneOf) {
-		type = 'object'
-
-		let modelName = state.generator.toModelNameFromPropertyName(name, state)
-		if (!refName) {
-			const model = toCodegenModel(modelName, refName ? [refName] : scopeNames, schema, state)
-			modelName = model.name
-			models = [model]
-		}
-		nativeType = state.generator.toNativeType({
-			type,
-			format: schema.format,
-			required,
-			modelNames: refName ? [refName] : [...scopeNames, modelName],
-			purpose: CodegenTypePurpose.PROPERTY,
-		}, state)
-	} else if (typeof schema.type === 'string') {
-		type = schema.type
-		format = schema.format
-		nativeType = state.generator.toNativeType({
-			type,
-			format,
-			required,
-			purpose: CodegenTypePurpose.PROPERTY,
-		}, state)
-	} else {
-		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
-	}
-
-	const propertyType = toCodegenPropertyType(type, format, isEnum, isMap)
 
 	const property: CodegenProperty = {
 		name,
@@ -1118,6 +1051,13 @@ function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scopeNames: str
 	return properties
 }
 
+function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
+	const resolvedSchema = resolveReference(schema, state)
+
+	return (resolvedSchema.enum || resolvedSchema.type === 'object' ||
+		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf)
+}
+
 function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
 
@@ -1132,6 +1072,12 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		if (refName) {
 			name = refName
 			scopeNames = undefined
+		}
+	} else {
+		if (schema.enum) {
+			name = state.generator.toEnumName(name, state)
+		} else {
+			name = state.generator.toModelNameFromPropertyName(name, state)
 		}
 	}
 	

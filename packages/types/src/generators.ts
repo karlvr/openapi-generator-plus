@@ -1,10 +1,12 @@
 import { CodegenGenerator, CodegenLiteralValueOptions, CodegenState, CodegenNativeTypeConstructor } from './types'
 
+export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>, 'toEnumMemberName' | 'toIteratedModelName' | 'toModelNameFromPropertyName'>
+
 /**
  * The options given to a generator module function when it is constructed.
  */
 export interface CodegenGeneratorOptions {
-	baseGenerator: <O>() => Pick<CodegenGenerator<O>, 'toIteratedModelName' | 'toModelNameFromPropertyName'>
+	baseGenerator: CodegenBaseGeneratorConstructor
 	InvalidModelError: ErrorConstructor
 	NativeType: CodegenNativeTypeConstructor
 	utils: {

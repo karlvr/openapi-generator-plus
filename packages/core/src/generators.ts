@@ -1,4 +1,4 @@
-import { CodegenGenerator, CodegenGeneratorOptions } from '@openapi-generator-plus/types'
+import { CodegenBaseGeneratorConstructor, CodegenGeneratorOptions } from '@openapi-generator-plus/types'
 import pluralize from 'pluralize'
 import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
@@ -9,8 +9,9 @@ import CodegenNativeTypeImpl from './native-type'
  * This enables the core to introduce new CodegenGenerator methods and add default
  * implementations here, if appropriate.
  */
-function baseGenerator<O>(): Pick<CodegenGenerator<O>, 'toIteratedModelName' | 'toModelNameFromPropertyName'> {
+const baseGenerator: CodegenBaseGeneratorConstructor = function() {
 	return {
+		toEnumMemberName: (name, state) => state.generator.toConstantName(name, state),
 		toIteratedModelName: (name, _, iteration) => `${name}${iteration + 1}`,
 		toModelNameFromPropertyName: (name, state) => {
 			return state.generator.toClassName(pluralize.singular(name), state)

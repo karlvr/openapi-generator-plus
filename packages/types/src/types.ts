@@ -16,9 +16,13 @@ export interface CodegenState<O = {}> {
  * The interface implemented by language-specific generator modules.
  */
 export interface CodegenGenerator<O> {
+	/** Convert the given name to the native class name style */
 	toClassName: (name: string, state: CodegenState<O>) => string
+	/** Convert the given name to the native identifier style */
 	toIdentifier: (name: string, state: CodegenState<O>) => string
+	/** Convert the given name to the native constant identifier style */
 	toConstantName: (name: string, state: CodegenState<O>) => string
+	/** Convert the given name to the native enum name style */
 	toEnumName: (name: string, state: CodegenState<O>) => string
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
 	/** Convert a property name to a name suitable for a model class */

@@ -29,12 +29,17 @@ function groupOperations(operationInfos: CodegenOperation[], state: InternalCode
 	return _.values(groups)
 }
 
-function processCodegenDocument(doc: CodegenDocument) {
-	/* Sort groups */
-	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
+function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenState) {
+	/* Process groups */
 	for (const group of doc.groups) {
 		processCodegenOperationGroup(group)
 	}
+
+	/* Process models */
+	doc.models.forEach(model => processCodegenModel(model, state))
+
+	/* Sort groups */
+	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
 
 	/* Sort models */
 	doc.models.sort((a, b) => a.name.localeCompare(b.name))
@@ -42,6 +47,12 @@ function processCodegenDocument(doc: CodegenDocument) {
 
 function processCodegenOperationGroup(group: CodegenOperationGroup) {
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function processCodegenModel(model: CodegenModel, state: InternalCodegenState) {
+	if (state.generator.postProcessModel) {
+		state.generator.postProcessModel(model, state)
+	}
 }
 
 /**
@@ -1512,6 +1523,6 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,
 	}
 
-	processCodegenDocument(doc)
+	processCodegenDocument(doc, state)
 	return doc
 }

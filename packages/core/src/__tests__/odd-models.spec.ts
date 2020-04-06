@@ -6,8 +6,9 @@ test('array of strings', async() => {
 	const model1 = result.models[0]
 	expect(model1.name).toEqual('ArrayOfStrings')
 	expect(model1.nativeType.toString()).toEqual('ArrayOfStrings')
-	expect(model1.parent).not.toBeUndefined()
-	expect(model1.parent?.toString()).toEqual('array string')
+	expect(model1.parent).toBeUndefined()
+	expect(model1.parentNativeType).not.toBeUndefined()
+	expect(model1.parentNativeType?.toString()).toEqual('array string')
 })
 
 test('uuid', async() => {

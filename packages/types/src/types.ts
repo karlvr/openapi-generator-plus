@@ -351,8 +351,11 @@ export interface CodegenModel {
 	enumValues?: CodegenEnumValue[]
 
 	/** Parent model */
-	parent?: CodegenNativeType
-	parentModel?: CodegenModel
+	parent?: CodegenModel
+	/** The native type of the parent.
+	 * This may be set even when `parent` is not set, in case the native parent is not a model.
+	 */
+	parentNativeType?: CodegenNativeType
 
 	/** Nested models */
 	models?: CodegenModel[]

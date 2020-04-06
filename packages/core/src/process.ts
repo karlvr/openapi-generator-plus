@@ -1230,8 +1230,8 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			if (isOpenAPIReferenceObject(possibleParentSchema)) {
 				const parentModel = toCodegenModel(name, scopeNames, possibleParentSchema, state)
 
-				model.parentModel = parentModel
-				model.parent = parentModel.nativeType
+				model.parent = parentModel
+				model.parentNativeType = parentModel.nativeType
 
 				allOf.shift()
 			}
@@ -1341,7 +1341,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		}
 
 		const componentProperty = toCodegenProperty(name, schema.items, true, [], state)
-		model.parent = state.generator.toNativeArrayType({
+		model.parentNativeType = state.generator.toNativeArrayType({
 			componentNativeType: componentProperty.nativeType,
 			uniqueItems: schema.uniqueItems,
 			purpose: CodegenArrayTypePurpose.PARENT,
@@ -1354,7 +1354,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			}, state)
 			const componentProperty = toCodegenProperty(name, schema.additionalProperties, true, [], state)
 
-			model.parent = state.generator.toNativeMapType({
+			model.parentNativeType = state.generator.toNativeMapType({
 				keyNativeType,
 				componentNativeType: componentProperty.nativeType,
 				purpose: CodegenMapTypePurpose.PARENT,
@@ -1383,13 +1383,13 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 	}
 
 	/* Add child model */
-	if (model.parentModel) {
-		if (!model.parentModel.children) {
-			model.parentModel.children = []
+	if (model.parent) {
+		if (!model.parent.children) {
+			model.parent.children = []
 		}
-		model.parentModel.children.push({
+		model.parent.children.push({
 			model,
-			name: ($ref && findDiscriminatorMapping(model.parentModel, $ref)) || model.name,
+			name: ($ref && findDiscriminatorMapping(model.parent, $ref)) || model.name,
 		})
 	}
 
@@ -1424,8 +1424,8 @@ function findDiscriminatorMapping(model: CodegenModel, ref: string): string | un
 		} else {
 			return undefined
 		}
-	} else if (model.parentModel) {
-		return findDiscriminatorMapping(model.parentModel, ref)
+	} else if (model.parent) {
+		return findDiscriminatorMapping(model.parent, ref)
 	}
 }
 

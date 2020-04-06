@@ -216,7 +216,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				throw new Error(`Request body contents is empty: ${path}`)
 			}
 
-			const commonTypes = commonPropertyTypeInfo(requestBodyContents)
+			const commonTypes = commonTypeInfo(requestBodyContents)
 			if (!commonTypes) {
 				throw new Error(`Cannot find common types for request body contents: ${path}`)
 			}
@@ -686,7 +686,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	}
 
 	/* Determine if there's a common type and nativeType */
-	const commonTypes = commonPropertyTypeInfo(contents)
+	const commonTypes = commonTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
 
 	/** Collect anonymous models as we can't add models to responses (YET) */
@@ -786,7 +786,7 @@ function collectExamplesFromContents(contents: CodegenContent[] | undefined): Co
  * Finds the common property type info from the array of CodegenContent, or returns `undefined` if there
  * is no common property type info.
  */
-function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): CodegenTypeInfo | undefined {
+function commonTypeInfo(contents: CodegenContent[] | undefined): CodegenTypeInfo | undefined {
 	if (!contents || !contents.length) {
 		return undefined
 	}

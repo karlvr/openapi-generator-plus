@@ -168,7 +168,7 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-export interface CodegenResponse extends CodegenPropertyTypeInfoPartial {
+export interface CodegenResponse extends Partial<CodegenPropertyTypeInfo> {
 	code: number
 	description: string
 
@@ -275,8 +275,6 @@ export enum CodegenPropertyType {
 	TIME = 'TIME',
 	FILE = 'FILE',
 }
-
-export type CodegenPropertyTypeInfoPartial = Partial<CodegenPropertyTypeInfo>
 
 export interface CodegenPropertyTypeInfo extends CodegenTypes {
 	/** OpenAPI type */

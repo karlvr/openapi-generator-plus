@@ -24,6 +24,8 @@ export interface CodegenGenerator<O> {
 	toConstantName: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum name style */
 	toEnumName: (name: string, state: CodegenState<O>) => string
+	/** Convert the given name to the native enum member name style */
+	toEnumMemberName: (name: string, state: CodegenState<O>) => string
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
 	/** Convert a property name to a name suitable for a model class */
 	toModelNameFromPropertyName: (name: string, state: CodegenState<O>) => string
@@ -437,7 +439,7 @@ export interface CodegenNativeMapTypeOptions {
 }
 
 export interface CodegenEnumValue {
-	value: any
+	name: string
 	literalValue: string
 }
 

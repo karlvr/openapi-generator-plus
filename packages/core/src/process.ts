@@ -1310,11 +1310,6 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
 
-		const enumNameLiteralOptions: CodegenLiteralValueOptions = {
-			type: 'string',
-			propertyType: CodegenPropertyType.ENUM,
-			nativeType,
-		}
 		const enumValueLiteralOptions: CodegenLiteralValueOptions = {
 			type: enumValueType,
 			format: enumValueFormat,
@@ -1322,9 +1317,9 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			nativeType: enumValueNativeType,
 		}
 		
-		const enumValues: CodegenEnumValue[] | undefined = schema.enum ? schema.enum.map(value => ({
-			value, //: state.generator.toLiteral(value, enumNameLiteralOptions, state),
-			literalValue: state.generator.toLiteral(value, enumValueLiteralOptions, state),
+		const enumValues: CodegenEnumValue[] | undefined = schema.enum ? schema.enum.map(name => ({
+			name: state.generator.toEnumMemberName(name, state),
+			literalValue: state.generator.toLiteral(name, enumValueLiteralOptions, state),
 		})) : undefined
 
 		if (enumValues) {

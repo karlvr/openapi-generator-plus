@@ -12,6 +12,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toIdentifier: (name) => `${name}_identifier`,
 	toConstantName: (name) => `${name}_contant`,
 	toEnumName: (name) => `${name}_enum`,
+	toEnumMemberName: (name) => `${name}_enum_member`,
 	toOperationName: (path, method) => `${method} ${path} operation`,
 	toModelNameFromPropertyName: (name) => `${name}_model`,
 	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,

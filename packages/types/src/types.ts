@@ -168,7 +168,7 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-export interface CodegenResponse extends Partial<CodegenPropertyTypeInfo> {
+export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	code: number
 	description: string
 
@@ -182,7 +182,7 @@ export interface CodegenResponse extends Partial<CodegenPropertyTypeInfo> {
 	headers?: CodegenProperty[]
 }
 
-export interface CodegenContent extends CodegenTypes {
+export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
 	property: CodegenProperty
 	examples?: CodegenExample[]
@@ -249,19 +249,6 @@ export interface CodegenNativeType {
 
 }
 
-export interface CodegenTypes {
-	isObject: boolean
-	isMap: boolean
-	isArray: boolean
-	isBoolean: boolean
-	isNumber: boolean
-	isEnum: boolean
-	isDateTime: boolean
-	isDate: boolean
-	isTime: boolean
-	propertyType: CodegenPropertyType
-}
-
 export enum CodegenPropertyType {
 	OBJECT = 'OBJECT',
 	MAP = 'MAP',
@@ -276,7 +263,7 @@ export enum CodegenPropertyType {
 	FILE = 'FILE',
 }
 
-export interface CodegenPropertyTypeInfo extends CodegenTypes {
+export interface CodegenTypeInfo {
 	/** OpenAPI type */
 	type: string
 	format?: string
@@ -295,7 +282,7 @@ export interface CodegenPropertyTypeInfo extends CodegenTypes {
 }
 
 /* See DefaultCodegen.fromProperty */
-export interface CodegenProperty extends CodegenPropertyTypeInfo {
+export interface CodegenProperty extends CodegenTypeInfo {
 	name: string
 	description?: string
 	title?: string
@@ -321,7 +308,7 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo {
 	models?: CodegenModel[]
 }
 
-export interface CodegenModel {
+export interface CodegenModel extends CodegenTypeInfo {
 	name: string
 	description?: string
 
@@ -343,7 +330,6 @@ export interface CodegenModel {
 	nativeType: CodegenNativeType
 
 	/** Enums */
-	isEnum?: boolean
 	/** The native type of the enum value */
 	enumValueNativeType?: CodegenNativeType
 	/** The values making up the enum */
@@ -367,7 +353,7 @@ export interface CodegenModelReference {
 	name: string
 }
 
-export interface CodegenDiscriminator extends CodegenPropertyTypeInfo {
+export interface CodegenDiscriminator extends CodegenTypeInfo {
 	name: string
 	mappings?: CodegenDiscriminatorMappings
 	references: CodegenModelReference[]
@@ -453,7 +439,7 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-export interface CodegenParameter extends CodegenPropertyTypeInfo {
+export interface CodegenParameter extends CodegenTypeInfo {
 	name: string
 	in: CodegenParameterIn
 	

@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -97,15 +97,13 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeNames: string, st
 	const result: CodegenParameter = {
 		name: parameter.name,
 
-		...extractCodegenPropertyTypesInfo(property),
+		...extractCodegenTypeInfo(property),
 
 		in: parameter.in as CodegenParameterIn,
 		description: parameter.description,
 		required: parameter.required,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 		examples,
-
-		...extractCodegenTypes(property),
 	}
 	switch (parameter.in) {
 		case 'query':
@@ -134,31 +132,10 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeNames: string, st
 	return result
 }
 
-/** Extract just the CodegenTypes from an object */
-function extractCodegenTypes(object: CodegenTypes): CodegenTypes
-function extractCodegenTypes(object: CodegenTypes | undefined, defaultPropertyType: CodegenPropertyType): CodegenTypes
-function extractCodegenTypes(object: CodegenTypes | undefined, defaultPropertyType?: CodegenPropertyType): CodegenTypes {
-	if (!object) {
-		return toCodegenTypes(defaultPropertyType!)
-	}
-	return {
-		isObject: object.isObject,
-		isMap: object.isMap,
-		isArray: object.isArray,
-		isBoolean: object.isBoolean,
-		isNumber: object.isNumber,
-		isEnum: object.isEnum,
-		isDateTime: object.isDateTime,
-		isDate: object.isDate,
-		isTime: object.isTime,
-		propertyType: object.propertyType,
-	}
-}
-
 /**
- * Extract _just_ the CodegenPropertyTypeInfo properties from the source.
+ * Extract _just_ the CodegenTypeInfo properties from the source.
  */
-function extractCodegenPropertyTypesInfo(source: CodegenPropertyTypeInfo): CodegenPropertyTypeInfo {
+function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo {
 	return {
 		type: source.type,
 		format: source.format,
@@ -172,8 +149,6 @@ function extractCodegenPropertyTypesInfo(source: CodegenPropertyTypeInfo): Codeg
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,
 		deprecated: source.deprecated,
-
-		...extractCodegenTypes(source),
 	}
 }
 
@@ -251,7 +226,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 				isBodyParam: true,
 
-				...extractCodegenTypes(requestBodyContents[0]),
+				...extractCodegenTypeInfo(requestBodyContents[0]),
 			}
 
 			if (!parameters) {
@@ -685,7 +660,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 					mediaType,
 					property,
 					examples: examples?.filter(example => example.mediaType?.mediaType === mediaType.mediaType),
-					...extractCodegenTypes(property),
+					...extractCodegenTypeInfo(property),
 				}
 				return result
 			}) : undefined
@@ -716,7 +691,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		examples: collectExamplesFromContents(contents),
 		vendorExtensions: toCodegenVendorExtensions(response),
 
-		...(contents && contents.length ? extractCodegenTypes(contents[0]) : {}),
+		...(contents && contents.length ? extractCodegenTypeInfo(contents[0]) : {}),
 	}
 }
 
@@ -800,12 +775,12 @@ function collectExamplesFromContents(contents: CodegenContent[] | undefined): Co
  * Finds the common property type info from the array of CodegenContent, or returns `undefined` if there
  * is no common property type info.
  */
-function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): CodegenPropertyTypeInfo | undefined {
+function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): CodegenTypeInfo | undefined {
 	if (!contents || !contents.length) {
 		return undefined
 	}
 
-	let result: CodegenPropertyTypeInfo | undefined
+	let result: CodegenTypeInfo | undefined
 	
 	for (const content of contents) {
 		if (!result) {
@@ -816,7 +791,6 @@ function commonPropertyTypeInfo(contents: CodegenContent[] | undefined): Codegen
 				nativeType: content.property.nativeType,
 				componentType: content.property.componentType,
 				componentNativeType: content.property.componentNativeType,
-				...toCodegenTypes(content.property.propertyType),
 			}
 		} else {
 			if (content.property.type !== result.type) {
@@ -863,7 +837,7 @@ function toCodegenContentArray(name: string, content: { [media: string]: OpenAPI
 			mediaType: toCodegenMediaType(mediaType),
 			property,
 			examples,
-			...extractCodegenTypes(property),
+			...extractCodegenTypeInfo(property),
 		}
 		result.push(item)
 	}
@@ -1053,8 +1027,6 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 		uniqueItems: schema.uniqueItems,
 		multipleOf: schema.multipleOf,
 
-		...toCodegenTypes(propertyType),
-
 		models,
 	}
 
@@ -1093,21 +1065,6 @@ function toCodegenPropertyType(type: string, format: string | undefined, isEnum:
 		return CodegenPropertyType.FILE
 	} else {
 		throw new Error(`Unsupported property type: ${type}`)
-	}
-}
-
-function toCodegenTypes(propertyType: CodegenPropertyType): CodegenTypes {
-	return {
-		isObject: propertyType === CodegenPropertyType.OBJECT,
-		isMap: propertyType === CodegenPropertyType.MAP,
-		isArray: propertyType === CodegenPropertyType.ARRAY,
-		isBoolean: propertyType === CodegenPropertyType.BOOLEAN,
-		isNumber: propertyType === CodegenPropertyType.NUMBER,
-		isEnum: propertyType === CodegenPropertyType.ENUM,
-		isDateTime: propertyType === CodegenPropertyType.DATETIME,
-		isDate: propertyType === CodegenPropertyType.DATE,
-		isTime: propertyType === CodegenPropertyType.TIME,
-		propertyType,
 	}
 }
 
@@ -1199,11 +1156,14 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		modelNames: scopeNames ? [...scopeNames, name] : [name],
 	}, state)
 
+	const isEnum = !!schema.enum
 	const model: CodegenModel = {
 		name,
 		description: schema.description,
 		vendorExtensions,
 		nativeType,
+		type: 'object',
+		propertyType: isEnum ? CodegenPropertyType.ENUM : CodegenPropertyType.OBJECT,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
@@ -1297,7 +1257,6 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 				type: 'string',
 				propertyType: CodegenPropertyType.STRING,
 				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }, state),
-				...toCodegenTypes(CodegenPropertyType.STRING),
 			}
 			
 			for (const subSchema of oneOf) {
@@ -1369,7 +1328,6 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		})) : undefined
 
 		if (enumValues) {
-			model.isEnum = true
 			model.enumValueNativeType = enumValueNativeType
 			model.enumValues = enumValues
 		}
@@ -1413,7 +1371,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 				name: discriminatorProperty.name,
 				mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
 				references: [],
-				...extractCodegenPropertyTypesInfo(discriminatorProperty),
+				...extractCodegenTypeInfo(discriminatorProperty),
 			}
 		}
 	} else {

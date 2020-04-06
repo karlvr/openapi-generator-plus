@@ -1,6 +1,53 @@
-import { CodegenNativeType } from '@openapi-generator-plus/types'
+import { CodegenNativeType, CodegenNativeTypeTransformer, CodegenNativeTypeTransformers, CodegenNativeTypeComposer, CodegenNativeTypeComposers } from '@openapi-generator-plus/types'
 
-export default class CodegenNativeTypeImpl implements CodegenNativeType {
+/**
+ * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
+ * Useful when composing types, and wanting to retain the original `CodegenNativeType` object
+ * in case it changes.
+ */
+export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
+
+	private wrapped: CodegenNativeType
+	private transformer: CodegenNativeTypeTransformer
+
+	public constructor(wrapped: CodegenNativeType, transformer: CodegenNativeTypeTransformer) {
+		this.wrapped = wrapped
+		this.transformer = transformer
+	}
+	
+	public get nativeType() {
+		return this.transformer(this.wrapped.nativeType) || this.wrapped.nativeType
+	}
+
+	public get wireType() {
+		return this.wrapped.wireType && this.transformer(this.wrapped.wireType)
+	}
+
+	public get literalType() {
+		return this.wrapped.literalType && this.transformer(this.wrapped.literalType)
+	}
+
+	public get concreteType() {
+		return this.wrapped.concreteType && this.transformer(this.wrapped.concreteType)
+	}
+
+	public get componentType() {
+		if (this.wrapped.componentType) {
+			return new CodegenTransformingNativeTypeImpl(this.wrapped.componentType, this.transformer)
+		} else {
+			return undefined
+		}
+	}
+
+	public equals(other: CodegenNativeType | undefined): boolean {
+		return other === this
+	}
+
+	public toString() {
+		return this.nativeType
+	}
+}
+export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 	public nativeType: string
 	public wireType?: string
@@ -37,5 +84,174 @@ export default class CodegenNativeTypeImpl implements CodegenNativeType {
 			return false
 		}
 		return this.nativeType === other.nativeType && this.wireType === other.wireType && this.literalType === other.literalType
+			&& this.concreteType === other.concreteType && (this.componentType === other.componentType || (!!this.componentType && this.componentType.equals(other.componentType)))
 	}
+}
+
+function allOrNothing(nativeTypes: (string | undefined)[]): string[] | undefined {
+	const result = nativeTypes.filter(n => n !== undefined)
+	if (result.length) {
+		return result as string[]
+	} else {
+		return undefined
+	}
+}
+
+export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
+
+	private wrapped: CodegenNativeType[]
+	private composer: CodegenNativeTypeComposer
+
+	public constructor(wrapped: CodegenNativeType[], composer: CodegenNativeTypeComposer) {
+		this.wrapped = wrapped
+		this.composer = composer
+	}
+
+	public get nativeType() {
+		return this.composer(this.wrapped.map(n => n.nativeType)) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
+	}
+
+	public get wireType() {
+		return this.compose(this.wrapped.map(n => n.wireType))
+	}
+
+	public get literalType() {
+		return this.compose(this.wrapped.map(n => n.literalType))
+	}
+
+	public get concreteType() {
+		return this.compose(this.wrapped.map(n => n.concreteType))
+	}
+
+	public get componentType() {
+		const componentTypes = this.wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
+		if (componentTypes.length === this.wrapped.length) {
+			return new CodegenComposingNativeTypeImpl(componentTypes, this.composer)
+		} else {
+			return undefined
+		}
+	}
+
+	public equals(other: CodegenNativeType | undefined): boolean {
+		return other === this
+	}
+
+	public toString() {
+		return this.nativeType
+	}
+
+	private compose(nativeTypes: (string | undefined)[]): string | undefined {
+		const filteredNativeTypes = allOrNothing(nativeTypes)
+		return filteredNativeTypes && this.composer(filteredNativeTypes)
+	}
+}
+
+export class CodegenFullTransformingNativeTypeImpl {
+
+	private actualWrapped: CodegenNativeType
+	private transformers: CodegenNativeTypeTransformers
+
+	public constructor(wrapped: CodegenNativeType, transformers: CodegenNativeTypeTransformers) {
+		this.actualWrapped = wrapped
+		this.transformers = transformers
+	}
+	
+	public get nativeType() {
+		return this.transformers.nativeType(this.wrapped.nativeType) || this.wrapped.nativeType
+	}
+
+	public get wireType() {
+		return this.wrapped.wireType && (this.transformers.wireType || this.transformers.nativeType)(this.wrapped.wireType)
+	}
+
+	public get literalType() {
+		return this.wrapped.literalType && (this.transformers.literalType || this.transformers.nativeType)(this.wrapped.literalType)
+	}
+
+	public get concreteType() {
+		return this.wrapped.concreteType && (this.transformers.concreteType || this.transformers.nativeType)(this.wrapped.concreteType)
+	}
+
+	public get componentType() {
+		if (this.wrapped.componentType) {
+			return new CodegenFullTransformingNativeTypeImpl(this.wrapped.componentType, this.transformers)
+		} else {
+			return undefined
+		}
+	}
+
+	public equals(other: CodegenNativeType | undefined): boolean {
+		return other === this
+	}
+
+	public toString() {
+		return this.nativeType
+	}
+
+	private get wrapped(): CodegenNativeType {
+		if (this.transformers.transform) {
+			return this.transformers.transform(this.actualWrapped)
+		} else {
+			return this.actualWrapped
+		}
+	}
+}
+
+export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
+
+	private actualWrapped: CodegenNativeType[]
+	private composers: CodegenNativeTypeComposers
+
+	public constructor(wrapped: CodegenNativeType[], composers: CodegenNativeTypeComposers) {
+		this.actualWrapped = wrapped
+		this.composers = composers
+	}
+
+	public get nativeType() {
+		return this.compose(this.wrapped.map(n => n.nativeType), this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
+	}
+
+	public get wireType() {
+		return this.compose(this.wrapped.map(n => n.wireType), this.composers.wireType || this.composers.nativeType)
+	}
+
+	public get literalType() {
+		return this.compose(this.wrapped.map(n => n.literalType), this.composers.literalType || this.composers.nativeType)
+	}
+
+	public get concreteType() {
+		return this.compose(this.wrapped.map(n => n.concreteType), this.composers.concreteType || this.composers.nativeType)
+	}
+
+	public get componentType() {
+		const wrapped = this.wrapped
+		const componentTypes = wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
+		if (componentTypes.length === wrapped.length) {
+			return new CodegenFullComposingNativeTypeImpl(componentTypes, this.composers)
+		} else {
+			return undefined
+		}
+	}
+
+	public equals(other: CodegenNativeType | undefined): boolean {
+		return other === this
+	}
+
+	public toString() {
+		return this.nativeType
+	}
+
+	private compose(nativeTypes: (string | undefined)[], composer: CodegenNativeTypeComposer): string | undefined {
+		const filteredNativeTypes = allOrNothing(nativeTypes)
+		return filteredNativeTypes && composer(filteredNativeTypes)
+	}
+
+	private get wrapped(): CodegenNativeType[] {
+		if (this.composers.transform) {
+			return this.actualWrapped.map(this.composers.transform)
+		} else {
+			return this.actualWrapped
+		}
+	}
+
 }

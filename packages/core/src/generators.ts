@@ -2,7 +2,7 @@ import { CodegenBaseGeneratorConstructor, CodegenGeneratorOptions } from '@opena
 import pluralize from 'pluralize'
 import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
-import CodegenNativeTypeImpl from './native-type'
+import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
 
 /**
  * A partial generator implementation that should be the base of all generators.
@@ -24,6 +24,10 @@ export function defaultGeneratorOptions<O>(): CodegenGeneratorOptions {
 		baseGenerator,
 		InvalidModelError: InvalidModelError as ErrorConstructor,
 		NativeType: CodegenNativeTypeImpl,
+		TransformingNativeType: CodegenTransformingNativeTypeImpl,
+		ComposingNativeType: CodegenComposingNativeTypeImpl,
+		FullTransformingNativeType: CodegenFullTransformingNativeTypeImpl,
+		FullComposingNativeType: CodegenFullComposingNativeTypeImpl,
 		utils: {
 			stringLiteralValueOptions,
 		},

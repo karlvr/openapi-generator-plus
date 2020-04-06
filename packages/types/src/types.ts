@@ -322,22 +322,17 @@ export interface CodegenProperty extends CodegenPropertyTypeInfo, CodegenTypes {
 	models?: CodegenModel[]
 }
 
-export enum CodegenModelType {
-	DEFINED = 'DEFINED',
-	INLINE = 'INLINE',
-}
-
 export interface CodegenModel {
 	name: string
-	modelType: CodegenModelType
 	description?: string
+
 	properties?: CodegenProperty[]
 	vendorExtensions?: CodegenVendorExtensions
 
 	nativeType: CodegenNativeType
 
 	/** Enums */
-	isEnum: boolean
+	isEnum?: boolean
 	/** The native type of the enum value */
 	enumValueNativeType?: CodegenNativeType
 	/** The values making up the enum */

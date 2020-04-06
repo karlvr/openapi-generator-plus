@@ -8,9 +8,11 @@ export enum CodegenSpecVersion {
 
 export interface InternalCodegenState<O = {}> extends CodegenState<O>, CodegenInputDocument {
 	/** A hash of fully qualified model names that have been used */
-	usedModelFullyQualifiedNames: { [name: string]: boolean }
-	/** A hash of generated models indexed by fully qualified model name */
-	fullyQualifiedModels: { [name: string]: CodegenModel }
+	usedModelFullyQualifiedNames: { [name: string]: boolean | undefined }
+	/** A hash of generated models indexed by ref */
+	modelsByRef: { [$ref: string]: CodegenModel | undefined }
+	/** A hash of $ref to fully qualified model name, representing reserved model names */
+	reservedNames: { [$ref: string]: string | undefined }
 	/** An array of inline models to be added to the export */
 	inlineModels: CodegenModel[]
 	specVersion: CodegenSpecVersion

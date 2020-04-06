@@ -9,7 +9,7 @@ test('one of discriminator', async() => {
 	expect(model1.name).toEqual('Cat')
 	expect(model4.name).toEqual('MyResponseType')
 	expect(model4.discriminator!.name).toEqual('petType')
-	expect(model4.subTypes?.length).toEqual(3)
+	expect(model4.discriminator!.references.length).toEqual(3)
 	expect(model4.children).toBeUndefined()
 })
 
@@ -37,5 +37,5 @@ test('one of subclasses discriminator', async() => {
 	expect(model1.name).toEqual('Cat')
 	expect(model4.name).toEqual('Pet')
 	expect(model4.children?.length).toEqual(3)
-	expect(model4.subTypes).toBeUndefined()
+	expect(model4.discriminator!.references.length).toEqual(3)
 })

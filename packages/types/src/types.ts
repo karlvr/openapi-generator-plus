@@ -333,14 +333,14 @@ export interface CodegenModel {
 
 	/* Polymorphism */
 
-	/** The property that acts as the discriminator */
+	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
 	discriminator?: CodegenDiscriminator
 
-	/** The models that have this model as their parent */
-	children?: CodegenModelReference[]
+	/** Information about the values of discriminators for this model */
+	discriminatorValues?: CodegenDiscriminatorValue[]
 
-	/** The models that the discriminator discriminates between */
-	subModels?: CodegenModelReference[]
+	/** The models that have this model as their parent */
+	children?: CodegenModel[]
 
 	vendorExtensions?: CodegenVendorExtensions
 
@@ -374,6 +374,13 @@ export interface CodegenModelReference {
 export interface CodegenDiscriminator extends CodegenPropertyTypeInfo {
 	name: string
 	mappings?: CodegenDiscriminatorMappings
+	references: CodegenModelReference[]
+}
+
+export interface CodegenDiscriminatorValue {
+	discriminator: CodegenDiscriminator
+	/** The value literal in the native language */
+	value: string
 }
 
 export interface CodegenDiscriminatorMappings {

@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenDiscriminatorMappings } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -1262,12 +1262,17 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 					throw new Error(`Discriminator property "${otherModel.discriminator.name}" from "${otherModel.nativeType}" missing from "${nativeType}"`)
 				}
 
-				if (!otherModel.subModels) {
-					otherModel.subModels = []
-				}
-				otherModel.subModels.push({
+				const discriminatorValue = $ref && otherModel.discriminator.mappings && otherModel.discriminator.mappings[$ref] ? otherModel.discriminator.mappings[$ref] : name
+				otherModel.discriminator.references.push({
 					model,
-					name: $ref && otherModel.discriminator.mappings && otherModel.discriminator.mappings[$ref] ? otherModel.discriminator.mappings[$ref] : name,
+					name: discriminatorValue,
+				})
+				if (!model.discriminatorValues) {
+					model.discriminatorValues = []
+				}
+				model.discriminatorValues.push({
+					discriminator: otherModel.discriminator,
+					value: state.generator.toLiteral(discriminatorValue, otherModel.discriminator, state),
 				})
 			}
 		}
@@ -1285,12 +1290,12 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			model.discriminator = {
 				name: schemaDiscriminator.propertyName,
 				mappings,
+				references: [],
 				type: 'string',
 				propertyType: CodegenPropertyType.STRING,
 				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }, state),
 			}
 			
-			model.subModels = []
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel(name, scopeNames, subSchema, state)
 				const subModelDiscriminatorProperty = removeModelProperty(subModel, schemaDiscriminator.propertyName)
@@ -1298,14 +1303,22 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
 				}
 
-				let subModelName = subModel.name
+				let discriminatorValue = subModel.name
 				if (isOpenAPIReferenceObject(subSchema) && mappings[subSchema.$ref]) {
-					subModelName = mappings[subSchema.$ref]
+					discriminatorValue = mappings[subSchema.$ref]
 				}
 				
-				model.subModels.push({
+				model.discriminator.references.push({
 					model: subModel,
-					name: subModelName,
+					name: discriminatorValue,
+				})
+
+				if (!subModel.discriminatorValues) {
+					subModel.discriminatorValues = []
+				}
+				subModel.discriminatorValues.push({
+					discriminator: model.discriminator,
+					value: state.generator.toLiteral(discriminatorValue, model.discriminator, state),
 				})
 			}
 		} else {
@@ -1326,21 +1339,28 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 
 		const enumValueType = type
 		const enumValueFormat = schema.format
+		const enumValuePropertyType = toCodegenPropertyType(enumValueType, enumValueFormat, false, false)
 
 		const enumValueNativeType = state.generator.toNativeType({
 			type,
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)
+
+		const enumNameLiteralOptions: CodegenLiteralValueOptions = {
+			type: 'string',
+			propertyType: CodegenPropertyType.ENUM,
+			nativeType,
+		}
 		const enumValueLiteralOptions: CodegenLiteralValueOptions = {
 			type: enumValueType,
 			format: enumValueFormat,
-			propertyType: CodegenPropertyType.ENUM,
+			propertyType: enumValuePropertyType,
 			nativeType: enumValueNativeType,
 		}
 		
-		const enumValues = schema.enum ? schema.enum.map(value => ({
-			value,
+		const enumValues: CodegenEnumValue[] | undefined = schema.enum ? schema.enum.map(value => ({
+			value, //: state.generator.toLiteral(value, enumNameLiteralOptions, state),
 			literalValue: state.generator.toLiteral(value, enumValueLiteralOptions, state),
 		})) : undefined
 
@@ -1388,6 +1408,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 			model.discriminator = {
 				name: discriminatorProperty.name,
 				mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
+				references: [],
 				...extractCodegenPropertyTypesInfo(discriminatorProperty),
 			}
 		}
@@ -1401,10 +1422,23 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		if (!model.parent.children) {
 			model.parent.children = []
 		}
-		model.parent.children.push({
-			model,
-			name: ($ref && findDiscriminatorMapping(model.parent, $ref)) || model.name,
-		})
+		model.parent.children.push(model)
+
+		const discriminator = findDiscriminator(model.parent)
+		if (discriminator) {
+			const discriminatorValue = ($ref && findDiscriminatorMapping(discriminator, $ref)) || model.name
+			if (!model.discriminatorValues) {
+				model.discriminatorValues = []
+			}
+			model.discriminatorValues.push({
+				discriminator,
+				value: state.generator.toLiteral(discriminatorValue, discriminator, state),
+			})
+			discriminator.references.push({
+				model,
+				name: discriminatorValue,
+			})
+		}
 	}
 
 	/* Collect models from properties */
@@ -1431,15 +1465,21 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 	return model
 }
 
-function findDiscriminatorMapping(model: CodegenModel, ref: string): string | undefined {
+function findDiscriminatorMapping(discriminator: CodegenDiscriminator, ref: string): string | undefined {
+	if (discriminator.mappings) {
+		return discriminator.mappings[ref]
+	} else {
+		return undefined
+	}
+}
+
+function findDiscriminator(model: CodegenModel): CodegenDiscriminator | undefined {
 	if (model.discriminator) {
-		if (model.discriminator.mappings) {
-			return model.discriminator.mappings[ref]
-		} else {
-			return undefined
-		}
+		return model.discriminator
 	} else if (model.parent) {
-		return findDiscriminatorMapping(model.parent, ref)
+		return findDiscriminator(model.parent)
+	} else {
+		return undefined
 	}
 }
 

@@ -383,7 +383,7 @@ interface CodegenTypeOptions {
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
-	propertyType?: CodegenPropertyType
+	propertyType: CodegenPropertyType
 	nativeType: CodegenNativeType
 }
 

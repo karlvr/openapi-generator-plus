@@ -330,7 +330,8 @@ export interface CodegenModel extends CodegenTypeInfo {
 
 	vendorExtensions?: CodegenVendorExtensions
 
-	nativeType: CodegenNativeType
+	/** The native type to use when declaring a property of this model type */
+	propertyNativeType: CodegenNativeType
 
 	/** Enums */
 	/** The native type of the enum value */

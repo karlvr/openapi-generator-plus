@@ -889,7 +889,7 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 		const model = toCodegenModel(name, scopeNames, originalSchema, state)
 		type = model.type
 		format = model.format
-		nativeType = model.nativeType
+		nativeType = model.propertyNativeType
 		if (!refName) {
 			models = [model]
 		}
@@ -1101,12 +1101,18 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		modelNames: scopeNames ? [...scopeNames, name] : [name],
 	}, state)
 
+	const propertyNativeType = state.generator.toNativeObjectType({
+		purpose: CodegenTypePurpose.PROPERTY,
+		modelNames: scopeNames ? [...scopeNames, name] : [name],
+	}, state)
+
 	const isEnum = !!schema.enum
 	const model: CodegenModel = {
 		name,
 		description: schema.description,
 		vendorExtensions,
 		nativeType,
+		propertyNativeType,
 		type: 'object',
 		propertyType: isEnum ? CodegenPropertyType.ENUM : CodegenPropertyType.OBJECT,
 	}

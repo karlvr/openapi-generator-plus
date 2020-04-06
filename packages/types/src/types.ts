@@ -168,7 +168,7 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-export interface CodegenResponse extends CodegenPropertyTypeInfoPartial, CodegenTypes {
+export interface CodegenResponse extends CodegenPropertyTypeInfoPartial, CodegenTypesPartial {
 	code: number
 	description: string
 
@@ -259,21 +259,23 @@ export interface CodegenTypes {
 	isDateTime: boolean
 	isDate: boolean
 	isTime: boolean
-	propertyType?: CodegenPropertyType
+	propertyType: CodegenPropertyType
 }
 
+export type CodegenTypesPartial = Partial<CodegenTypes>
+
 export enum CodegenPropertyType {
-	OBJECT,
-	MAP,
-	ARRAY,
-	BOOLEAN,
-	NUMBER,
-	ENUM,
-	STRING,
-	DATETIME,
-	DATE,
-	TIME,
-	FILE,
+	OBJECT = 'OBJECT',
+	MAP = 'MAP',
+	ARRAY = 'ARRAY',
+	BOOLEAN = 'BOOLEAN',
+	NUMBER = 'NUMBER',
+	ENUM = 'ENUM',
+	STRING = 'STRING',
+	DATETIME = 'DATETIME',
+	DATE = 'DATE',
+	TIME = 'TIME',
+	FILE = 'FILE',
 }
 
 export type CodegenPropertyTypeInfoPartial = Partial<CodegenPropertyTypeInfo>
@@ -282,6 +284,7 @@ export interface CodegenPropertyTypeInfo {
 	/** OpenAPI type */
 	type: string
 	format?: string
+	propertyType: CodegenPropertyType
 
 	/** Type in native language */
 	nativeType: CodegenNativeType

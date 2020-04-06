@@ -1096,8 +1096,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		name = uniqueModelName(name, scopeNames, state)
 	}
 
-	const nativeType = state.generator.toNativeType({
-		type: 'object',
+	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
 		modelNames: scopeNames ? [...scopeNames, name] : [name],
 	}, state)

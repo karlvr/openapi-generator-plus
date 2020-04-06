@@ -44,6 +44,7 @@ export interface CodegenGenerator<O> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	toLiteral: (value: any, options: CodegenLiteralValueOptions, state: CodegenState<O>) => string
 	toNativeType: (options: CodegenNativeTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toNativeObjectType: (options: CodegenNativeObjectTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	toNativeArrayType: (options: CodegenNativeArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	toNativeMapType: (options: CodegenNativeMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
@@ -404,8 +405,13 @@ export enum CodegenTypePurpose {
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
-	modelNames?: string[]
 	purpose: CodegenTypePurpose
+}
+
+export interface CodegenNativeObjectTypeOptions {
+	modelNames: string[]
+	purpose: CodegenTypePurpose
+	required?: boolean
 }
 
 export enum CodegenArrayTypePurpose {

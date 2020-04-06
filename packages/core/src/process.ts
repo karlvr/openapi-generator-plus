@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenTypes, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenPropertyTypeInfo, HttpMethods, CodegenDiscriminatorMappings } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -1216,6 +1216,9 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			}
 			model.properties.push(...otherProperties)
 		}
+
+		/* Make a model and return it so we can access metadata about the model; noting that this model may never exist */
+		return toCodegenModel('InlineModel', nestedParentNames, otherSchema, state)
 	}
 
 	if (schema.allOf) {
@@ -1234,13 +1237,69 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 			}
 		}
 
-		for (const subSchema of allOf) {
-			absorbSchema(subSchema)
+		for (const otherSchema of allOf) {
+			const otherModel = absorbSchema(otherSchema)
+			if (otherModel.discriminator) {
+				/* otherModel has a discriminator so we need to add ourselves as a subtype, and now otherModel must be an interface!!!  */
+				if (!model.properties) {
+					throw new Error(`Model "${nativeType}", with allOf parent "${otherModel.nativeType}" with discriminator, doesn't have properties.`)
+				}
+				const otherDiscriminatorProperty = removeModelProperty(model.properties, otherModel.discriminator.name)
+				if (!otherDiscriminatorProperty) {
+					throw new Error(`Discriminator property "${otherModel.discriminator.name}" from "${otherModel.nativeType}" missing from "${nativeType}"`)
+				}
+
+				if (!otherModel.subModels) {
+					otherModel.subModels = []
+				}
+				otherModel.subModels.push({
+					model,
+					name: $ref && otherModel.discriminator.mappings && otherModel.discriminator.mappings[$ref] ? otherModel.discriminator.mappings[$ref] : name,
+				})
+			}
 		}
 	} else if (schema.anyOf) {
-		throw new Error('anyOf not supported')
+		// const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+		// for (const subSchema of anyOf) {
+		// 	absorbSubSchema(subSchema)
+		// }
+		throw new Error('anyOf not yet supported')
 	} else if (schema.oneOf) {
-		throw new Error('oneOf not supported')
+		const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+		if (schema.discriminator) {
+			const schemaDiscriminator = schema.discriminator as OpenAPIV3.DiscriminatorObject
+			const mappings = toCodegenDiscriminatorMappings(schemaDiscriminator)
+			model.discriminator = {
+				name: schemaDiscriminator.propertyName,
+				mappings,
+				type: 'string',
+				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }, state),
+			}
+			
+			model.subModels = []
+			for (const subSchema of oneOf) {
+				const subModel = toCodegenModel(name, parentNames, subSchema, state)
+				const subModelDiscriminatorProperty = removeModelProperty(subModel, schemaDiscriminator.propertyName)
+				if (!subModelDiscriminatorProperty) {
+					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
+				}
+
+				let subModelName = subModel.name
+				if (isOpenAPIReferenceObject(subSchema) && mappings[subSchema.$ref]) {
+					subModelName = mappings[subSchema.$ref]
+				}
+				
+				model.subModels.push({
+					model: subModel,
+					name: subModelName,
+				})
+			}
+		} else {
+			/* Without a discriminator we just bundle them all together into one object and let the user work it out */
+			for (const subSchema of oneOf) {
+				absorbSchema(subSchema)
+			}
+		}
 	} else if (schema.enum) {
 		let type: string
 		if (!schema.type) {
@@ -1300,10 +1359,38 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 				componentNativeType: componentProperty.nativeType,
 				purpose: CodegenMapTypePurpose.PARENT,
 			}, state)
+		} else if (schema.discriminator) {
+			/* Object has a discriminator so all submodels will need to add themselves */
+			const schemaDiscriminator = schema.discriminator as OpenAPIV3.DiscriminatorObject
+
+			if (!model.properties) {
+				throw new Error(`Model "${nativeType}" with discriminator doesn't have properties.`)
+			}
+			const discriminatorProperty = removeModelProperty(model.properties, schemaDiscriminator.propertyName)
+			if (!discriminatorProperty) {
+				throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${nativeType}"`)
+			}
+
+			model.discriminator = {
+				name: discriminatorProperty.name,
+				mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
+				...extractCodegenPropertyTypesInfo(discriminatorProperty),
+			}
 		}
 	} else {
 		/* Other types aren't represented as models, they are just inline type definitions like a string with a format */
 		throw new InvalidModelError()
+	}
+
+	/* Add child model */
+	if (model.parentModel) {
+		if (!model.parentModel.children) {
+			model.parentModel.children = []
+		}
+		model.parentModel.children.push({
+			model,
+			name: ($ref && findDiscriminatorMapping(model.parentModel, $ref)) || model.name,
+		})
 	}
 
 	/* Collect models from properties */
@@ -1328,6 +1415,49 @@ function toCodegenModel(name: string, parentNames: string[] | undefined, schema:
 	model.models = collectModels(model.properties)
 
 	return model
+}
+
+function findDiscriminatorMapping(model: CodegenModel, ref: string): string | undefined {
+	if (model.discriminator) {
+		if (model.discriminator.mappings) {
+			return model.discriminator.mappings[ref]
+		} else {
+			return undefined
+		}
+	} else if (model.parentModel) {
+		return findDiscriminatorMapping(model.parentModel, ref)
+	}
+}
+
+function findModelProperty(model: CodegenModel, name: string): CodegenProperty | undefined {
+	return model.properties && model.properties.find(p => p.name === name)
+}
+
+function removeModelProperty(model: CodegenModel, name: string): CodegenProperty | undefined
+function removeModelProperty(properties: CodegenProperty[], name: string): CodegenProperty | undefined
+function removeModelProperty(modelOrProperties: CodegenModel | CodegenProperty[], name: string): CodegenProperty | undefined {
+	const properties = Array.isArray(modelOrProperties) ? modelOrProperties : modelOrProperties.properties
+	if (!properties) {
+		return undefined
+	}
+
+	const index = properties.findIndex(p => p.name === name)
+	if (index === -1) {
+		return undefined
+	}
+
+	return properties.splice(index, 1)[0]
+}
+
+function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorObject): CodegenDiscriminatorMappings {
+	const schemaMappings: CodegenDiscriminatorMappings = {}
+	if (discriminator.mapping) {
+		for (const mapping in discriminator.mapping) {
+			const ref = discriminator.mapping[mapping]
+			schemaMappings[ref] = mapping
+		}
+	}
+	return schemaMappings
 }
 
 function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {

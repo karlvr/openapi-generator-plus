@@ -327,6 +327,18 @@ export interface CodegenModel {
 	description?: string
 
 	properties?: CodegenProperty[]
+
+	/* Polymorphism */
+
+	/** The property that acts as the discriminator */
+	discriminator?: CodegenDiscriminator
+
+	/** The models that have this model as their parent */
+	children?: CodegenModelReference[]
+
+	/** The models that the discriminator discriminates between */
+	subModels?: CodegenModelReference[]
+
 	vendorExtensions?: CodegenVendorExtensions
 
 	nativeType: CodegenNativeType
@@ -346,6 +358,20 @@ export interface CodegenModel {
 	models?: CodegenModel[]
 
 	deprecated?: boolean
+}
+
+export interface CodegenModelReference {
+	model: CodegenModel
+	name: string
+}
+
+export interface CodegenDiscriminator extends CodegenPropertyTypeInfo {
+	name: string
+	mappings?: CodegenDiscriminatorMappings
+}
+
+export interface CodegenDiscriminatorMappings {
+	[$ref: string]: string
 }
 
 interface CodegenTypeOptions {
@@ -372,6 +398,8 @@ export enum CodegenTypePurpose {
 	PARENT = 'PARENT',
 	/** A type for a Map key */
 	KEY = 'KEY',
+	/** A type for a discriminator */
+	DISCRIMINATOR = 'DISCRIMINATOR',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {

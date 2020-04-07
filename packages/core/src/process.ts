@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -32,11 +32,17 @@ function groupOperations(operationInfos: CodegenOperation[], state: InternalCode
 function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenState) {
 	/* Process groups */
 	for (const group of doc.groups) {
-		processCodegenOperationGroup(group)
+		processCodegenOperationGroup(group, state)
 	}
 
 	/* Process models */
-	doc.models.forEach(model => processCodegenModel(model, state))
+	for (let i = 0; i < doc.models.length; i++) {
+		const result = processCodegenModel(doc.models[i], state)
+		if (!result) {
+			doc.models.splice(i, 1)
+			i--
+		}
+	}
 
 	/* Sort groups */
 	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
@@ -45,13 +51,49 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	doc.models.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function processCodegenOperationGroup(group: CodegenOperationGroup) {
+function processCodegenOperationGroup(group: CodegenOperationGroup, state: InternalCodegenState) {
+	for (let i = 0; i < group.operations.length; i++) {
+		const result = processCodegenOperation(group.operations[i], state)
+		if (!result) {
+			group.operations.splice(i, 1)
+			i--
+		}
+	}
+
+	/* Sort operations */
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function processCodegenModel(model: CodegenModel, state: InternalCodegenState) {
+function processCodegenOperation(op: CodegenOperation, state: InternalCodegenState): boolean {
+	if (hasNoGenerationRule(op, state)) {
+		return false
+	}
+	
+	return true
+}
+
+function processCodegenModel(model: CodegenModel, state: InternalCodegenState): boolean {
+	if (hasNoGenerationRule(model, state)) {
+		return false
+	}
+
 	if (state.generator.postProcessModel) {
-		state.generator.postProcessModel(model, state)
+		const result = state.generator.postProcessModel(model, state)
+		if (result === false) {
+			return false
+		}
+	}
+	return true
+}
+
+function hasNoGenerationRule(ob: CodegenOperation | CodegenModel, state: InternalCodegenState): boolean {
+	const generatorType = state.generator.generatorType()
+	if (generatorType === CodegenGeneratorType.SERVER) {
+		return (ob.vendorExtensions && ob.vendorExtensions['x-no-server'])
+	} else if (generatorType === CodegenGeneratorType.CLIENT) {
+		return (ob.vendorExtensions && ob.vendorExtensions['x-no-client'])
+	} else {
+		return false
 	}
 }
 

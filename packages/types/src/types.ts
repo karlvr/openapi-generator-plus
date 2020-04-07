@@ -12,10 +12,18 @@ export interface CodegenState<O = {}> {
 	options: O
 }
 
+export enum CodegenGeneratorType {
+	SERVER = 'SERVER',
+	CLIENT = 'CLIENT',
+	DOCUMENTATION = 'DOCUMENTATION',
+}
+
 /**
  * The interface implemented by language-specific generator modules.
  */
 export interface CodegenGenerator<O> {
+	generatorType: () => CodegenGeneratorType
+	
 	/** Convert the given name to the native class name style */
 	toClassName: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native identifier style */
@@ -54,7 +62,10 @@ export interface CodegenGenerator<O> {
 	options: (config: CodegenConfig) => O
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy<O>
 
-	postProcessModel?: (model: CodegenModel, state: CodegenState<O>) => void
+	/** Apply any post-processing to the given model.
+	 * @returns `false` if the model should be excluded.
+	 */
+	postProcessModel?: (model: CodegenModel, state: CodegenState<O>) => boolean | void
 
 	exportTemplates: (outputPath: string, doc: CodegenDocument, state: CodegenState<O>) => void
 

@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenMapTypePurpose, CodegenArrayTypePurpose } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenMapTypePurpose, CodegenArrayTypePurpose, CodegenGeneratorType } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -8,6 +8,7 @@ export interface TestCodegenOptions {
 }
 
 const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> = (generatorOptions) => ({
+	generatorType: () => CodegenGeneratorType.SERVER,
 	toClassName: (name) => `${name}_class`,
 	toIdentifier: (name) => `${name}_identifier`,
 	toConstantName: (name) => `${name}_contant`,

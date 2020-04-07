@@ -1231,16 +1231,17 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		state.modelsByRef[$ref] = model
 	}
 
-	const nestedParentNames = scopeNames ? [...scopeNames, name] : [name]
+	/* The scope names to pass to any nested entities */
+	const nestedScopeNames = scopeNames ? [...scopeNames, name] : [name]
 
-	model.properties = toCodegenModelProperties(schema, nestedParentNames, state)
+	model.properties = toCodegenModelProperties(schema, nestedScopeNames, state)
 
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
 		/* We absorb the properties from the other model as if they were our own, so we name
 		   any inline models as if they were inline inside us rather than `otherSchema`, which
 		   may be an inline model that will never exist.
 		 */
-		const otherProperties = toCodegenModelProperties(otherSchema, nestedParentNames, state)
+		const otherProperties = toCodegenModelProperties(otherSchema, nestedScopeNames, state)
 		if (otherProperties) {
 			if (!model.properties) {
 				model.properties = []
@@ -1249,7 +1250,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		}
 
 		/* Make a model and return it so we can access metadata about the model; noting that this model may never exist */
-		return toCodegenModel('InlineModel', nestedParentNames, otherSchema, state)
+		return toCodegenModel('InlineModel', nestedScopeNames, otherSchema, state)
 	}
 
 	if (schema.allOf) {

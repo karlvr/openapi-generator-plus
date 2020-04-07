@@ -1123,7 +1123,7 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		nativeType,
 		propertyNativeType,
 		type: 'object',
-		propertyType: isEnum ? CodegenPropertyType.ENUM : CodegenPropertyType.OBJECT,
+		propertyType: isEnum ? CodegenPropertyType.ENUM : schema.additionalProperties ? CodegenPropertyType.MAP : CodegenPropertyType.OBJECT,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {

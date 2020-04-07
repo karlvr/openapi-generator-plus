@@ -120,7 +120,7 @@ function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefin
 	}
 }
 
-function toCodegenParameter(parameter: OpenAPI.Parameter, scopeNames: string, state: InternalCodegenState): CodegenParameter {
+function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
 	parameter = resolveReference(parameter, state)
 
 	let property: CodegenProperty | undefined
@@ -135,11 +135,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeNames: string, st
 		 * However it's sort of up to the templates to decide where to output models... so does that
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
-		property = toCodegenProperty(`${scopeNames}_${parameter.name}`, parameter.schema, parameter.required || false, [], state)
+		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter.schema, parameter.required || false, [], state)
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
-		property = toCodegenProperty(`${scopeNames}_${parameter.name}`, parameter, parameter.required || false, [], state)
+		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter, parameter.required || false, [], state)
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
 	}

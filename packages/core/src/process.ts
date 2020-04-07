@@ -1162,7 +1162,7 @@ function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenStat
 		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf)
 }
 
-function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
+function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
 
 	/* Check if we've already generated this model, and return it */
@@ -1171,17 +1171,20 @@ function toCodegenModel(name: string, scopeNames: string[] | undefined, schema: 
 		return existing
 	}
 
+	let name: string
 	if ($ref) {
 		const refName = nameFromRef($ref)
 		if (refName) {
 			name = refName
 			scopeNames = undefined
+		} else {
+			name = suggestedName
 		}
 	} else {
 		if (schema.enum) {
-			name = state.generator.toEnumName(name, state)
+			name = state.generator.toEnumName(suggestedName, state)
 		} else {
-			name = state.generator.toModelNameFromPropertyName(name, state)
+			name = state.generator.toModelNameFromPropertyName(suggestedName, state)
 		}
 	}
 	

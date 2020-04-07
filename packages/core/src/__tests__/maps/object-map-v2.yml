@@ -1,0 +1,19 @@
+---
+swagger: '2.0'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+definitions:
+  model1:
+    type: object
+    properties:
+      prop1:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/model2'
+  model2:
+    type: object
+    properties:
+      prop1:
+        type: string

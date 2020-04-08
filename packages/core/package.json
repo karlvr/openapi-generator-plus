@@ -23,8 +23,7 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^9.0.1",
     "@openapi-generator-plus/types": "file:../types",
-    "lodash": "^4.17.15",
-    "pluralize": "^8.0.0"
+    "lodash": "^4.17.15"
   },
   "publishConfig": {
     "access": "public"

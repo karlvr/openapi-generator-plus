@@ -1,5 +1,4 @@
 import { CodegenBaseGeneratorConstructor, CodegenGeneratorContext } from '@openapi-generator-plus/types'
-import pluralize from 'pluralize'
 import { stringLiteralValueOptions } from './utils'
 import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
 
@@ -12,9 +11,6 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function() {
 	return {
 		toEnumMemberName: (name, state) => state.generator.toConstantName(name, state),
 		toIteratedModelName: (name, _, iteration) => `${name}${iteration + 1}`,
-		toModelNameFromPropertyName: (name, state) => {
-			return state.generator.toClassName(pluralize.singular(name), state)
-		},
 	}
 }
 

@@ -1253,7 +1253,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		if (allOf.length) {
 			const possibleParentSchema = allOf[0]
 			if (isOpenAPIReferenceObject(possibleParentSchema)) {
-				const parentModel = toCodegenModel(name, suggestedScope, possibleParentSchema, state)
+				const parentModel = toCodegenModel('parent', suggestedScope, possibleParentSchema, state)
 
 				model.parent = parentModel
 				model.parentNativeType = parentModel.nativeType

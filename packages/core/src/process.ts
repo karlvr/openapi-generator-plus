@@ -36,13 +36,7 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	}
 
 	/* Process models */
-	for (let i = 0; i < doc.models.length; i++) {
-		const result = processCodegenModel(doc.models[i], state)
-		if (!result) {
-			doc.models.splice(i, 1)
-			i--
-		}
-	}
+	processCodegenModels(doc.models, state)
 
 	/* Sort groups */
 	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
@@ -62,6 +56,21 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 
 	/* Sort operations */
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function processCodegenModels(models: CodegenModel[], state: InternalCodegenState) {
+	for (let i = 0; i < models.length; i++) {
+		const result = processCodegenModel(models[i], state)
+		if (!result) {
+			models.splice(i, 1)
+			i--
+		} else {
+			const subModels = models[i].models
+			if (subModels) {
+				processCodegenModels(subModels, state)
+			}
+		}
+	}
 }
 
 function processCodegenOperation(op: CodegenOperation, state: InternalCodegenState): boolean {

@@ -1272,8 +1272,15 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 			model.properties.push(...otherProperties)
 		}
 
+		/* Use a fake scope so that if the otherSchema needs to be created as a nested model, that we throw
+		   it away. We don't want it to be an inline model, we just want to get some info from it.
+		 */
+		const fakeScope: CodegenScope = {
+			scopedName: model.scopedName,
+		}
+
 		/* Make a model and return it so we can access metadata about the model; noting that this model may never exist */
-		return toCodegenModel('InlineModel', model, otherSchema, state)
+		return toCodegenModel('InlineModel', fakeScope, otherSchema, state)
 	}
 
 	if (schema.allOf) {

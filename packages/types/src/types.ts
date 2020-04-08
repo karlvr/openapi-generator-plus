@@ -211,7 +211,7 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 
 export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
-	property: CodegenProperty
+	schema: CodegenSchema
 	examples?: CodegenExample[]
 }
 
@@ -316,9 +316,11 @@ export interface CodegenTypeInfo {
 	deprecated?: boolean
 }
 
-/* See DefaultCodegen.fromProperty */
-export interface CodegenProperty extends CodegenTypeInfo {
+export interface CodegenProperty extends CodegenSchema {
 	name: string
+}
+
+export interface CodegenSchema extends CodegenTypeInfo {
 	description?: string
 	title?: string
 	exampleValue?: string

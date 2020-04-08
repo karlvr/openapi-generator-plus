@@ -18,4 +18,4 @@ export interface CodegenGeneratorContext {
 	}
 }
 
-export type CodegenGeneratorConstructor<O> = (generatorOptions: CodegenGeneratorContext) => CodegenGenerator<O>
+export type CodegenGeneratorConstructor<O, C = CodegenGeneratorContext> = (context: C) => CodegenGenerator<O>

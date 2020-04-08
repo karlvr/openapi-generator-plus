@@ -1,7 +1,9 @@
 import { createTestDocument } from './common'
 
 test('array of strings', async() => {
-	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
+	const result = await createTestDocument('odd-models/array-of-strings-v2.yml', {
+		collectionModelsAllowed: true,
+	})
 
 	const model1 = result.models[0]
 	expect(model1.name).toEqual('ArrayOfStrings')

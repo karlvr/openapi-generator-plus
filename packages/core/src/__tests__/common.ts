@@ -30,7 +30,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	},
 	watchPaths: () => [],
 	cleanPathPatterns: () => undefined,
-	generateCollectionModels: (options) => !options.config.collectionParentNotAllowed,
+	generateCollectionModels: (options) => !!options.config.collectionModelsAllowed,
 })
 
 export function createTestGenerator(): CodegenGenerator<TestCodegenOptions> {

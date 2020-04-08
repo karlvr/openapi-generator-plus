@@ -32,9 +32,7 @@ test('object map', async() => {
  * Tests that the generator works when we don't allow collection classes to be model parents.
  */
 test('object map with no map parents', async() => {
-	const result = await createTestDocument('maps/object-map-v2.yml', {
-		collectionParentNotAllowed: true,
-	})
+	const result = await createTestDocument('maps/object-map-v2.yml')
 
 	expect(result.models.length).toEqual(2)
 

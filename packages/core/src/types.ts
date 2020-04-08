@@ -1,4 +1,5 @@
 import { CodegenModel, CodegenState, CodegenInputDocument } from '@openapi-generator-plus/types'
+import { OpenAPIX } from './types/patches'
 
 
 export enum CodegenSpecVersion {
@@ -10,7 +11,7 @@ export interface InternalCodegenState<O = {}> extends CodegenState<O>, CodegenIn
 	/** A hash of fully qualified model names that have been used */
 	usedModelFullyQualifiedNames: { [name: string]: boolean | undefined }
 	/** A hash of generated models indexed by ref */
-	modelsByRef: { [$ref: string]: CodegenModel | undefined }
+	modelsBySchema: Map<OpenAPIX.SchemaObject, CodegenModel>
 	/** A hash of $ref to fully qualified model name, representing reserved model names */
 	reservedNames: { [$ref: string]: string | undefined }
 	/** The array of top-level models */

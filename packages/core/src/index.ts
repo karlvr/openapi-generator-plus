@@ -39,7 +39,7 @@ export function createCodegenDocument<O>(input: CodegenInput, state: CodegenStat
 		...state,
 		...input,
 		usedModelFullyQualifiedNames: {},
-		modelsByRef: {},
+		modelsBySchema: new Map(),
 		reservedNames: {},
 		models: [],
 		specVersion: toSpecVersion(input.root),

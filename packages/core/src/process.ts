@@ -1182,18 +1182,18 @@ function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenStat
 
 function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
-
-	/* Check if we've already generated this model, and return it */
-	const existing = $ref && state.modelsByRef[$ref]
-	if (existing) {
-		return existing
-	}
-
 	const scopedName = toUniqueScopedName(suggestedName, suggestedScope, schema, state)
 	const scope = scopedName.length > 1 ? suggestedScope : null // TODO is checking the length of scope the best we can do?
 	const name = scopedName[scopedName.length - 1]
 	
 	schema = resolveReference(schema, state)
+
+	/* Check if we've already generated this model, and return it */
+	const existing = state.modelsBySchema.get(schema)
+	if (existing) {
+		return existing
+	}
+
 
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
@@ -1225,9 +1225,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 
 	/* Add to known models */
 	state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)] = true
-	if ($ref) {
-		state.modelsByRef[$ref] = model
-	}
+	state.modelsBySchema.set(schema, model)
 
 	model.properties = toCodegenModelProperties(schema, model, state)
 

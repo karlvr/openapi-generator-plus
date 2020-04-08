@@ -1,0 +1,23 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test1:
+    get:
+      parameters:
+        - name: statuses
+          in: query
+          schema:
+            $ref: '#/components/schemas/Statuses'
+      responses:
+        200:
+          description: OK
+components:
+  schemas:
+    Statuses:
+      type: array
+      items:
+        type: string
+        enum: [Good, Bad, Ugly]

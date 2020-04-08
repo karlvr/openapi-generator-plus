@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -106,29 +106,6 @@ function hasNoGenerationRule(ob: CodegenOperation | CodegenModel, state: Interna
 	}
 }
 
-/**
- * Collect any anonymous models from the given property so they'll be added to the document.
- * @param property 
- * @param state 
- */
-function collectAnonymousModels(models: CodegenModel[] | undefined, state: InternalCodegenState) {
-	if (models) {
-		state.inlineModels.push(...models)
-	}
-}
-
-function collectAnonymousModelsFromContents(contents: CodegenContent[] | undefined, state: InternalCodegenState) {
-	if (!contents) {
-		return
-	}
-
-	for (const content of contents) {
-		if (content.property) {
-			collectAnonymousModels(content.property.models, state)
-		}
-	}
-}
-
 function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
 	parameter = resolveReference(parameter, state)
 
@@ -144,17 +121,14 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 * However it's sort of up to the templates to decide where to output models... so does that
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
-		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter.schema, parameter.required || false, [], state)
+		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter.schema, parameter.required || false, null, state)
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
-		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter, parameter.required || false, [], state)
+		property = toCodegenProperty(`${scopeName}_${parameter.name}`, parameter, parameter.required || false, null, state)
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
 	}
-
-	/* Collect anonymous models as we can't add models to parameters (YET) */
-	collectAnonymousModels(property.models, state)
 
 	const result: CodegenParameter = {
 		name: parameter.name,
@@ -262,7 +236,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 		if (requestBody) {
 			/* See toCodegenParameter for rationale about scopeNames */
-			const requestBodyContents = toCodegenContentArray(`${name}_request`, requestBody.content, [], state)
+			const requestBodyContents = toCodegenContentArray(`${name}_request`, requestBody.content, null, state)
 			if (!requestBodyContents.length) {
 				throw new Error(`Request body contents is empty: ${path}`)
 			}
@@ -272,8 +246,6 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				throw new Error(`Cannot find common types for request body contents: ${path}`)
 			}
 			consumes = findAllContentMediaTypes(requestBodyContents)
-
-			collectAnonymousModelsFromContents(requestBodyContents, state)
 
 			const requestBodyParameter: CodegenParameter = {
 				name: 'request',
@@ -712,8 +684,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
 		if (response.schema) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			const property = toCodegenProperty(`${scopeName}_${code}_response`, response.schema, true, [], state)
-
+			const property = toCodegenProperty(`${scopeName}_${code}_response`, response.schema, true, null, state)
 			const examples = toCodegenExamples(undefined, response.examples, undefined, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
@@ -730,7 +701,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	} else if (isOpenAPIV3ResponseObject(response, state.specVersion)) {
 		if (response.content) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			contents = toCodegenContentArray(`${scopeName}_${code}_response`, response.content, [], state)
+			contents = toCodegenContentArray(`${scopeName}_${code}_response`, response.content, null, state)
 		}
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
@@ -739,9 +710,6 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	/* Determine if there's a common type and nativeType */
 	const commonTypes = commonTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
-
-	/** Collect anonymous models as we can't add models to responses (YET) */
-	collectAnonymousModelsFromContents(contents, state)
 
 	return {
 		code,
@@ -881,7 +849,7 @@ function findAllContentMediaTypes(contents: CodegenContent[] | undefined): Codeg
 	return contents.reduce((existing, content) => content.mediaType ? [...existing, content.mediaType] : existing, [] as CodegenMediaType[])
 }
 
-function toCodegenContentArray(name: string, content: { [media: string]: OpenAPIV3.MediaTypeObject }, scopeNames: string[], state: InternalCodegenState): CodegenContent[] {
+function toCodegenContentArray(name: string, content: { [media: string]: OpenAPIV3.MediaTypeObject }, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
 	for (const mediaType in content) {
 		const mediaTypeContent = content[mediaType]
@@ -891,8 +859,7 @@ function toCodegenContentArray(name: string, content: { [media: string]: OpenAPI
 		if (!mediaTypeContent.schema) {
 			throw new Error('Media type content without a schema')
 		}
-		const property = toCodegenProperty(name, mediaTypeContent.schema, true, scopeNames, state)
-		
+		const property = toCodegenProperty(name, mediaTypeContent.schema, true, scope, state)
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),
 			property,
@@ -928,14 +895,13 @@ function toCodegenMediaType(mediaType: string): CodegenMediaType {
 	}
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scopeNames: string[], state: InternalCodegenState): CodegenProperty {
+function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
 	/* The name of the schema, which can be used to name custom types */
 	const refName = isOpenAPIReferenceObject(schema) ? nameFromRef(schema.$ref) : undefined
 	
 	let type: string
 	let format: string | undefined
 	let nativeType: CodegenNativeType
-	let models: CodegenModel[] | undefined
 	let componentProperty: CodegenProperty | undefined
 	let propertyType: CodegenPropertyType
 
@@ -946,13 +912,10 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 	schema = resolveReference(schema, state)
 
 	if (isModelSchema(schema, state)) {
-		const model = toCodegenModel(name, scopeNames, originalSchema, state)
+		const model = toCodegenModel(name, scope, originalSchema, state)
 		type = model.type
 		format = model.format
 		nativeType = model.propertyNativeType
-		if (!refName) {
-			models = [model]
-		}
 		propertyType = model.propertyType
 	} else {
 		if (schema.type === 'array') {
@@ -962,19 +925,17 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 			type = 'array'
 			propertyType = CodegenPropertyType.ARRAY
 	
-			const result = handleArraySchema(name, schema, CodegenArrayTypePurpose.PROPERTY, state)
+			const result = handleArraySchema(name, scope, originalSchema, CodegenArrayTypePurpose.PROPERTY, state)
 			componentProperty = result.componentProperty
 			nativeType = result.nativeType
-			models = componentProperty.models
 		} else if (schema.type === 'object') {
 			if (schema.additionalProperties) {
 				type = 'object'
 				propertyType = CodegenPropertyType.MAP
 
-				const result = handleMapSchema(name, schema, CodegenMapTypePurpose.PROPERTY, state)
+				const result = handleMapSchema(name, scope, originalSchema, CodegenMapTypePurpose.PROPERTY, state)
 				nativeType = result.nativeType
 				componentProperty = result.componentProperty
-				models = componentProperty.models
 			} else {
 				throw new Error('Unsupported object schema type in toCodegenProperty')
 			}
@@ -1025,8 +986,6 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 		minItems: schema.minLength,
 		uniqueItems: schema.uniqueItems,
 		multipleOf: schema.multipleOf,
-
-		models,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
@@ -1044,7 +1003,9 @@ interface HandleSchemaResult {
 	nativeType: CodegenNativeType
 }
 
-function handleArraySchema(name: string, schema: OpenAPIX.SchemaObject, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+function handleArraySchema(name: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+	schema = resolveReference(schema, state)
+
 	if (schema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
@@ -1054,7 +1015,7 @@ function handleArraySchema(name: string, schema: OpenAPIX.SchemaObject, purpose:
 	}
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentProperty = toCodegenProperty(name, schema.items, true, [], state)
+	const componentProperty = toCodegenProperty(name, schema.items, true, scope, state)
 	const nativeType = state.generator.toNativeArrayType({
 		componentNativeType: componentProperty.nativeType,
 		uniqueItems: schema.uniqueItems,
@@ -1067,12 +1028,14 @@ function handleArraySchema(name: string, schema: OpenAPIX.SchemaObject, purpose:
 	}
 }
 
-function handleMapSchema(name: string, schema: OpenAPIX.SchemaObject, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+function handleMapSchema(name: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+	schema = resolveReference(schema, state)
+
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
 		purpose: CodegenTypePurpose.KEY,
 	}, state)
-	const componentProperty = toCodegenProperty(name, schema.additionalProperties, true, [], state)
+	const componentProperty = toCodegenProperty(name, schema.additionalProperties, true, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
@@ -1121,8 +1084,8 @@ function toCodegenPropertyType(type: string, format: string | undefined, isEnum:
  * @param name the model name
  * @param scopeNames the enclosing model names, if any
  */
-function fullyQualifiedModelName(name: string, scopeNames: string[] | undefined): string {
-	return scopeNames && scopeNames.length ? `${scopeNames.join('.')}.${name}` : name
+function fullyQualifiedModelName(scopedName: string[]): string {
+	return scopedName.join('.')
 }
 
 /**
@@ -1131,22 +1094,24 @@ function fullyQualifiedModelName(name: string, scopeNames: string[] | undefined)
  * @param scopeNames the enclosing model names, if any
  * @param state the state
  */
-function uniqueModelName(proposedName: string, scopeNames: string[] | undefined, state: InternalCodegenState): string {
-	if (!state.usedModelFullyQualifiedNames[fullyQualifiedModelName(proposedName, scopeNames)]) {
-		return proposedName
+function uniqueModelName(scopedName: string[], state: InternalCodegenState): string[] {
+	if (!state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)]) {
+		return scopedName
 	}
 
+	const proposedName = scopedName[scopedName.length - 1]
+	const scopeNames = scopedName.slice(0, scopedName.length - 1)
 	let name = proposedName
 	let iteration = 0
 	do {
 		iteration += 1
 		name = state.generator.toIteratedModelName(proposedName, scopeNames, iteration, state)
-	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, scopeNames)])
+	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName([...scopeNames, name])])
 
-	return name
+	return [...scopeNames, name]
 }
 
-function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scopeNames: string[], state: InternalCodegenState): CodegenProperty[] | undefined {
+function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperty[] | undefined {
 	schema = resolveReference(schema, state)
 
 	if (typeof schema.properties !== 'object') {
@@ -1157,11 +1122,55 @@ function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scopeNames: str
 	for (const propertyName in schema.properties) {
 		const required = typeof schema.required === 'object' ? schema.required.indexOf(propertyName) !== -1 : false
 		const propertySchema = schema.properties[propertyName]
-		const property = toCodegenProperty(propertyName, propertySchema, required, scopeNames, state)
+		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
 		properties.push(property)
 	}
 
 	return properties
+}
+
+function toScopedName(suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): string[] {
+	if (isOpenAPIReferenceObject(schema)) {
+		const vendorExtensions = toCodegenVendorExtensions(resolveReference(schema, state))
+		if (vendorExtensions && vendorExtensions['x-model-name']) {
+			/* Support vendor extension to override the automatic naming of models */
+			const name: string = vendorExtensions['x-model-name']
+			return [name]
+		}
+
+		const refName = nameFromRef(schema.$ref)
+		if (refName) {
+			return [refName]
+		} else {
+			return [suggestedName] /* We don't want to use a name from the ref, but we still want to put it at the top-level */
+		}
+	} else {
+		const vendorExtensions = toCodegenVendorExtensions(schema)
+
+		let name: string
+
+		if (vendorExtensions && vendorExtensions['x-model-name']) {
+			/* Support vendor extension to override the automatic naming of models */
+			name = vendorExtensions['x-model-name']
+		} else if (schema.enum) {
+			name = state.generator.toEnumName(suggestedName, state)
+		} else {
+			name = state.generator.toModelNameFromPropertyName(suggestedName, state)
+		}
+		return scope ? [...scope.scopedName, name] : [name]
+	}
+}
+
+function toUniqueScopedName(suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
+	let scopedName = toScopedName(suggestedName, scope, schema, state)
+
+	const reservedName = isOpenAPIReferenceObject(schema) ? state.reservedNames[schema.$ref] : undefined
+	if (reservedName !== fullyQualifiedModelName(scopedName)) {
+		/* Model types that aren't defined in the spec need to be made unique */
+		scopedName = uniqueModelName(scopedName, state)
+	}
+
+	return scopedName
 }
 
 function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
@@ -1171,7 +1180,7 @@ function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenStat
 		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf)
 }
 
-function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
+function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
 
 	/* Check if we've already generated this model, and return it */
@@ -1180,51 +1189,28 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 		return existing
 	}
 
-	let name: string
-	if ($ref) {
-		const refName = nameFromRef($ref)
-		if (refName) {
-			name = refName
-			scopeNames = undefined
-		} else {
-			name = suggestedName
-		}
-	} else {
-		if (schema.enum) {
-			name = state.generator.toEnumName(suggestedName, state)
-		} else {
-			name = state.generator.toModelNameFromPropertyName(suggestedName, state)
-		}
-	}
+	const scopedName = toUniqueScopedName(suggestedName, suggestedScope, schema, state)
+	const scope = scopedName.length > 1 ? suggestedScope : null // TODO is checking the length of scope the best we can do?
+	const name = scopedName[scopedName.length - 1]
 	
 	schema = resolveReference(schema, state)
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
-
-	/* Support vendor extension to override the automatic naming of models */
-	if (vendorExtensions && vendorExtensions['x-model-name']) {
-		name = vendorExtensions['x-model-name']
-	}
-
-	const reservedName = $ref && state.reservedNames[$ref]
-	if (reservedName !== fullyQualifiedModelName(name, scopeNames)) {
-		/* Model types that aren't defined in the spec need to be made unique */
-		name = uniqueModelName(name, scopeNames, state)
-	}
-
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
-		modelNames: scopeNames ? [...scopeNames, name] : [name],
+		modelNames: scopedName,
 	}, state)
 
 	const propertyNativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.PROPERTY,
-		modelNames: scopeNames ? [...scopeNames, name] : [name],
+		modelNames: scopedName,
 	}, state)
 
 	const isEnum = !!schema.enum
+	const vendorExtensions = toCodegenVendorExtensions(schema)
+
 	const model: CodegenModel = {
 		name,
+		scopedName,
 		description: schema.description,
 		vendorExtensions,
 		nativeType,
@@ -1238,22 +1224,19 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 	}
 
 	/* Add to known models */
-	state.usedModelFullyQualifiedNames[fullyQualifiedModelName(name, scopeNames)] = true
+	state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)] = true
 	if ($ref) {
 		state.modelsByRef[$ref] = model
 	}
 
-	/* The scope names to pass to any nested entities */
-	const nestedScopeNames = scopeNames ? [...scopeNames, name] : [name]
-
-	model.properties = toCodegenModelProperties(schema, nestedScopeNames, state)
+	model.properties = toCodegenModelProperties(schema, model, state)
 
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
 		/* We absorb the properties from the other model as if they were our own, so we name
 		   any inline models as if they were inline inside us rather than `otherSchema`, which
 		   may be an inline model that will never exist.
 		 */
-		const otherProperties = toCodegenModelProperties(otherSchema, nestedScopeNames, state)
+		const otherProperties = toCodegenModelProperties(otherSchema, model, state)
 		if (otherProperties) {
 			if (!model.properties) {
 				model.properties = []
@@ -1262,7 +1245,7 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 		}
 
 		/* Make a model and return it so we can access metadata about the model; noting that this model may never exist */
-		return toCodegenModel('InlineModel', nestedScopeNames, otherSchema, state)
+		return toCodegenModel('InlineModel', model, otherSchema, state)
 	}
 
 	if (schema.allOf) {
@@ -1272,7 +1255,7 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 		if (allOf.length) {
 			const possibleParentSchema = allOf[0]
 			if (isOpenAPIReferenceObject(possibleParentSchema)) {
-				const parentModel = toCodegenModel(name, scopeNames, possibleParentSchema, state)
+				const parentModel = toCodegenModel(name, suggestedScope, possibleParentSchema, state)
 
 				model.parent = parentModel
 				model.parentNativeType = parentModel.nativeType
@@ -1328,7 +1311,7 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 			}
 			
 			for (const subSchema of oneOf) {
-				const subModel = toCodegenModel(name, scopeNames, subSchema, state)
+				const subModel = toCodegenModel('submodel', model, subSchema, state)
 				const subModelDiscriminatorProperty = removeModelProperty(subModel, schemaDiscriminator.propertyName)
 				if (!subModelDiscriminatorProperty) {
 					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
@@ -1395,13 +1378,13 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 			model.enumValues = enumValues
 		}
 	} else if (schema.type === 'array') {
-		const result = handleArraySchema(name, schema, CodegenArrayTypePurpose.PARENT, state)
+		const result = handleArraySchema(name, model, schema, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
 		model.componentType = result.componentProperty.type
 		model.componentNativeType = result.componentProperty.nativeType
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
-			const result = handleMapSchema(name, schema, CodegenMapTypePurpose.PARENT, state)
+			const result = handleMapSchema(name, model, schema, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
 			model.componentType = result.componentProperty.type
 			model.componentNativeType = result.componentProperty.nativeType
@@ -1453,27 +1436,14 @@ function toCodegenModel(suggestedName: string, scopeNames: string[] | undefined,
 		}
 	}
 
-	/* Collect models from properties */
-	function collectModels(properties: CodegenProperty[] | undefined): CodegenModel[] | undefined {
-		if (!properties) {
-			return undefined
+	if (scope) {
+		if (!scope.models) {
+			scope.models = []
 		}
-
-		const models: CodegenModel[] = []
-		for (const property of properties) {
-			if (property.models) {
-				models.push(...property.models)
-			}
-		}
-		if (models.length) {
-			return models
-		} else {
-			return undefined
-		}
+		scope.models.push(model)
+	} else {
+		state.models.push(model)
 	}
-
-	model.models = collectModels(model.properties)
-
 	return model
 }
 
@@ -1560,11 +1530,10 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 	/* Process models first so we can check for duplicate names when creating new anonymous models */
 	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
-	const models: CodegenModel[] = []
 	if (specModels) {
 		/* Collect defined schema names first, so no inline or external models can use those names */
 		for (const schemaName in specModels) {
-			const fqmn = fullyQualifiedModelName(schemaName, undefined)
+			const fqmn = fullyQualifiedModelName([schemaName])
 			state.usedModelFullyQualifiedNames[fqmn] = true
 			state.reservedNames[refForSchemaName(schemaName)] = fqmn
 		}
@@ -1575,8 +1544,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 				$ref: refForSchemaName(schemaName),
 			}
 			try {
-				const model = toCodegenModel(schemaName, undefined, reference, state)
-				models.push(model)
+				toCodegenModel(schemaName, null, reference, state)
 			} catch (error) {
 				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
 					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
@@ -1604,13 +1572,10 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 	const groups = groupOperations(operations, state)
 
-	/* Add in the inline models */
-	models.push(...state.inlineModels)
-
 	const doc: CodegenDocument = {
 		info: root.info,
 		groups,
-		models,
+		models: state.models,
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
 		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,

@@ -331,12 +331,22 @@ export interface CodegenProperty extends CodegenTypeInfo {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
+}
+
+/**
+ * An object that defines a naming scope in the generated result.
+ * Allows room in future for operations to define a naming scope.
+ */
+export interface CodegenScope {
+	/** The scoped name of this model as an array */
+	scopedName: string[]
 
 	/** Nested models */
 	models?: CodegenModel[]
 }
 
-export interface CodegenModel extends CodegenTypeInfo {
+export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
+	/** The name of this model */
 	name: string
 	description?: string
 
@@ -370,9 +380,6 @@ export interface CodegenModel extends CodegenTypeInfo {
 	 * This may be set even when `parent` is not set, in case the native parent is not a model.
 	 */
 	parentNativeType?: CodegenNativeType
-
-	/** Nested models */
-	models?: CodegenModel[]
 
 	deprecated?: boolean
 }

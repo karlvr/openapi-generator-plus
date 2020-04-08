@@ -41,7 +41,7 @@ export function createCodegenDocument<O>(input: CodegenInput, state: CodegenStat
 		usedModelFullyQualifiedNames: {},
 		modelsByRef: {},
 		reservedNames: {},
-		inlineModels: [],
+		models: [],
 		specVersion: toSpecVersion(input.root),
 	}
 

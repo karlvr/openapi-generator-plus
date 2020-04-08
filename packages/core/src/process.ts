@@ -910,6 +910,7 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 
 	const originalSchema = schema
 	schema = resolveReference(schema, state)
+	fixSchema(schema)
 
 	if (isModelSchema(schema, state)) {
 		const model = toCodegenModel(name, scope, originalSchema, state)
@@ -1216,6 +1217,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		return existing
 	}
 
+	fixSchema(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
@@ -1473,6 +1475,17 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		state.models.push(model)
 	}
 	return model
+}
+
+/**
+ * Sometimes a schema omits the `type`, even though the specification states that it must be a `string`.
+ * This method corrects for those cases where we can determine what the schema _should_ be.
+ * @param schema 
+ */
+function fixSchema(schema: OpenAPIX.SchemaObject) {
+	if (schema.type === undefined && (schema.required || schema.properties)) {
+		schema.type = 'object'
+	}
 }
 
 function findDiscriminatorMapping(discriminator: CodegenDiscriminator, ref: string): string | undefined {

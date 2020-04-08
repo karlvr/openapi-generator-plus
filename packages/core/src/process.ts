@@ -898,9 +898,6 @@ function toCodegenMediaType(mediaType: string): CodegenMediaType {
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
-	/* The name of the schema, which can be used to name custom types */
-	const refName = isOpenAPIReferenceObject(schema) ? nameFromRef(schema.$ref) : undefined
-	
 	let type: string
 	let format: string | undefined
 	let nativeType: CodegenNativeType

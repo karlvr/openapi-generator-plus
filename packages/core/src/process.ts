@@ -1004,6 +1004,17 @@ interface HandleSchemaResult {
 }
 
 function handleArraySchema(name: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+	if (isOpenAPIReferenceObject(schema)) {
+		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
+		   scope we came from.
+		 */
+		const possibleName = nameFromRef(schema.$ref)
+		if (possibleName) {
+			name = possibleName
+		}
+		scope = null
+	}
+
 	schema = resolveReference(schema, state)
 
 	if (schema.type !== 'array') {
@@ -1029,8 +1040,19 @@ function handleArraySchema(name: string, scope: CodegenScope | null, schema: Ope
 }
 
 function handleMapSchema(name: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
-	schema = resolveReference(schema, state)
+	if (isOpenAPIReferenceObject(schema)) {
+		/* This schema is a reference, so our component schema shouldn't be nested in whatever parent
+		   scope we came from.
+		 */
+		const possibleName = nameFromRef(schema.$ref)
+		if (possibleName) {
+			name = possibleName
+		}
+		scope = null
+	}
 
+	schema = resolveReference(schema, state)
+	
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
 		purpose: CodegenTypePurpose.KEY,

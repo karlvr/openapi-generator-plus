@@ -505,6 +505,8 @@ export interface CodegenParameter extends CodegenTypeInfo {
 	isFormParam?: boolean
 
 	consumes?: CodegenMediaType[]
+
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export interface CodegenVendorExtensions {

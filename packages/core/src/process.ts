@@ -140,6 +140,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		required: parameter.required,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 		examples,
+
+		vendorExtensions: toCodegenVendorExtensions(parameter),
 	}
 	switch (parameter.in) {
 		case 'query':

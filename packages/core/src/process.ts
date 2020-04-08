@@ -481,12 +481,15 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 				vendorExtensions: toCodegenVendorExtensions(scheme),
 			}
 		case 'apiKey': {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const apiKeyIn: string | undefined = (scheme as any).in // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
 			return {
 				type: scheme.type,
 				description: scheme.description,
 				name,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				in: apiKeyIn as any,
 				isApiKey: true,
 				isInHeader: apiKeyIn === 'header',
@@ -508,6 +511,7 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 			}
 			return {
 				type: scheme.type,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				description: (scheme as any).description,
 				name,
 				flows,
@@ -729,6 +733,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, state: InternalCodegenState): CodegenExample[] | undefined {
 	if (example) {
 		return [{
@@ -771,6 +776,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 	return result
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: InternalCodegenState) {
 	if (typeof value === 'string') {
 		return state.generator.toLiteral(value, stringLiteralValueOptions(state), state)
@@ -781,6 +787,7 @@ function toCodegenExampleValueString(value: any, mediaType: string | undefined, 
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExampleValuePretty(value: any) {
 	if (typeof value === 'string') {
 		return value
@@ -1517,10 +1524,6 @@ function findDiscriminator(model: CodegenModel): CodegenDiscriminator | undefine
 	} else {
 		return undefined
 	}
-}
-
-function findModelProperty(model: CodegenModel, name: string): CodegenProperty | undefined {
-	return model.properties && model.properties.find(p => p.name === name)
 }
 
 function removeModelProperty(model: CodegenModel, name: string): CodegenProperty | undefined

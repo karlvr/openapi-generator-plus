@@ -1378,12 +1378,20 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 			model.enumValues = enumValues
 		}
 	} else if (schema.type === 'array') {
+		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels(state.options)) {
+			throw new InvalidModelError()
+		}
+
 		const result = handleArraySchema(name, model, schema, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
 		model.componentType = result.componentProperty.type
 		model.componentNativeType = result.componentProperty.nativeType
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
+			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels(state.options)) {
+				throw new InvalidModelError()
+			}
+
 			const result = handleMapSchema(name, model, schema, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
 			model.componentType = result.componentProperty.type

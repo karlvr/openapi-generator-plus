@@ -1,6 +1,5 @@
 import { CodegenBaseGeneratorConstructor, CodegenGeneratorContext } from '@openapi-generator-plus/types'
 import pluralize from 'pluralize'
-import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
 import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
 
@@ -22,7 +21,6 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function() {
 export function defaultGeneratorOptions<O>(): CodegenGeneratorContext {
 	return {
 		baseGenerator,
-		InvalidModelError: InvalidModelError as ErrorConstructor,
 		NativeType: CodegenNativeTypeImpl,
 		TransformingNativeType: CodegenTransformingNativeTypeImpl,
 		ComposingNativeType: CodegenComposingNativeTypeImpl,

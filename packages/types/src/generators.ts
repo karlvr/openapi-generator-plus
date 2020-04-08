@@ -8,7 +8,6 @@ export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>,
  */
 export interface CodegenGeneratorContext {
 	baseGenerator: CodegenBaseGeneratorConstructor
-	InvalidModelError: ErrorConstructor
 	NativeType: CodegenNativeTypeConstructor
 	TransformingNativeType: CodegenTransformingNativeTypeConstructor
 	ComposingNativeType: CodegenComposingNativeTypeConstructor

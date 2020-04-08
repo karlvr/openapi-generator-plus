@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenMapTypePurpose, CodegenArrayTypePurpose, CodegenGeneratorType } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -20,18 +20,8 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toLiteral: (value) => `literal ${value}`,
 	toNativeType: (options) => new generatorOptions.NativeType(options.type),
 	toNativeObjectType: (options) => new generatorOptions.NativeType(options.modelNames.join('.')),
-	toNativeArrayType: (options, state) => {
-		if (state.options.config.collectionParentNotAllowed && options.purpose === CodegenArrayTypePurpose.PARENT) {
-			throw new generatorOptions.InvalidModelError('Collection parents not allowed')
-		}
-		return new generatorOptions.NativeType(`array ${options.componentNativeType}`)
-	},
-	toNativeMapType: (options, state) => {
-		if (state.options.config.collectionParentNotAllowed && options.purpose === CodegenMapTypePurpose.PARENT) {
-			throw new generatorOptions.InvalidModelError('Collection parents not allowed')
-		}
-		return new generatorOptions.NativeType(`map ${options.componentNativeType}`)
-	},
+	toNativeArrayType: (options) => new generatorOptions.NativeType(`array ${options.componentNativeType}`),
+	toNativeMapType: (options) => new generatorOptions.NativeType(`map ${options.componentNativeType}`),
 	toDefaultValue: (defaultValue, options) => `default ${options.type}`,
 	options: (config) => ({ config }),
 	operationGroupingStrategy: () => addToGroupsByPath,
@@ -40,6 +30,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	},
 	watchPaths: () => [],
 	cleanPathPatterns: () => undefined,
+	generateCollectionModels: (options) => !options.config.collectionParentNotAllowed,
 })
 
 export function createTestGenerator(): CodegenGenerator<TestCodegenOptions> {

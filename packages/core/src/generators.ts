@@ -1,4 +1,4 @@
-import { CodegenBaseGeneratorConstructor, CodegenGeneratorOptions } from '@openapi-generator-plus/types'
+import { CodegenBaseGeneratorConstructor, CodegenGeneratorContext } from '@openapi-generator-plus/types'
 import pluralize from 'pluralize'
 import { InvalidModelError } from './process'
 import { stringLiteralValueOptions } from './utils'
@@ -19,7 +19,7 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function() {
 	}
 }
 
-export function defaultGeneratorOptions<O>(): CodegenGeneratorOptions {
+export function defaultGeneratorOptions<O>(): CodegenGeneratorContext {
 	return {
 		baseGenerator,
 		InvalidModelError: InvalidModelError as ErrorConstructor,

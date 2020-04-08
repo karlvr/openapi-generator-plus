@@ -6,7 +6,7 @@ export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>,
 /**
  * The options given to a generator module function when it is constructed.
  */
-export interface CodegenGeneratorOptions {
+export interface CodegenGeneratorContext {
 	baseGenerator: CodegenBaseGeneratorConstructor
 	InvalidModelError: ErrorConstructor
 	NativeType: CodegenNativeTypeConstructor
@@ -19,4 +19,4 @@ export interface CodegenGeneratorOptions {
 	}
 }
 
-export type CodegenGeneratorConstructor<O> = (generatorOptions: CodegenGeneratorOptions) => CodegenGenerator<O>
+export type CodegenGeneratorConstructor<O> = (generatorOptions: CodegenGeneratorContext) => CodegenGenerator<O>

@@ -1327,7 +1327,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 					model.discriminatorValues = []
 				}
 				model.discriminatorValues.push({
-					discriminator: otherModel.discriminator,
+					model: otherModel,
 					value: state.generator.toLiteral(discriminatorValue, otherModel.discriminator, state),
 				})
 			}
@@ -1373,7 +1373,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 					subModel.discriminatorValues = []
 				}
 				subModel.discriminatorValues.push({
-					discriminator: model.discriminator,
+					model,
 					value: state.generator.toLiteral(discriminatorValue, model.discriminator, state),
 				})
 			}
@@ -1469,14 +1469,15 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		}
 		model.parent.children.push(model)
 
-		const discriminator = findDiscriminator(model.parent)
-		if (discriminator) {
+		const discriminatorModel = findClosestDiscriminatorModel(model.parent)
+		if (discriminatorModel) {
+			const discriminator = discriminatorModel.discriminator!
 			const discriminatorValue = ($ref && findDiscriminatorMapping(discriminator, $ref)) || model.name
 			if (!model.discriminatorValues) {
 				model.discriminatorValues = []
 			}
 			model.discriminatorValues.push({
-				discriminator,
+				model: discriminatorModel,
 				value: state.generator.toLiteral(discriminatorValue, discriminator, state),
 			})
 			discriminator.references.push({
@@ -1516,11 +1517,11 @@ function findDiscriminatorMapping(discriminator: CodegenDiscriminator, ref: stri
 	}
 }
 
-function findDiscriminator(model: CodegenModel): CodegenDiscriminator | undefined {
+function findClosestDiscriminatorModel(model: CodegenModel): CodegenModel | undefined {
 	if (model.discriminator) {
-		return model.discriminator
+		return model
 	} else if (model.parent) {
-		return findDiscriminator(model.parent)
+		return findClosestDiscriminatorModel(model.parent)
 	} else {
 		return undefined
 	}

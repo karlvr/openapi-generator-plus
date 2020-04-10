@@ -405,7 +405,8 @@ export interface CodegenDiscriminator extends CodegenTypeInfo {
 }
 
 export interface CodegenDiscriminatorValue {
-	discriminator: CodegenDiscriminator
+	/** The model containing the discriminator */
+	model: CodegenModel
 	/** The value literal in the native language */
 	value: string
 }

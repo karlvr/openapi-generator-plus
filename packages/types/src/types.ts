@@ -67,7 +67,7 @@ export interface CodegenGenerator<O> {
 	 */
 	postProcessModel?: (model: CodegenModel, state: CodegenState<O>) => boolean | void
 
-	exportTemplates: (outputPath: string, doc: CodegenDocument, state: CodegenState<O>) => void
+	exportTemplates: (outputPath: string, doc: CodegenDocument, state: CodegenState<O>) => Promise<void>
 
 	/** Return an array of paths to include in fs.watch when in watch mode */
 	watchPaths: (config: CodegenConfig) => string[] | undefined

@@ -28,7 +28,7 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	}
 
 	try {
-		generator.exportTemplates(config.outputPath, doc, state)
+		await generator.exportTemplates(config.outputPath, doc, state)
 	} catch (error) {
 		console.error('Failed to generate templates', error)
 		return false

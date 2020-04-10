@@ -25,7 +25,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toDefaultValue: (defaultValue, options) => `default ${options.type}`,
 	options: (config) => ({ config }),
 	operationGroupingStrategy: () => addToGroupsByPath,
-	exportTemplates: () => {
+	exportTemplates: async() => {
 		// NOOP
 	},
 	watchPaths: () => [],

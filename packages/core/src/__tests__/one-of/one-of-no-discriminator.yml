@@ -19,6 +19,8 @@ components:
     Dog:
       type: object
       properties:
+        name:
+          type: string
         bark:
           type: string
     Lizard:

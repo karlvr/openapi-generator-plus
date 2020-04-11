@@ -1266,6 +1266,31 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 
 	model.properties = toCodegenModelProperties(schema, model, state)
 
+	function absorbProperties(otherProperties: CodegenProperty[]) {
+		if (!model.properties) {
+			model.properties = []
+		}
+
+		const propertiesByName: { [name: string]: CodegenProperty } = {}
+		for (const property of model.properties) {
+			propertiesByName[property.name] = property
+		}
+		for (const property of otherProperties) {
+			const existingProperty = propertiesByName[property.name]
+			if (existingProperty) {
+				/* Check that the types don't conflict */
+				if (existingProperty.propertyType !== property.propertyType) {
+					throw new Error(`Cannot merge properties "${property.name}" for "${model.nativeType}" due to type conflict: ${existingProperty.propertyType} vs ${property.propertyType}`)
+				} else if (!existingProperty.nativeType.equals(property.nativeType)) {
+					throw new Error(`Cannot merge properties "${property.name}" for "${model.nativeType}" due to type conflict: ${existingProperty.nativeType} vs ${property.nativeType}`)
+				}
+			} else {
+				model.properties.push(property)
+				propertiesByName[property.name] = property
+			}
+		}
+	}
+
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
 		/* We absorb the properties from the other model as if they were our own, so we name
 		   any inline models as if they were inline inside us rather than `otherSchema`, which
@@ -1273,10 +1298,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		 */
 		const otherProperties = toCodegenModelProperties(otherSchema, model, state)
 		if (otherProperties) {
-			if (!model.properties) {
-				model.properties = []
-			}
-			model.properties.push(...otherProperties)
+			absorbProperties(otherProperties)
 		}
 
 		/* Use a fake scope so that if the otherSchema needs to be created as a nested model, that we throw

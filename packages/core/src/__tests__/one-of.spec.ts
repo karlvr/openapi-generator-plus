@@ -7,10 +7,12 @@ test('one of discriminator', async() => {
 	const model4 = result.models[3]
 
 	expect(model1.name).toEqual('Cat')
+	expect(model1.implements!.length).toBe(1)
 	expect(model4.name).toEqual('MyResponseType')
 	expect(model4.discriminator!.name).toEqual('petType')
 	expect(model4.discriminator!.references.length).toEqual(3)
 	expect(model4.children).toBeUndefined()
+	expect(model4.isInterface).toBe(true)
 })
 
 test('one of no discriminator', async() => {
@@ -18,9 +20,13 @@ test('one of no discriminator', async() => {
 
 	const combinedModel = result.models[3]
 	expect(combinedModel.name).toEqual('MyResponseType')
+	expect(combinedModel.isInterface).toBeFalsy()
 	expect(combinedModel.properties![0].name).toEqual('name')
 	expect(combinedModel.properties![1].name).toEqual('bark')
 	expect(combinedModel.properties![2].name).toEqual('lovesRocks')
+
+	const model1 = result.models[0]
+	expect(model1.isInterface).toBe(true)
 })
 
 test('one of discriminator missing property', async() => {
@@ -38,4 +44,5 @@ test('one of subclasses discriminator', async() => {
 	expect(model4.name).toEqual('Pet')
 	expect(model4.children?.length).toEqual(3)
 	expect(model4.discriminator!.references.length).toEqual(3)
+	expect(model4.isInterface).toBeFalsy()
 })

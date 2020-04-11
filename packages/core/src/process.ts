@@ -1312,6 +1312,12 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		return toCodegenModel('InlineModel', fakeScope, otherSchema, state)
 	}
 
+	function absorbModel(otherModel: CodegenModel) {
+		if (otherModel.properties) {
+			absorbProperties(otherModel.properties)
+		}
+	}
+
 	if (schema.allOf) {
 		const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
 
@@ -1363,6 +1369,11 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 	} else if (schema.oneOf) {
 		const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
 		if (schema.discriminator) {
+			if (model.properties) {
+				throw new Error(`oneOf cannot have properties: ${model.nativeType}`)
+			}
+			model.isInterface = true
+
 			const schemaDiscriminator = schema.discriminator as OpenAPIV3.DiscriminatorObject
 			const mappings = toCodegenDiscriminatorMappings(schemaDiscriminator)
 			model.discriminator = {
@@ -1398,11 +1409,21 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 					model,
 					value: state.generator.toLiteral(discriminatorValue, model.discriminator, state),
 				})
+
+				if (!subModel.implements) {
+					subModel.implements = []
+				}
+				subModel.implements.push(model)
 			}
 		} else {
-			/* Without a discriminator we just bundle them all together into one object and let the user work it out */
+			/* Without a discriminator we bundle all of the properties together into this model and turn the subModels into interfaces */
+			model.implements = []
 			for (const subSchema of oneOf) {
-				absorbSchema(subSchema)
+				const subModel = toCodegenModel('submodel', model, subSchema, state)
+
+				absorbModel(subModel)
+				subModel.isInterface = true
+				model.implements.push(subModel)
 			}
 		}
 	} else if (schema.enum) {

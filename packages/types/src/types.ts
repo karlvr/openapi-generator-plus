@@ -372,6 +372,12 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The models that have this model as their parent */
 	children?: CodegenModel[]
 
+	/** Whether this model is an interface; it has no properties and exists as a marker in the type system rather than a functional object */
+	isInterface?: boolean
+
+	/** The interface models that this model complies with */
+	implements?: CodegenModel[]
+
 	vendorExtensions?: CodegenVendorExtensions
 
 	/** The native type to use when declaring a property of this model type */

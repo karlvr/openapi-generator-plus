@@ -57,7 +57,7 @@ export interface CodegenGenerator<O> {
 	toNativeMapType: (options: CodegenNativeMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => string
+	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => CodegenValue
 
 	options: (config: CodegenConfig) => O
 	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy<O>
@@ -328,7 +328,7 @@ export interface CodegenSchema extends CodegenTypeInfo {
 	description?: string
 	title?: string
 	exampleValue?: string
-	defaultValue?: string
+	defaultValue?: CodegenValue
 	required: boolean
 	vendorExtensions?: CodegenVendorExtensions
 
@@ -344,6 +344,17 @@ export interface CodegenSchema extends CodegenTypeInfo {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
+}
+
+/**
+ * Represents a value to be included in the generated output.
+ */
+export interface CodegenValue {
+	/** The value in its raw JavaScript format */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	value?: any
+	/** The value formatted as a literal in the native language */
+	literalValue: string
 }
 
 /**

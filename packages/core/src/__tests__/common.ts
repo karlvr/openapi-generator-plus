@@ -22,7 +22,12 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toNativeObjectType: (options) => new generatorOptions.NativeType(options.modelNames.join('.')),
 	toNativeArrayType: (options) => new generatorOptions.NativeType(`array ${options.componentNativeType}`),
 	toNativeMapType: (options) => new generatorOptions.NativeType(`map ${options.componentNativeType}`),
-	toDefaultValue: (defaultValue, options) => `default ${options.type}`,
+	toDefaultValue: (defaultValue, options) => {
+		return {
+			value: `default ${options.type}`,
+			literalValue: `"default ${options.type}`,
+		}
+	},
 	options: (config) => ({ config }),
 	operationGroupingStrategy: () => addToGroupsByPath,
 	exportTemplates: async() => {

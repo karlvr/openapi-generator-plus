@@ -1,7 +1,8 @@
 import { createTestDocument, createTestResult } from './common'
 
 test('process document', async() => {
-	await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3-1.yml')
+	expect(result).toBeDefined()
 })
 
 test('parse info', async() => {

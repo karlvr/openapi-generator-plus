@@ -91,8 +91,33 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 		if (!other) {
 			return false
 		}
-		return this.nativeType === other.nativeType && this.wireType === other.wireType && this.literalType === other.literalType
-			&& this.concreteType === other.concreteType && (this.componentType === other.componentType || (!!this.componentType && this.componentType.equals(other.componentType)))
+
+		if (this.nativeType !== other.nativeType) {
+			return false
+		}
+		if (this.wireType !== other.wireType) {
+			return false
+		}
+		if (this.literalType !== other.literalType) {
+			return false
+		}
+		if (this.concreteType !== other.concreteType) {
+			return false
+		}
+		if (this.componentType === other.componentType || (this.componentType === this && other.componentType === other)) {
+			/* okay */
+		} else if (!this.componentType || !other.componentType) {
+			return false
+		} else {
+			if (this.componentType !== this || other.componentType !== other) {
+				/* Component type is not recursive */
+				if (!this.componentType.equals(other.componentType)) {
+					return false
+				}
+			}
+		}
+		
+		return true
 	}
 
 	public transform(transformer: CodegenNativeTypeTransformer) {

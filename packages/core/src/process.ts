@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenExample, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType, CodegenScope, CodegenSchema } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import * as _ from 'lodash'
@@ -110,7 +110,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	parameter = resolveReference(parameter, state)
 
 	let schema: CodegenSchema | undefined
-	let examples: CodegenExample[] | undefined
+	let examples: CodegenExamples | undefined
 	if (parameter.schema) {
 		/* We pass [] as scopeNames so we create any nested models at the root of the models package,
 		 * as we reference all models relative to the models package, but a parameter is in an
@@ -123,7 +123,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 */
 		schema = toCodegenSchema(parameter.schema, parameter.required || false, `${scopeName}_${parameter.name}`, null, state)
 
-		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, state)
+		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schema, state)
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schema = toCodegenSchema(parameter, parameter.required || false, `${scopeName}_${parameter.name}`, null, state)
 	} else {
@@ -231,6 +231,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	}
 
 	let consumes: CodegenMediaType[] | undefined
+	let bodyParam: CodegenRequestBody | undefined
 
 	if (isOpenAPIV3Operation(operation, state.specVersion)) {
 		let requestBody = operation.requestBody
@@ -248,9 +249,12 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				throw new Error(`Cannot find common types for request body contents: ${path}`)
 			}
 			consumes = findAllContentMediaTypes(requestBodyContents)
+			if (!consumes) {
+				throw new Error(`No contents for request body: ${path}`)
+			}
 
-			const requestBodyParameter: CodegenParameter = {
-				name: 'request',
+			bodyParam = {
+				name: 'request', // TODO this might conflict with another parameter
 				in: 'body',
 
 				...commonTypes,
@@ -258,9 +262,10 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				description: requestBody.description,
 				required: requestBody.required,
 
-				examples: collectExamplesFromContents(requestBodyContents),
-
 				isBodyParam: true,
+
+				contents: requestBodyContents,
+				consumes,
 
 				...extractCodegenTypeInfo(requestBodyContents[0]),
 			}
@@ -268,17 +273,38 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			if (!parameters) {
 				parameters = []
 			}
-			parameters.push(requestBodyParameter)
+			parameters.push(bodyParam)
 		}
 	} else {
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
-	}
 
-	/* Apply special body param properties */
-	if (parameters) {
-		for (const p of parameters) {
-			if (p.isBodyParam) {
-				p.consumes = consumes
+		/* Apply special body param properties */
+		if (parameters) {
+			const bodyParamIndex = parameters.findIndex(p => p.isBodyParam)
+			if (bodyParamIndex !== -1) {
+				if (!consumes) {
+					throw new Error(`Consumes not specified for operation with body parameter: ${path}`)
+				}
+
+				const existingBodyParam = parameters[bodyParamIndex]
+				const contents = consumes?.map(mediaType => {
+					const result: CodegenContent = {
+						mediaType,
+						...extractCodegenTypeInfo(existingBodyParam),
+					}
+					return result
+				})
+
+				bodyParam = {
+					...existingBodyParam,
+					in: 'body',
+					isBodyParam: true,
+					examples: undefined,
+
+					contents,
+					consumes,
+				}
+				parameters.splice(bodyParamIndex, 1, bodyParam)
 			}
 		}
 	}
@@ -306,7 +332,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		pathParams: parameters?.filter(p => p.isPathParam),
 		headerParams: parameters?.filter(p => p.isHeaderParam),
 		cookieParams: parameters?.filter(p => p.isCookieParam),
-		bodyParam: parameters?.find(p => p.isBodyParam),
+		bodyParam,
 		formParams: parameters?.filter(p => p.isFormParam),
 		nonBodyParams: parameters?.filter(p => !p.isBodyParam),
 
@@ -344,7 +370,7 @@ function responsesHaveExamples(responses: CodegenResponse[] | undefined): boolea
 		return undefined
 	}
 
-	return !!responses.find(response => !!response.examples?.length)
+	return !!responses.find(response => response.contents && response.contents.find(c => !!c.examples?.length))
 }
 
 function toUniqueMediaTypes(mediaTypes: CodegenMediaType[]): CodegenMediaType[] {
@@ -691,14 +717,13 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		if (response.schema) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
 			const schema = toCodegenSchema(response.schema, true, `${scopeName}_${code}_response`, null, state)
-			const examples = toCodegenExamples(undefined, response.examples, undefined, state)
+			const examples = toCodegenExamples(undefined, response.examples, undefined, schema, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
 			contents = mediaTypes ? mediaTypes.map(mediaType => {
 				const result: CodegenContent = {
 					mediaType,
-					schema,
-					examples: examples?.filter(example => example.mediaType?.mediaType === mediaType.mediaType),
+					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : undefined,
 					...extractCodegenTypeInfo(schema),
 				}
 				return result
@@ -724,7 +749,6 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		...commonTypes,
 		contents,
 		produces,
-		examples: collectExamplesFromContents(contents),
 		vendorExtensions: toCodegenVendorExtensions(response),
 
 		...(contents && contents.length ? extractCodegenTypeInfo(contents[0]) : {}),
@@ -733,41 +757,54 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
+function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
+	return schema.propertyType !== CodegenPropertyType.ARRAY && schema.propertyType !== CodegenPropertyType.OBJECT && schema.propertyType !== CodegenPropertyType.FILE
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, state: InternalCodegenState): CodegenExample[] | undefined {
+function exampleValue(value: any, mediaType: string | undefined, schema: CodegenTypeInfo, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
+	return {
+		value,
+		valueLiteral: canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, schema, state) : value,
+		valueString: toCodegenExampleValueString(value, mediaType, state),
+		valuePretty: toCodegenExampleValuePretty(value),
+		...extractCodegenTypeInfo(schema),
+	}
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenTypeInfo, state: InternalCodegenState): CodegenExamples | undefined {
 	if (example) {
-		return [{
-			value: example,
-			valueString: toCodegenExampleValueString(example, mediaType, state),
-			valuePretty: toCodegenExampleValuePretty(example),
-		}]
+		return {
+			default: {
+				...exampleValue(example, mediaType, schema, state),
+				...extractCodegenTypeInfo(schema),
+			},
+		}
 	}
 
 	if (!examples) {
 		return undefined
 	}
 
-	const result: CodegenExample[] = []
+	const result: CodegenExamples = {}
 	for (const mediaTypeOrName in examples) {
 		const example = examples[mediaTypeOrName]
 		if (isOpenAPIV2ExampleObject(example, state.specVersion)) {
-			result.push({
+			result[mediaTypeOrName] = {
 				mediaType: toCodegenMediaType(mediaTypeOrName),
-				value: example,
-				valueString: toCodegenExampleValueString(example, mediaTypeOrName, state),
-				valuePretty: toCodegenExampleValuePretty(example),
-			})
+				...exampleValue(example, mediaTypeOrName, schema, state),
+				...extractCodegenTypeInfo(schema),
+			}
 		} else if (isOpenAPIV3ExampleObject(example, state.specVersion)) {
 			const value = example.value || example.externalValue // TODO handle externalValue
-			result.push({
+			result[mediaTypeOrName] = {
 				name: mediaTypeOrName,
-				mediaType: toCodegenMediaType(mediaType!),
+				mediaType: mediaType ? toCodegenMediaType(mediaType) : undefined,
 				description: example.description,
 				summary: example.summary,
-				value,
-				valueString: toCodegenExampleValueString(example, mediaType, state),
-				valuePretty: toCodegenExampleValuePretty(example),
-			})
+				...exampleValue(value, mediaType, schema, state),
+				...extractCodegenTypeInfo(schema),
+			}
 		} else {
 			throw new Error(`Unsupported spec version: ${state.specVersion}`)
 		}
@@ -797,19 +834,6 @@ function toCodegenExampleValuePretty(value: any) {
 	}
 }
 
-function collectExamplesFromContents(contents: CodegenContent[] | undefined): CodegenExample[] | undefined {
-	if (!contents) {
-		return undefined
-	}
-
-	const result = contents?.reduce((collected, content) => content.examples ? [...collected, ...content.examples] : collected, [] as CodegenExample[])
-	if (!result.length) {
-		return undefined
-	}
-
-	return result
-}
-
 /**
  * Finds the common property type info from the array of CodegenContent, or returns `undefined` if there
  * is no common property type info.
@@ -823,26 +847,19 @@ function commonTypeInfo(contents: CodegenContent[] | undefined): CodegenTypeInfo
 	
 	for (const content of contents) {
 		if (!result) {
-			result = {
-				type: content.schema.type,
-				format: content.schema.format,
-				propertyType: content.schema.propertyType,
-				nativeType: content.schema.nativeType,
-				componentType: content.schema.componentType,
-				componentNativeType: content.schema.componentNativeType,
-			}
+			result = extractCodegenTypeInfo(content)
 		} else {
-			if (content.schema.type !== result.type) {
+			if (content.type !== result.type) {
 				return undefined
 			}
-			if (content.schema.format !== result.format) {
+			if (content.format !== result.format) {
 				return undefined
 			}
-			if (content.schema.nativeType && result.nativeType) {
-				if (!content.schema.nativeType.equals(result.nativeType)) {
+			if (content.nativeType && result.nativeType) {
+				if (!content.nativeType.equals(result.nativeType)) {
 					return undefined
 				}
-			} else if (content.schema.nativeType !== result.nativeType) {
+			} else if (content.nativeType !== result.nativeType) {
 				return undefined
 			}
 		}
@@ -863,15 +880,15 @@ function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeOb
 	for (const mediaType in content) {
 		const mediaTypeContent = content[mediaType]
 
-		const examples: CodegenExample[] | undefined = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, state)
-
 		if (!mediaTypeContent.schema) {
 			throw new Error('Media type content without a schema')
 		}
 		const schema = toCodegenSchema(mediaTypeContent.schema, true, suggestedModelName, scope, state)
+
+		const examples: CodegenExamples | undefined = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schema, state)
+
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),
-			schema,
 			examples,
 			...extractCodegenTypeInfo(schema),
 		}

@@ -171,7 +171,7 @@ export interface CodegenOperation {
 	pathParams?: CodegenParameter[]
 	headerParams?: CodegenParameter[]
 	cookieParams?: CodegenParameter[]
-	bodyParam?: CodegenParameter
+	bodyParam?: CodegenRequestBody
 	formParams?: CodegenParameter[]
 	nonBodyParams?: CodegenParameter[]
 
@@ -202,7 +202,6 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	/** The responses contents */
 	contents?: CodegenContent[]
 	produces?: CodegenMediaType[]
-	examples?: CodegenExample[]
 
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
@@ -211,17 +210,22 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 
 export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
-	schema: CodegenSchema
-	examples?: CodegenExample[]
+	examples?: CodegenExamples
 }
 
-export interface CodegenExample {
+export interface CodegenExamples {
+	[name: string]: CodegenExample
+}
+
+export interface CodegenExample extends CodegenTypeInfo {
 	name?: string
 	mediaType?: CodegenMediaType
 	summary?: string
 	description?: string
 	/** The raw example value, may be a string or any other JSON/YAML type */
 	value: any
+	/** The example as a literal in the native language */
+	valueLiteral: string
 	/** The example value formatted as a string literal by the generator */
 	valueString: string
 	valuePretty: string
@@ -504,7 +508,8 @@ export interface CodegenParameter extends CodegenTypeInfo {
 	required?: boolean
 	collectionFormat?: string
 
-	examples?: CodegenExample[]
+	contents?: CodegenContent[]
+	examples?: CodegenExamples
 
 	isQueryParam?: boolean
 	isPathParam?: boolean
@@ -513,9 +518,18 @@ export interface CodegenParameter extends CodegenTypeInfo {
 	isBodyParam?: boolean
 	isFormParam?: boolean
 
-	consumes?: CodegenMediaType[]
-
 	vendorExtensions?: CodegenVendorExtensions
+}
+
+export interface CodegenRequestBody extends CodegenParameter {
+	in: 'body'
+
+	isBodyParam: true
+
+	contents: CodegenContent[]
+	examples?: never
+
+	consumes: CodegenMediaType[]
 }
 
 export interface CodegenVendorExtensions {

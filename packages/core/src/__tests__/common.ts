@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType, CodegenPropertyType } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -22,10 +22,26 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toNativeObjectType: (options) => new generatorOptions.NativeType(options.modelNames.join('.')),
 	toNativeArrayType: (options) => new generatorOptions.NativeType(`array ${options.componentNativeType}`),
 	toNativeMapType: (options) => new generatorOptions.NativeType(`map ${options.componentNativeType}`),
-	toDefaultValue: (defaultValue, options) => {
-		return {
-			value: `default ${options.type}`,
-			literalValue: `"default ${options.type}`,
+	toDefaultValue: (defaultValue, options, state) => {
+		if (defaultValue) {
+			return { value: defaultValue, literalValue: state.generator.toLiteral(defaultValue, options, state) }
+		}
+
+		if (!options.required) {
+			return { literalValue: 'undefined' }
+		}
+
+		switch (options.propertyType) {
+			case CodegenPropertyType.ARRAY:
+				return { value: [], literalValue: '[]' }
+			case CodegenPropertyType.OBJECT:
+				return { value: {}, literalValue: '{}' }
+			case CodegenPropertyType.NUMBER:
+				return { value: 0, literalValue: '0' }
+			case CodegenPropertyType.BOOLEAN:
+				return { value: false, literalValue: 'false' }
+			default:
+				return { literalValue: 'undefined' }
 		}
 	},
 	options: (config) => ({ config }),

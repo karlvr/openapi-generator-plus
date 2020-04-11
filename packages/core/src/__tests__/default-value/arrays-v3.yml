@@ -1,0 +1,20 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Test:
+      type: object
+      required: [arrayProperty]
+      properties:
+        arrayProperty:
+          type: array
+          items:
+            type: string
+        notRequiredArrayProperty:
+          type: array
+          items:
+            type: string

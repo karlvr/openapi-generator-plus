@@ -1360,14 +1360,8 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 				})
 			}
 		}
-	} else if (schema.anyOf) {
-		// const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
-		// for (const subSchema of anyOf) {
-		// 	absorbSubSchema(subSchema)
-		// }
-		throw new Error('anyOf not yet supported')
-	} else if (schema.oneOf) {
-		const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+	} else if (schema.oneOf || schema.anyOf) {
+		const oneOf = (schema.oneOf || schema.anyOf) as Array<OpenAPIX.SchemaObject>
 		if (schema.discriminator) {
 			if (model.properties) {
 				throw new Error(`oneOf cannot have properties: ${model.nativeType}`)

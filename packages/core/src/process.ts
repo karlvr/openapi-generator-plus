@@ -777,6 +777,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 		return {
 			default: {
 				...exampleValue(example, mediaType, schema, state),
+				mediaType: mediaType ? toCodegenMediaType(mediaType) : undefined,
 				...extractCodegenTypeInfo(schema),
 			},
 		}

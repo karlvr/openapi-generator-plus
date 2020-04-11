@@ -223,6 +223,7 @@ export interface CodegenExample extends CodegenTypeInfo {
 	summary?: string
 	description?: string
 	/** The raw example value, may be a string or any other JSON/YAML type */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value: any
 	/** The example as a literal in the native language */
 	valueLiteral: string
@@ -544,6 +545,7 @@ export interface CodegenRequestBody extends CodegenParameter {
 }
 
 export interface CodegenVendorExtensions {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[name: string]: any
 }
 

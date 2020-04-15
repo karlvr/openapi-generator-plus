@@ -60,7 +60,7 @@ export interface CodegenGenerator<O> {
 	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => CodegenValue
 
 	options: (config: CodegenConfig) => O
-	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy<O>
+	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
 
 	/** Apply any post-processing to the given model.
 	 * @returns `false` if the model should be excluded.
@@ -608,7 +608,7 @@ export interface CodegenMediaType {
 	encoding?: string
 }
 
-export type CodegenOperationGroupingStrategy<O> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
+export type CodegenOperationGroupingStrategy<O = {}> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
 
 /**
  * The different HTTP methods supported by OpenAPI.

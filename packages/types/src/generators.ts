@@ -1,4 +1,4 @@
-import { CodegenGenerator, CodegenLiteralValueOptions, CodegenState, CodegenNativeTypeConstructor } from './types'
+import { CodegenGenerator, CodegenLiteralValueOptions, CodegenState, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy } from './types'
 import { CodegenTransformingNativeTypeConstructor, CodegenComposingNativeTypeConstructor, CodegenFullTransformingNativeTypeConstructor, CodegenFullComposingNativeTypeConstructor } from './native-types'
 
 export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>, 'toEnumMemberName' | 'toIteratedModelName'>
@@ -8,6 +8,11 @@ export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>,
  */
 export interface CodegenGeneratorContext {
 	baseGenerator: CodegenBaseGeneratorConstructor
+	operationGroupingStrategies: {
+		addToGroupsByPath: CodegenOperationGroupingStrategy
+		addToGroupsByTag: CodegenOperationGroupingStrategy
+		addToGroupsByTagOrPath: CodegenOperationGroupingStrategy
+	}
 	NativeType: CodegenNativeTypeConstructor
 	TransformingNativeType: CodegenTransformingNativeTypeConstructor
 	ComposingNativeType: CodegenComposingNativeTypeConstructor

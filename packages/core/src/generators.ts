@@ -1,6 +1,7 @@
 import { CodegenBaseGeneratorConstructor, CodegenGeneratorContext } from '@openapi-generator-plus/types'
 import { stringLiteralValueOptions } from './utils'
 import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
+import * as allOperationGroupingStrategies from './operation-grouping'
 
 /**
  * A partial generator implementation that should be the base of all generators.
@@ -17,6 +18,7 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function() {
 export function defaultGeneratorOptions<O>(): CodegenGeneratorContext {
 	return {
 		baseGenerator,
+		operationGroupingStrategies: allOperationGroupingStrategies,
 		NativeType: CodegenNativeTypeImpl,
 		TransformingNativeType: CodegenTransformingNativeTypeImpl,
 		ComposingNativeType: CodegenComposingNativeTypeImpl,

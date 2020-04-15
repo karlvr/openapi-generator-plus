@@ -1,13 +1,21 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType, CodegenPropertyType } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType, CodegenPropertyType, CodegenGeneratorContext } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
 
-export interface TestCodegenOptions {
-	config: CodegenConfig
+interface TestCodegenOptions {
+
 }
 
-const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> = (generatorOptions) => ({
+export interface TestCodegenConfig {
+	collectionModelsAllowed?: boolean
+}
+
+export interface TestCodegenGeneratorContext extends CodegenGeneratorContext, TestCodegenConfig {
+	
+}
+
+const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions, TestCodegenGeneratorContext> = (generatorContext) => ({
 	generatorType: () => CodegenGeneratorType.SERVER,
 	toClassName: (name) => `${name}_class`,
 	toIdentifier: (name) => `${name}_identifier`,
@@ -18,10 +26,10 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	toModelNameFromPropertyName: (name) => `${name}_model`,
 	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
 	toLiteral: (value) => `literal ${value}`,
-	toNativeType: (options) => new generatorOptions.NativeType(options.type),
-	toNativeObjectType: (options) => new generatorOptions.NativeType(options.modelNames.join('.')),
-	toNativeArrayType: (options) => new generatorOptions.NativeType(`array ${options.componentNativeType}`),
-	toNativeMapType: (options) => new generatorOptions.NativeType(`map ${options.componentNativeType}`),
+	toNativeType: (options) => new generatorContext.NativeType(options.type),
+	toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),
+	toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
+	toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
 	toDefaultValue: (defaultValue, options, state) => {
 		if (defaultValue) {
 			return { value: defaultValue, literalValue: state.generator.toLiteral(defaultValue, options, state) }
@@ -51,14 +59,14 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions> 
 	},
 	watchPaths: () => [],
 	cleanPathPatterns: () => undefined,
-	generateCollectionModels: (options) => !!options.config.collectionModelsAllowed,
+	generateCollectionModels: () => !!generatorContext.collectionModelsAllowed,
 })
 
-export function createTestGenerator(): CodegenGenerator<TestCodegenOptions> {
-	return constructGenerator(testGeneratorConstructor)
+export function createTestGenerator(config?: TestCodegenConfig): CodegenGenerator<TestCodegenOptions> {
+	return constructGenerator((context) => testGeneratorConstructor({ ...context, ...config }))
 }
 
-export async function createTestDocument(inputPath: string, config?: CodegenConfig): Promise<CodegenDocument> {
+export async function createTestDocument(inputPath: string, config?: TestCodegenConfig): Promise<CodegenDocument> {
 	return (await createTestResult(inputPath, config)).result
 }
 
@@ -67,8 +75,8 @@ export interface TestResult {
 	state: CodegenState<TestCodegenOptions>
 }
 
-export async function createTestResult(inputPath: string, config?: CodegenConfig): Promise<TestResult> {
-	const generator = createTestGenerator()
+export async function createTestResult(inputPath: string, config?: TestCodegenConfig): Promise<TestResult> {
+	const generator = createTestGenerator(config)
 	const state = createCodegenState(config || {}, generator)
 	const input = await createCodegenInput(path.resolve(__dirname, inputPath))
 	const result = createCodegenDocument(input, state)

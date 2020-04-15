@@ -8,6 +8,7 @@ import { createConfig } from './config'
 import watch from 'node-watch'
 import glob from 'glob-promise'
 import { loadGeneratorConstructor } from './generator'
+import c from 'ansi-colors'
 
 function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
@@ -23,14 +24,14 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	try {
 		doc = createCodegenDocument(input, state)
 	} catch (error) {
-		console.error('Failed to process the API specification', error)
+		console.error(c.bold.red('Failed to process the API specification:'), error)
 		return false
 	}
 
 	try {
 		await generator.exportTemplates(config.outputPath, doc, state)
 	} catch (error) {
-		console.error('Failed to generate templates', error)
+		console.error(c.bold.red('Failed to generate templates:'), error)
 		return false
 	}
 
@@ -45,7 +46,7 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 		return
 	}
 
-	console.log(`Cleaning: ${cleanPathPatterns.join(' ')}`)
+	console.log(c.bold.yellow('Cleaning:'), cleanPathPatterns.join(' '))
 
 	const outputPath = config.outputPath
 	const paths: string[] = []
@@ -60,7 +61,7 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	for (const aPath of paths) {
 		const absolutePath = path.resolve(outputPath, aPath)
 		if (!absolutePath.startsWith(outputPath)) {
-			console.warn(`Invalid clean path not under outputPath: ${absolutePath}`)
+			console.warn(c.bold.red('Invalid clean path not under outputPath:'), absolutePath)
 			continue
 		}
 
@@ -70,7 +71,7 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 				await fs.unlink(absolutePath)
 			}
 		} catch (error) {
-			console.warn(`Failed to clean path: ${absolutePath}: ${error.message}`)
+			console.error(c.bold.red('Failed to clean path:'), absolutePath, error)
 		}
 	}
 }
@@ -131,7 +132,7 @@ export async function run() {
 	const beforeGeneration = Date.now()
 	const result = await generate(config, generatorConstructor)
 	if (result) {
-		console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
+		console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
 	}
 
 	if (commandLineOptions.clean) {
@@ -143,7 +144,7 @@ export async function run() {
 		if (config.inputPath.indexOf('://') === -1) {
 			watchPaths.push(config.inputPath)
 		} else {
-			console.warn('Not watching for API specification changes as it is not a local file path')
+			console.warn(c.red('Not watching for API specification changes as it is not a local file path:'), config.inputPath)
 		}
 
 		const generatorWatchPaths = constructGenerator(generatorConstructor).watchPaths(config)
@@ -164,11 +165,11 @@ export async function run() {
 			running = true
 
 			const beforeGeneration = Date.now()
-			console.log(`Rebuilding: ${config.inputPath}…`)
+			console.log(c.cyan('Rebuilding:'), config.inputPath)
 			try {
 				const result = await generate(config, generatorConstructor)
 				if (result) {
-					console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
+					console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
 
 					if (commandLineOptions.clean) {
 						await clean(beforeGeneration, config, generatorConstructor)
@@ -176,11 +177,7 @@ export async function run() {
 				}
 				running = false
 			} catch (error) {
-				if (error.message) {
-					console.error(`Failed to generate: ${error.message}`)
-				} else {
-					console.error('Failed to generate', error)
-				}
+				console.error(c.bold.red('Failed to generate:'), error)
 				running = false
 			}
 		})

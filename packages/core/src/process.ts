@@ -1567,7 +1567,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
  * @param schema 
  */
 function fixSchema(schema: OpenAPIX.SchemaObject) {
-	if (schema.type === undefined && (schema.required || schema.properties)) {
+	if (schema.type === undefined && (schema.required || schema.properties || schema.additionalProperties)) {
 		schema.type = 'object'
 	}
 }

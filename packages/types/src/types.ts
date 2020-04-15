@@ -393,6 +393,7 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 
 	/** The interface models that this model complies with */
 	implements?: CodegenModel[]
+	implementors?: CodegenModel[]
 
 	vendorExtensions?: CodegenVendorExtensions
 

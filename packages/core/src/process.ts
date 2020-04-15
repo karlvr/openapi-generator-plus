@@ -1426,6 +1426,10 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 					subModel.implements = []
 				}
 				subModel.implements.push(model)
+				if (!model.implementors) {
+					model.implementors = []
+				}
+				model.implementors.push(subModel)
 			}
 		} else {
 			/* Without a discriminator we bundle all of the properties together into this model and turn the subModels into interfaces */
@@ -1436,6 +1440,10 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 				absorbModel(subModel)
 				subModel.isInterface = true
 				model.implements.push(subModel)
+				if (!subModel.implementors) {
+					subModel.implementors = []
+				}
+				subModel.implementors.push(model)
 			}
 		}
 	} else if (schema.enum) {

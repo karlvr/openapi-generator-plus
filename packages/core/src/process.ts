@@ -267,6 +267,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				contents: requestBodyContents,
 				consumes,
 
+				vendorExtensions: toCodegenVendorExtensions(requestBody),
+
 				...extractCodegenTypeInfo(requestBodyContents[0]),
 			}
 

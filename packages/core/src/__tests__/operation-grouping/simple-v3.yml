@@ -1,0 +1,16 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test1/a:
+    get:
+      responses:
+        200:
+          description: OK
+  /test1/b:
+    get:
+      responses:
+        200:
+          description: OK

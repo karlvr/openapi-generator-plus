@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorType, CodegenPropertyType, CodegenGeneratorContext } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenPropertyType, CodegenGeneratorContext, CodegenOperationGroupingStrategy } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -9,6 +9,7 @@ interface TestCodegenOptions {
 
 export interface TestCodegenConfig {
 	collectionModelsAllowed?: boolean
+	operationGroupingStrategy?: CodegenOperationGroupingStrategy<TestCodegenOptions>
 }
 
 export interface TestCodegenGeneratorContext extends CodegenGeneratorContext, TestCodegenConfig {
@@ -53,7 +54,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions, 
 		}
 	},
 	options: (config) => ({ config }),
-	operationGroupingStrategy: () => addToGroupsByPath,
+	operationGroupingStrategy: () => generatorContext.operationGroupingStrategy || addToGroupsByPath,
 	exportTemplates: async() => {
 		// NOOP
 	},

@@ -130,11 +130,9 @@ export async function run() {
 
 	const beforeGeneration = Date.now()
 	const result = await generate(config, generatorConstructor)
-	if (!result) {
-		process.exit(1)
+	if (result) {
+		console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 	}
-
-	console.log(`Generated in ${Date.now() - beforeGeneration}ms: ${config.outputPath}`)
 
 	if (commandLineOptions.clean) {
 		await clean(beforeGeneration, config, generatorConstructor)
@@ -186,6 +184,10 @@ export async function run() {
 				running = false
 			}
 		})
+	}
+
+	if (!result) {
+		process.exit(1)
 	}
 }
 

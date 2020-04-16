@@ -2,7 +2,7 @@ import { createTestDocument, createTestResult } from './common'
 import * as idx from '../indexed-type'
 
 test('parse info', async() => {
-	const result = await createTestDocument('openapiv2-1.yml')
+	const result = await createTestDocument('openapiv2/simple.yml')
 
 	expect(result.info.description).toEqual('Lorem ipsum')
 	expect(result.info.version).toEqual('1.0.1')
@@ -13,7 +13,7 @@ test('parse info', async() => {
 })
 
 test('parse groups', async() => {
-	const { result, state } = await createTestResult('openapiv2-1.yml')
+	const { result, state } = await createTestResult('openapiv2/simple.yml')
 
 	expect(result.groups.length).toEqual(2)
 	const group1 = result.groups[0]

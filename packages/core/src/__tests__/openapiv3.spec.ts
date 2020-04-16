@@ -2,12 +2,12 @@ import { createTestDocument, createTestResult } from './common'
 import * as idx from '../indexed-type'
 
 test('process document', async() => {
-	const result = await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3/simple.yml')
 	expect(result).toBeDefined()
 })
 
 test('parse info', async() => {
-	const result = await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3/simple.yml')
 
 	expect(result.info.description).toEqual('Lorem ipsum')
 	expect(result.info.version).toEqual('1.0.1')
@@ -18,7 +18,7 @@ test('parse info', async() => {
 })
 
 test('parse operation params', async() => {
-	const result = await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3/simple.yml')
 
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
@@ -28,7 +28,7 @@ test('parse operation params', async() => {
 })
 
 test('parse operation body params', async() => {
-	const result = await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3/simple.yml')
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
@@ -39,7 +39,7 @@ test('parse operation body params', async() => {
 })
 
 test('parse operation response', async() => {
-	const result = await createTestDocument('openapiv3-1.yml')
+	const result = await createTestDocument('openapiv3/simple.yml')
 
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
@@ -56,7 +56,7 @@ test('parse operation response', async() => {
 })
 
 test('parse groups', async() => {
-	const { result, state } = await createTestResult('openapiv3-1.yml')
+	const { result, state } = await createTestResult('openapiv3/simple.yml')
 
 	expect(result.groups.length).toEqual(2)
 	const group1 = result.groups[0]

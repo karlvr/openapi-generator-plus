@@ -4,8 +4,8 @@ info:
   description: Lorem ipsum
   version: 1.0.1
   title: Example
-host: example.com/api
-basePath: /v1
+host: example.com
+basePath: /api/v1
 schemes:
 - http
 - https
@@ -43,6 +43,9 @@ paths:
         description: Lorem ipsum
         schema:
           $ref: '#/definitions/Test1Request'
+      responses:
+        200:
+          description: OK
   /test2:
     get:
       parameters:
@@ -51,6 +54,9 @@ paths:
         required: true
         description: Lorem ipsum
         type: string
+      responses:
+        200:
+          description: OK
 definitions:
   Test1Response:
     type: object

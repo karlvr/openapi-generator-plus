@@ -270,10 +270,6 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 				...extractCodegenTypeInfo(requestBodyContents[0]),
 			}
-
-			if (!parameters) {
-				parameters = []
-			}
 		}
 	} else {
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)

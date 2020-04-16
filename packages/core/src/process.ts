@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues } from '@openapi-generator-plus/types'
-import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
+import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
@@ -231,16 +231,22 @@ function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: Co
 	return result
 }
 
-function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, pathParameters: CodegenParameters | undefined, state: InternalCodegenState): CodegenOperation {
+interface CodegenOperationContext {
+	parameters?: CodegenParameters
+	summary?: string
+	description?: string
+}
+
+function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, context: CodegenOperationContext, state: InternalCodegenState): CodegenOperation {
 	const name = toCodegenOperationName(path, method, operation, state)
 	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
 
 	let parameters: CodegenParameters | undefined
 	if (operation.parameters) {
-		parameters = toCodegenParameters(operation.parameters, pathParameters, name, state)
-	} else if (pathParameters) {
-		parameters = idx.merge(idx.create(), pathParameters)
+		parameters = toCodegenParameters(operation.parameters, context.parameters, name, state)
+	} else if (context.parameters) {
+		parameters = idx.merge(idx.create(), context.parameters)
 	}
 
 	let consumes: CodegenMediaType[] | undefined
@@ -351,8 +357,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		defaultResponse,
 		responses,
 		deprecated: operation.deprecated,
-		summary: operation.summary,
-		description: operation.description,
+		summary: operation.summary || context.summary,
+		description: operation.description || context.description,
 		tags: operation.tags,
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
@@ -1657,12 +1663,12 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
-	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, pathParameters: CodegenParameters | undefined) {
+	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, context: CodegenOperationContext) {
 		if (!operation) {
 			return
 		}
 	
-		const op = toCodegenOperation(path, method, operation, pathParameters, state)
+		const op = toCodegenOperation(path, method, operation, context, state)
 		operations.push(op)
 	}
 
@@ -1707,15 +1713,22 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 		pathItem = resolveReference(pathItem, state)
 
-		const pathParameters = pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) : undefined
+		const operationContext: CodegenOperationContext = {
+			parameters: pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) : undefined,
+			summary: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.summary : undefined,
+			description: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.description : undefined,
+		}
 		
-		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete, pathParameters)
-		createCodegenOperation(path, HttpMethods.GET, pathItem.get, pathParameters)
-		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head, pathParameters)
-		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options, pathParameters)
-		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch, pathParameters)
-		createCodegenOperation(path, HttpMethods.POST, pathItem.post, pathParameters)
-		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, pathParameters)
+		createCodegenOperation(path, HttpMethods.GET, pathItem.get, operationContext)
+		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, operationContext)
+		createCodegenOperation(path, HttpMethods.POST, pathItem.post, operationContext)
+		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete, operationContext)
+		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options, operationContext)
+		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head, operationContext)
+		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch, operationContext)
+		if (isOpenAPIV3PathItemObject(pathItem, state.specVersion)) {
+			createCodegenOperation(path, HttpMethods.TRACE, pathItem.trace, operationContext)
+		}
 	}
 
 	const groups = groupOperations(operations, state)

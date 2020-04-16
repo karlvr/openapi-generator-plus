@@ -637,4 +637,5 @@ export enum HttpMethods {
 	PUT = 'PUT',
 	PATCH = 'PATCH',
 	DELETE = 'DELETE',
+	TRACE = 'TRACE',
 }

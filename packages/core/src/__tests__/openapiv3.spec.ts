@@ -97,3 +97,29 @@ test('parameters at path level', async() => {
 	expect(op2Parameters[0].name).toBe('b')
 	expect(op2Parameters[1].name).toBe('a')
 })
+
+test('summary at path level', async() => {
+	const { result } = await createTestResult('openapiv3/documentation-at-path.yml')
+
+	const group1 = result.groups[0]
+	expect(group1.operations.length).toBe(2)
+
+	const op1 = group1.operations[0]
+	const op2 = group1.operations[1]
+
+	expect(op1.summary).toBe('Operation summary')
+	expect(op2.summary).toBe('Path summary')
+})
+
+test('description at path level', async() => {
+	const { result } = await createTestResult('openapiv3/documentation-at-path.yml')
+
+	const group1 = result.groups[0]
+	expect(group1.operations.length).toBe(2)
+
+	const op1 = group1.operations[0]
+	const op2 = group1.operations[1]
+
+	expect(op1.description).toBe('Path description')
+	expect(op2.description).toBe('Operation description')
+})

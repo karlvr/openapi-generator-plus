@@ -194,13 +194,13 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-// export type IndexedObjectsType<T> = Map<string, T>
-export interface IndexedObjectsType<T> {
+// export type IndexedCollectionType<T> = Map<string, T>
+export interface IndexedCollectionType<T> {
 	[key: string]: T
 }
 
-export type CodegenResponses = IndexedObjectsType<CodegenResponse>
-export type CodegenParameters = IndexedObjectsType<CodegenParameter>
+export type CodegenResponses = IndexedCollectionType<CodegenResponse>
+export type CodegenParameters = IndexedCollectionType<CodegenParameter>
 
 export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	code: number
@@ -215,7 +215,7 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	headers?: CodegenHeaders
 }
 
-export type CodegenHeaders = IndexedObjectsType<CodegenProperty>
+export type CodegenHeaders = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
@@ -223,7 +223,7 @@ export interface CodegenContent extends CodegenTypeInfo {
 	schema: CodegenSchema
 }
 
-export type CodegenExamples = IndexedObjectsType<CodegenExample>
+export type CodegenExamples = IndexedCollectionType<CodegenExample>
 
 export interface CodegenExample extends CodegenTypeInfo {
 	name?: string
@@ -383,7 +383,7 @@ export interface CodegenScope {
 	models?: CodegenModels
 }
 
-export type CodegenModels = IndexedObjectsType<CodegenModel>
+export type CodegenModels = IndexedCollectionType<CodegenModel>
 
 export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The name of this model */
@@ -431,7 +431,7 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	deprecated?: boolean
 }
 
-export type CodegenProperties = IndexedObjectsType<CodegenProperty>
+export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenModelReference {
 	model: CodegenModel
@@ -523,7 +523,7 @@ export interface CodegenNativeMapTypeOptions {
 	purpose: CodegenMapTypePurpose
 }
 
-export type CodegenEnumValues = IndexedObjectsType<CodegenEnumValue>
+export type CodegenEnumValues = IndexedCollectionType<CodegenEnumValue>
 
 export interface CodegenEnumValue {
 	name: string

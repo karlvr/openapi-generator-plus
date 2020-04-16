@@ -28,10 +28,10 @@ export function filter<K, V>(map: Map<K, V>, predicate: (value: V) => boolean | 
 
 export function filterToNothing<K, V>(map: Map<K, V>, predicate: (value: V) => boolean | undefined): Map<K, V> | undefined {
 	const filtered = filter(map, predicate)
-	return empty(filtered) ? undefined : filtered
+	return isEmpty(filtered) ? undefined : filtered
 }
 
-export function empty<K, V>(map: Map<K, V>): boolean {
+export function isEmpty<K, V>(map: Map<K, V>): boolean {
 	return size(map) === 0
 }
 

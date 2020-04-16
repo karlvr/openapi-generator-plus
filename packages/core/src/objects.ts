@@ -35,10 +35,10 @@ export function filter<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boo
 
 export function filterToNothing<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectType<T> | undefined {
 	const filtered = filter(ob, predicate)
-	return empty(filtered) ? undefined : filtered
+	return isEmpty(filtered) ? undefined : filtered
 }
 
-function empty<T>(ob: IndexedObjectType<T>): boolean {
+export function isEmpty<T>(ob: IndexedObjectType<T>): boolean {
 	return size(ob) === 0
 }
 

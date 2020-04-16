@@ -1560,6 +1560,11 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 		}
 	}
 
+	/* Check properties */
+	if (model.properties && idx.isEmpty(model.properties)) {
+		model.properties = undefined
+	}
+
 	if (scope) {
 		if (!scope.models) {
 			scope.models = idx.create()

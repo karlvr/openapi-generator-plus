@@ -328,7 +328,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		consumes,
 		produces: responses ? toUniqueMediaTypes(responses.reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
 		
-		allParams: parameters,
+		parameters,
 		queryParams: parameters?.filter(p => p.isQueryParam),
 		pathParams: parameters?.filter(p => p.isPathParam),
 		headerParams: parameters?.filter(p => p.isHeaderParam),
@@ -346,7 +346,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		tags: operation.tags,
 		vendorExtensions: toCodegenVendorExtensions(operation),
 	}
-	op.hasParamExamples = parametersHaveExamples(op.allParams)
+	op.hasParamExamples = parametersHaveExamples(op.parameters)
 	op.hasQueryParamExamples = parametersHaveExamples(op.queryParams)
 	op.hasPathParamExamples = parametersHaveExamples(op.pathParams)
 	op.hasHeaderParamExamples = parametersHaveExamples(op.headerParams)

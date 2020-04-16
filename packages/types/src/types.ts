@@ -166,7 +166,7 @@ export interface CodegenOperation {
 	consumes?: CodegenMediaType[]
 	produces?: CodegenMediaType[]
 
-	allParams?: CodegenParameter[]
+	parameters?: CodegenParameter[]
 	queryParams?: CodegenParameter[]
 	pathParams?: CodegenParameter[]
 	headerParams?: CodegenParameter[]

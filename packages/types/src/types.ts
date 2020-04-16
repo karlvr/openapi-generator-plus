@@ -223,9 +223,7 @@ export interface CodegenContent extends CodegenTypeInfo {
 	schema: CodegenSchema
 }
 
-export interface CodegenExamples {
-	[name: string]: CodegenExample
-}
+export type CodegenExamples = IndexedObjectsType<CodegenExample>
 
 export interface CodegenExample extends CodegenTypeInfo {
 	name?: string

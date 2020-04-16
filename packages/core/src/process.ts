@@ -783,38 +783,38 @@ function exampleValue(value: any, mediaType: string | undefined, schema: Codegen
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenTypeInfo, state: InternalCodegenState): CodegenExamples | undefined {
 	if (example) {
-		return {
-			default: {
+		return idx.create([
+			['default', {
 				...exampleValue(example, mediaType, schema, state),
 				mediaType: mediaType ? toCodegenMediaType(mediaType) : undefined,
 				...extractCodegenTypeInfo(schema),
-			},
-		}
+			}],
+		])
 	}
 
 	if (!examples) {
 		return undefined
 	}
 
-	const result: CodegenExamples = {}
+	const result: CodegenExamples = idx.create()
 	for (const mediaTypeOrName in examples) {
 		const example = examples[mediaTypeOrName]
 		if (isOpenAPIV2ExampleObject(example, state.specVersion)) {
-			result[mediaTypeOrName] = {
+			idx.set(result, mediaTypeOrName, {
 				mediaType: toCodegenMediaType(mediaTypeOrName),
 				...exampleValue(example, mediaTypeOrName, schema, state),
 				...extractCodegenTypeInfo(schema),
-			}
+			})
 		} else if (isOpenAPIV3ExampleObject(example, state.specVersion)) {
 			const value = example.value || example.externalValue // TODO handle externalValue
-			result[mediaTypeOrName] = {
+			idx.set(result, mediaTypeOrName, {
 				name: mediaTypeOrName,
 				mediaType: mediaType ? toCodegenMediaType(mediaType) : undefined,
 				description: example.description,
 				summary: example.summary,
 				...exampleValue(value, mediaType, schema, state),
 				...extractCodegenTypeInfo(schema),
-			}
+			})
 		} else {
 			throw new Error(`Unsupported spec version: ${state.specVersion}`)
 		}

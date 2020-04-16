@@ -1,0 +1,25 @@
+---
+swagger: '2.0'
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test1:
+    parameters:
+      - name: b
+        in: query
+        type: string
+    get:
+      operationId: getTest1
+      responses:
+        200:
+          description: OK
+    post:
+      operationId: postTest1
+      parameters:
+        - name: a
+          in: query
+          type: string
+      responses:
+        200:
+          description: OK

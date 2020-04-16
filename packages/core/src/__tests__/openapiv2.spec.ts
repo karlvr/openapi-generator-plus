@@ -39,3 +39,23 @@ test('parse groups', async() => {
 	expect(op2.returnType).not.toBeDefined()
 	expect(op2.returnNativeType).not.toBeDefined()
 })
+
+test('parameters at path level', async() => {
+	const { result } = await createTestResult('openapiv2/parameters-at-path.yml')
+
+	const group1 = result.groups[0]
+	expect(group1.operations.length).toBe(2)
+
+	const op1 = group1.operations[0]
+	const op2 = group1.operations[1]
+
+	expect(op1.name).toBe('getTest1')
+	expect(op1.parameters).toBeDefined()
+	expect(idx.size(op1.parameters!)).toBe(1)
+	expect(op2.name).toBe('postTest1')
+	expect(idx.size(op2.parameters!)).toBe(2)
+
+	const op2Parameters = idx.allValues(op2.parameters!)
+	expect(op2Parameters[0].name).toBe('b')
+	expect(op2Parameters[1].name).toBe('a')
+})

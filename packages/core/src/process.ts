@@ -219,18 +219,28 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 	return state.generator.toOperationName(path, method, state)
 }
 
-function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: InternalCodegenState): CodegenOperation {
+function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters {
+	const result: CodegenParameters = idx.create()
+	if (pathParameters) {
+		idx.merge(result, pathParameters)
+	}
+	for (const parameter of parameters) {
+		const codegenParameter = toCodegenParameter(parameter, scopeName, state)
+		idx.set(result, codegenParameter.name, codegenParameter)
+	}
+	return result
+}
+
+function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, pathParameters: CodegenParameters | undefined, state: InternalCodegenState): CodegenOperation {
 	const name = toCodegenOperationName(path, method, operation, state)
 	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
 
 	let parameters: CodegenParameters | undefined
 	if (operation.parameters) {
-		parameters = idx.create()
-		for (const parameter of operation.parameters) {
-			const codegenParameter = toCodegenParameter(parameter, name, state)
-			idx.set(parameters, codegenParameter.name, codegenParameter)
-		}
+		parameters = toCodegenParameters(operation.parameters, pathParameters, name, state)
+	} else if (pathParameters) {
+		parameters = idx.merge(idx.create(), pathParameters)
 	}
 
 	let consumes: CodegenMediaType[] | undefined
@@ -1647,12 +1657,12 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
-	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined) {
+	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, pathParameters: CodegenParameters | undefined) {
 		if (!operation) {
 			return
 		}
 	
-		const op = toCodegenOperation(path, method, operation, state)
+		const op = toCodegenOperation(path, method, operation, pathParameters, state)
 		operations.push(op)
 	}
 
@@ -1690,18 +1700,22 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	}
 
 	for (const path in root.paths) {
-		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
+		let pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
 		if (!pathItem) {
 			continue
 		}
+
+		pathItem = resolveReference(pathItem, state)
+
+		const pathParameters = pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) : undefined
 		
-		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete)
-		createCodegenOperation(path, HttpMethods.GET, pathItem.get)
-		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head)
-		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options)
-		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch)
-		createCodegenOperation(path, HttpMethods.POST, pathItem.post)
-		createCodegenOperation(path, HttpMethods.PUT, pathItem.put)
+		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete, pathParameters)
+		createCodegenOperation(path, HttpMethods.GET, pathItem.get, pathParameters)
+		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head, pathParameters)
+		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options, pathParameters)
+		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch, pathParameters)
+		createCodegenOperation(path, HttpMethods.POST, pathItem.post, pathParameters)
+		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, pathParameters)
 	}
 
 	const groups = groupOperations(operations, state)

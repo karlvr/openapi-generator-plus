@@ -144,3 +144,10 @@ export function allValues<T>(ob: IndexedObjectType<T>): T[] {
 export function size<T>(ob: IndexedObjectType<T>): number {
 	return Object.keys(ob).length
 }
+
+export function merge<T>(ob: IndexedObjectType<T>, other: IndexedObjectType<T>): IndexedObjectType<T> {
+	for (const key in other) {
+		ob[key] = other[key]
+	}
+	return ob
+}

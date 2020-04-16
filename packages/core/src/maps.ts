@@ -74,3 +74,10 @@ export function allValues<K, V>(map: Map<K, V>): V[] {
 export function size<K, V>(map: Map<K, V>): number {
 	return map.size
 }
+
+export function merge<K, V>(map: Map<K, V>, other: Map<K, V>): Map<K, V> {
+	for (const entry of other) {
+		map.set(entry[0], entry[1])
+	}
+	return map
+}

@@ -2,6 +2,7 @@ import { CodegenBaseGeneratorConstructor, CodegenGeneratorContext } from '@opena
 import { stringLiteralValueOptions } from './utils'
 import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
 import * as allOperationGroupingStrategies from './operation-grouping'
+import * as idx from './indexed-type'
 
 /**
  * A partial generator implementation that should be the base of all generators.
@@ -26,6 +27,7 @@ export function defaultGeneratorOptions<O>(): CodegenGeneratorContext {
 		FullComposingNativeType: CodegenFullComposingNativeTypeImpl,
 		utils: {
 			stringLiteralValueOptions,
+			values: idx.values,
 		},
 	}
 }

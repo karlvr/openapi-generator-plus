@@ -194,8 +194,8 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-// type IndexedObjectsType<T> = Map<string, T>
-interface IndexedObjectsType<T> {
+// export type IndexedObjectsType<T> = Map<string, T>
+export interface IndexedObjectsType<T> {
 	[key: string]: T
 }
 

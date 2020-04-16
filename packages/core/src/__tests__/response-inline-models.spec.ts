@@ -1,4 +1,5 @@
 import { createTestDocument } from './common'
+import * as idx from '../indexed-type'
 
 test('inline response model', async() => {
 	const result = await createTestDocument('response-inline-models-v2.yml')
@@ -9,8 +10,9 @@ test('inline response model', async() => {
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('getTest1_200_response_model')
 
-	expect(result.models.length).toEqual(1)
+	expect(idx.size(result.models)).toEqual(1)
 
-	const model1 = result.models[0]
+	const models = idx.values(result.models)
+	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_200_response_model')
 })

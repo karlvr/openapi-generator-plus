@@ -1,4 +1,4 @@
-import { CodegenModel, CodegenState, CodegenInputDocument } from '@openapi-generator-plus/types'
+import { CodegenModel, CodegenState, CodegenInputDocument, CodegenModels } from '@openapi-generator-plus/types'
 import { OpenAPIX } from './types/patches'
 
 
@@ -14,7 +14,7 @@ export interface InternalCodegenState<O = {}> extends CodegenState<O>, CodegenIn
 	modelsBySchema: Map<OpenAPIX.SchemaObject, CodegenModel>
 	/** A hash of $ref to fully qualified model name, representing reserved model names */
 	reservedNames: { [$ref: string]: string | undefined }
-	/** The array of top-level models */
-	models: CodegenModel[]
+	/** The map of top-level models */
+	models: CodegenModels
 	specVersion: CodegenSpecVersion
 }

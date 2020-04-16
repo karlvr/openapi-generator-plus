@@ -4,6 +4,7 @@ import { defaultGeneratorOptions } from './generators'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { toSpecVersion } from './utils'
 import { InternalCodegenState } from './types'
+import * as idx from './indexed-type'
 
 /**
  * Construct a CodegenGenerator from the given constructor.
@@ -41,7 +42,7 @@ export function createCodegenDocument<O>(input: CodegenInput, state: CodegenStat
 		usedModelFullyQualifiedNames: {},
 		modelsBySchema: new Map(),
 		reservedNames: {},
-		models: [],
+		models: idx.create(),
 		specVersion: toSpecVersion(input.root),
 	}
 

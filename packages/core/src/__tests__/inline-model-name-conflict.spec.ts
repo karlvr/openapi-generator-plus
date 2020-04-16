@@ -1,4 +1,5 @@
 import { createTestDocument } from './common'
+import * as idx from '../indexed-type'
 
 test('inline model name conflict', async() => {
 	const result = await createTestDocument('inline-model-name-conflict-v2.yml')
@@ -9,9 +10,11 @@ test('inline model name conflict', async() => {
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('getTest1_200_response_model1')
 
-	expect(result.models.length).toEqual(2)
+	expect(idx.size(result.models)).toEqual(2)
 
-	const model1 = result.models[0]
+	const models = idx.values(result.models)
+	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_200_response_model')
-	expect(model1.properties![0].name).toEqual('prop2')
+	const model1Properties = idx.values(model1.properties!)
+	expect(model1Properties[0].name).toEqual('prop2')
 })

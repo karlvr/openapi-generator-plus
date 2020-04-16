@@ -1,10 +1,11 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenEnumValue, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
 import { InternalCodegenState } from './types'
+import * as idx from './indexed-type'
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in
@@ -42,7 +43,7 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
 
 	/* Sort models */
-	doc.models.sort((a, b) => a.name.localeCompare(b.name))
+	doc.models = idx.sortValues(doc.models, (a, b) => a.name.localeCompare(b.name))
 }
 
 function processCodegenOperationGroup(group: CodegenOperationGroup, state: InternalCodegenState) {
@@ -58,14 +59,13 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function processCodegenModels(models: CodegenModel[], state: InternalCodegenState) {
-	for (let i = 0; i < models.length; i++) {
-		const result = processCodegenModel(models[i], state)
+function processCodegenModels(models: CodegenModels, state: InternalCodegenState) {
+	for (const entry of idx.iterable(models)) {
+		const result = processCodegenModel(entry[1], state)
 		if (!result) {
-			models.splice(i, 1)
-			i--
+			idx.remove(models, entry[0])
 		} else {
-			const subModels = models[i].models
+			const subModels = entry[1].models
 			if (subModels) {
 				processCodegenModels(subModels, state)
 			}
@@ -221,14 +221,15 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 
 function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, state: InternalCodegenState): CodegenOperation {
 	const name = toCodegenOperationName(path, method, operation, state)
-	const responses: CodegenResponse[] | undefined = toCodegenResponses(operation, name, state)
-	const defaultResponse = responses ? responses.find(r => r.isDefault) : undefined
+	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
+	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
 
-	let parameters: CodegenParameter[] | undefined
+	let parameters: CodegenParameters | undefined
 	if (operation.parameters) {
-		parameters = []
+		parameters = idx.create()
 		for (const parameter of operation.parameters) {
-			parameters.push(toCodegenParameter(parameter, name, state))
+			const codegenParameter = toCodegenParameter(parameter, name, state)
+			idx.set(parameters, codegenParameter.name, codegenParameter)
 		}
 	}
 
@@ -276,13 +277,13 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 		/* Apply special body param properties */
 		if (parameters) {
-			const bodyParamIndex = parameters.findIndex(p => p.in === 'body')
-			if (bodyParamIndex !== -1) {
+			const bodyParamEntry = idx.findEntry(parameters, p => p.in === 'body')
+			if (bodyParamEntry) {
 				if (!consumes) {
 					throw new Error(`Consumes not specified for operation with body parameter: ${path}`)
 				}
 
-				const existingBodyParam = parameters[bodyParamIndex]
+				const existingBodyParam = bodyParamEntry[1]
 				const contents = consumes?.map(mediaType => {
 					const result: CodegenContent = {
 						mediaType,
@@ -304,7 +305,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 					
 					...extractCodegenTypeInfo(existingBodyParam),
 				}
-				parameters.splice(bodyParamIndex, 1)
+				idx.remove(parameters, bodyParamEntry[0])
 			}
 		}
 	}
@@ -325,14 +326,14 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes,
-		produces: responses ? toUniqueMediaTypes(responses.reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
+		produces: responses ? toUniqueMediaTypes(idx.values(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
 		
 		parameters,
-		queryParams: parameters?.filter(p => p.isQueryParam),
-		pathParams: parameters?.filter(p => p.isPathParam),
-		headerParams: parameters?.filter(p => p.isHeaderParam),
-		cookieParams: parameters?.filter(p => p.isCookieParam),
-		formParams: parameters?.filter(p => p.isFormParam),
+		queryParams: parameters && idx.filterToNothing(parameters, p => p.isQueryParam),
+		pathParams: parameters && idx.filterToNothing(parameters, p => p.isPathParam),
+		headerParams: parameters && idx.filterToNothing(parameters, p => p.isHeaderParam),
+		cookieParams: parameters && idx.filterToNothing(parameters, p => p.isCookieParam),
+		formParams: parameters && idx.filterToNothing(parameters, p => p.isFormParam),
 
 		requestBody: bodyParam,
 
@@ -356,12 +357,12 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	return op
 }
 
-function parametersHaveExamples(parameters: CodegenParameter[] | undefined): boolean | undefined {
+function parametersHaveExamples(parameters: CodegenParameters | undefined): boolean | undefined {
 	if (!parameters) {
 		return undefined
 	}
 
-	return !!parameters.find(param => !!param.examples?.length)
+	return !!idx.find(parameters, param => !!param.examples?.length)
 }
 
 function requestBodyHasExamples(parameter: CodegenRequestBody | undefined): boolean | undefined {
@@ -372,12 +373,12 @@ function requestBodyHasExamples(parameter: CodegenRequestBody | undefined): bool
 	return !!parameter.contents.find(c => !!c.examples?.length)
 }
 
-function responsesHaveExamples(responses: CodegenResponse[] | undefined): boolean | undefined {
+function responsesHaveExamples(responses: CodegenResponses | undefined): boolean | undefined {
 	if (!responses) {
 		return undefined
 	}
 
-	return !!responses.find(response => response.contents && response.contents.find(c => !!c.examples?.length))
+	return !!idx.findEntry(responses, response => response.contents && response.contents.find(c => !!c.examples?.length))
 }
 
 function toUniqueMediaTypes(mediaTypes: CodegenMediaType[]): CodegenMediaType[] {
@@ -663,13 +664,13 @@ function toProduceMediaTypes(op: OpenAPIV2.OperationObject, state: InternalCodeg
 	}
 }
 
-function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponse[] | undefined {
+function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses
 	if (!responses) {
 		return undefined
 	}
 
-	const result: CodegenResponse[] = []
+	const result: CodegenResponses = idx.create()
 
 	let bestCode: number | undefined
 	let bestResponse: CodegenResponse | undefined
@@ -678,7 +679,7 @@ function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, sta
 		const responseCode = responseCodeString === 'default' ? 0 : parseInt(responseCodeString, 10)
 		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString], false, scopeName, state)
 
-		result.push(response)
+		idx.set(result, `${responseCode}`, response)
 
 		/* See DefaultCodegen.findMethodResponse */
 		if (responseCode === 0 || Math.floor(responseCode / 100) === 2) {
@@ -1179,19 +1180,19 @@ function uniqueModelName(scopedName: string[], state: InternalCodegenState): str
 	return [...scopeNames, name]
 }
 
-function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperty[] | undefined {
+function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
 	schema = resolveReference(schema, state)
 
 	if (typeof schema.properties !== 'object') {
 		return undefined
 	}
 
-	const properties: CodegenProperty[] = []
+	const properties: CodegenProperties = idx.create()
 	for (const propertyName in schema.properties) {
 		const required = typeof schema.required === 'object' ? schema.required.indexOf(propertyName) !== -1 : false
 		const propertySchema = schema.properties[propertyName]
 		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
-		properties.push(property)
+		idx.set(properties, property.name, property)
 	}
 
 	return properties
@@ -1298,17 +1299,13 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 
 	model.properties = toCodegenModelProperties(schema, model, state)
 
-	function absorbProperties(otherProperties: CodegenProperty[]) {
+	function absorbProperties(otherProperties: CodegenProperties) {
 		if (!model.properties) {
-			model.properties = []
+			model.properties = idx.create()
 		}
 
-		const propertiesByName: { [name: string]: CodegenProperty } = {}
-		for (const property of model.properties) {
-			propertiesByName[property.name] = property
-		}
-		for (const property of otherProperties) {
-			const existingProperty = propertiesByName[property.name]
+		for (const property of idx.values(otherProperties)) {
+			const existingProperty = idx.get(model.properties, property.name)
 			if (existingProperty) {
 				/* Check that the types don't conflict */
 				if (existingProperty.propertyType !== property.propertyType) {
@@ -1317,8 +1314,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 					throw new Error(`Cannot merge properties "${property.name}" for "${model.nativeType}" due to type conflict: ${existingProperty.nativeType} vs ${property.nativeType}`)
 				}
 			} else {
-				model.properties.push(property)
-				propertiesByName[property.name] = property
+				idx.set(model.properties, property.name, property)
 			}
 		}
 	}
@@ -1413,7 +1409,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 			
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel('submodel', model, subSchema, state)
-				const subModelDiscriminatorProperty = removeModelProperty(subModel, schemaDiscriminator.propertyName)
+				const subModelDiscriminatorProperty = removeModelProperty(subModel.properties, schemaDiscriminator.propertyName)
 				if (!subModelDiscriminatorProperty) {
 					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
 				}
@@ -1437,27 +1433,27 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 				})
 
 				if (!subModel.implements) {
-					subModel.implements = []
+					subModel.implements = idx.create()
 				}
-				subModel.implements.push(model)
+				idx.set(subModel.implements, model.name, model)
 				if (!model.implementors) {
-					model.implementors = []
+					model.implementors = idx.create()
 				}
-				model.implementors.push(subModel)
+				idx.set(model.implementors, subModel.name, subModel)
 			}
 		} else {
 			/* Without a discriminator we bundle all of the properties together into this model and turn the subModels into interfaces */
-			model.implements = []
+			model.implements = idx.create()
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel('submodel', model, subSchema, state)
 
 				absorbModel(subModel)
 				subModel.isInterface = true
-				model.implements.push(subModel)
+				idx.set(model.implements, subModel.name, subModel)
 				if (!subModel.implementors) {
-					subModel.implementors = []
+					subModel.implementors = idx.create()
 				}
-				subModel.implementors.push(model)
+				idx.set(subModel.implementors, model.name, model)
 			}
 		}
 	} else if (schema.enum) {
@@ -1487,10 +1483,10 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 			nativeType: enumValueNativeType,
 		}
 		
-		const enumValues: CodegenEnumValue[] | undefined = schema.enum ? schema.enum.map(name => ({
+		const enumValues: CodegenEnumValues | undefined = schema.enum ? idx.create(schema.enum.map(name => ([name, {
 			name: state.generator.toEnumMemberName(name, state),
 			literalValue: state.generator.toLiteral(name, enumValueLiteralOptions, state),
-		})) : undefined
+		}]))) : undefined
 
 		if (enumValues) {
 			model.enumValueNativeType = enumValueNativeType
@@ -1542,9 +1538,9 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 	/* Add child model */
 	if (model.parent) {
 		if (!model.parent.children) {
-			model.parent.children = []
+			model.parent.children = idx.create()
 		}
-		model.parent.children.push(model)
+		idx.set(model.parent.children, model.name, model)
 
 		const discriminatorModel = findClosestDiscriminatorModel(model.parent)
 		if (discriminatorModel) {
@@ -1566,11 +1562,11 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 
 	if (scope) {
 		if (!scope.models) {
-			scope.models = []
+			scope.models = idx.create()
 		}
-		scope.models.push(model)
+		idx.set(scope.models, model.name, model)
 	} else {
-		state.models.push(model)
+		idx.set(state.models, model.name, model)
 	}
 	return model
 }
@@ -1604,20 +1600,18 @@ function findClosestDiscriminatorModel(model: CodegenModel): CodegenModel | unde
 	}
 }
 
-function removeModelProperty(model: CodegenModel, name: string): CodegenProperty | undefined
-function removeModelProperty(properties: CodegenProperty[], name: string): CodegenProperty | undefined
-function removeModelProperty(modelOrProperties: CodegenModel | CodegenProperty[], name: string): CodegenProperty | undefined {
-	const properties = Array.isArray(modelOrProperties) ? modelOrProperties : modelOrProperties.properties
+function removeModelProperty(properties: CodegenProperties | undefined, name: string): CodegenProperty | undefined {
 	if (!properties) {
 		return undefined
 	}
 
-	const index = properties.findIndex(p => p.name === name)
-	if (index === -1) {
+	const entry = idx.findEntry(properties, p => p.name === name)
+	if (!entry) {
 		return undefined
 	}
 
-	return properties.splice(index, 1)[0]
+	idx.remove(properties, entry[0])
+	return entry[1]
 }
 
 function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorObject): CodegenDiscriminatorMappings {

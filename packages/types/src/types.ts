@@ -108,7 +108,7 @@ export interface CodegenRootContext {
 export interface CodegenDocument {
 	info: CodegenInfo
 	groups: CodegenOperationGroup[]
-	models: CodegenModel[]
+	models: CodegenModels
 	servers?: CodegenServer[]
 	securitySchemes?: CodegenSecurityScheme[]
 	securityRequirements?: CodegenSecurityRequirement[]
@@ -166,18 +166,18 @@ export interface CodegenOperation {
 	consumes?: CodegenMediaType[]
 	produces?: CodegenMediaType[]
 
-	parameters?: CodegenParameter[]
-	queryParams?: CodegenParameter[]
-	pathParams?: CodegenParameter[]
-	headerParams?: CodegenParameter[]
-	cookieParams?: CodegenParameter[]
-	formParams?: CodegenParameter[]
+	parameters?: CodegenParameters
+	queryParams?: CodegenParameters
+	pathParams?: CodegenParameters
+	headerParams?: CodegenParameters
+	cookieParams?: CodegenParameters
+	formParams?: CodegenParameters
 
 	requestBody?: CodegenRequestBody
 
 	securityRequirements?: CodegenSecurityRequirement[]
 	vendorExtensions?: CodegenVendorExtensions
-	responses?: CodegenResponse[]
+	responses?: CodegenResponses
 	defaultResponse?: CodegenResponse
 	deprecated?: boolean
 	summary?: string
@@ -194,6 +194,14 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
+// type IndexedObjectsType<T> = Map<string, T>
+interface IndexedObjectsType<T> {
+	[key: string]: T
+}
+
+export type CodegenResponses = IndexedObjectsType<CodegenResponse>
+export type CodegenParameters = IndexedObjectsType<CodegenParameter>
+
 export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	code: number
 	description: string
@@ -204,8 +212,10 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
-	headers?: CodegenProperty[]
+	headers?: CodegenHeaders
 }
+
+export type CodegenHeaders = IndexedObjectsType<CodegenProperty>
 
 export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
@@ -372,15 +382,17 @@ export interface CodegenScope {
 	scopedName: string[]
 
 	/** Nested models */
-	models?: CodegenModel[]
+	models?: CodegenModels
 }
+
+export type CodegenModels = IndexedObjectsType<CodegenModel>
 
 export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The name of this model */
 	name: string
 	description?: string
 
-	properties?: CodegenProperty[]
+	properties?: CodegenProperties
 
 	/* Polymorphism */
 
@@ -391,14 +403,14 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	discriminatorValues?: CodegenDiscriminatorValue[]
 
 	/** The models that have this model as their parent */
-	children?: CodegenModel[]
+	children?: CodegenModels
 
 	/** Whether this model is an interface; it has no properties and exists as a marker in the type system rather than a functional object */
 	isInterface?: boolean
 
 	/** The interface models that this model complies with */
-	implements?: CodegenModel[]
-	implementors?: CodegenModel[]
+	implements?: CodegenModels
+	implementors?: CodegenModels
 
 	vendorExtensions?: CodegenVendorExtensions
 
@@ -409,7 +421,7 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The native type of the enum value */
 	enumValueNativeType?: CodegenNativeType
 	/** The values making up the enum */
-	enumValues?: CodegenEnumValue[]
+	enumValues?: CodegenEnumValues
 
 	/** Parent model */
 	parent?: CodegenModel
@@ -420,6 +432,8 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 
 	deprecated?: boolean
 }
+
+export type CodegenProperties = IndexedObjectsType<CodegenProperty>
 
 export interface CodegenModelReference {
 	model: CodegenModel
@@ -510,6 +524,8 @@ export interface CodegenNativeMapTypeOptions {
 	modelNames?: string[]
 	purpose: CodegenMapTypePurpose
 }
+
+export type CodegenEnumValues = IndexedObjectsType<CodegenEnumValue>
 
 export interface CodegenEnumValue {
 	name: string

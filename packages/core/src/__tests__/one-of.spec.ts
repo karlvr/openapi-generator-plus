@@ -1,13 +1,15 @@
 import { createTestDocument } from './common'
+import * as idx from '../indexed-type'
 
 test('one of discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-discriminator.yml')
 
-	const model1 = result.models[0]
-	const model4 = result.models[3]
+	const models = idx.values(result.models)
+	const model1 = models[0]
+	const model4 = models[3]
 
 	expect(model1.name).toEqual('Cat')
-	expect(model1.implements!.length).toBe(1)
+	expect(idx.size(model1.implements!)).toBe(1)
 	expect(model4.name).toEqual('MyResponseType')
 	expect(model4.discriminator!.name).toEqual('petType')
 	expect(model4.discriminator!.references.length).toEqual(3)
@@ -18,14 +20,17 @@ test('one of discriminator', async() => {
 test('one of no discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-no-discriminator.yml')
 
-	const combinedModel = result.models[3]
+	const models = idx.values(result.models)
+	const combinedModel = models[3]
 	expect(combinedModel.name).toEqual('MyResponseType')
 	expect(combinedModel.isInterface).toBeFalsy()
-	expect(combinedModel.properties![0].name).toEqual('name')
-	expect(combinedModel.properties![1].name).toEqual('bark')
-	expect(combinedModel.properties![2].name).toEqual('lovesRocks')
 
-	const model1 = result.models[0]
+	const combinedModelProperties = idx.values(combinedModel.properties!)
+	expect(combinedModelProperties![0].name).toEqual('name')
+	expect(combinedModelProperties![1].name).toEqual('bark')
+	expect(combinedModelProperties![2].name).toEqual('lovesRocks')
+
+	const model1 = models[0]
 	expect(model1.isInterface).toBe(true)
 })
 
@@ -37,12 +42,13 @@ test('one of discriminator missing property', async() => {
 test('one of subclasses discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-subclasses-discriminator.yml')
 
-	const model1 = result.models[0]
-	const model4 = result.models[3]
+	const models = idx.values(result.models)
+	const model1 = models[0]
+	const model4 = models[3]
 
 	expect(model1.name).toEqual('Cat')
 	expect(model4.name).toEqual('Pet')
-	expect(model4.children?.length).toEqual(3)
+	expect(idx.size(model4.children!)).toEqual(3)
 	expect(model4.discriminator!.references.length).toEqual(3)
 	expect(model4.isInterface).toBeFalsy()
 })

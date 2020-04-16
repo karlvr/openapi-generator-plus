@@ -171,9 +171,9 @@ export interface CodegenOperation {
 	pathParams?: CodegenParameter[]
 	headerParams?: CodegenParameter[]
 	cookieParams?: CodegenParameter[]
-	bodyParam?: CodegenRequestBody
 	formParams?: CodegenParameter[]
-	nonBodyParams?: CodegenParameter[]
+
+	requestBody?: CodegenRequestBody
 
 	securityRequirements?: CodegenSecurityRequirement[]
 	vendorExtensions?: CodegenVendorExtensions
@@ -189,9 +189,8 @@ export interface CodegenOperation {
 	hasPathParamExamples?: boolean
 	hasHeaderParamExamples?: boolean
 	hasCookieParamExamples?: boolean
-	hasBodyParamExamples?: boolean
 	hasFormParamExamples?: boolean
-	hasNonBodyParamExamples?: boolean
+	hasRequestBodyExamples?: boolean
 	hasResponseExamples?: boolean
 }
 
@@ -513,35 +512,30 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-export interface CodegenParameter extends CodegenTypeInfo {
+interface CodegenParameterBase extends CodegenTypeInfo {
 	name: string
-	in: CodegenParameterIn
 	
 	description?: string
 	required?: boolean
 	collectionFormat?: string
 
-	contents?: CodegenContent[]
+	vendorExtensions?: CodegenVendorExtensions
+}
+
+export interface CodegenParameter extends CodegenParameterBase {
+	in: CodegenParameterIn
 	examples?: CodegenExamples
 
 	isQueryParam?: boolean
 	isPathParam?: boolean
 	isHeaderParam?: boolean
 	isCookieParam?: boolean
-	isBodyParam?: boolean
 	isFormParam?: boolean
 
-	vendorExtensions?: CodegenVendorExtensions
 }
-
-export interface CodegenRequestBody extends CodegenParameter {
-	in: 'body'
-
-	isBodyParam: true
+export interface CodegenRequestBody extends CodegenParameterBase {
 
 	contents: CodegenContent[]
-	examples?: never
-
 	consumes: CodegenMediaType[]
 }
 

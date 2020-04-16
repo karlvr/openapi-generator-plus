@@ -158,7 +158,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			result.isCookieParam = true
 			break
 		case 'body':
-			result.isBodyParam = true
+			/* The body parameter will be extracted by the caller */
 			break
 		case 'formData':
 			result.isFormParam = true
@@ -255,14 +255,11 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 			bodyParam = {
 				name: 'request', // TODO this might conflict with another parameter
-				in: 'body',
 
 				...commonTypes,
 
 				description: requestBody.description,
 				required: requestBody.required,
-
-				isBodyParam: true,
 
 				contents: requestBodyContents,
 				consumes,
@@ -275,14 +272,13 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			if (!parameters) {
 				parameters = []
 			}
-			parameters.push(bodyParam)
 		}
 	} else {
 		consumes = toConsumeMediaTypes(operation as OpenAPIV2.OperationObject, state)
 
 		/* Apply special body param properties */
 		if (parameters) {
-			const bodyParamIndex = parameters.findIndex(p => p.isBodyParam)
+			const bodyParamIndex = parameters.findIndex(p => p.in === 'body')
 			if (bodyParamIndex !== -1) {
 				if (!consumes) {
 					throw new Error(`Consumes not specified for operation with body parameter: ${path}`)
@@ -298,15 +294,18 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				})
 
 				bodyParam = {
-					...existingBodyParam,
-					in: 'body',
-					isBodyParam: true,
-					examples: undefined,
+					name: existingBodyParam.name,
+					description: existingBodyParam.description,
+					required: existingBodyParam.required,
+					collectionFormat: existingBodyParam.collectionFormat,
+					vendorExtensions: existingBodyParam.vendorExtensions,
 
 					contents,
 					consumes,
+					
+					...extractCodegenTypeInfo(existingBodyParam),
 				}
-				parameters.splice(bodyParamIndex, 1, bodyParam)
+				parameters.splice(bodyParamIndex, 1)
 			}
 		}
 	}
@@ -334,9 +333,9 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		pathParams: parameters?.filter(p => p.isPathParam),
 		headerParams: parameters?.filter(p => p.isHeaderParam),
 		cookieParams: parameters?.filter(p => p.isCookieParam),
-		bodyParam,
 		formParams: parameters?.filter(p => p.isFormParam),
-		nonBodyParams: parameters?.filter(p => !p.isBodyParam),
+
+		requestBody: bodyParam,
 
 		securityRequirements,
 		defaultResponse,
@@ -352,9 +351,8 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 	op.hasPathParamExamples = parametersHaveExamples(op.pathParams)
 	op.hasHeaderParamExamples = parametersHaveExamples(op.headerParams)
 	op.hasCookieParamExamples = parametersHaveExamples(op.cookieParams)
-	op.hasBodyParamExamples = op.bodyParam ? parametersHaveExamples([op.bodyParam]) : undefined
+	op.hasRequestBodyExamples = requestBodyHasExamples(op.requestBody)
 	op.hasFormParamExamples = parametersHaveExamples(op.formParams)
-	op.hasNonBodyParamExamples = parametersHaveExamples(op.nonBodyParams)
 	op.hasResponseExamples = responsesHaveExamples(op.responses)
 	return op
 }
@@ -365,6 +363,14 @@ function parametersHaveExamples(parameters: CodegenParameter[] | undefined): boo
 	}
 
 	return !!parameters.find(param => !!param.examples?.length)
+}
+
+function requestBodyHasExamples(parameter: CodegenRequestBody | undefined): boolean | undefined {
+	if (!parameter || !parameter.contents) {
+		return undefined
+	}
+
+	return !!parameter.contents.find(c => !!c.examples?.length)
 }
 
 function responsesHaveExamples(responses: CodegenResponse[] | undefined): boolean | undefined {

@@ -141,6 +141,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 		examples,
 
+		schema,
+
 		vendorExtensions: toCodegenVendorExtensions(parameter),
 	}
 	switch (parameter.in) {
@@ -288,6 +290,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				const contents = consumes?.map(mediaType => {
 					const result: CodegenContent = {
 						mediaType,
+						schema: existingBodyParam.schema,
 						...extractCodegenTypeInfo(existingBodyParam),
 					}
 					return result
@@ -731,6 +734,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 			contents = mediaTypes ? mediaTypes.map(mediaType => {
 				const result: CodegenContent = {
 					mediaType,
+					schema,
 					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : undefined,
 					...extractCodegenTypeInfo(schema),
 				}
@@ -899,6 +903,7 @@ function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeOb
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),
 			examples,
+			schema,
 			...extractCodegenTypeInfo(schema),
 		}
 		result.push(item)
@@ -944,6 +949,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 	let nativeType: CodegenNativeType
 	let componentSchema: CodegenSchema | undefined
 	let propertyType: CodegenPropertyType
+	let model: CodegenModel | undefined
 
 	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
 	let description = (schema as OpenAPIV2.SchemaObject).description
@@ -953,7 +959,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 	fixSchema(schema)
 
 	if (isModelSchema(schema, state)) {
-		const model = toCodegenModel(suggestedModelName, scope, originalSchema, state)
+		model = toCodegenModel(suggestedModelName, scope, originalSchema, state)
 		type = model.type
 		format = model.format
 		nativeType = model.propertyNativeType
@@ -1026,6 +1032,10 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 		minItems: schema.minLength,
 		uniqueItems: schema.uniqueItems,
 		multipleOf: schema.multipleOf,
+
+		/* Model */
+		model,
+		componentModel: componentSchema && componentSchema.model,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {

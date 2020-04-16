@@ -210,6 +210,7 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 export interface CodegenContent extends CodegenTypeInfo {
 	mediaType: CodegenMediaType
 	examples?: CodegenExamples
+	schema: CodegenSchema
 }
 
 export interface CodegenExamples {
@@ -344,6 +345,11 @@ export interface CodegenSchema extends CodegenTypeInfo {
 	minItems?: number
 	uniqueItems?: boolean
 	multipleOf?: number
+
+	/** The model that is the type of this schema, if any */
+	model?: CodegenModel
+	/** If this schema is an array or map type, the model of the components of this schema, if any */
+	componentModel?: CodegenModel
 }
 
 /**
@@ -532,6 +538,7 @@ export interface CodegenParameter extends CodegenParameterBase {
 	isCookieParam?: boolean
 	isFormParam?: boolean
 
+	schema: CodegenSchema
 }
 export interface CodegenRequestBody extends CodegenParameterBase {
 

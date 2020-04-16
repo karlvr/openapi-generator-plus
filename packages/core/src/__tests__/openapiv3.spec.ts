@@ -22,8 +22,8 @@ test('parse operation params', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 	expect(op1.name).toEqual('getTest1')
-	expect(op1.allParams).toBeDefined()
-	expect(op1.allParams!.length).toEqual(2)
+	expect(op1.parameters).toBeDefined()
+	expect(op1.parameters!.length).toEqual(2)
 })
 
 test('parse operation body params', async() => {
@@ -31,10 +31,10 @@ test('parse operation body params', async() => {
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
-	expect(op2.allParams!.length).toEqual(1)
-	expect(op2.allParams![0].in).toEqual('body')
-	expect(op2.allParams![0].type).toEqual('object')
-	expect(op2.allParams![0].nativeType?.toString()).toEqual('Test2Request')
+	expect(op2.parameters!.length).toEqual(0)
+	expect(op2.requestBody).toBeDefined()
+	expect(op2.requestBody!.type).toEqual('object')
+	expect(op2.requestBody!.nativeType?.toString()).toEqual('Test2Request')
 })
 
 test('parse operation response', async() => {
@@ -72,7 +72,7 @@ test('parse groups', async() => {
 
 	const op2 = group2.operations[0]
 	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'POST', state)) /* Uses default name */
-	// expect(op2.allParams!.length).toEqual(1)
+	// expect(op2.parameters!.length).toEqual(1)
 	// expect(op2.returnType).not.toBeDefined()
 	// expect(op2.returnNativeType).not.toBeDefined()
 })

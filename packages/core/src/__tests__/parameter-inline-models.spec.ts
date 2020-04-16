@@ -6,9 +6,9 @@ test('inline response model', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 
-	expect(op1.allParams!.length).toEqual(1)
+	expect(op1.parameters!.length).toEqual(1)
 
-	const param1 = op1.allParams![0]
+	const param1 = op1.parameters![0]
 	expect(param1.name).toEqual('arg1')
 	expect(param1.nativeType.toString()).toEqual('getTest1_arg1_enum')
 

@@ -22,8 +22,8 @@ test('parse groups', async() => {
 
 	const op1 = group1.operations[0]
 	expect(op1.name).toEqual('getTest1')
-	expect(op1.allParams).toBeDefined()
-	expect(op1.allParams!.length).toEqual(1)
+	expect(op1.parameters).toBeDefined()
+	expect(op1.parameters!.length).toEqual(1)
 
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
@@ -34,7 +34,7 @@ test('parse groups', async() => {
 
 	const op2 = group2.operations[0]
 	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'GET', state)) /* Uses default name */
-	expect(op2.allParams!.length).toEqual(1)
+	expect(op2.parameters!.length).toEqual(1)
 	expect(op2.returnType).not.toBeDefined()
 	expect(op2.returnNativeType).not.toBeDefined()
 })

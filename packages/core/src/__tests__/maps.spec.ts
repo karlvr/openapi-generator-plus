@@ -7,11 +7,11 @@ test('string map', async() => {
 
 	expect(idx.size(result.models)).toEqual(1)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
-	const model1Properties = idx.values(model1.properties!)
+	const model1Properties = idx.allValues(model1.properties!)
 	expect(model1Properties![0].propertyType).toEqual(CodegenPropertyType.MAP)
 })
 
@@ -20,12 +20,12 @@ test('object map', async() => {
 
 	expect(idx.size(result.models)).toEqual(2)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 
-	const model1Properties = idx.values(model1.properties!)
+	const model1Properties = idx.allValues(model1.properties!)
 	const prop1 = model1Properties![0]
 	expect(prop1.propertyType).toEqual(CodegenPropertyType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')
@@ -41,12 +41,12 @@ test('object map with no map parents', async() => {
 
 	expect(idx.size(result.models)).toEqual(2)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 
-	const model1Properties = idx.values(model1.properties!)
+	const model1Properties = idx.allValues(model1.properties!)
 	const prop1 = model1Properties![0]
 	expect(prop1.propertyType).toEqual(CodegenPropertyType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')

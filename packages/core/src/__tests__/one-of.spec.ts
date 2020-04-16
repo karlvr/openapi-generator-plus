@@ -4,7 +4,7 @@ import * as idx from '../indexed-type'
 test('one of discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-discriminator.yml')
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	const model4 = models[3]
 
@@ -20,12 +20,12 @@ test('one of discriminator', async() => {
 test('one of no discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-no-discriminator.yml')
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const combinedModel = models[3]
 	expect(combinedModel.name).toEqual('MyResponseType')
 	expect(combinedModel.isInterface).toBeFalsy()
 
-	const combinedModelProperties = idx.values(combinedModel.properties!)
+	const combinedModelProperties = idx.allValues(combinedModel.properties!)
 	expect(combinedModelProperties![0].name).toEqual('name')
 	expect(combinedModelProperties![1].name).toEqual('bark')
 	expect(combinedModelProperties![2].name).toEqual('lovesRocks')
@@ -42,7 +42,7 @@ test('one of discriminator missing property', async() => {
 test('one of subclasses discriminator', async() => {
 	const result = await createTestDocument('one-of/one-of-subclasses-discriminator.yml')
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	const model4 = models[3]
 

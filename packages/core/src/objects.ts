@@ -84,6 +84,33 @@ export function iterable<T>(ob: IndexedObjectsType<T>): Iterable<[string, T]> {
 	}
 }
 
+export function values<T>(ob: IndexedObjectsType<T>): Iterable<T> {
+	return {
+		[Symbol.iterator]: (): Iterator<T> => {
+			let i = 0
+			const keys = Object.keys(ob)
+			return {
+				next: (): IteratorResult<T, undefined> => {
+					const value = ob[keys[i]]
+					i++
+
+					if (i <= keys.length) {
+						return {
+							value,
+							done: false,
+						}
+					} else {
+						return {
+							value: undefined,
+							done: true,
+						}
+					}
+				},
+			}
+		},
+	}
+}
+
 export function remove<T>(ob: IndexedObjectsType<T>, key: string) {
 	delete ob[key]
 }
@@ -106,7 +133,7 @@ export function get<T>(ob: IndexedObjectsType<T>, key: string): T | undefined {
 	return ob[key]
 }
 
-export function values<T>(ob: IndexedObjectsType<T>): T[] {
+export function allValues<T>(ob: IndexedObjectsType<T>): T[] {
 	const result: T[] = []
 	for (const key in ob) {
 		result.push(ob[key])

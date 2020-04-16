@@ -10,7 +10,7 @@ test('array model', async() => {
 	expect(op1.returnType).toBeUndefined()
 	expect(idx.size(op1.queryParams!)).toEqual(1)
 	
-	const queryParams = idx.values(op1.queryParams!)
+	const queryParams = idx.allValues(op1.queryParams!)
 	const queryParam1 = queryParams[0]
 	expect(queryParam1.name).toEqual('statuses')
 	expect(queryParam1.nativeType.toString()).toEqual('array Statuses_enum')
@@ -25,7 +25,7 @@ test('map model', async() => {
 	expect(op1.returnType).toBeUndefined()
 	expect(idx.size(op1.queryParams!)).toEqual(1)
 
-	const queryParams = idx.values(op1.queryParams!)
+	const queryParams = idx.allValues(op1.queryParams!)
 	const queryParam1 = queryParams[0]
 	expect(queryParam1.name).toEqual('statuses')
 	expect(queryParam1.nativeType.toString()).toEqual('map Statuses_model')

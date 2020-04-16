@@ -6,7 +6,7 @@ test('array of strings', async() => {
 		collectionModelsAllowed: true,
 	})
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('ArrayOfStrings')
 	expect(model1.nativeType.toString()).toEqual('ArrayOfStrings')

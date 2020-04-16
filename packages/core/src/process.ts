@@ -326,7 +326,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		returnType: defaultResponse ? defaultResponse.type : undefined,
 		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
 		consumes,
-		produces: responses ? toUniqueMediaTypes(idx.values(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
+		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
 		
 		parameters,
 		queryParams: parameters && idx.filterToNothing(parameters, p => p.isQueryParam),
@@ -1304,7 +1304,7 @@ function toCodegenModel(suggestedName: string, suggestedScope: CodegenScope | nu
 			model.properties = idx.create()
 		}
 
-		for (const property of idx.values(otherProperties)) {
+		for (const property of idx.allValues(otherProperties)) {
 			const existingProperty = idx.get(model.properties, property.name)
 			if (existingProperty) {
 				/* Check that the types don't conflict */

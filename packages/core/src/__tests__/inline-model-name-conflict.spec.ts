@@ -12,9 +12,9 @@ test('inline model name conflict', async() => {
 
 	expect(idx.size(result.models)).toEqual(2)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_200_response_model')
-	const model1Properties = idx.values(model1.properties!)
+	const model1Properties = idx.allValues(model1.properties!)
 	expect(model1Properties[0].name).toEqual('prop2')
 })

@@ -43,6 +43,10 @@ export function iterable<K, V>(map: Map<K, V>): Iterable<[K, V]> {
 	return map
 }
 
+export function values<K, V>(map: Map<K, V>): Iterable<V> {
+	return map.values()
+}
+
 export function remove<K, V>(map: Map<K, V>, key: K) {
 	map.delete(key)
 }
@@ -63,7 +67,7 @@ export function get<K, V>(map: Map<K, V>, key: K): V | undefined {
 	return map.get(key)
 }
 
-export function values<K, V>(map: Map<K, V>): V[] {
+export function allValues<K, V>(map: Map<K, V>): V[] {
 	return [...map.values()]
 }
 

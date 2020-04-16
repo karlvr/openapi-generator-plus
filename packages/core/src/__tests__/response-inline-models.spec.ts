@@ -12,7 +12,7 @@ test('inline response model', async() => {
 
 	expect(idx.size(result.models)).toEqual(1)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_200_response_model')
 })

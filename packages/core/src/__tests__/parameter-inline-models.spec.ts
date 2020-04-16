@@ -9,7 +9,7 @@ test('inline response model', async() => {
 
 	expect(idx.size(op1.parameters!)).toEqual(1)
 
-	const params = idx.values(op1.parameters!)
+	const params = idx.allValues(op1.parameters!)
 
 	const param1 = params[0]
 	expect(param1.name).toEqual('arg1')
@@ -17,7 +17,7 @@ test('inline response model', async() => {
 
 	expect(idx.size(result.models)).toEqual(1)
 
-	const models = idx.values(result.models)
+	const models = idx.allValues(result.models)
 	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_arg1_enum')
 })

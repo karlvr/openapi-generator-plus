@@ -1,8 +1,8 @@
-interface IndexedObjectsType<T> {
+interface IndexedObjectType<T> {
 	[key: string]: T
 }
 
-export function findEntry<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => unknown): [string, T] | undefined {
+export function findEntry<T>(ob: IndexedObjectType<T>, predicate: (value: T) => unknown): [string, T] | undefined {
 	for (const key in ob) {
 		const value = ob[key]
 		if (predicate(value)) {
@@ -12,7 +12,7 @@ export function findEntry<T>(ob: IndexedObjectsType<T>, predicate: (value: T) =>
 	return undefined
 }
 
-export function find<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => boolean | undefined): T | undefined {
+export function find<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): T | undefined {
 	for (const key in ob) {
 		const value = ob[key]
 		if (predicate(value)) {
@@ -22,8 +22,8 @@ export function find<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => bool
 	return undefined
 }
 
-export function filter<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectsType<T> {
-	const result: IndexedObjectsType<T> = {}
+export function filter<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectType<T> {
+	const result: IndexedObjectType<T> = {}
 	for (const key in ob) {
 		const value = ob[key]
 		if (predicate(value)) {
@@ -33,16 +33,16 @@ export function filter<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => bo
 	return result
 }
 
-export function filterToNothing<T>(ob: IndexedObjectsType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectsType<T> | undefined {
+export function filterToNothing<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectType<T> | undefined {
 	const filtered = filter(ob, predicate)
 	return empty(filtered) ? undefined : filtered
 }
 
-function empty<T>(ob: IndexedObjectsType<T>): boolean {
+function empty<T>(ob: IndexedObjectType<T>): boolean {
 	return size(ob) === 0
 }
 
-function objectEntries<T>(ob: IndexedObjectsType<T>): [string, T][] {
+function objectEntries<T>(ob: IndexedObjectType<T>): [string, T][] {
 	const entries: [string, T][] = []
 	for (const key in ob) {
 		const value = ob[key]
@@ -51,13 +51,13 @@ function objectEntries<T>(ob: IndexedObjectsType<T>): [string, T][] {
 	return entries
 }
 
-export function sortValues<T>(ob: IndexedObjectsType<T>, compare: (a: T, b: T) => number): IndexedObjectsType<T> {
+export function sortValues<T>(ob: IndexedObjectType<T>, compare: (a: T, b: T) => number): IndexedObjectType<T> {
 	const entries = objectEntries(ob)
 	entries.sort((a, b) => compare(a[1], b[1]))
 	return create(entries)
 }
 
-export function iterable<T>(ob: IndexedObjectsType<T>): Iterable<[string, T]> {
+export function iterable<T>(ob: IndexedObjectType<T>): Iterable<[string, T]> {
 	return {
 		[Symbol.iterator]: (): Iterator<[string, T]> => {
 			let i = 0
@@ -84,7 +84,7 @@ export function iterable<T>(ob: IndexedObjectsType<T>): Iterable<[string, T]> {
 	}
 }
 
-export function values<T>(ob: IndexedObjectsType<T>): Iterable<T> {
+export function values<T>(ob: IndexedObjectType<T>): Iterable<T> {
 	return {
 		[Symbol.iterator]: (): Iterator<T> => {
 			let i = 0
@@ -111,12 +111,12 @@ export function values<T>(ob: IndexedObjectsType<T>): Iterable<T> {
 	}
 }
 
-export function remove<T>(ob: IndexedObjectsType<T>, key: string) {
+export function remove<T>(ob: IndexedObjectType<T>, key: string) {
 	delete ob[key]
 }
 
-export function create<T>(entries?: [string, T][]): IndexedObjectsType<T> {
-	const result: IndexedObjectsType<T> = {}
+export function create<T>(entries?: [string, T][]): IndexedObjectType<T> {
+	const result: IndexedObjectType<T> = {}
 	if (entries) {
 		for (const entry of entries) {
 			result[entry[0]] = entry[1]
@@ -125,15 +125,15 @@ export function create<T>(entries?: [string, T][]): IndexedObjectsType<T> {
 	return result
 }
 
-export function set<T>(ob: IndexedObjectsType<T>, key: string, value: T) {
+export function set<T>(ob: IndexedObjectType<T>, key: string, value: T) {
 	ob[key] = value
 }
 
-export function get<T>(ob: IndexedObjectsType<T>, key: string): T | undefined {
+export function get<T>(ob: IndexedObjectType<T>, key: string): T | undefined {
 	return ob[key]
 }
 
-export function allValues<T>(ob: IndexedObjectsType<T>): T[] {
+export function allValues<T>(ob: IndexedObjectType<T>): T[] {
 	const result: T[] = []
 	for (const key in ob) {
 		result.push(ob[key])
@@ -141,6 +141,6 @@ export function allValues<T>(ob: IndexedObjectsType<T>): T[] {
 	return result
 }
 
-export function size<T>(ob: IndexedObjectsType<T>): number {
+export function size<T>(ob: IndexedObjectType<T>): number {
 	return Object.keys(ob).length
 }

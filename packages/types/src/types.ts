@@ -31,12 +31,12 @@ export interface CodegenGenerator<O> {
 	/** Convert the given name to the native constant identifier style */
 	toConstantName: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum name style */
-	toEnumName: (name: string, state: CodegenState<O>) => string
+	toEnumName: (name: string, options: CodegenNameOptions, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum member name style */
 	toEnumMemberName: (name: string, state: CodegenState<O>) => string
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
-	/** Convert a property name to a name suitable for a model class */
-	toModelNameFromPropertyName: (name: string, state: CodegenState<O>) => string
+	/** Convert the given name to the native model class name style */
+	toModelName: (name: string, options: CodegenNameOptions, state: CodegenState<O>) => string
 	/**
 	 * Return an iteration of a model name in order to generate a unique model name.
 	 * The method MUST return a different name for each iteration.
@@ -455,6 +455,10 @@ export interface CodegenDiscriminatorMappings {
 	[$ref: string]: string
 }
 
+export interface CodegenNameOptions {
+	purpose: CodegenSchemaPurpose
+}
+
 interface CodegenTypeOptions {
 	type: string
 	format?: string
@@ -467,6 +471,40 @@ export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
 }
 
 export type CodegenLiteralValueOptions = CodegenDefaultValueOptions
+
+/**
+ * Describes the purpose for which a schema is being used.
+ */
+export enum CodegenSchemaPurpose {
+	/**
+	 * The schema is being used as an item in an array.
+	 */
+	ARRAY_ITEM,
+	/**
+	 * The schema is being used as a value in a map.
+	 */
+	MAP_VALUE,
+	/**
+	 * The schema is being used as an object model.
+	 */
+	MODEL,
+	/**
+	 * The schema is being used as a parameter.
+	 */
+	PARAMETER,
+	/**
+	 * The schema is being used for a model property.
+	 */
+	PROPERTY,
+	/**
+	 * The schema is being used for a request body.
+	 */
+	REQUEST_BODY,
+	/**
+	 * The schema is being used for a response.
+	 */
+	RESPONSE,
+}
 
 export enum CodegenTypePurpose {
 	/** A type for a model class */

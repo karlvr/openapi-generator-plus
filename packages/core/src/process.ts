@@ -326,6 +326,11 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		}
 	}
 
+	/* Ensure parameters is undefined if empty, as generators rely on that */
+	if (parameters && idx.isEmpty(parameters)) {
+		parameters = undefined
+	}
+
 	let securityRequirements: CodegenSecurityRequirement[] | undefined
 	if (operation.security) {
 		securityRequirements = toCodegenSecurityRequirements(operation.security, state)

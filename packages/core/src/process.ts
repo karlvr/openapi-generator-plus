@@ -969,9 +969,6 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 	let propertyType: CodegenPropertyType
 	let model: CodegenModel | undefined
 
-	/* Grab the description before resolving refs, so we preserve the property description even if it references an object. */
-	let description = (schema as OpenAPIV2.SchemaObject).description
-
 	const originalSchema = schema
 	schema = resolveReference(schema, state)
 	fixSchema(schema)
@@ -1019,14 +1016,10 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 		}
 	}
 
-	if (!description) {
-		description = schema.description
-	}
-
 	const result: CodegenSchema = {
-		description,
-		title: schema.title,
-		readOnly: schema.readOnly !== undefined ? !!schema.readOnly : undefined,
+		description: coalesce(originalSchema.description, schema.description),
+		title: coalesce(originalSchema.title, schema.title),
+		readOnly: coalesce(originalSchema.readOnly != undefined ? !!originalSchema.readOnly : undefined, schema.readOnly !== undefined ? !!schema.readOnly : undefined),
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 
@@ -1039,31 +1032,40 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 		componentNativeType: componentSchema && componentSchema.nativeType,
 
 		/* Validation */
-		maximum: schema.maximum,
-		exclusiveMaximum: schema.exclusiveMaximum,
-		minimum: schema.minimum,
-		exclusiveMinimum: schema.exclusiveMinimum,
-		maxLength: schema.maxLength,
-		minLength: schema.minLength,
-		pattern: schema.pattern,
-		maxItems: schema.maxItems,
-		minItems: schema.minLength,
-		uniqueItems: schema.uniqueItems,
-		multipleOf: schema.multipleOf,
+		maximum: coalesce(originalSchema.maximum, schema.maximum),
+		exclusiveMaximum: coalesce(originalSchema.exclusiveMaximum, schema.exclusiveMaximum),
+		minimum: coalesce(originalSchema.minimum, schema.minimum),
+		exclusiveMinimum: coalesce(originalSchema.exclusiveMinimum, schema.exclusiveMinimum),
+		maxLength: coalesce(originalSchema.maxLength, schema.maxLength),
+		minLength: coalesce(originalSchema.minLength, schema.minLength),
+		pattern: coalesce(originalSchema.pattern, schema.pattern),
+		maxItems: coalesce(originalSchema.maxItems, schema.maxItems),
+		minItems: coalesce(originalSchema.minItems, schema.minItems),
+		uniqueItems: coalesce(originalSchema.uniqueItems, schema.uniqueItems),
+		multipleOf: coalesce(originalSchema.multipleOf, schema.multipleOf),
 
 		/* Model */
 		model,
 		componentModel: componentSchema && componentSchema.model,
 	}
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		result.nullable = schema.nullable
-		result.writeOnly = schema.writeOnly
-		result.deprecated = schema.deprecated
+	if (isOpenAPIv3SchemaObject(originalSchema, state.specVersion) && isOpenAPIv3SchemaObject(schema, state.specVersion)) {
+		result.nullable = coalesce(originalSchema.nullable, schema.nullable)
+		result.writeOnly = coalesce(originalSchema.writeOnly, schema.writeOnly)
+		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated)
 	}
 
 	result.defaultValue = state.generator.toDefaultValue(schema.default, result, state)
 	return result
+}
+
+function coalesce<T>(...values: (T | undefined)[]): T | undefined {
+	for (const value of values) {
+		if (value !== undefined) {
+			return value
+		}
+	}
+	return undefined
 }
 
 interface HandleSchemaResult {

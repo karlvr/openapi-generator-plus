@@ -1530,19 +1530,20 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			model.componentNativeType = result.componentSchema.nativeType
 		} else if (schema.discriminator) {
 			/* Object has a discriminator so all submodels will need to add themselves */
-			const schemaDiscriminator = schema.discriminator as OpenAPIV3.DiscriminatorObject
+			const schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject
+			const schemaDiscriminatorPropertyName = typeof schemaDiscriminator === 'string' ? schemaDiscriminator : schemaDiscriminator.propertyName
 
 			if (!model.properties) {
 				throw new Error(`Model "${nativeType}" with discriminator doesn't have properties.`)
 			}
-			const discriminatorProperty = removeModelProperty(model.properties, schemaDiscriminator.propertyName)
+			const discriminatorProperty = removeModelProperty(model.properties, schemaDiscriminatorPropertyName)
 			if (!discriminatorProperty) {
-				throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${nativeType}"`)
+				throw new Error(`Discriminator property "${schemaDiscriminatorPropertyName}" missing from "${nativeType}"`)
 			}
 
 			model.discriminator = {
 				name: discriminatorProperty.name,
-				mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
+				mappings: typeof schemaDiscriminator === 'string' ? {} : toCodegenDiscriminatorMappings(schemaDiscriminator),
 				references: [],
 				...extractCodegenTypeInfo(discriminatorProperty),
 			}

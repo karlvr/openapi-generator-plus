@@ -1483,21 +1483,12 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			}
 		}
 	} else if (schema.enum) {
-		let type: string
-		if (!schema.type) {
-			type = 'string'
-		} else if (typeof schema.type === 'string') {
-			type = schema.type
-		} else {
-			throw new Error(`Array value is unsupported for schema.type for enum: ${schema.type}`)
-		}
-
-		const enumValueType = type
+		const enumValueType = 'string'
 		const enumValueFormat = schema.format
 		const enumValuePropertyType = toCodegenPropertyType(enumValueType, enumValueFormat, false, false)
 
 		const enumValueNativeType = state.generator.toNativeType({
-			type,
+			type: enumValueType,
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
 		}, state)

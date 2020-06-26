@@ -1,4 +1,4 @@
-import { CodegenNativeType, CodegenNativeTypeTransformer, CodegenNativeTypeTransformers, CodegenNativeTypeComposer, CodegenNativeTypeComposers } from '@openapi-generator-plus/types'
+import { CodegenNativeType, CodegenNativeTypeStringTransformer, CodegenNativeTypeTransformers, CodegenNativeTypeStringComposer, CodegenNativeTypeComposers, CodegenNativeTypeComposer } from '@openapi-generator-plus/types'
 
 /**
  * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
@@ -8,9 +8,9 @@ import { CodegenNativeType, CodegenNativeTypeTransformer, CodegenNativeTypeTrans
 export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 
 	private wrapped: CodegenNativeType
-	private transformer: CodegenNativeTypeTransformer
+	private transformer: CodegenNativeTypeStringTransformer
 
-	public constructor(wrapped: CodegenNativeType, transformer: CodegenNativeTypeTransformer) {
+	public constructor(wrapped: CodegenNativeType, transformer: CodegenNativeTypeStringTransformer) {
 		this.wrapped = wrapped
 		this.transformer = transformer
 	}
@@ -115,10 +115,10 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 }
 
-function allOrNothing(nativeTypes: (string | undefined)[]): string[] | undefined {
+function allOrNothing<T>(nativeTypes: (T | undefined)[]): T[] | undefined {
 	const result = nativeTypes.filter(n => n !== undefined)
 	if (result.length) {
-		return result as string[]
+		return result as T[]
 	} else {
 		return undefined
 	}
@@ -127,9 +127,9 @@ function allOrNothing(nativeTypes: (string | undefined)[]): string[] | undefined
 export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 
 	private wrapped: CodegenNativeType[]
-	private composer: CodegenNativeTypeComposer
+	private composer: CodegenNativeTypeStringComposer
 
-	public constructor(wrapped: CodegenNativeType[], composer: CodegenNativeTypeComposer) {
+	public constructor(wrapped: CodegenNativeType[], composer: CodegenNativeTypeStringComposer) {
 		this.wrapped = wrapped
 		this.composer = composer
 	}
@@ -167,13 +167,13 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.nativeType
 	}
 
-	private compose(nativeTypes: (string | undefined)[]): string | undefined {
-		const filteredNativeTypes = allOrNothing(nativeTypes)
+	private compose(nativeTypeStrings: (string | undefined)[]): string | undefined {
+		const filteredNativeTypes = allOrNothing(nativeTypeStrings)
 		return filteredNativeTypes && this.composer(filteredNativeTypes)
 	}
 }
 
-export class CodegenFullTransformingNativeTypeImpl {
+export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType {
 
 	private actualWrapped: CodegenNativeType
 	private transformers: CodegenNativeTypeTransformers
@@ -184,19 +184,19 @@ export class CodegenFullTransformingNativeTypeImpl {
 	}
 	
 	public get nativeType() {
-		return this.transformers.nativeType(this.wrapped.nativeType) || this.wrapped.nativeType
+		return this.transformers.nativeType(this.wrapped) || this.wrapped.nativeType
 	}
 
 	public get wireType() {
-		return this.wrapped.wireType && (this.transformers.wireType || this.transformers.nativeType)(this.wrapped.wireType)
+		return this.wrapped.wireType && (this.transformers.wireType || this.transformers.nativeType)(this.wrapped)
 	}
 
 	public get literalType() {
-		return this.wrapped.literalType && (this.transformers.literalType || this.transformers.nativeType)(this.wrapped.literalType)
+		return this.wrapped.literalType && (this.transformers.literalType || this.transformers.nativeType)(this.wrapped)
 	}
 
 	public get concreteType() {
-		return this.wrapped.concreteType && (this.transformers.concreteType || this.transformers.nativeType)(this.wrapped.concreteType)
+		return this.wrapped.concreteType && (this.transformers.concreteType || this.transformers.nativeType)(this.wrapped)
 	}
 
 	public get componentType() {
@@ -216,11 +216,7 @@ export class CodegenFullTransformingNativeTypeImpl {
 	}
 
 	private get wrapped(): CodegenNativeType {
-		if (this.transformers.transform) {
-			return this.transformers.transform(this.actualWrapped)
-		} else {
-			return this.actualWrapped
-		}
+		return this.actualWrapped
 	}
 }
 
@@ -235,19 +231,19 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public get nativeType() {
-		return this.compose(this.wrapped.map(n => n.nativeType), this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
+		return this.compose(this.wrapped, this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
 	public get wireType() {
-		return this.compose(this.wrapped.map(n => n.wireType), this.composers.wireType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.wireType || this.composers.nativeType)
 	}
 
 	public get literalType() {
-		return this.compose(this.wrapped.map(n => n.literalType), this.composers.literalType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.literalType || this.composers.nativeType)
 	}
 
 	public get concreteType() {
-		return this.compose(this.wrapped.map(n => n.concreteType), this.composers.concreteType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.concreteType || this.composers.nativeType)
 	}
 
 	public get componentType() {
@@ -268,17 +264,13 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.nativeType
 	}
 
-	private compose(nativeTypes: (string | undefined)[], composer: CodegenNativeTypeComposer): string | undefined {
+	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string | undefined {
 		const filteredNativeTypes = allOrNothing(nativeTypes)
-		return filteredNativeTypes && composer(filteredNativeTypes)
+		return filteredNativeTypes && composer(nativeTypes)
 	}
 
 	private get wrapped(): CodegenNativeType[] {
-		if (this.composers.transform) {
-			return this.actualWrapped.map(this.composers.transform)
-		} else {
-			return this.actualWrapped
-		}
+		return this.actualWrapped
 	}
 
 }

@@ -1,6 +1,13 @@
-import { CodegenNativeType, CodegenNativeTypeTransformer } from './types'
+import { CodegenNativeType } from './types'
 
-export type CodegenNativeTypeComposer = (nativeTypeStrings: string[]) => string | undefined
+export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string | undefined
+export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string | undefined
+
+/** Simple transformer on a native type string */
+export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string | undefined
+
+/**  */
+export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType) => string | undefined
 
 /**
  * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
@@ -8,11 +15,11 @@ export type CodegenNativeTypeComposer = (nativeTypeStrings: string[]) => string 
  * in case it changes.
  */
 export interface CodegenTransformingNativeTypeConstructor {
-	new(nativeType: CodegenNativeType, transformer: CodegenNativeTypeTransformer): CodegenNativeType
+	new(nativeType: CodegenNativeType, transformer: CodegenNativeTypeStringTransformer): CodegenNativeType
 }
 
 export interface CodegenComposingNativeTypeConstructor {
-	new(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): CodegenNativeType
+	new(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeStringComposer): CodegenNativeType
 }
 
 export interface CodegenNativeTypeTransformers {
@@ -20,7 +27,6 @@ export interface CodegenNativeTypeTransformers {
 	wireType?: CodegenNativeTypeTransformer
 	literalType?: CodegenNativeTypeTransformer
 	concreteType?: CodegenNativeTypeTransformer
-	transform?: (nativeType: CodegenNativeType) => CodegenNativeType
 }
 
 export interface CodegenFullTransformingNativeTypeConstructor {
@@ -32,7 +38,6 @@ export interface CodegenNativeTypeComposers {
 	wireType?: CodegenNativeTypeComposer
 	literalType?: CodegenNativeTypeComposer
 	concreteType?: CodegenNativeTypeComposer
-	transform?: (nativeType: CodegenNativeType) => CodegenNativeType
 }
 
 export interface CodegenFullComposingNativeTypeConstructor {

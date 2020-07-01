@@ -557,6 +557,7 @@ export type CodegenEnumValues = IndexedCollectionType<CodegenEnumValue>
 export interface CodegenEnumValue {
 	name: string
 	literalValue: string
+	value: string
 }
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'

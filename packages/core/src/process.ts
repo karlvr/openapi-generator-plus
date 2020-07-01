@@ -1503,6 +1503,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		const enumValues: CodegenEnumValues | undefined = schema.enum ? idx.create(schema.enum.map(name => ([name, {
 			name: state.generator.toEnumMemberName(name, state),
 			literalValue: state.generator.toLiteral(name, enumValueLiteralOptions, state),
+			value: name,
 		}]))) : undefined
 
 		if (enumValues) {

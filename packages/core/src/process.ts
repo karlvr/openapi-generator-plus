@@ -1669,6 +1669,15 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 	}
 }
 
+/**
+ * Returns the value of the `$ref` to use to refer to the given schema definition / component.
+ * @param schemaName the name of a schema
+ * @param state 
+ */
+function refForSchemaName(schemaName: string, state: InternalCodegenState): string {
+	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
+}
+
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
@@ -1683,10 +1692,6 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 	const root = state.root
 
-	function refForSchemaName(schemaName: string): string {
-		return isOpenAPIV2Document(root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
-	}
-
 	/* Process models first so we can check for duplicate names when creating new anonymous models */
 	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
 	if (specModels) {
@@ -1694,13 +1699,13 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		for (const schemaName in specModels) {
 			const fqmn = fullyQualifiedModelName([schemaName])
 			state.usedModelFullyQualifiedNames[fqmn] = true
-			state.reservedNames[refForSchemaName(schemaName)] = fqmn
+			state.reservedNames[refForSchemaName(schemaName, state)] = fqmn
 		}
 
 		for (const schemaName in specModels) {
 			/* We load the model using a reference as we use references to distinguish between explicit and inline models */
 			const reference: OpenAPIX.ReferenceObject = {
-				$ref: refForSchemaName(schemaName),
+				$ref: refForSchemaName(schemaName, state),
 			}
 			try {
 				toCodegenModel(schemaName, CodegenSchemaPurpose.MODEL, null, reference, state)

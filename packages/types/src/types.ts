@@ -31,12 +31,12 @@ export interface CodegenGenerator<O> {
 	/** Convert the given name to the native constant identifier style */
 	toConstantName: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum name style */
-	toEnumName: (name: string, options: CodegenNameOptions, state: CodegenState<O>) => string
+	toEnumName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum member name style */
 	toEnumMemberName: (name: string, state: CodegenState<O>) => string
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native model class name style */
-	toModelName: (name: string, options: CodegenNameOptions, state: CodegenState<O>) => string
+	toModelName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
 	/**
 	 * Return an iteration of a model name in order to generate a unique model name.
 	 * The method MUST return a different name for each iteration.
@@ -449,7 +449,7 @@ export interface CodegenDiscriminatorMappings {
 	[$ref: string]: string
 }
 
-export interface CodegenNameOptions {
+export interface CodegenSchemaNameOptions {
 	purpose: CodegenSchemaPurpose
 }
 

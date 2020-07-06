@@ -29,7 +29,8 @@ export function stringLiteralValueOptions<O>(state: CodegenState<O>): CodegenLit
 	return {
 		type: 'string', 
 		propertyType: CodegenPropertyType.STRING, 
-		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY }, state),
+		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY, required: true }, state),
+		required: true,
 	}
 }
 

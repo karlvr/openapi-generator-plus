@@ -217,7 +217,7 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 
 export type CodegenHeaders = IndexedCollectionType<CodegenProperty>
 
-export interface CodegenContent extends CodegenTypeInfo {
+export interface CodegenContent extends CodegenSchemaInfo {
 	mediaType: CodegenMediaType
 	examples?: CodegenExamples
 	schema: CodegenSchema
@@ -313,23 +313,26 @@ export interface CodegenTypeInfo {
 	/** Component types for array and map properties */
 	componentType?: string
 	componentNativeType?: CodegenNativeType
+}
 
-	nullable?: boolean
-	readOnly?: boolean
-	writeOnly?: boolean
-	deprecated?: boolean
+export interface CodegenSchemaInfo extends CodegenTypeInfo {
+	required: boolean
+	nullable: boolean
+	readOnly: boolean
+	writeOnly: boolean
+	deprecated: boolean
 }
 
 export interface CodegenProperty extends CodegenSchema {
 	name: string
 }
 
-export interface CodegenSchema extends CodegenTypeInfo {
+export interface CodegenSchema extends CodegenSchemaInfo {
 	description?: string
 	title?: string
 	exampleValue?: string
 	defaultValue?: CodegenValue
-	required: boolean
+
 	vendorExtensions?: CodegenVendorExtensions
 
 	/* Validation */
@@ -453,7 +456,7 @@ export interface CodegenNameOptions {
 interface CodegenTypeOptions {
 	type: string
 	format?: string
-	required?: boolean
+	required: boolean
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
@@ -562,11 +565,10 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-interface CodegenParameterBase extends CodegenTypeInfo {
+interface CodegenParameterBase extends CodegenSchemaInfo {
 	name: string
 	
 	description?: string
-	required?: boolean
 	collectionFormat?: string
 
 	vendorExtensions?: CodegenVendorExtensions

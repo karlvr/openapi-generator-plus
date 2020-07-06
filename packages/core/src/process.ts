@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenNameOptions } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenNameOptions, CodegenSchemaInfo } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
@@ -133,11 +133,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	const result: CodegenParameter = {
 		name: parameter.name,
 
-		...extractCodegenTypeInfo(schema),
+		...extractCodegenSchemaInfo(schema),
 
 		in: parameter.in as CodegenParameterIn,
 		description: parameter.description,
-		required: parameter.required,
+		required: parameter.required || false,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
 		examples,
 
@@ -184,7 +184,17 @@ function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo {
 		nativeType: source.nativeType,
 		componentType: source.componentType,
 		componentNativeType: source.componentNativeType,
+	}
+}
 
+/**
+ * Extract _just_ the CodegenSchemaInfo properties from the source.
+ */
+function extractCodegenSchemaInfo(source: CodegenSchemaInfo): CodegenSchemaInfo {
+	return {
+		...extractCodegenTypeInfo(source),
+
+		required: source.required,
 		nullable: source.nullable,
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,
@@ -276,16 +286,15 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				name: 'request', // TODO this might conflict with another parameter
 
 				...commonTypes,
+				...extractCodegenSchemaInfo(requestBodyContents[0]),
 
 				description: requestBody.description,
-				required: requestBody.required,
+				required: requestBody.required || false,
 
 				contents: requestBodyContents,
 				consumes,
 
 				vendorExtensions: toCodegenVendorExtensions(requestBody),
-
-				...extractCodegenTypeInfo(requestBodyContents[0]),
 			}
 		}
 	} else {
@@ -304,12 +313,14 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 					const result: CodegenContent = {
 						mediaType,
 						schema: existingBodyParam.schema,
-						...extractCodegenTypeInfo(existingBodyParam),
+						...extractCodegenSchemaInfo(existingBodyParam),
 					}
 					return result
 				})
 
 				bodyParam = {
+					...extractCodegenSchemaInfo(existingBodyParam),
+
 					name: existingBodyParam.name,
 					description: existingBodyParam.description,
 					required: existingBodyParam.required,
@@ -318,8 +329,6 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 
 					contents,
 					consumes,
-					
-					...extractCodegenTypeInfo(existingBodyParam),
 				}
 				idx.remove(parameters, bodyParamEntry[0])
 			}
@@ -754,7 +763,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 					mediaType,
 					schema,
 					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : undefined,
-					...extractCodegenTypeInfo(schema),
+					...extractCodegenSchemaInfo(schema),
 				}
 				return result
 			}) : undefined
@@ -781,7 +790,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		produces,
 		vendorExtensions: toCodegenVendorExtensions(response),
 
-		...(contents && contents.length ? extractCodegenTypeInfo(contents[0]) : {}),
+		...(contents && contents.length ? extractCodegenSchemaInfo(contents[0]) : {}),
 	}
 }
 
@@ -791,7 +800,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 	return schema.propertyType !== CodegenPropertyType.ARRAY && schema.propertyType !== CodegenPropertyType.OBJECT && schema.propertyType !== CodegenPropertyType.FILE
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function exampleValue(value: any, mediaType: string | undefined, schema: CodegenTypeInfo, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
+function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchemaInfo, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
 	return {
 		value,
 		valueLiteral: canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, schema, state) : value,
@@ -802,7 +811,7 @@ function exampleValue(value: any, mediaType: string | undefined, schema: Codegen
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenTypeInfo, state: InternalCodegenState): CodegenExamples | undefined {
+function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchemaInfo, state: InternalCodegenState): CodegenExamples | undefined {
 	if (example) {
 		return idx.create([
 			['default', {
@@ -922,7 +931,7 @@ function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeOb
 			mediaType: toCodegenMediaType(mediaType),
 			examples,
 			schema,
-			...extractCodegenTypeInfo(schema),
+			...extractCodegenSchemaInfo(schema),
 		}
 		result.push(item)
 	}
@@ -1019,7 +1028,10 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 	const result: CodegenSchema = {
 		description: coalesce(originalSchema.description, schema.description),
 		title: coalesce(originalSchema.title, schema.title),
-		readOnly: coalesce(originalSchema.readOnly != undefined ? !!originalSchema.readOnly : undefined, schema.readOnly !== undefined ? !!schema.readOnly : undefined),
+		readOnly: coalesce(originalSchema.readOnly != undefined ? !!originalSchema.readOnly : undefined, schema.readOnly !== undefined ? !!schema.readOnly : undefined) || false,
+		nullable: false, /* Set below for OpenAPI V3 */
+		writeOnly: false, /* Set below for OpenAPI V3 */
+		deprecated: false, /* Set below for OpenAPI V3 */
 		required,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 
@@ -1050,9 +1062,9 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 	}
 
 	if (isOpenAPIv3SchemaObject(originalSchema, state.specVersion) && isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		result.nullable = coalesce(originalSchema.nullable, schema.nullable)
-		result.writeOnly = coalesce(originalSchema.writeOnly, schema.writeOnly)
-		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated)
+		result.nullable = coalesce(originalSchema.nullable, schema.nullable) || false
+		result.writeOnly = coalesce(originalSchema.writeOnly, schema.writeOnly) || false
+		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated) || false
 	}
 
 	result.defaultValue = state.generator.toDefaultValue(schema.default, result, state)
@@ -1126,6 +1138,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
 		purpose: CodegenTypePurpose.KEY,
+		required: true,
 	}, state)
 	const componentSchema = toCodegenSchema(schema.additionalProperties, true, suggestedModelName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
@@ -1410,7 +1423,10 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				}
 				model.discriminatorValues.push({
 					model: otherModel,
-					value: state.generator.toLiteral(discriminatorValue, otherModel.discriminator, state),
+					value: state.generator.toLiteral(discriminatorValue, {
+						...otherModel.discriminator, 
+						required: true,
+					}, state),
 				})
 			}
 		}
@@ -1455,7 +1471,10 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				}
 				subModel.discriminatorValues.push({
 					model,
-					value: state.generator.toLiteral(discriminatorValue, model.discriminator, state),
+					value: state.generator.toLiteral(discriminatorValue, {
+						...model.discriminator, 
+						required: true,
+					}, state),
 				})
 
 				if (!subModel.implements) {
@@ -1491,6 +1510,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			type: enumValueType,
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
+			required: true,
 		}, state)
 
 		const enumValueLiteralOptions: CodegenLiteralValueOptions = {
@@ -1498,6 +1518,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			format: enumValueFormat,
 			propertyType: enumValuePropertyType,
 			nativeType: enumValueNativeType,
+			required: true,
 		}
 		
 		const enumValues: CodegenEnumValues | undefined = schema.enum ? idx.create(schema.enum.map(name => ([name, {
@@ -1576,7 +1597,10 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			}
 			model.discriminatorValues.push({
 				model: discriminatorModel,
-				value: state.generator.toLiteral(discriminatorValue, discriminator, state),
+				value: state.generator.toLiteral(discriminatorValue, {
+					...discriminator, 
+					required: true,
+				}, state),
 			})
 			discriminator.references.push({
 				model,

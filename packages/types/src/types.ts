@@ -473,31 +473,31 @@ export enum CodegenSchemaPurpose {
 	/**
 	 * The schema is being used as an item in an array.
 	 */
-	ARRAY_ITEM,
+	ARRAY_ITEM = 'ARRAY_ITEM',
 	/**
 	 * The schema is being used as a value in a map.
 	 */
-	MAP_VALUE,
+	MAP_VALUE = 'MAP_VALUE',
 	/**
 	 * The schema is being used as an object model.
 	 */
-	MODEL,
+	MODEL = 'MODEL',
 	/**
 	 * The schema is being used as a parameter.
 	 */
-	PARAMETER,
+	PARAMETER = 'PARAMETER',
 	/**
 	 * The schema is being used for a model property.
 	 */
-	PROPERTY,
+	PROPERTY = 'PROPERTY',
 	/**
 	 * The schema is being used for a request body.
 	 */
-	REQUEST_BODY,
+	REQUEST_BODY = 'REQUEST_BODY',
 	/**
 	 * The schema is being used for a response.
 	 */
-	RESPONSE,
+	RESPONSE = 'RESPONSE',
 }
 
 export enum CodegenTypePurpose {

@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenSchemaNameOptions, CodegenSchemaInfo } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenSchemaNameOptions, CodegenSchemaInfo, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
@@ -1234,39 +1234,51 @@ function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenS
 	return properties
 }
 
+function toCodegenSchemaType(schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
+	schema = resolveReference(schema, state)
+
+	if (schema.enum) {
+		return CodegenSchemaType.ENUM
+	} else if (schema.type === 'array') {
+		return CodegenSchemaType.ARRAY
+	} else if (schema.additionalProperties) {
+		return CodegenSchemaType.MAP
+	} else {
+		return CodegenSchemaType.OBJECT
+	}
+}
+
 function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): string[] {
+	let nameSpecified = false
+
 	if (isOpenAPIReferenceObject(schema)) {
-		const vendorExtensions = toCodegenVendorExtensions(resolveReference(schema, state))
-		if (vendorExtensions && vendorExtensions['x-model-name']) {
-			/* Support vendor extension to override the automatic naming of models */
-			const name: string = vendorExtensions['x-model-name']
-			return [name]
-		}
+		/* We always want referenced schemas to be at the top-level */
+		scope = null
 
 		const refName = nameFromRef(schema.$ref)
 		if (refName) {
-			return [refName]
-		} else {
-			return [suggestedName] /* We don't want to use a name from the ref, but we still want to put it at the top-level */
+			suggestedName = refName
+			nameSpecified = true
 		}
-	} else {
-		const vendorExtensions = toCodegenVendorExtensions(schema)
 
-		let name: string
-
-		const nameOptions: CodegenSchemaNameOptions = {
-			purpose,
-		}
-		if (vendorExtensions && vendorExtensions['x-model-name']) {
-			/* Support vendor extension to override the automatic naming of models */
-			name = vendorExtensions['x-model-name']
-		} else if (schema.enum) {
-			name = state.generator.toEnumName(suggestedName, nameOptions, state)
-		} else {
-			name = state.generator.toModelName(suggestedName, nameOptions, state)
-		}
-		return scope ? [...scope.scopedName, name] : [name]
+		/* Resolve the schema for the following checks */
+		schema = resolveReference(schema, state)
 	}
+
+	const vendorExtensions = toCodegenVendorExtensions(schema)
+	/* Support vendor extension to override the automatic naming of schemas */
+	if (vendorExtensions && vendorExtensions['x-schema-name']) {
+		suggestedName = vendorExtensions['x-schema-name']
+		nameSpecified = true
+	}
+
+	const nameOptions: CodegenSchemaNameOptions = {
+		nameSpecified,
+		schemaType: toCodegenSchemaType(schema, state),
+		purpose,
+	}
+	const name = state.generator.toSchemaName(suggestedName, nameOptions, state)
+	return scope ? [...scope.scopedName, name] : [name]
 }
 
 function toUniqueScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {

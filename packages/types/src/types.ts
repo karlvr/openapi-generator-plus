@@ -30,13 +30,11 @@ export interface CodegenGenerator<O> {
 	toIdentifier: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native constant identifier style */
 	toConstantName: (name: string, state: CodegenState<O>) => string
-	/** Convert the given name to the native enum name style */
-	toEnumName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
 	/** Convert the given name to the native enum member name style */
 	toEnumMemberName: (name: string, state: CodegenState<O>) => string
 	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
-	/** Convert the given name to the native model class name style */
-	toModelName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
+	/** Convert the given name to the native schema name style */
+	toSchemaName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
 	/**
 	 * Return an iteration of a model name in order to generate a unique model name.
 	 * The method MUST return a different name for each iteration.
@@ -370,7 +368,7 @@ export interface CodegenValue {
  * Allows room in future for operations to define a naming scope.
  */
 export interface CodegenScope {
-	/** The scoped name of this model as an array, as returned by CodegenGenerator.toModelName */
+	/** The scoped name of this model as an array. The components are as returned by CodegenGenerator.toSchemaName */
 	scopedName: string[]
 
 	/** Nested models */
@@ -380,7 +378,7 @@ export interface CodegenScope {
 export type CodegenModels = IndexedCollectionType<CodegenModel>
 
 export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
-	/** The name of this model; the last component of the array returned by CodegenGenerator.toModelName */
+	/** The name of this model, as returned by CodegenGenerator.toSchemaName */
 	name: string
 	description?: string
 
@@ -449,8 +447,21 @@ export interface CodegenDiscriminatorMappings {
 	[$ref: string]: string
 }
 
+/**
+ * Describes the type of object each schema is.
+ */
+export enum CodegenSchemaType {
+	OBJECT = 'OBJECT',
+	ENUM = 'ENUM',
+	ARRAY = 'ARRAY',
+	MAP = 'MAP',
+}
+
 export interface CodegenSchemaNameOptions {
+	/** Whether the name of this schema was specified in the API specification, or guessed from context */
+	nameSpecified: boolean
 	purpose: CodegenSchemaPurpose
+	schemaType: CodegenSchemaType
 }
 
 interface CodegenTypeOptions {

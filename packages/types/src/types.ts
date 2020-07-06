@@ -370,7 +370,7 @@ export interface CodegenValue {
  * Allows room in future for operations to define a naming scope.
  */
 export interface CodegenScope {
-	/** The scoped name of this model as an array */
+	/** The scoped name of this model as an array, as returned by CodegenGenerator.toModelName */
 	scopedName: string[]
 
 	/** Nested models */
@@ -380,7 +380,7 @@ export interface CodegenScope {
 export type CodegenModels = IndexedCollectionType<CodegenModel>
 
 export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
-	/** The name of this model */
+	/** The name of this model; the last component of the array returned by CodegenGenerator.toModelName */
 	name: string
 	description?: string
 

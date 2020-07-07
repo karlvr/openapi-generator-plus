@@ -18,6 +18,7 @@ export interface TestCodegenGeneratorContext extends CodegenGeneratorContext, Te
 
 const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions, TestCodegenGeneratorContext> = (generatorContext) => ({
 	generatorType: () => CodegenGeneratorType.SERVER,
+	toClassName: (name) => `${name}_class`,
 	toIdentifier: (name) => `${name}_identifier`,
 	toConstantName: (name) => `${name}_contant`,
 	toEnumMemberName: (name) => `${name}_enum_member`,

@@ -24,6 +24,8 @@ export enum CodegenGeneratorType {
 export interface CodegenGenerator<O> {
 	generatorType: () => CodegenGeneratorType
 	
+	/** Convert the given name to the native class name style */
+	toClassName: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native identifier style */
 	toIdentifier: (name: string, state: CodegenState<O>) => string
 	/** Convert the given name to the native constant identifier style */

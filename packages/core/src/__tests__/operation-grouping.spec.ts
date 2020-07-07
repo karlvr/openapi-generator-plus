@@ -8,7 +8,7 @@ test('simple', async() => {
 
 	expect(result.groups.length).toEqual(1)
 	const group1 = result.groups[0]
-	expect(group1.name).toEqual('test1')
+	expect(group1.name).toEqual('test1 api')
 	expect(group1.path).toEqual('/test1')
 
 	expect(group1.operations.length).toBe(2)
@@ -23,7 +23,7 @@ test('tags and paths', async() => {
 
 	expect(result.groups.length).toEqual(1)
 	const group1 = result.groups[0]
-	expect(group1.name).toEqual('test1')
+	expect(group1.name).toEqual('test1 api')
 	expect(group1.path).toEqual('/test1')
 
 	expect(group1.operations.length).toBe(2)

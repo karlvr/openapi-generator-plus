@@ -17,7 +17,7 @@ test('parse groups', async() => {
 
 	expect(result.groups.length).toEqual(2)
 	const group1 = result.groups[0]
-	expect(group1.name).toEqual('test1')
+	expect(group1.name).toEqual('test1 api')
 	expect(group1.path).toEqual('/test1')
 	expect(group1.operations.length).toEqual(2)
 
@@ -30,7 +30,7 @@ test('parse groups', async() => {
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
 
 	const group2 = result.groups[1]
-	expect(group2.name).toEqual('test2')
+	expect(group2.name).toEqual('test2 api')
 	expect(group2.operations.length).toEqual(1)
 
 	const op2 = group2.operations[0]

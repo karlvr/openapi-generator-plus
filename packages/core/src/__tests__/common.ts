@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenPropertyType, CodegenGeneratorContext, CodegenOperationGroupingStrategy } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenPropertyType, CodegenGeneratorContext, CodegenOperationGroupingStrategy, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -18,13 +18,20 @@ export interface TestCodegenGeneratorContext extends CodegenGeneratorContext, Te
 
 const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions, TestCodegenGeneratorContext> = (generatorContext) => ({
 	generatorType: () => CodegenGeneratorType.SERVER,
-	toClassName: (name) => `${name}_class`,
 	toIdentifier: (name) => `${name}_identifier`,
 	toConstantName: (name) => `${name}_contant`,
-	toEnumName: (name) => `${name}_enum`,
 	toEnumMemberName: (name) => `${name}_enum_member`,
 	toOperationName: (path, method) => `${method} ${path} operation`,
-	toModelName: (name) => `${name}_model`,
+	toOperationGroupName: (name) => `${name} api`,
+	toSchemaName: (name, options) => {
+		if (options.nameSpecified) {
+			return `${name}`
+		} else if (options.schemaType === CodegenSchemaType.ENUM) {
+			return `${name}_enum`
+		} else {
+			return `${name}_model`
+		}
+	},
 	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
 	toLiteral: (value) => `literal ${value}`,
 	toNativeType: (options) => new generatorContext.NativeType(options.type),

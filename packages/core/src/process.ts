@@ -1371,17 +1371,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		}
 
 		for (const property of idx.allValues(otherProperties)) {
-			const existingProperty = idx.get(model.properties, property.name)
-			if (existingProperty) {
-				/* Check that the types don't conflict */
-				if (existingProperty.propertyType !== property.propertyType) {
-					throw new Error(`Cannot merge properties "${property.name}" for "${model.nativeType}" due to type conflict: ${existingProperty.propertyType} vs ${property.propertyType}`)
-				} else if (!existingProperty.nativeType.equals(property.nativeType)) {
-					throw new Error(`Cannot merge properties "${property.name}" for "${model.nativeType}" due to type conflict: ${existingProperty.nativeType} vs ${property.nativeType}`)
-				}
-			} else {
-				idx.set(model.properties, property.name, property)
-			}
+			idx.set(model.properties, property.name, property)
 		}
 	}
 

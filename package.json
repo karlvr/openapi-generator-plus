@@ -7,6 +7,7 @@
     "build": "lerna run build",
     "clean": "lerna clean --yes && lerna run clean",
     "link": "lerna exec npm link && lerna clean --yes && rimraf packages/*/package-lock.json",
+    "update": "npx lerna-update-wizard",
     "release": "npm run clean && npm run build && npm test && lerna publish",
     "test": "lerna run test",
     "watch": "lerna run --parallel watch"
@@ -22,19 +23,19 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "devDependencies": {
-    "@types/jest": "^25.1.2",
-    "@types/lodash": "^4.14.149",
-    "@types/node": "^13.7.0",
+    "@types/jest": "^25.2.3",
+    "@types/lodash": "^4.14.159",
+    "@types/node": "^13.13.15",
     "@types/pluralize": "0.0.29",
-    "@types/yaml": "^1.2.0",
-    "@typescript-eslint/eslint-plugin": "^2.19.0",
-    "@typescript-eslint/parser": "^2.19.0",
+    "@types/yaml": "^1.9.7",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
     "eslint": "^6.8.0",
-    "eslint-plugin-jest": "^23.6.0",
-    "jest": "^25.1.0",
-    "lerna": "^3.20.2",
-    "ts-jest": "^25.2.0",
-    "typescript": "^3.7.5"
+    "eslint-plugin-jest": "^23.20.0",
+    "jest": "^25.5.4",
+    "lerna": "^3.22.1",
+    "ts-jest": "^25.5.1",
+    "typescript": "^3.9.7"
   },
   "dependencies": {
     "@openapi-generator-plus/core": "file:packages/core",

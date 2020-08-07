@@ -1248,7 +1248,12 @@ function toCodegenSchemaType(schema: OpenAPIX.SchemaObject, state: InternalCodeg
 	}
 }
 
-function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): string[] {
+interface ScopedModelInfo {
+	scopedName: string[]
+	scope: CodegenScope | null
+}
+
+function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): ScopedModelInfo {
 	let nameSpecified = false
 
 	if (isOpenAPIReferenceObject(schema)) {
@@ -1278,19 +1283,30 @@ function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scop
 		purpose,
 	}
 	const name = state.generator.toSchemaName(suggestedName, nameOptions, state)
-	return scope ? [...scope.scopedName, name] : [name]
+
+	if (scope) {
+		return {
+			scopedName: [...scope.scopedName, name],
+			scope,
+		}
+	} else {
+		return {
+			scopedName: [name],
+			scope: null,
+		}
+	}
 }
 
 function toUniqueScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
-	let scopedName = toScopedName(suggestedName, purpose, scope, schema, state)
+	const result = toScopedName(suggestedName, purpose, scope, schema, state)
 
 	const reservedName = isOpenAPIReferenceObject(schema) ? state.reservedNames[schema.$ref] : undefined
-	if (reservedName !== fullyQualifiedModelName(scopedName)) {
+	if (reservedName !== fullyQualifiedModelName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
-		scopedName = uniqueModelName(scopedName, state)
+		result.scopedName = uniqueModelName(result.scopedName, state)
 	}
 
-	return scopedName
+	return result
 }
 
 function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
@@ -1302,8 +1318,7 @@ function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenStat
 
 function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
-	const scopedName = toUniqueScopedName(suggestedName, purpose, suggestedScope, schema, state)
-	const scope = scopedName.length > 1 ? suggestedScope : null // TODO is checking the length of scope the best we can do?
+	const { scopedName, scope } = toUniqueScopedName(suggestedName, purpose, suggestedScope, schema, state)
 	const name = scopedName[scopedName.length - 1]
 	
 	schema = resolveReference(schema, state)

@@ -495,6 +495,10 @@ export enum CodegenSchemaPurpose {
 	 */
 	MODEL = 'MODEL',
 	/**
+	 * The schema is being used to create a partial model, for absorbing into another.
+	 */
+	PARTIAL_MODEL = 'PARTIAL_MODEL',
+	/**
 	 * The schema is being used as a parameter.
 	 */
 	PARAMETER = 'PARAMETER',

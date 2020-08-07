@@ -1318,7 +1318,8 @@ function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenStat
 
 function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
-	const { scopedName, scope } = toUniqueScopedName(suggestedName, purpose, suggestedScope, schema, state)
+	const partial = purpose === CodegenSchemaPurpose.PARTIAL_MODEL
+	const { scopedName, scope } = partial ? toScopedName(suggestedName, purpose, suggestedScope, schema, state) : toUniqueScopedName(suggestedName, purpose, suggestedScope, schema, state)
 	const name = scopedName[scopedName.length - 1]
 	
 	schema = resolveReference(schema, state)
@@ -1360,8 +1361,10 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	}
 
 	/* Add to known models */
-	state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)] = true
-	state.modelsBySchema.set(schema, model)
+	if (!partial) {
+		state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)] = true
+		state.modelsBySchema.set(schema, model)
+	}
 
 	model.properties = toCodegenModelProperties(schema, model, state)
 
@@ -1374,31 +1377,34 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			idx.set(model.properties, property.name, property)
 		}
 	}
+	function absorbModels(otherModels: CodegenModels) {
+		if (!model.models) {
+			model.models = idx.create()
+		}
+
+		for (const otherModel of idx.allValues(otherModels)) {
+			idx.set(model.models, otherModel.name, otherModel)
+		}
+	}
 
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
-		/* We absorb the properties from the other model as if they were our own, so we name
-		   any inline models as if they were inline inside us rather than `otherSchema`, which
-		   may be an inline model that will never exist.
+		/* If the other schema is inline, then we create it as a PARTIAL MODEL, so it doesn't get recoreded anywhere
+		   (we don't want it to actually exist). We also give it exactly the same name and scope as this model
+		   (which is only possible for partial models, as we don't unique their names), so that any submodels that
+		   it creates end up scoped to this model.
 		 */
-		const otherProperties = toCodegenModelProperties(otherSchema, model, state)
-		if (otherProperties) {
-			absorbProperties(otherProperties)
-		}
-
-		/* Use a fake scope so that if the otherSchema needs to be created as a nested model, that we throw
-		   it away. We don't want it to be an inline model, we just want to get some info from it.
-		 */
-		const fakeScope: CodegenScope = {
-			scopedName: model.scopedName,
-		}
-
-		/* Make a model and return it so we can access metadata about the model; noting that this model may never exist */
-		return toCodegenModel('InlineModel', CodegenSchemaPurpose.MODEL, fakeScope, otherSchema, state)
+		const purpose = isOpenAPIReferenceObject(otherSchema) ? CodegenSchemaPurpose.MODEL : CodegenSchemaPurpose.PARTIAL_MODEL
+		const otherSchemaModel = toCodegenModel(name, purpose, scope, otherSchema, state)
+		absorbModel(otherSchemaModel)
+		return otherSchemaModel
 	}
 
 	function absorbModel(otherModel: CodegenModel) {
 		if (otherModel.properties) {
 			absorbProperties(otherModel.properties)
+		}
+		if (otherModel.models) {
+			absorbModels(otherModel.models)
 		}
 	}
 
@@ -1636,13 +1642,16 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		model.properties = undefined
 	}
 
-	if (scope) {
-		if (!scope.models) {
-			scope.models = idx.create()
+	/* Add to scope */
+	if (!partial) {
+		if (scope) {
+			if (!scope.models) {
+				scope.models = idx.create()
+			}
+			idx.set(scope.models, model.name, model)
+		} else {
+			idx.set(state.models, model.name, model)
 		}
-		idx.set(scope.models, model.name, model)
-	} else {
-		idx.set(state.models, model.name, model)
 	}
 	return model
 }

@@ -1414,11 +1414,11 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		/* We support single parent inheritance, so check if that's possible.
 		   We go for single parent inheritance if our first schema is a reference, and our second is inline.
 		 */
-		if (allOf.length === 2) {
+		if (allOf.length <= 2) {
 			const possibleParentSchema = allOf[0]
 			const nextSchema = allOf[1]
 
-			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && !isOpenAPIReferenceObject(nextSchema)
+			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && (!nextSchema || !isOpenAPIReferenceObject(nextSchema))
 			if (canDoSingleParentInheritance) {
 				const parentModel = toCodegenModel('parent', CodegenSchemaPurpose.MODEL, suggestedScope, possibleParentSchema, state)
 

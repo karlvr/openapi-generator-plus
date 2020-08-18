@@ -52,3 +52,17 @@ test('one of subclasses discriminator', async() => {
 	expect(model4.discriminator!.references.length).toEqual(3)
 	expect(model4.isInterface).toBeFalsy()
 })
+
+test('one of subclasses discriminator no properties', async() => {
+	const result = await createTestDocument('one-of/one-of-subclasses-discriminator-no-properties.yml')
+
+	const models = idx.allValues(result.models)
+	const model1 = models[0]
+	const model4 = models[3]
+
+	expect(model1.name).toEqual('Cat')
+	expect(model4.name).toEqual('Pet')
+	expect(idx.size(model4.children!)).toEqual(3)
+	expect(model4.discriminator!.references.length).toEqual(3)
+	expect(model4.isInterface).toBeFalsy()
+})

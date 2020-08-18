@@ -1433,9 +1433,6 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			const otherModel = absorbSchema(otherSchema)
 			if (otherModel.discriminator) {
 				/* otherModel has a discriminator so we need to add ourselves as a subtype, and now otherModel must be an interface!!!  */
-				if (!model.properties) {
-					throw new Error(`Model "${nativeType}", with allOf parent "${otherModel.nativeType}" with discriminator, doesn't have properties.`)
-				}
 				const otherDiscriminatorProperty = removeModelProperty(model.properties, otherModel.discriminator.name)
 				if (!otherDiscriminatorProperty) {
 					throw new Error(`Discriminator property "${otherModel.discriminator.name}" from "${otherModel.nativeType}" missing from "${nativeType}"`)
@@ -1589,9 +1586,6 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				}
 			}
 
-			if (!model.properties) {
-				throw new Error(`Model "${nativeType}" with discriminator doesn't have properties.`)
-			}
 			const discriminatorProperty = removeModelProperty(model.properties, schemaDiscriminator.propertyName)
 			if (!discriminatorProperty) {
 				throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${nativeType}"`)

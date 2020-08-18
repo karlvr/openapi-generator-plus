@@ -5,7 +5,7 @@
   "description": "",
   "scripts": {
     "build": "lerna run build",
-    "clean": "lerna clean --yes && lerna run clean",
+    "clean": "lerna run clean",
     "link": "lerna exec npm link && lerna clean --yes && rimraf packages/*/package-lock.json",
     "update": "npx lerna-update-wizard",
     "release": "npm run clean && npm run build && npm test && lerna publish",

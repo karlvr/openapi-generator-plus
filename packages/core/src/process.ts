@@ -1422,10 +1422,13 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			if (canDoSingleParentInheritance) {
 				const parentModel = toCodegenModel('parent', CodegenSchemaPurpose.MODEL, suggestedScope, possibleParentSchema, state)
 
-				model.parent = parentModel
-				model.parentNativeType = parentModel.nativeType
+				/* If the parent model is an interface then we cannot use it as a parent */
+				if (!parentModel.isInterface) {
+					model.parent = parentModel
+					model.parentNativeType = parentModel.nativeType
 
-				allOf.shift()
+					allOf.shift()
+				}
 			}
 		}
 

@@ -1,5 +1,6 @@
 import { createTestDocument } from './common'
 import * as idx from '../indexed-type'
+import util from 'util'
 
 test('one of discriminator', async() => {
 	const result = await createTestDocument('discriminator/one-of-discriminator.yml')
@@ -65,4 +66,43 @@ test('all of subclasses discriminator no properties', async() => {
 	expect(idx.size(model4.children!)).toEqual(3)
 	expect(model4.discriminator!.references.length).toEqual(3)
 	expect(model4.isInterface).toBeFalsy()
+})
+
+test('one of all of discriminator', async() => {
+	const result = await createTestDocument('discriminator/one-of-all-of-discriminator.yml')
+	expect(result).toBeDefined()
+	// console.log(util.inspect(result, { depth: 5 }))
+
+	const cat = idx.get(result.models, 'Cat')
+	expect(cat).toBeDefined()
+
+	expect(cat?.implements).toBeDefined()
+	expect(idx.size(cat?.implements!)).toEqual(1)
+})
+
+/**
+ * Schema using all-of with a discriminator, where one of the uses is not a subclass.
+ */
+test('all of discriminator without superclass', async() => {
+	const result = await createTestDocument('discriminator/all-of-discriminator-without-superclass.yml')
+	expect(result).toBeDefined()
+	// console.log(util.inspect(result, { depth: null }))
+
+	const base = idx.get(result.models, 'Base')!
+	expect(base).toBeDefined()
+	expect(base.discriminator).toBeDefined()
+	expect(base.discriminator!.references.length).toEqual(2)
+	
+	const a = idx.get(result.models, 'A')!
+	expect(a).toBeDefined()
+	expect(a.parent).not.toBeDefined()
+
+	const b = idx.get(result.models, 'B')!
+	expect(b).toBeDefined()
+	expect(b.parent).toBeDefined()
+
+	expect(a.discriminator).not.toBeDefined()
+	expect(a.discriminatorValues).toBeDefined()
+	expect(b.discriminator).not.toBeDefined()
+	expect(b.discriminatorValues).toBeDefined()
 })

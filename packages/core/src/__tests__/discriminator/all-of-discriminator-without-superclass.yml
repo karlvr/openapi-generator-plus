@@ -1,0 +1,25 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Base:
+      type: object
+      discriminator:
+        propertyName: myType
+      properties:
+        myType:
+          type: string
+    A:
+      allOf:
+      - type: object
+        properties:
+          name:
+            type: string
+      - $ref: '#/components/schemas/Base'
+    B:
+      allOf:
+      - $ref: '#/components/schemas/Base'

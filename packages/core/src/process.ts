@@ -1435,12 +1435,9 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		for (const otherSchema of allOf) {
 			const otherModel = absorbSchema(otherSchema)
 			if (otherModel.discriminator) {
-				/* otherModel has a discriminator so we need to add ourselves as a subtype, and now otherModel must be an interface!!!  */
-				const otherDiscriminatorProperty = removeModelProperty(model.properties, otherModel.discriminator.name)
-				if (!otherDiscriminatorProperty) {
-					throw new Error(`Discriminator property "${otherModel.discriminator.name}" from "${otherModel.nativeType}" missing from "${nativeType}"`)
-				}
-
+				/* otherModel has a discriminator so we need to add ourselves as a subtype, and now otherModel must be an interface!!!
+				   As we're absorbing an already constructed model, it has already found its discriminator property.
+				*/
 				const discriminatorValue = $ref && otherModel.discriminator.mappings && otherModel.discriminator.mappings[$ref] ? otherModel.discriminator.mappings[$ref] : name
 				otherModel.discriminator.references.push({
 					model,

@@ -2,7 +2,7 @@ import { createTestDocument } from './common'
 import * as idx from '../indexed-type'
 
 test('one of discriminator', async() => {
-	const result = await createTestDocument('one-of/one-of-discriminator.yml')
+	const result = await createTestDocument('discriminator/one-of-discriminator.yml')
 
 	const models = idx.allValues(result.models)
 	const model1 = models[0]
@@ -18,7 +18,7 @@ test('one of discriminator', async() => {
 })
 
 test('one of no discriminator', async() => {
-	const result = await createTestDocument('one-of/one-of-no-discriminator.yml')
+	const result = await createTestDocument('discriminator/one-of-no-discriminator.yml')
 
 	const models = idx.allValues(result.models)
 	const combinedModel = models[3]
@@ -35,12 +35,12 @@ test('one of no discriminator', async() => {
 })
 
 test('one of discriminator missing property', async() => {
-	await expect(createTestDocument('one-of/one-of-discriminator-missing-property.yml'))
+	await expect(createTestDocument('discriminator/one-of-discriminator-missing-property.yml'))
 		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')
 })
 
 test('one of subclasses discriminator', async() => {
-	const result = await createTestDocument('one-of/one-of-subclasses-discriminator.yml')
+	const result = await createTestDocument('discriminator/one-of-subclasses-discriminator.yml')
 
 	const models = idx.allValues(result.models)
 	const model1 = models[0]
@@ -54,7 +54,7 @@ test('one of subclasses discriminator', async() => {
 })
 
 test('one of subclasses discriminator no properties', async() => {
-	const result = await createTestDocument('one-of/one-of-subclasses-discriminator-no-properties.yml')
+	const result = await createTestDocument('discriminator/one-of-subclasses-discriminator-no-properties.yml')
 
 	const models = idx.allValues(result.models)
 	const model1 = models[0]

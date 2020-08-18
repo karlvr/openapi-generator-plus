@@ -39,8 +39,8 @@ test('one of discriminator missing property', async() => {
 		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')
 })
 
-test('one of subclasses discriminator', async() => {
-	const result = await createTestDocument('discriminator/one-of-subclasses-discriminator.yml')
+test('all of subclasses discriminator', async() => {
+	const result = await createTestDocument('discriminator/all-of-subclasses-discriminator.yml')
 
 	const models = idx.allValues(result.models)
 	const model1 = models[0]
@@ -53,8 +53,8 @@ test('one of subclasses discriminator', async() => {
 	expect(model4.isInterface).toBeFalsy()
 })
 
-test('one of subclasses discriminator no properties', async() => {
-	const result = await createTestDocument('discriminator/one-of-subclasses-discriminator-no-properties.yml')
+test('all of subclasses discriminator no properties', async() => {
+	const result = await createTestDocument('discriminator/all-of-subclasses-discriminator-no-properties.yml')
 
 	const models = idx.allValues(result.models)
 	const model1 = models[0]

@@ -1282,9 +1282,17 @@ function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scop
 		schemaType: toCodegenSchemaType(schema, state),
 		purpose,
 	}
-	const name = state.generator.toSchemaName(suggestedName, nameOptions, state)
+	let name = state.generator.toSchemaName(suggestedName, nameOptions, state)
 
 	if (scope) {
+		/* Check that our name is unique in our scope, as some languages (Java) don't allow an inner class to shadow an ancestor */
+		const originalName = name
+		let iteration = 0
+		while (scope.scopedName.indexOf(name) !== -1) {
+			iteration += 1
+			name = state.generator.toIteratedModelName(originalName, scope.scopedName, iteration, state)
+		}
+
 		return {
 			scopedName: [...scope.scopedName, name],
 			scope,

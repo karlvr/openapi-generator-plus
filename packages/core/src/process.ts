@@ -980,7 +980,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 
 	const originalSchema = schema
 	schema = resolveReference(schema, state)
-	fixSchema(schema)
+	fixSchema(schema, state)
 
 	if (isModelSchema(schema, state)) {
 		model = toCodegenModel(suggestedModelName, purpose, scope, originalSchema, state)
@@ -1338,7 +1338,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		return existing
 	}
 
-	fixSchema(schema)
+	fixSchema(schema, state)
 
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
@@ -1663,9 +1663,22 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
  * This method corrects for those cases where we can determine what the schema _should_ be.
  * @param schema 
  */
-function fixSchema(schema: OpenAPIX.SchemaObject) {
+function fixSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
 	if (schema.type === undefined && (schema.required || schema.properties || schema.additionalProperties)) {
 		schema.type = 'object'
+	}
+
+	/* Some specs have the enum declared at the array level, rather than the items. The Vimeo API schema is an example.
+	   https://raw.githubusercontent.com/vimeo/openapi/master/api.yaml
+	*/
+	if (schema.type === 'array' && schema.enum) {
+		if (schema.items) {
+			const items = resolveReference(schema.items, state)
+			if (!items.enum) {
+				items.enum = schema.enum
+				schema.enum = undefined
+			}
+		}
 	}
 }
 

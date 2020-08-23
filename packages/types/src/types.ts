@@ -381,6 +381,8 @@ export type CodegenModels = IndexedCollectionType<CodegenModel>
 export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The name of this model, as returned by CodegenGenerator.toSchemaName */
 	name: string
+	/** The name of the model in the API spec as it should be used on the wire, if the model was named */
+	wireName?: string
 	description?: string
 
 	properties?: CodegenProperties

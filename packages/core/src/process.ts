@@ -1397,7 +1397,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	}
 
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
-		/* If the other schema is inline, then we create it as a PARTIAL MODEL, so it doesn't get recoreded anywhere
+		/* If the other schema is inline, then we create it as a PARTIAL MODEL, so it doesn't get recorded anywhere
 		   (we don't want it to actually exist). We also give it exactly the same name and scope as this model
 		   (which is only possible for partial models, as we don't unique their names), so that any submodels that
 		   it creates end up scoped to this model.

@@ -1404,15 +1404,16 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		 */
 		const purpose = isOpenAPIReferenceObject(otherSchema) ? CodegenSchemaPurpose.MODEL : CodegenSchemaPurpose.PARTIAL_MODEL
 		const otherSchemaModel = toCodegenModel(name, purpose, scope, otherSchema, state)
-		absorbModel(otherSchemaModel)
+		/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
+		absorbModel(otherSchemaModel, purpose === CodegenSchemaPurpose.PARTIAL_MODEL)
 		return otherSchemaModel
 	}
 
-	function absorbModel(otherModel: CodegenModel) {
+	function absorbModel(otherModel: CodegenModel, includeNestedModels: boolean) {
 		if (otherModel.properties) {
 			absorbProperties(otherModel.properties)
 		}
-		if (otherModel.models) {
+		if (includeNestedModels && otherModel.models) {
 			absorbModels(otherModel.models)
 		}
 	}
@@ -1526,7 +1527,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
 
-				absorbModel(subModel)
+				absorbModel(subModel, false)
 				subModel.isInterface = true
 				idx.set(model.implements, subModel.name, subModel)
 				if (!subModel.implementors) {

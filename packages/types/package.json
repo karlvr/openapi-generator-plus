@@ -22,7 +22,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "devDependencies": {
+  "dependencies": {
     "@openapi-generator-plus/indexed-type": "file:../indexed-type",
     "openapi-types": "^7.0.0"
   }

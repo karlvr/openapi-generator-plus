@@ -1,3 +1,5 @@
+export type IndexedType<K, V> = Map<K, V>
+
 export function findEntry<K, V>(map: Map<K, V>, predicate: (value: V) => unknown): [K, V] | undefined {
 	for (const entry of map) {
 		if (predicate(entry[1])) {

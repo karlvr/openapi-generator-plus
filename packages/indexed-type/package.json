@@ -1,13 +1,12 @@
 {
-  "name": "@openapi-generator-plus/core",
-  "version": "0.11.5",
+  "name": "@openapi-generator-plus/indexed-type",
+  "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "../../node_modules/.bin/tsc -p tsconfig.prod.json",
     "clean": "../../node_modules/.bin/rimraf dist",
-    "test": "../../node_modules/.bin/jest",
     "watch": "../../node_modules/.bin/tsc --watch"
   },
   "repository": {
@@ -20,14 +19,6 @@
     "url": "https://github.com/karlvr/openapi-generator-plus/issues"
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
-  "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.1",
-    "@openapi-generator-plus/indexed-type": "file:../indexed-type",
-    "lodash": "^4.17.19"
-  },
-  "devDependencies": {
-    "@openapi-generator-plus/types": "file:../types"
-  },
   "publishConfig": {
     "access": "public"
   }

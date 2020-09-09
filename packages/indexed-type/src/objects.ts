@@ -1,3 +1,7 @@
+export interface IndexedType<K extends string, V> {
+	[key: string]: V
+}
+
 interface IndexedObjectType<T> {
 	[key: string]: T
 }

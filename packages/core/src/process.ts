@@ -5,7 +5,7 @@ import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
 import { InternalCodegenState } from './types'
-import * as idx from './indexed-type'
+import * as idx from '@openapi-generator-plus/indexed-type'
 
 /**
  * Error thrown when a model cannot be generated because it doesn't represent a valid model in

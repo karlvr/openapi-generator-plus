@@ -1,4 +1,5 @@
 import { OpenAPI } from 'openapi-types'
+import { IndexedType } from '@openapi-generator-plus/indexed-type'
 
 export interface CodegenInputDocument {
 	$refs: {
@@ -193,10 +194,7 @@ export interface CodegenOperation {
 	hasResponseExamples?: boolean
 }
 
-// export type IndexedCollectionType<T> = Map<string, T>
-export interface IndexedCollectionType<T> {
-	[key: string]: T
-}
+export type IndexedCollectionType<T> = IndexedType<string, T>
 
 export type CodegenResponses = IndexedCollectionType<CodegenResponse>
 export type CodegenParameters = IndexedCollectionType<CodegenParameter>

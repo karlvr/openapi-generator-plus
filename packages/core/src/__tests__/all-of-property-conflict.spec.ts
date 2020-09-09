@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { CodegenPropertyType } from '@openapi-generator-plus/types'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('property conflict resolved', async() => {
 	const result = await createTestDocument('all-of-property-conflict-v3.yml')

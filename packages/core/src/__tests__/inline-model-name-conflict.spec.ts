@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('inline model name conflict', async() => {
 	const result = await createTestDocument('inline-model-name-conflict-v2.yml')

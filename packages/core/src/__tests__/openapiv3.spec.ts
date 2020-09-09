@@ -1,5 +1,5 @@
 import { createTestDocument, createTestResult } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('process document', async() => {
 	const result = await createTestDocument('openapiv3/simple.yml')

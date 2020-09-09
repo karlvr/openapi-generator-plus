@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { CodegenPropertyType } from '@openapi-generator-plus/types'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('array property', async() => {
 	const result = await createTestDocument('default-value/arrays-v3.yml')

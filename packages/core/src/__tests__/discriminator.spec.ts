@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 import util from 'util'
 
 test('one of discriminator', async() => {

@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('array of strings', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml', {

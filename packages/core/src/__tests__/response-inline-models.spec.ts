@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('inline response model', async() => {
 	const result = await createTestDocument('response-inline-models-v2.yml')

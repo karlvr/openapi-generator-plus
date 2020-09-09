@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import * as idx from '../indexed-type'
+import { idx } from '../'
 
 test('array model', async() => {
 	const result = await createTestDocument('collection-models/array-model-v3.yml')

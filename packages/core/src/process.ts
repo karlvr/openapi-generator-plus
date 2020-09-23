@@ -1410,6 +1410,9 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	}
 
 	function absorbModel(otherModel: CodegenModel, includeNestedModels: boolean) {
+		if (otherModel.parent) {
+			absorbModel(otherModel.parent, includeNestedModels)
+		}
 		if (otherModel.properties) {
 			absorbProperties(otherModel.properties)
 		}

@@ -1017,6 +1017,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 				type,
 				format,
 				required,
+				vendorExtensions: toCodegenVendorExtensions(schema),
 				purpose: CodegenTypePurpose.PROPERTY,
 			}, state)
 			propertyType = toCodegenPropertyType(type, format, false, false)
@@ -1113,6 +1114,7 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 		componentNativeType: componentSchema.nativeType,
 		uniqueItems: schema.uniqueItems,
 		purpose,
+		vendorExtensions: toCodegenVendorExtensions(schema),
 	}, state)
 
 	return {
@@ -1139,12 +1141,14 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 		type: 'string',
 		purpose: CodegenTypePurpose.KEY,
 		required: true,
+		vendorExtensions: toCodegenVendorExtensions(schema),
 	}, state)
 	const componentSchema = toCodegenSchema(schema.additionalProperties, true, suggestedModelName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
 		componentNativeType: componentSchema.nativeType,
+		vendorExtensions: toCodegenVendorExtensions(schema),
 		purpose,
 	}, state)
 
@@ -1343,11 +1347,13 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
 		modelNames: scopedName,
+		vendorExtensions: toCodegenVendorExtensions(schema),
 	}, state)
 
 	const propertyNativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.PROPERTY,
 		modelNames: scopedName,
+		vendorExtensions: toCodegenVendorExtensions(schema),
 	}, state)
 
 	const isEnum = !!schema.enum
@@ -1549,6 +1555,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			format: schema.format,
 			purpose: CodegenTypePurpose.ENUM,
 			required: true,
+			vendorExtensions: toCodegenVendorExtensions(schema),
 		}, state)
 
 		const enumValueLiteralOptions: CodegenLiteralValueOptions = {

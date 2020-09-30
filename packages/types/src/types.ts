@@ -469,6 +469,7 @@ interface CodegenTypeOptions {
 	type: string
 	format?: string
 	required: boolean
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
@@ -539,6 +540,7 @@ export interface CodegenNativeObjectTypeOptions {
 	modelNames: string[]
 	purpose: CodegenTypePurpose
 	required?: boolean
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export enum CodegenArrayTypePurpose {
@@ -555,6 +557,7 @@ export interface CodegenNativeArrayTypeOptions {
 	uniqueItems?: boolean
 	modelNames?: string[]
 	purpose: CodegenArrayTypePurpose
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export enum CodegenMapTypePurpose {
@@ -568,6 +571,7 @@ export interface CodegenNativeMapTypeOptions {
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]
+	vendorExtensions?: CodegenVendorExtensions
 	purpose: CodegenMapTypePurpose
 }
 

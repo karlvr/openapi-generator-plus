@@ -137,6 +137,7 @@ export interface CodegenServer {
 	/** The base URL of the API */
 	url: string
 	description?: string
+	vendorExtensions?: CodegenVendorExtensions
 }
 
 export interface CodegenOperationGroups {

@@ -1746,8 +1746,14 @@ function toCodegenServers(root: OpenAPI.Document): CodegenServer[] | undefined {
 		} else {
 			return undefined
 		}
+	} else if (root.servers) {
+		return root.servers.map(server => ({
+			url: server.url,
+			description: server.description,
+			vendorExtensions: toCodegenVendorExtensions(server),
+		}))
 	} else {
-		return root.servers
+		return undefined
 	}
 }
 

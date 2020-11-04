@@ -283,14 +283,15 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 			}
 
 			bodyParam = {
-				name: 'request', // TODO this might conflict with another parameter
+				name: toUniqueName('request', parameters && idx.allKeys(parameters)),
 
 				...commonTypes,
 				...extractCodegenSchemaInfo(requestBodyContents[0]),
 
 				description: requestBody.description,
 				required: requestBody.required || false,
-
+				schema: requestBodyContents[0],
+				
 				contents: requestBodyContents,
 				consumes,
 
@@ -326,6 +327,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 					required: existingBodyParam.required,
 					collectionFormat: existingBodyParam.collectionFormat,
 					vendorExtensions: existingBodyParam.vendorExtensions,
+					schema: existingBodyParam.schema,
 
 					contents,
 					consumes,
@@ -1218,6 +1220,20 @@ function uniqueModelName(scopedName: string[], state: InternalCodegenState): str
 	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName([...scopeNames, name])])
 
 	return [...scopeNames, name]
+}
+
+function toUniqueName(suggestedName: string, existingNames: string[] | undefined): string {
+	if (!existingNames) {
+		return suggestedName
+	}
+
+	const baseName = suggestedName
+	let iteration = 0
+	while (existingNames.indexOf(suggestedName) !== -1) {
+		iteration += 1
+		suggestedName = `${baseName}${iteration}`
+	}
+	return suggestedName
 }
 
 function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {

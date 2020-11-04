@@ -69,6 +69,10 @@ export function get<K, V>(map: Map<K, V>, key: K): V | undefined {
 	return map.get(key)
 }
 
+export function allKeys<K, V>(map: Map<K, V>): K[] {
+	return [...map.keys()]
+}
+
 export function allValues<K, V>(map: Map<K, V>): V[] {
 	return [...map.values()]
 }

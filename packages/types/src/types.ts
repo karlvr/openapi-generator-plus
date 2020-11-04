@@ -592,6 +592,8 @@ interface CodegenParameterBase extends CodegenSchemaInfo {
 	description?: string
 	collectionFormat?: string
 
+	schema: CodegenSchema
+
 	vendorExtensions?: CodegenVendorExtensions
 }
 
@@ -604,11 +606,8 @@ export interface CodegenParameter extends CodegenParameterBase {
 	isHeaderParam?: boolean
 	isCookieParam?: boolean
 	isFormParam?: boolean
-
-	schema: CodegenSchema
 }
 export interface CodegenRequestBody extends CodegenParameterBase {
-
 	contents: CodegenContent[]
 	consumes: CodegenMediaType[]
 }

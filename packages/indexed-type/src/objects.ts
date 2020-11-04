@@ -137,6 +137,14 @@ export function get<T>(ob: IndexedObjectType<T>, key: string): T | undefined {
 	return ob[key]
 }
 
+export function allKeys<T>(ob: IndexedObjectType<T>): string[] {
+	const result: string[] = []
+	for (const key in ob) {
+		result.push(key)
+	}
+	return result
+}
+
 export function allValues<T>(ob: IndexedObjectType<T>): T[] {
 	const result: T[] = []
 	for (const key in ob) {

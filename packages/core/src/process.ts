@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenSchemaNameOptions, CodegenSchemaInfo, CodegenSchemaType } from '@openapi-generator-plus/types'
-import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
+import { CodegenDocument, CodegenOperation, CodegenResponse, CodegenProperty, CodegenParameter, CodegenMediaType, CodegenVendorExtensions, CodegenModel, CodegenSecurityScheme, CodegenAuthScope as CodegenSecurityScope, CodegenOperationGroup, CodegenServer, CodegenOperationGroups, CodegenNativeType, CodegenTypePurpose, CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenContent, CodegenParameterIn, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenPropertyType, CodegenLiteralValueOptions, CodegenTypeInfo, HttpMethods, CodegenDiscriminatorMappings, CodegenDiscriminator, CodegenGeneratorType, CodegenScope, CodegenSchema, CodegenExamples, CodegenRequestBody, CodegenExample, CodegenModels, CodegenParameters, CodegenResponses, CodegenProperties, CodegenEnumValues, CodegenSchemaPurpose, CodegenSchemaNameOptions, CodegenSchemaInfo, CodegenSchemaType, CodegenHeaders, CodegenHeader } from '@openapi-generator-plus/types'
+import { isOpenAPIV2ResponseObject, isOpenAPIReferenceObject, isOpenAPIV3ResponseObject, isOpenAPIV2GeneralParameterObject, isOpenAPIV2Document, isOpenAPIV3Operation, isOpenAPIV3Document, isOpenAPIV2SecurityScheme, isOpenAPIV3SecurityScheme, isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject, isOpenAPIv3SchemaObject, isOpenAPIV3PathItemObject, isOpenAPIV2HeaderObject, isOpenAPIV3HeaderObject } from './openapi-type-guards'
 import { OpenAPIX } from './types/patches'
 import _ from 'lodash'
 import { stringLiteralValueOptions } from './utils'
@@ -790,9 +790,68 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		...commonTypes,
 		contents,
 		produces,
+		headers: toCodegenHeaders(response.headers, state),
 		vendorExtensions: toCodegenVendorExtensions(response),
 
 		...(contents && contents.length ? extractCodegenSchemaInfo(contents[0]) : {}),
+	}
+}
+
+
+
+function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | undefined {
+	if (headers === undefined) {
+		return undefined
+	}
+
+	const result: CodegenHeaders = {}
+	for (const key in headers) {
+		const header = toCodegenHeader(key, headers[key], state)
+		result[key] = header
+	}
+	return result
+}
+
+function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalCodegenState): CodegenHeader {
+	header = resolveReference(header, state)
+
+	if (isOpenAPIV2HeaderObject(header, state.specVersion)) {
+		const schema = toCodegenSchema(header, true, name, CodegenSchemaPurpose.HEADER, null, state)
+		return {
+			name,
+	
+			...extractCodegenSchemaInfo(schema),
+	
+			required: false,
+			collectionFormat: header.collectionFormat,
+	
+			schema,
+	
+			vendorExtensions: toCodegenVendorExtensions(header),
+		}
+	} else if (isOpenAPIV3HeaderObject(header, state.specVersion)) {
+		if (!header.schema) {
+			throw new Error(`Cannot resolve schema for header "${name}: ${JSON.stringify(header)}`)
+		}
+		
+		const schema = toCodegenSchema(header.schema, header.required || false, name, CodegenSchemaPurpose.HEADER, null, state)
+		const examples = toCodegenExamples(header.example, header.examples, undefined, schema, state)
+
+		return {
+			name,
+	
+			...extractCodegenSchemaInfo(schema),
+	
+			description: header.description,
+			required: header.required || false,
+			examples,
+	
+			schema,
+	
+			vendorExtensions: toCodegenVendorExtensions(header),
+		}
+	} else {
+		throw 'Unsupported spec version'
 	}
 }
 

@@ -6,4 +6,8 @@ export declare namespace OpenAPIX {
 	export type SchemaObject = OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject
 	export type ReferenceObject = OpenAPIV2.ReferenceObject | OpenAPIV3.ReferenceObject
 	export type Parameters = OpenAPIV2.Parameters | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+	export type Headers = OpenAPIV2.HeadersObject | {
+		[header: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.HeaderObject
+	}
+	export type Header = OpenAPIV2.HeaderObject | OpenAPIV3.HeaderObject | OpenAPIV3.ReferenceObject
 }

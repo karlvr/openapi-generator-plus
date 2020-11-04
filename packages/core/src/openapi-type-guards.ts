@@ -20,6 +20,14 @@ export function isOpenAPIV2GeneralParameterObject(ob: OpenAPI.Parameter, specVer
 	return (specVersion === CodegenSpecVersion.OpenAPIV2 && anyOb.type !== undefined)
 }
 
+export function isOpenAPIV2HeaderObject(ob: OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV2.HeaderObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV2
+}
+
+export function isOpenAPIV3HeaderObject(ob: OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV3.HeaderObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV3
+}
+
 export function isOpenAPIV2Operation(ob: OpenAPI.Operation, specVersion: CodegenSpecVersion): ob is OpenAPIV2.OperationObject {
 	return specVersion === CodegenSpecVersion.OpenAPIV2
 }

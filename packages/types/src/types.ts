@@ -213,7 +213,12 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	headers?: CodegenHeaders
 }
 
-export type CodegenHeaders = IndexedCollectionType<CodegenProperty>
+export type CodegenHeaders = IndexedCollectionType<CodegenHeader>
+
+export interface CodegenHeader extends CodegenParameterBase {
+	name: string
+	examples?: CodegenExamples
+}
 
 export interface CodegenContent extends CodegenSchemaInfo {
 	mediaType: CodegenMediaType
@@ -516,6 +521,7 @@ export enum CodegenSchemaPurpose {
 	 * The schema is being used for a response.
 	 */
 	RESPONSE = 'RESPONSE',
+	HEADER = 'HEADER',
 }
 
 export enum CodegenTypePurpose {

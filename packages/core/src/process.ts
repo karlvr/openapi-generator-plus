@@ -1120,7 +1120,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 
 		/* Model */
 		model,
-		componentModel: componentSchema && componentSchema.model,
+		componentSchema,
 	}
 
 	if (isOpenAPIv3SchemaObject(originalSchema, state.specVersion) && isOpenAPIv3SchemaObject(schema, state.specVersion)) {

@@ -353,8 +353,8 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 
 	/** The model that is the type of this schema, if any */
 	model?: CodegenModel
-	/** If this schema is an array or map type, the model of the components of this schema, if any */
-	componentModel?: CodegenModel
+	/** If this schema is an array or map type, the schema of the components of this schema, if any */
+	componentSchema?: CodegenSchema
 }
 
 /**

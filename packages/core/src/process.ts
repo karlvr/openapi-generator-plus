@@ -1436,7 +1436,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 	const model: CodegenModel = {
 		name,
-		wireName: $ref ? nameFromRef($ref) : undefined,
+		serializedName: $ref ? nameFromRef($ref) : undefined,
 		scopedName,
 		description: schema.description,
 		vendorExtensions,

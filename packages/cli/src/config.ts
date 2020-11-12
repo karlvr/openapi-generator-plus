@@ -6,7 +6,7 @@ import YAML from 'yaml'
 
 async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
-		encoding: 'UTF-8',
+		encoding: 'utf-8',
 	}) as string
 
 	if (path.endsWith('.yml') || path.endsWith('.yaml')) {

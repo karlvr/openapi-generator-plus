@@ -10,6 +10,7 @@
     "update": "npx lerna-update-wizard",
     "release": "npm run clean && npm run build && npm test && lerna publish",
     "test": "lerna run test",
+    "test-core": "cd packages/core && npm t -- --watch",
     "watch": "lerna run --parallel watch"
   },
   "repository": {

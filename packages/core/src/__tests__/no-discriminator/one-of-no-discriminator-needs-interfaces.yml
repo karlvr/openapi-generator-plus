@@ -1,0 +1,37 @@
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    ColorRgb:
+      type: object
+      properties:
+        r:
+          type: integer
+        g:
+          type: integer
+        b:
+          type: integer
+      required:
+        - r
+        - g
+        - b
+    ColorHs:
+      type: object
+      properties:
+        h:
+          type: number
+        s:
+          type: number
+      required:
+        - h
+        - s
+    SomeObject:
+      type: object
+      properties:
+        color:
+          oneOf:
+            - $ref: "#/components/schemas/ColorRgb"
+            - $ref: "#/components/schemas/ColorHs"

@@ -1549,8 +1549,23 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				})
 			}
 		}
-	} else if (schema.oneOf || schema.anyOf) {
-		const oneOf = (schema.oneOf || schema.anyOf) as Array<OpenAPIX.SchemaObject>
+	} else if (schema.anyOf) {
+		/* We bundle all of the properties together into this model and turn the subModels into interfaces */
+		const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+		model.implements = idx.create()
+		for (const subSchema of anyOf) {
+			const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
+
+			absorbModel(subModel, false)
+			subModel.isInterface = true // TODO if a submodel is also required to be concrete, perhaps we should create separate interface and concrete implementations of the same model
+			idx.set(model.implements, subModel.name, subModel)
+			if (!subModel.implementors) {
+				subModel.implementors = idx.create()
+			}
+			idx.set(subModel.implementors, model.name, model)
+		}
+	} else if (schema.oneOf) {
+		const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
 		if (schema.discriminator) {
 			if (model.properties) {
 				throw new Error(`oneOf cannot have properties: ${model.nativeType}`)
@@ -1606,12 +1621,13 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				idx.set(model.implementors, subModel.name, subModel)
 			}
 		} else {
-			/* Without a discriminator we bundle all of the properties together into this model and turn the subModels into interfaces */
+			/* Without a discriminator we turn this model into an interface and turn the subModels into interfaces */
 			model.implements = idx.create()
+			model.isInterface = true
+
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
 
-				absorbModel(subModel, false)
 				subModel.isInterface = true
 				idx.set(model.implements, subModel.name, subModel)
 				if (!subModel.implementors) {

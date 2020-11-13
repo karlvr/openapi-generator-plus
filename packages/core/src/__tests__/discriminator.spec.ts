@@ -18,23 +18,6 @@ test('one of discriminator', async() => {
 	expect(model4.isInterface).toBe(true)
 })
 
-test('one of no discriminator', async() => {
-	const result = await createTestDocument('discriminator/one-of-no-discriminator.yml')
-
-	const models = idx.allValues(result.models)
-	const combinedModel = models[3]
-	expect(combinedModel.name).toEqual('MyResponseType')
-	expect(combinedModel.isInterface).toBeFalsy()
-
-	const combinedModelProperties = idx.allValues(combinedModel.properties!)
-	expect(combinedModelProperties![0].name).toEqual('name')
-	expect(combinedModelProperties![1].name).toEqual('bark')
-	expect(combinedModelProperties![2].name).toEqual('lovesRocks')
-
-	const model1 = models[0]
-	expect(model1.isInterface).toBe(true)
-})
-
 test('one of discriminator missing property', async() => {
 	await expect(createTestDocument('discriminator/one-of-discriminator-missing-property.yml'))
 		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')

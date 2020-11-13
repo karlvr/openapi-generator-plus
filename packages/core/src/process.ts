@@ -1458,13 +1458,17 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 	model.properties = toCodegenModelProperties(schema, model, state)
 
-	function absorbProperties(otherProperties: CodegenProperties) {
+	function absorbProperties(otherProperties: CodegenProperties, options: { makePropertiesOptional?: boolean }) {
 		if (!model.properties) {
 			model.properties = idx.create()
 		}
 
 		for (const property of idx.allValues(otherProperties)) {
-			idx.set(model.properties, property.name, property)
+			const newProperty = { ...property }
+			if (options.makePropertiesOptional) {
+				newProperty.required = false
+			}
+			idx.set(model.properties, newProperty.name, newProperty)
 		}
 	}
 	function absorbModels(otherModels: CodegenModels) {
@@ -1486,18 +1490,18 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		const purpose = isOpenAPIReferenceObject(otherSchema) ? CodegenSchemaPurpose.MODEL : CodegenSchemaPurpose.PARTIAL_MODEL
 		const otherSchemaModel = toCodegenModel(name, purpose, scope, otherSchema, state)
 		/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
-		absorbModel(otherSchemaModel, purpose === CodegenSchemaPurpose.PARTIAL_MODEL)
+		absorbModel(otherSchemaModel, { includeNestedModels: purpose === CodegenSchemaPurpose.PARTIAL_MODEL })
 		return otherSchemaModel
 	}
 
-	function absorbModel(otherModel: CodegenModel, includeNestedModels: boolean) {
+	function absorbModel(otherModel: CodegenModel, options: { includeNestedModels?: boolean, makePropertiesOptional?: boolean }) {
 		if (otherModel.parent) {
-			absorbModel(otherModel.parent, includeNestedModels)
+			absorbModel(otherModel.parent, options)
 		}
 		if (otherModel.properties) {
-			absorbProperties(otherModel.properties)
+			absorbProperties(otherModel.properties, { makePropertiesOptional: options.makePropertiesOptional })
 		}
-		if (includeNestedModels && otherModel.models) {
+		if (options.includeNestedModels && otherModel.models) {
 			absorbModels(otherModel.models)
 		}
 	}
@@ -1556,7 +1560,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		for (const subSchema of anyOf) {
 			const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
 
-			absorbModel(subModel, false)
+			absorbModel(subModel, { includeNestedModels: false, makePropertiesOptional: true })
 			subModel.isInterface = true // TODO if a submodel is also required to be concrete, perhaps we should create separate interface and concrete implementations of the same model
 			idx.set(model.implements, subModel.name, subModel)
 			if (!subModel.implementors) {

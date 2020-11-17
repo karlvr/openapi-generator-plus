@@ -36,7 +36,7 @@ export function defaultGeneratorOptions(): CodegenGeneratorContext {
 		FullTransformingNativeType: CodegenFullTransformingNativeTypeImpl,
 		FullComposingNativeType: CodegenFullComposingNativeTypeImpl,
 		utils: {
-			stringLiteralValueOptions,
+			stringLiteralValueOptions: () => stringLiteralValueOptions(_generator!),
 			values: idx.values,
 		},
 	}

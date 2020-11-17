@@ -28,7 +28,7 @@ export interface CodegenGeneratorContext {
 	FullTransformingNativeType: CodegenFullTransformingNativeTypeConstructor
 	FullComposingNativeType: CodegenFullComposingNativeTypeConstructor
 	utils: {
-		stringLiteralValueOptions: (state: CodegenState) => CodegenLiteralValueOptions
+		stringLiteralValueOptions: () => CodegenLiteralValueOptions
 		/** Convert the internal IndexedObjectsType to an iterable of values */
 		values: <T>(indexed: IndexedCollectionType<T>) => Iterable<T>
 	}

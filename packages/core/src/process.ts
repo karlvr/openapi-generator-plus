@@ -917,11 +917,11 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: InternalCodegenState) {
 	if (typeof value === 'string') {
-		return state.generator.toLiteral(value, stringLiteralValueOptions(state))
+		return state.generator.toLiteral(value, stringLiteralValueOptions(state.generator))
 	} else {
 		// TODO we're assuming that we're transforming an object to JSON, which is appropriate is the mediaType is JSON
 		const stringValue = JSON.stringify(value)
-		return state.generator.toLiteral(stringValue, stringLiteralValueOptions(state))
+		return state.generator.toLiteral(stringValue, stringLiteralValueOptions(state.generator))
 	}
 }
 

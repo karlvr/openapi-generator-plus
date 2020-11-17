@@ -7,7 +7,7 @@ export enum CodegenSpecVersion {
 	OpenAPIV3 = 300, /* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md */
 }
 
-export interface InternalCodegenState<O = {}> extends CodegenState<O>, CodegenInputDocument {
+export interface InternalCodegenState extends CodegenState, CodegenInputDocument {
 	/** A hash of fully qualified model names that have been used */
 	usedModelFullyQualifiedNames: { [name: string]: boolean | undefined }
 	/** A hash of generated models indexed by ref */

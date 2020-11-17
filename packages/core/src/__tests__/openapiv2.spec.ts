@@ -34,7 +34,7 @@ test('parse groups', async() => {
 	expect(group2.operations.length).toEqual(1)
 
 	const op2 = group2.operations[0]
-	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'GET', state)) /* Uses default name */
+	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'GET')) /* Uses default name */
 	expect(idx.size(op2.parameters!)).toEqual(1)
 	expect(op2.returnType).not.toBeDefined()
 	expect(op2.returnNativeType).not.toBeDefined()

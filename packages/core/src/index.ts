@@ -12,14 +12,16 @@ export * as idx from '@openapi-generator-plus/indexed-type'
  * Construct a CodegenGenerator from the given constructor.
  * @param generatorConstructor 
  */
-export function constructGenerator<O>(generatorConstructor: CodegenGeneratorConstructor<O>): CodegenGenerator<O> {
-	return generatorConstructor(defaultGeneratorOptions())
+export function constructGenerator(config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor): CodegenGenerator {
+	const context = defaultGeneratorOptions()
+	const generator = generatorConstructor(config, context)
+	context.setGenerator(generator)
+	return generator
 }
 
-export function createCodegenState<O>(config: CodegenConfig, generator: CodegenGenerator<O>): CodegenState<O> {
+export function createCodegenState(generator: CodegenGenerator): CodegenState {
 	return {
 		generator,
-		options: generator.options(config),
 	}
 }
 
@@ -36,9 +38,9 @@ export async function createCodegenInput(inputPath: string): Promise<CodegenInpu
  * Return a CodegenDocument produced from the given CodegenState.
  * @param state 
  */
-export function createCodegenDocument<O>(input: CodegenInput, state: CodegenState<O>): CodegenDocument {
+export function createCodegenDocument(input: CodegenInput, state: CodegenState): CodegenDocument {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const internalState: InternalCodegenState<O> = {
+	const internalState: InternalCodegenState = {
 		...state,
 		...input,
 		usedModelFullyQualifiedNames: {},

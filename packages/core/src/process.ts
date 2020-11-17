@@ -1494,7 +1494,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		return otherSchemaModel
 	}
 
-	function absorbModel(otherModel: CodegenModel, options: { includeNestedModels?: boolean, makePropertiesOptional?: boolean }) {
+	function absorbModel(otherModel: CodegenModel, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean }) {
 		if (otherModel.parent) {
 			absorbModel(otherModel.parent, options)
 		}

@@ -65,6 +65,9 @@ export interface CodegenGenerator {
 	 */
 	postProcessModel?: (model: CodegenModel) => boolean | void
 
+	/** Create the root context for the templates */
+	templateRootContext: () => Record<string, unknown>
+	
 	exportTemplates: (outputPath: string, doc: CodegenDocument) => Promise<void>
 
 	/** Return an array of paths to include in fs.watch when in watch mode */
@@ -93,14 +96,6 @@ export interface CodegenConfig {
 
 	/** The path to the config file, if any */
 	configPath?: string
-}
-
-/**
- * Code generation specific context attributes that are added to the root context.
- */
-export interface CodegenRootContext {
-	generatorClass: string
-	generatedDate: string
 }
 
 export interface CodegenDocument {

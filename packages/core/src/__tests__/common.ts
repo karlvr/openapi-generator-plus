@@ -69,6 +69,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		watchPaths: () => [],
 		cleanPathPatterns: () => undefined,
 		generateCollectionModels: () => !!generatorOptions.config.collectionModelsAllowed,
+		templateRootContext: () => ({}),
 	}
 }
 

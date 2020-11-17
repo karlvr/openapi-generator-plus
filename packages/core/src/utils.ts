@@ -25,11 +25,11 @@ export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 	}
 }
 
-export function stringLiteralValueOptions<O>(state: CodegenState<O>): CodegenLiteralValueOptions {
+export function stringLiteralValueOptions(state: CodegenState): CodegenLiteralValueOptions {
 	return {
 		type: 'string', 
 		propertyType: CodegenPropertyType.STRING, 
-		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY, required: true }, state),
+		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY, required: true }),
 		required: true,
 	}
 }

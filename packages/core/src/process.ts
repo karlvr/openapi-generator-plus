@@ -20,7 +20,7 @@ export class InvalidModelError extends Error {
 }
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
-	const strategy = state.generator.operationGroupingStrategy(state)
+	const strategy = state.generator.operationGroupingStrategy()
 
 	const groups: CodegenOperationGroups = {}
 	for (const operationInfo of operationInfos) {
@@ -87,7 +87,7 @@ function processCodegenModel(model: CodegenModel, state: InternalCodegenState): 
 	}
 
 	if (state.generator.postProcessModel) {
-		const result = state.generator.postProcessModel(model, state)
+		const result = state.generator.postProcessModel(model)
 		if (result === false) {
 			return false
 		}
@@ -226,7 +226,7 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 		return operation.operationId
 	}
 
-	return state.generator.toOperationName(path, method, state)
+	return state.generator.toOperationName(path, method)
 }
 
 function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters {
@@ -864,7 +864,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchemaInfo, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
 	return {
 		value,
-		valueLiteral: canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, schema, state) : value,
+		valueLiteral: canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, schema) : value,
 		valueString: toCodegenExampleValueString(value, mediaType, state),
 		valuePretty: toCodegenExampleValuePretty(value),
 		...extractCodegenTypeInfo(schema),
@@ -917,11 +917,11 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: InternalCodegenState) {
 	if (typeof value === 'string') {
-		return state.generator.toLiteral(value, stringLiteralValueOptions(state), state)
+		return state.generator.toLiteral(value, stringLiteralValueOptions(state))
 	} else {
 		// TODO we're assuming that we're transforming an object to JSON, which is appropriate is the mediaType is JSON
 		const stringValue = JSON.stringify(value)
-		return state.generator.toLiteral(stringValue, stringLiteralValueOptions(state), state)
+		return state.generator.toLiteral(stringValue, stringLiteralValueOptions(state))
 	}
 }
 
@@ -1080,7 +1080,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 				required,
 				vendorExtensions: toCodegenVendorExtensions(schema),
 				purpose: CodegenTypePurpose.PROPERTY,
-			}, state)
+			})
 			propertyType = toCodegenPropertyType(type, format, false, false)
 		} else {
 			throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
@@ -1129,7 +1129,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated) || false
 	}
 
-	result.defaultValue = state.generator.toDefaultValue(schema.default, result, state)
+	result.defaultValue = state.generator.toDefaultValue(schema.default, result)
 	return result
 }
 
@@ -1176,7 +1176,7 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 		uniqueItems: schema.uniqueItems,
 		purpose,
 		vendorExtensions: toCodegenVendorExtensions(schema),
-	}, state)
+	})
 
 	return {
 		componentSchema,
@@ -1203,7 +1203,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 		purpose: CodegenTypePurpose.KEY,
 		required: true,
 		vendorExtensions: toCodegenVendorExtensions(schema),
-	}, state)
+	})
 	const componentSchema = toCodegenSchema(schema.additionalProperties, true, suggestedModelName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
@@ -1211,7 +1211,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 		componentNativeType: componentSchema.nativeType,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 		purpose,
-	}, state)
+	})
 
 	return {
 		componentSchema,
@@ -1275,7 +1275,7 @@ function uniqueModelName(scopedName: string[], state: InternalCodegenState): str
 	let iteration = 0
 	do {
 		iteration += 1
-		name = state.generator.toIteratedModelName(proposedName, scopeNames, iteration, state)
+		name = state.generator.toIteratedModelName(proposedName, scopeNames, iteration)
 	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName([...scopeNames, name])])
 
 	return [...scopeNames, name]
@@ -1361,7 +1361,7 @@ function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scop
 		schemaType: toCodegenSchemaType(schema, state),
 		purpose,
 	}
-	let name = state.generator.toSchemaName(suggestedName, nameOptions, state)
+	let name = state.generator.toSchemaName(suggestedName, nameOptions)
 
 	if (scope) {
 		/* Check that our name is unique in our scope, as some languages (Java) don't allow an inner class to shadow an ancestor */
@@ -1369,7 +1369,7 @@ function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scop
 		let iteration = 0
 		while (scope.scopedName.indexOf(name) !== -1) {
 			iteration += 1
-			name = state.generator.toIteratedModelName(originalName, scope.scopedName, iteration, state)
+			name = state.generator.toIteratedModelName(originalName, scope.scopedName, iteration)
 		}
 
 		return {
@@ -1423,13 +1423,13 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		purpose: CodegenTypePurpose.MODEL,
 		modelNames: scopedName,
 		vendorExtensions: toCodegenVendorExtensions(schema),
-	}, state)
+	})
 
 	const propertyNativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.PROPERTY,
 		modelNames: scopedName,
 		vendorExtensions: toCodegenVendorExtensions(schema),
-	}, state)
+	})
 
 	const isEnum = !!schema.enum
 	const vendorExtensions = toCodegenVendorExtensions(schema)
@@ -1549,7 +1549,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 					value: state.generator.toLiteral(discriminatorValue, {
 						...otherModel.discriminator, 
 						required: true,
-					}, state),
+					}),
 				})
 			}
 		}
@@ -1584,7 +1584,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				references: [],
 				type: 'string',
 				propertyType: CodegenPropertyType.STRING,
-				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }, state),
+				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }),
 			}
 			
 			for (const subSchema of oneOf) {
@@ -1612,7 +1612,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 					value: state.generator.toLiteral(discriminatorValue, {
 						...model.discriminator, 
 						required: true,
-					}, state),
+					}),
 				})
 
 				if (!subModel.implements) {
@@ -1651,7 +1651,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			purpose: CodegenTypePurpose.ENUM,
 			required: true,
 			vendorExtensions: toCodegenVendorExtensions(schema),
-		}, state)
+		})
 
 		const enumValueLiteralOptions: CodegenLiteralValueOptions = {
 			type: enumValueType,
@@ -1662,8 +1662,8 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		}
 		
 		const enumValues: CodegenEnumValues | undefined = schema.enum ? idx.create(schema.enum.map(name => ([`${name}`, {
-			name: state.generator.toEnumMemberName(`${name}`, state),
-			literalValue: state.generator.toLiteral(`${name}`, enumValueLiteralOptions, state),
+			name: state.generator.toEnumMemberName(`${name}`),
+			literalValue: state.generator.toLiteral(`${name}`, enumValueLiteralOptions),
 			value: `${name}`,
 		}]))) : undefined
 
@@ -1672,7 +1672,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			model.enumValues = enumValues
 		}
 	} else if (schema.type === 'array') {
-		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels(state.options)) {
+		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
 			throw new InvalidModelError()
 		}
 
@@ -1682,7 +1682,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		model.componentNativeType = result.componentSchema.nativeType
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
-			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels(state.options)) {
+			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
 				throw new InvalidModelError()
 			}
 
@@ -1737,7 +1737,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				value: state.generator.toLiteral(discriminatorValue, {
 					...discriminator, 
 					required: true,
-				}, state),
+				}),
 			})
 			discriminator.references.push({
 				model,

@@ -21,7 +21,7 @@ function prepareOperationForGroup(operation: CodegenOperation, group: CodegenOpe
  * @param operationInfo 
  * @param apiInfo 
  */
-export function addToGroupsByPath<O>(operationInfo: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) {
+export function addToGroupsByPath(operationInfo: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
 	let basePath = operationInfo.path
 	
 	const pos = basePath.indexOf('/', 1)
@@ -38,7 +38,7 @@ export function addToGroupsByPath<O>(operationInfo: CodegenOperation, groups: Co
 		groupName = 'default'
 	}
 
-	groupName = state.generator.toOperationGroupName(groupName, state)
+	groupName = state.generator.toOperationGroupName(groupName)
 
 	let group = groups[groupName]
 	if (!group) {
@@ -56,7 +56,7 @@ export function addToGroupsByPath<O>(operationInfo: CodegenOperation, groups: Co
 	group.operations.push(operationInfo)
 }
 
-export function addToGroupsByTag<O>(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) {
+export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
 	let groupName: string
 	if (operation.tags && operation.tags.length) {
 		groupName = operation.tags[0]
@@ -64,7 +64,7 @@ export function addToGroupsByTag<O>(operation: CodegenOperation, groups: Codegen
 		groupName = 'default'
 	}
 
-	groupName = state.generator.toOperationGroupName(groupName, state)
+	groupName = state.generator.toOperationGroupName(groupName)
 
 	let group = groups[groupName]
 	if (!group) {
@@ -83,7 +83,7 @@ export function addToGroupsByTag<O>(operation: CodegenOperation, groups: Codegen
 	group.operations.push(operation)
 }
 
-export function addToGroupsByTagOrPath<O>(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) {
+export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
 	if (operation.tags && operation.tags.length) {
 		return addToGroupsByTag(operation, groups, state)
 	} else {

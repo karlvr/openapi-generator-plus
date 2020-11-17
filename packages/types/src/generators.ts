@@ -1,12 +1,21 @@
-import { CodegenGenerator, CodegenLiteralValueOptions, CodegenState, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy, IndexedCollectionType } from './types'
+import { CodegenGenerator, CodegenLiteralValueOptions, CodegenState, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy, IndexedCollectionType, CodegenConfig } from './types'
 import { CodegenTransformingNativeTypeConstructor, CodegenComposingNativeTypeConstructor, CodegenFullTransformingNativeTypeConstructor, CodegenFullComposingNativeTypeConstructor } from './native-types'
 
-export type CodegenBaseGeneratorConstructor = <O>() => Pick<CodegenGenerator<O>, 'toEnumMemberName' | 'toIteratedModelName'>
+export type CodegenBaseGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => Pick<CodegenGenerator, 'toEnumMemberName' | 'toIteratedModelName'>
 
 /**
  * The options given to a generator module function when it is constructed.
  */
 export interface CodegenGeneratorContext {
+	/**
+	 * Returns the current generator instance. This is only valid after the generator constructor
+	 * has returned.
+	 */
+	generator: () => CodegenGenerator
+	/**
+	 * Set the current generator instance for this context.
+	 */
+	setGenerator: (generator: CodegenGenerator) => void
 	baseGenerator: CodegenBaseGeneratorConstructor
 	operationGroupingStrategies: {
 		addToGroupsByPath: CodegenOperationGroupingStrategy
@@ -19,10 +28,10 @@ export interface CodegenGeneratorContext {
 	FullTransformingNativeType: CodegenFullTransformingNativeTypeConstructor
 	FullComposingNativeType: CodegenFullComposingNativeTypeConstructor
 	utils: {
-		stringLiteralValueOptions: <O>(state: CodegenState<O>) => CodegenLiteralValueOptions
+		stringLiteralValueOptions: (state: CodegenState) => CodegenLiteralValueOptions
 		/** Convert the internal IndexedObjectsType to an iterable of values */
 		values: <T>(indexed: IndexedCollectionType<T>) => Iterable<T>
 	}
 }
 
-export type CodegenGeneratorConstructor<O, C = CodegenGeneratorContext> = (context: C) => CodegenGenerator<O>
+export type CodegenGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => CodegenGenerator

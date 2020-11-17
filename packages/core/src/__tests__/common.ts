@@ -4,75 +4,80 @@ import { constructGenerator, createCodegenState, createCodegenDocument, createCo
 import path from 'path'
 
 interface TestCodegenOptions {
-
+	config: TestCodegenConfig
 }
 
 export interface TestCodegenConfig {
 	collectionModelsAllowed?: boolean
-	operationGroupingStrategy?: CodegenOperationGroupingStrategy<TestCodegenOptions>
+	operationGroupingStrategy?: CodegenOperationGroupingStrategy
 }
 
 export interface TestCodegenGeneratorContext extends CodegenGeneratorContext, TestCodegenConfig {
 	
 }
 
-const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenOptions, TestCodegenGeneratorContext> = (generatorContext) => ({
-	generatorType: () => CodegenGeneratorType.SERVER,
-	toClassName: (name) => `${name}_class`,
-	toIdentifier: (name) => `${name}_identifier`,
-	toConstantName: (name) => `${name}_contant`,
-	toEnumMemberName: (name) => `${name}_enum_member`,
-	toOperationName: (path, method) => `${method} ${path} operation`,
-	toOperationGroupName: (name) => `${name} api`,
-	toSchemaName: (name, options) => {
-		if (options.nameSpecified) {
-			return `${name}`
-		} else if (options.schemaType === CodegenSchemaType.ENUM) {
-			return `${name}_enum`
-		} else {
-			return `${name}_model`
-		}
-	},
-	toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
-	toLiteral: (value) => `literal ${value}`,
-	toNativeType: (options) => new generatorContext.NativeType(options.type),
-	toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),
-	toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
-	toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
-	toDefaultValue: (defaultValue, options, state) => {
-		if (defaultValue) {
-			return { value: defaultValue, literalValue: state.generator.toLiteral(defaultValue, options, state) }
-		}
+const testGeneratorConstructor: CodegenGeneratorConstructor<TestCodegenGeneratorContext> = (config, generatorContext) => {
+	const generatorOptions: TestCodegenOptions = {
+		config: config as TestCodegenConfig,
+	}
 
-		if (!options.required) {
-			return { literalValue: 'undefined' }
-		}
+	return {
+		generatorType: () => CodegenGeneratorType.SERVER,
+		toClassName: (name) => `${name}_class`,
+		toIdentifier: (name) => `${name}_identifier`,
+		toConstantName: (name) => `${name}_contant`,
+		toEnumMemberName: (name) => `${name}_enum_member`,
+		toOperationName: (path, method) => `${method} ${path} operation`,
+		toOperationGroupName: (name) => `${name} api`,
+		toSchemaName: (name, options) => {
+			if (options.nameSpecified) {
+				return `${name}`
+			} else if (options.schemaType === CodegenSchemaType.ENUM) {
+				return `${name}_enum`
+			} else {
+				return `${name}_model`
+			}
+		},
+		toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
+		toLiteral: (value) => `literal ${value}`,
+		toNativeType: (options) => new generatorContext.NativeType(options.type),
+		toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),
+		toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
+		toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
+		toDefaultValue: (defaultValue, options) => {
+			if (defaultValue) {
+				return { value: defaultValue, literalValue: generatorContext.generator().toLiteral(defaultValue, options) }
+			}
 
-		switch (options.propertyType) {
-			case CodegenPropertyType.ARRAY:
-				return { value: [], literalValue: '[]' }
-			case CodegenPropertyType.OBJECT:
-				return { value: {}, literalValue: '{}' }
-			case CodegenPropertyType.NUMBER:
-				return { value: 0, literalValue: '0' }
-			case CodegenPropertyType.BOOLEAN:
-				return { value: false, literalValue: 'false' }
-			default:
+			if (!options.required) {
 				return { literalValue: 'undefined' }
-		}
-	},
-	options: (config) => ({ config }),
-	operationGroupingStrategy: () => generatorContext.operationGroupingStrategy || addToGroupsByPath,
-	exportTemplates: async() => {
-		// NOOP
-	},
-	watchPaths: () => [],
-	cleanPathPatterns: () => undefined,
-	generateCollectionModels: () => !!generatorContext.collectionModelsAllowed,
-})
+			}
 
-export function createTestGenerator(config?: TestCodegenConfig): CodegenGenerator<TestCodegenOptions> {
-	return constructGenerator((context) => testGeneratorConstructor({ ...context, ...config }))
+			switch (options.propertyType) {
+				case CodegenPropertyType.ARRAY:
+					return { value: [], literalValue: '[]' }
+				case CodegenPropertyType.OBJECT:
+					return { value: {}, literalValue: '{}' }
+				case CodegenPropertyType.NUMBER:
+					return { value: 0, literalValue: '0' }
+				case CodegenPropertyType.BOOLEAN:
+					return { value: false, literalValue: 'false' }
+				default:
+					return { literalValue: 'undefined' }
+			}
+		},
+		operationGroupingStrategy: () => generatorContext.operationGroupingStrategy || addToGroupsByPath,
+		exportTemplates: async() => {
+			// NOOP
+		},
+		watchPaths: () => [],
+		cleanPathPatterns: () => undefined,
+		generateCollectionModels: () => !!generatorContext.collectionModelsAllowed,
+	}
+}
+
+export function createTestGenerator(config?: TestCodegenConfig): CodegenGenerator {
+	return constructGenerator(config || {}, testGeneratorConstructor)
 }
 
 export async function createTestDocument(inputPath: string, config?: TestCodegenConfig): Promise<CodegenDocument> {
@@ -81,12 +86,12 @@ export async function createTestDocument(inputPath: string, config?: TestCodegen
 
 export interface TestResult {
 	result: CodegenDocument
-	state: CodegenState<TestCodegenOptions>
+	state: CodegenState
 }
 
 export async function createTestResult(inputPath: string, config?: TestCodegenConfig): Promise<TestResult> {
 	const generator = createTestGenerator(config)
-	const state = createCodegenState(config || {}, generator)
+	const state = createCodegenState(generator)
 	const input = await createCodegenInput(path.resolve(__dirname, inputPath))
 	const result = createCodegenDocument(input, state)
 	return {

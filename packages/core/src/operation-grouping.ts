@@ -21,7 +21,7 @@ function prepareOperationForGroup(operation: CodegenOperation, group: CodegenOpe
  * @param operationInfo 
  * @param apiInfo 
  */
-export function addToGroupsByPath(operationInfo: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
+export function addToGroupsByPath(operationInfo: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
 	let basePath = operationInfo.path
 	
 	const pos = basePath.indexOf('/', 1)
@@ -56,7 +56,7 @@ export function addToGroupsByPath(operationInfo: CodegenOperation, groups: Codeg
 	group.operations.push(operationInfo)
 }
 
-export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
+export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
 	let groupName: string
 	if (operation.tags && operation.tags.length) {
 		groupName = operation.tags[0]
@@ -83,7 +83,7 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 	group.operations.push(operation)
 }
 
-export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) {
+export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
 	if (operation.tags && operation.tags.length) {
 		return addToGroupsByTag(operation, groups, state)
 	} else {

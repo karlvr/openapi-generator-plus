@@ -14,10 +14,10 @@ function usage() {
 	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
 }
 
-async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor<{}>): Promise<boolean> {
-	const generator = constructGenerator(generatorConstructor)
+async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
+	const generator = constructGenerator(config, generatorConstructor)
 
-	const state = createCodegenState(config, generator)
+	const state = createCodegenState(generator)
 	const input = await createCodegenInput(config.inputPath)
 
 	let doc: CodegenDocument
@@ -29,7 +29,7 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	}
 
 	try {
-		await generator.exportTemplates(config.outputPath, doc, state)
+		await generator.exportTemplates(config.outputPath, doc)
 	} catch (error) {
 		console.error(c.bold.red('Failed to generate templates:'), error)
 		return false
@@ -38,10 +38,9 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	return true
 }
 
-async function clean(notModifiedSince: number, config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor<{}>) {
-	const generator = constructGenerator(generatorConstructor)
-	const options = generator.options(config)
-	const cleanPathPatterns = generator.cleanPathPatterns(options)
+async function clean(notModifiedSince: number, config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor) {
+	const generator = constructGenerator(config, generatorConstructor)
+	const cleanPathPatterns = generator.cleanPathPatterns()
 	if (!cleanPathPatterns) {
 		return
 	}
@@ -76,7 +75,7 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	}
 }
 
-export async function run() {
+export async function run(): Promise<void> {
 	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
 		alias: {
 			config: 'c',
@@ -121,7 +120,7 @@ export async function run() {
 		process.exit(1)
 	}
 
-	let generatorConstructor: CodegenGeneratorConstructor<{}>
+	let generatorConstructor: CodegenGeneratorConstructor
 	try {
 		generatorConstructor = await loadGeneratorConstructor(config.generator)
 	} catch (error) {
@@ -147,7 +146,7 @@ export async function run() {
 			console.warn(c.red('Not watching for API specification changes as it is not a local file path:'), config.inputPath)
 		}
 
-		const generatorWatchPaths = constructGenerator(generatorConstructor).watchPaths(config)
+		const generatorWatchPaths = constructGenerator(config, generatorConstructor).watchPaths()
 		if (generatorWatchPaths) {
 			watchPaths.push(...generatorWatchPaths)
 		}

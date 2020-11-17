@@ -8,9 +8,8 @@ export interface CodegenInputDocument {
 	root: OpenAPI.Document
 }
 
-export interface CodegenState<O = {}> {
-	generator: CodegenGenerator<O>
-	options: O
+export interface CodegenState {
+	generator: CodegenGenerator
 }
 
 export enum CodegenGeneratorType {
@@ -22,21 +21,21 @@ export enum CodegenGeneratorType {
 /**
  * The interface implemented by language-specific generator modules.
  */
-export interface CodegenGenerator<O> {
+export interface CodegenGenerator {
 	generatorType: () => CodegenGeneratorType
 	
 	/** Convert the given name to the native class name style */
-	toClassName: (name: string, state: CodegenState<O>) => string
+	toClassName: (name: string) => string
 	/** Convert the given name to the native identifier style */
-	toIdentifier: (name: string, state: CodegenState<O>) => string
+	toIdentifier: (name: string) => string
 	/** Convert the given name to the native constant identifier style */
-	toConstantName: (name: string, state: CodegenState<O>) => string
+	toConstantName: (name: string) => string
 	/** Convert the given name to the native enum member name style */
-	toEnumMemberName: (name: string, state: CodegenState<O>) => string
-	toOperationName: (path: string, method: string, state: CodegenState<O>) => string
-	toOperationGroupName: (name: string, state: CodegenState<O>) => string
+	toEnumMemberName: (name: string) => string
+	toOperationName: (path: string, method: string) => string
+	toOperationGroupName: (name: string) => string
 	/** Convert the given name to the native schema name style */
-	toSchemaName: (name: string, options: CodegenSchemaNameOptions, state: CodegenState<O>) => string
+	toSchemaName: (name: string, options: CodegenSchemaNameOptions) => string
 	/**
 	 * Return an iteration of a model name in order to generate a unique model name.
 	 * The method MUST return a different name for each iteration.
@@ -46,44 +45,46 @@ export interface CodegenGenerator<O> {
 	 * @param state the state
 	 * @returns an iterated model name
 	 */
-	toIteratedModelName: (name: string, parentNames: string[] | undefined, iteration: number, state: CodegenState<O>) => string
+	toIteratedModelName: (name: string, parentNames: string[] | undefined, iteration: number) => string
 
 	/** Format a value as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toLiteral: (value: any, options: CodegenLiteralValueOptions, state: CodegenState<O>) => string
-	toNativeType: (options: CodegenNativeTypeOptions, state: CodegenState<O>) => CodegenNativeType
-	toNativeObjectType: (options: CodegenNativeObjectTypeOptions, state: CodegenState<O>) => CodegenNativeType
-	toNativeArrayType: (options: CodegenNativeArrayTypeOptions, state: CodegenState<O>) => CodegenNativeType
-	toNativeMapType: (options: CodegenNativeMapTypeOptions, state: CodegenState<O>) => CodegenNativeType
+	toLiteral: (value: any, options: CodegenLiteralValueOptions) => string
+	toNativeType: (options: CodegenNativeTypeOptions) => CodegenNativeType
+	toNativeObjectType: (options: CodegenNativeObjectTypeOptions) => CodegenNativeType
+	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => CodegenNativeType
+	toNativeMapType: (options: CodegenNativeMapTypeOptions) => CodegenNativeType
 	/** Return the default value to use for a property as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions, state: CodegenState<O>) => CodegenValue
+	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions) => CodegenValue
 
-	options: (config: CodegenConfig) => O
-	operationGroupingStrategy: (state: CodegenState<O>) => CodegenOperationGroupingStrategy
+	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
 
 	/** Apply any post-processing to the given model.
 	 * @returns `false` if the model should be excluded.
 	 */
-	postProcessModel?: (model: CodegenModel, state: CodegenState<O>) => boolean | void
+	postProcessModel?: (model: CodegenModel) => boolean | void
 
-	exportTemplates: (outputPath: string, doc: CodegenDocument, state: CodegenState<O>) => Promise<void>
+	/** Create the root context for the templates */
+	templateRootContext: () => Record<string, unknown>
+	
+	exportTemplates: (outputPath: string, doc: CodegenDocument) => Promise<void>
 
 	/** Return an array of paths to include in fs.watch when in watch mode */
-	watchPaths: (config: CodegenConfig) => string[] | undefined
+	watchPaths: () => string[] | undefined
 
 	/**
 	 * Return an array of file patterns, relative to the output path, to delete if they
 	 * haven't been modified after exporting.
 	 */
-	cleanPathPatterns: (options: O) => string[] | undefined
+	cleanPathPatterns: () => string[] | undefined
 
 	/**
 	 * Return `true` if named models of a collection type (ie. array or map) should be generated.
 	 * They will use the collection type as their parent class.
 	 * If not, then the collection type is used directly without generating a model class for it.
 	 */
-	generateCollectionModels?: (options: O) => boolean
+	generateCollectionModels?: () => boolean
 }
 
 /**
@@ -95,14 +96,6 @@ export interface CodegenConfig {
 
 	/** The path to the config file, if any */
 	configPath?: string
-}
-
-/**
- * Code generation specific context attributes that are added to the root context.
- */
-export interface CodegenRootContext {
-	generatorClass: string
-	generatedDate: string
 }
 
 export interface CodegenDocument {
@@ -207,6 +200,8 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	/** The responses contents */
 	contents?: CodegenContent[]
 	produces?: CodegenMediaType[]
+
+	defaultContent?: CodegenContent
 
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
@@ -681,7 +676,7 @@ export interface CodegenMediaType {
 	encoding?: string
 }
 
-export type CodegenOperationGroupingStrategy<O = {}> = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState<O>) => void
+export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void
 
 /**
  * The different HTTP methods supported by OpenAPI.

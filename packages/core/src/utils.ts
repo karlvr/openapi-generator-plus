@@ -1,5 +1,5 @@
 import { OpenAPI } from 'openapi-types'
-import { CodegenLiteralValueOptions, CodegenState, CodegenPropertyType, CodegenTypePurpose } from '@openapi-generator-plus/types'
+import { CodegenLiteralValueOptions, CodegenPropertyType, CodegenTypePurpose, CodegenGenerator } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 import { CodegenSpecVersion } from './types'
 
@@ -25,11 +25,11 @@ export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 	}
 }
 
-export function stringLiteralValueOptions<O>(state: CodegenState<O>): CodegenLiteralValueOptions {
+export function stringLiteralValueOptions(generator: CodegenGenerator): CodegenLiteralValueOptions {
 	return {
 		type: 'string', 
 		propertyType: CodegenPropertyType.STRING, 
-		nativeType: state.generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY, required: true }, state),
+		nativeType: generator.toNativeType({ type: 'string', purpose: CodegenTypePurpose.PROPERTY, required: true }),
 		required: true,
 	}
 }

@@ -201,6 +201,8 @@ export interface CodegenResponse extends Partial<CodegenTypeInfo> {
 	contents?: CodegenContent[]
 	produces?: CodegenMediaType[]
 
+	defaultContent?: CodegenContent
+
 	isDefault: boolean
 	vendorExtensions?: CodegenVendorExtensions
 	headers?: CodegenHeaders

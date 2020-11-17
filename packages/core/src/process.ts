@@ -783,17 +783,20 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	const commonTypes = commonTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
 
+	const defaultContent = (contents && contents.length) ? contents[0] : undefined
+
 	return {
 		code,
 		description: response.description,
 		isDefault,
 		...commonTypes,
 		contents,
+		defaultContent,
 		produces,
 		headers: toCodegenHeaders(response.headers, state),
 		vendorExtensions: toCodegenVendorExtensions(response),
 
-		...(contents && contents.length ? extractCodegenSchemaInfo(contents[0]) : {}),
+		...(defaultContent ? extractCodegenSchemaInfo(defaultContent) : {}),
 	}
 }
 

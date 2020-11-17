@@ -76,7 +76,7 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	}
 }
 
-export async function run() {
+export async function run(): Promise<void> {
 	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
 		alias: {
 			config: 'c',

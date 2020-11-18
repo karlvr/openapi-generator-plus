@@ -1634,19 +1634,20 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				idx.set(model.implementors, subModel.name, subModel)
 			}
 		} else {
-			/* Without a discriminator we turn this model into an interface and turn the subModels into interfaces */
-			model.implements = idx.create()
+			/* Without a discriminator we turn this model into an interface and the submodels implement it */
 			model.isInterface = true
 
 			for (const subSchema of oneOf) {
 				const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
 
-				subModel.isInterface = true
-				idx.set(model.implements, subModel.name, subModel)
-				if (!subModel.implementors) {
-					subModel.implementors = idx.create()
+				if (!subModel.implements) {
+					subModel.implements = idx.create()
 				}
-				idx.set(subModel.implementors, model.name, model)
+				idx.set(subModel.implements, model.name, model)
+				if (!model.implementors) {
+					model.implementors = idx.create()
+				}
+				idx.set(model.implementors, subModel.name, subModel)
 			}
 		}
 	} else if (schema.enum) {

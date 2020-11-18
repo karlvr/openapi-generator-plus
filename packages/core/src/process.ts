@@ -44,6 +44,10 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 
 	/* Sort models */
 	doc.models = idx.sortValues(doc.models, (a, b) => a.name.localeCompare(b.name))
+
+	if (state.generator.postProcessDocument) {
+		state.generator.postProcessDocument(doc)
+	}
 }
 
 function processCodegenOperationGroup(group: CodegenOperationGroup, state: InternalCodegenState) {

@@ -65,6 +65,11 @@ export interface CodegenGenerator {
 	 */
 	postProcessModel?: (model: CodegenModel) => boolean | void
 
+	/**
+	 * Apply any post-processing to the given document.
+	 */
+	postProcessDocument?: (doc: CodegenDocument) => void
+
 	/** Create the root context for the templates */
 	templateRootContext: () => Record<string, unknown>
 	

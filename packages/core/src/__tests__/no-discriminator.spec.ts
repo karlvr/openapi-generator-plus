@@ -13,7 +13,8 @@ test('one of no discriminator', async() => {
 	expect(combinedModelProperties.length).toEqual(0)
 
 	const model1 = idx.find(result.models, m => m.name === 'Cat')
-	expect(model1!.isInterface).toBe(true)
+	expect(model1!.isInterface).toBeFalsy()
+	expect(model1!.implements!['MyResponseType']).toBeTruthy()
 })
 
 test('one of no discriminator need interface', async() => {
@@ -23,7 +24,7 @@ test('one of no discriminator need interface', async() => {
 	expect(someObject).toBeDefined()
 	expect(someObject!.isInterface).toBeFalsy()
 
-	const submodels = idx.allValues(someObject?.models!)
+	const submodels = idx.allValues(someObject!.models!)
 	expect(submodels.length).toEqual(1)
 	expect(submodels[0].isInterface).toBeTruthy()
 })

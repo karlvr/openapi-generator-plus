@@ -1,8 +1,6 @@
 export type IndexedType<K extends string, V> = Record<K, V>
 
-interface IndexedObjectType<T> {
-	[key: string]: T
-}
+type IndexedObjectType<T> = Record<string, T>
 
 export function findEntry<T>(ob: IndexedObjectType<T>, predicate: (value: T) => unknown): [string, T] | undefined {
 	for (const key in ob) {

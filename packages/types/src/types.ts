@@ -611,6 +611,7 @@ export interface CodegenParameter extends CodegenParameterBase {
 export interface CodegenRequestBody extends CodegenParameterBase {
 	contents: CodegenContent[]
 	consumes: CodegenMediaType[]
+	defaultContent: CodegenContent
 }
 
 export interface CodegenVendorExtensions {

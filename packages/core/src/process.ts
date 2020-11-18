@@ -293,6 +293,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				schema: requestBodyContents[0],
 				
 				contents: requestBodyContents,
+				defaultContent: requestBodyContents[0],
 				consumes,
 
 				vendorExtensions: toCodegenVendorExtensions(requestBody),
@@ -310,7 +311,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 				}
 
 				const existingBodyParam = bodyParamEntry[1]
-				const contents = consumes?.map(mediaType => {
+				const contents = consumes.map(mediaType => {
 					const result: CodegenContent = {
 						mediaType,
 						schema: existingBodyParam.schema,
@@ -318,6 +319,10 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 					}
 					return result
 				})
+
+				if (!contents.length) {
+					throw new Error(`Request body contents is empty: ${path}`)
+				}
 
 				bodyParam = {
 					...extractCodegenSchemaInfo(existingBodyParam),
@@ -330,6 +335,7 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 					schema: existingBodyParam.schema,
 
 					contents,
+					defaultContent: contents[0],
 					consumes,
 				}
 				idx.remove(parameters, bodyParamEntry[0])

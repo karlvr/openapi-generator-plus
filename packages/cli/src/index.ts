@@ -52,11 +52,11 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	for (const pattern of cleanPathPatterns) {
 		paths.push(...await glob(pattern, {
 			cwd: outputPath,
-			nodir: true,
 			follow: false,
 		}))
 	}
 
+	const dirsToCheck: string[] = []
 	const resolvedOutputPath = path.resolve(outputPath)
 	for (const aPath of paths) {
 		const absolutePath = path.resolve(outputPath, aPath)
@@ -67,11 +67,20 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 
 		try {
 			const stats = await fs.stat(absolutePath)
-			if (stats.mtime.getTime() < notModifiedSince) {
+			if (stats.isDirectory()) {
+				dirsToCheck.push(absolutePath)
+			} else if (stats.mtime.getTime() < notModifiedSince) {
 				await fs.unlink(absolutePath)
 			}
 		} catch (error) {
 			console.error(c.bold.red('Failed to clean path:'), absolutePath, error)
+		}
+	}
+
+	for (const absolutePath of dirsToCheck) {
+		const files = await fs.readdir(absolutePath)
+		if (files.length === 0) {
+			await fs.rmdir(absolutePath)
 		}
 	}
 }

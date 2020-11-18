@@ -57,9 +57,10 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 		}))
 	}
 
+	const resolvedOutputPath = path.resolve(outputPath)
 	for (const aPath of paths) {
 		const absolutePath = path.resolve(outputPath, aPath)
-		if (!absolutePath.startsWith(outputPath)) {
+		if (!absolutePath.startsWith(resolvedOutputPath)) {
 			console.warn(c.bold.red('Invalid clean path not under outputPath:'), absolutePath)
 			continue
 		}

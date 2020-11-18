@@ -1,6 +1,4 @@
-export interface IndexedType<K extends string, V> {
-	[key: string]: V
-}
+export type IndexedType<K extends string, V> = Record<K, V>
 
 interface IndexedObjectType<T> {
 	[key: string]: T
@@ -115,7 +113,7 @@ export function values<T>(ob: IndexedObjectType<T>): Iterable<T> {
 	}
 }
 
-export function remove<T>(ob: IndexedObjectType<T>, key: string) {
+export function remove<T>(ob: IndexedObjectType<T>, key: string): void {
 	delete ob[key]
 }
 
@@ -129,7 +127,7 @@ export function create<T>(entries?: [string, T][]): IndexedObjectType<T> {
 	return result
 }
 
-export function set<T>(ob: IndexedObjectType<T>, key: string, value: T) {
+export function set<T>(ob: IndexedObjectType<T>, key: string, value: T): void {
 	ob[key] = value
 }
 

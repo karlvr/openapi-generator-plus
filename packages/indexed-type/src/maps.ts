@@ -49,7 +49,7 @@ export function values<K, V>(map: Map<K, V>): Iterable<V> {
 	return map.values()
 }
 
-export function remove<K, V>(map: Map<K, V>, key: K) {
+export function remove<K, V>(map: Map<K, V>, key: K): void {
 	map.delete(key)
 }
 
@@ -61,7 +61,7 @@ export function create<K, V>(entries?: [K, V][]): Map<K, V> {
 	}
 }
 
-export function set<K, V>(map: Map<K, V>, key: K, value: V) {
+export function set<K, V>(map: Map<K, V>, key: K, value: V): void {
 	map.set(key, value)
 }
 

@@ -186,8 +186,7 @@ function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo {
 		propertyType: source.propertyType,
 
 		nativeType: source.nativeType,
-		componentType: source.componentType,
-		componentNativeType: source.componentNativeType,
+		componentSchema: source.componentSchema,
 	}
 }
 
@@ -1115,9 +1114,6 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean, sugge
 		propertyType,
 		nativeType,
 
-		componentType: componentSchema && componentSchema.type,
-		componentNativeType: componentSchema && componentSchema.nativeType,
-
 		/* Validation */
 		maximum: coalesce(originalSchema.maximum, schema.maximum),
 		exclusiveMaximum: coalesce(originalSchema.exclusiveMaximum, schema.exclusiveMaximum),
@@ -1692,8 +1688,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 		const result = handleArraySchema(schema, 'array', model, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
-		model.componentType = result.componentSchema.type
-		model.componentNativeType = result.componentSchema.nativeType
+		model.componentSchema = result.componentSchema
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
 			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
@@ -1702,8 +1697,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 			const result = handleMapSchema(schema, 'map', model, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
-			model.componentType = result.componentSchema.type
-			model.componentNativeType = result.componentSchema.nativeType
+			model.componentSchema = result.componentSchema
 		} else if (schema.discriminator) {
 			/* Object has a discriminator so all submodels will need to add themselves */
 			let schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject

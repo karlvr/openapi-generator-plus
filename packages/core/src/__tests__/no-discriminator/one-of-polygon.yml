@@ -1,0 +1,32 @@
+---
+openapi: 3.0.3
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Polygon:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [Polygon]
+        coordinates:
+          oneOf:
+            - type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: number
+            - type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: number

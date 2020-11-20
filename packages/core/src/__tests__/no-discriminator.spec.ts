@@ -28,3 +28,18 @@ test('one of no discriminator need interface', async() => {
 	expect(submodels.length).toEqual(1)
 	expect(submodels[0].isInterface).toBeTruthy()
 })
+
+test('polygon', async() => {
+	const result = await createTestDocument('no-discriminator/one-of-polygon.yml')
+	expect(result).toBeDefined()
+
+	const polygon = result.models['Polygon']
+	expect(polygon).toBeDefined()
+	expect(polygon.models).toBeDefined()
+	const coordinates = polygon.models!['coordinates_model']
+	expect(coordinates.implementors).toBeDefined()
+	expect(idx.size(coordinates.implementors!)).toEqual(2)
+
+	const oneOfCoordinates = idx.allValues(coordinates.implementors!)[0]
+	expect(oneOfCoordinates.propertyNativeType.nativeType).toEqual('array array array number')
+})

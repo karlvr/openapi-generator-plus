@@ -251,7 +251,7 @@ export interface CodegenNativeTypeConstructor {
 	 * 	any null properties will end up `undefined`.
 	 */
 	new(nativeType: string, additionalTypes?: {
-		wireType?: string | null
+		serializedType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
 		componentType?: CodegenNativeType | null
@@ -266,7 +266,7 @@ export interface CodegenNativeType {
 	 * The native language type to use if no translation is done from the communication layer.
 	 * e.g. the type as it will be when deserialised from JSON.
 	 */
-	wireType?: string
+	serializedType?: string
 	/**
 	 * The native language type when expressing this type as a type literal, e.g. in java `java.util.List`
 	 * as opposed to `java.util.List<java.lang.String>`, which is not valid as a type literal.

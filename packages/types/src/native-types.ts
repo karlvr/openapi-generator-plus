@@ -24,7 +24,7 @@ export interface CodegenComposingNativeTypeConstructor {
 
 export interface CodegenNativeTypeTransformers {
 	nativeType: CodegenNativeTypeTransformer
-	wireType?: CodegenNativeTypeTransformer
+	serializedType?: CodegenNativeTypeTransformer
 	literalType?: CodegenNativeTypeTransformer
 	concreteType?: CodegenNativeTypeTransformer
 }
@@ -35,7 +35,7 @@ export interface CodegenFullTransformingNativeTypeConstructor {
 
 export interface CodegenNativeTypeComposers {
 	nativeType: CodegenNativeTypeComposer
-	wireType?: CodegenNativeTypeComposer
+	serializedType?: CodegenNativeTypeComposer
 	literalType?: CodegenNativeTypeComposer
 	concreteType?: CodegenNativeTypeComposer
 }

@@ -19,8 +19,8 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		return this.transformer(this.wrapped.nativeType) || this.wrapped.nativeType
 	}
 
-	public get wireType() {
-		return this.wrapped.wireType && this.transformer(this.wrapped.wireType)
+	public get serializedType() {
+		return this.wrapped.serializedType && this.transformer(this.wrapped.serializedType)
 	}
 
 	public get literalType() {
@@ -51,25 +51,25 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 	public nativeType: string
-	public wireType?: string
+	public serializedType?: string
 	public literalType?: string
 	public concreteType?: string
 	public componentType?: CodegenNativeType
 
 	public constructor(nativeType: string, additionalTypes?: {
-		wireType?: string | null
+		serializedType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
 		componentType?: CodegenNativeType | null
 	}) {
 		this.nativeType = nativeType
 		if (additionalTypes) {
-			this.wireType = additionalTypes.wireType !== undefined ? additionalTypes.wireType !== null ? additionalTypes.wireType : undefined : nativeType
+			this.serializedType = additionalTypes.serializedType !== undefined ? additionalTypes.serializedType !== null ? additionalTypes.serializedType : undefined : nativeType
 			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType !== null ? additionalTypes.literalType : undefined : nativeType
 			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType !== null ? additionalTypes.concreteType : undefined : nativeType
 			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType !== null ? additionalTypes.componentType : undefined : this
 		} else {
-			this.wireType = nativeType
+			this.serializedType = nativeType
 			this.literalType = nativeType
 			this.concreteType = nativeType
 			this.componentType = this
@@ -88,7 +88,7 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 		if (this.nativeType !== other.nativeType) {
 			return false
 		}
-		if (this.wireType !== other.wireType) {
+		if (this.serializedType !== other.serializedType) {
 			return false
 		}
 		if (this.literalType !== other.literalType) {
@@ -138,8 +138,8 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.composer(this.wrapped.map(n => n.nativeType)) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
-	public get wireType() {
-		return this.compose(this.wrapped.map(n => n.wireType))
+	public get serializedType() {
+		return this.compose(this.wrapped.map(n => n.serializedType))
 	}
 
 	public get literalType() {
@@ -187,8 +187,8 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 		return this.transformers.nativeType(this.wrapped) || this.wrapped.nativeType
 	}
 
-	public get wireType() {
-		return this.wrapped.wireType && (this.transformers.wireType || this.transformers.nativeType)(this.wrapped)
+	public get serializedType() {
+		return this.wrapped.serializedType && (this.transformers.serializedType || this.transformers.nativeType)(this.wrapped)
 	}
 
 	public get literalType() {
@@ -234,8 +234,8 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped, this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
-	public get wireType() {
-		return this.compose(this.wrapped, this.composers.wireType || this.composers.nativeType)
+	public get serializedType() {
+		return this.compose(this.wrapped, this.composers.serializedType || this.composers.nativeType)
 	}
 
 	public get literalType() {

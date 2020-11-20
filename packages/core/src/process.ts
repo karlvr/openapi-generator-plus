@@ -7,18 +7,6 @@ import { stringLiteralValueOptions } from './utils'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 
-/**
- * Error thrown when a model cannot be generated because it doesn't represent a valid model in
- * the current generator.
- */
-export class InvalidModelError extends Error {
-	public constructor(message?: string) {
-		super(message)
-		Object.setPrototypeOf(this, InvalidModelError.prototype)
-		this.name = 'InvalidModelError'
-	}
-}
-
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
 
@@ -1408,8 +1396,20 @@ function toUniqueScopedName(suggestedName: string, purpose: CodegenSchemaPurpose
 function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
 	const resolvedSchema = resolveReference(schema, state)
 
-	return (resolvedSchema.enum || (resolvedSchema.type === 'object' && !resolvedSchema.additionalProperties) ||
-		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf)
+	if (resolvedSchema.enum || (resolvedSchema.type === 'object' && !resolvedSchema.additionalProperties) ||
+		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf) {
+		return true
+	}
+
+	if (resolvedSchema.type === 'array' && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+		return true
+	}
+
+	if (resolvedSchema.type === 'object' && resolvedSchema.additionalProperties && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+		return true
+	}
+
+	return false
 }
 
 function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
@@ -1497,7 +1497,12 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		   it creates end up scoped to this model.
 		 */
 		const purpose = isOpenAPIReferenceObject(otherSchema) ? CodegenSchemaPurpose.MODEL : CodegenSchemaPurpose.PARTIAL_MODEL
-		const otherSchemaModel = toCodegenModel(name, purpose, scope, otherSchema, state)
+		const otherSchemaObject = toCodegenSchema(otherSchema, true, name, purpose, scope, state)
+		const otherSchemaModel = otherSchemaObject.model
+		if (!otherSchemaModel) {
+			throw new Error(`Cannot absorb schema as it isn't a model: ${otherSchema}`)
+		}
+
 		/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
 		absorbModel(otherSchemaModel, { includeNestedModels: purpose === CodegenSchemaPurpose.PARTIAL_MODEL })
 		return otherSchemaModel
@@ -1527,10 +1532,11 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && (!nextSchema || !isOpenAPIReferenceObject(nextSchema))
 			if (canDoSingleParentInheritance) {
-				const parentModel = toCodegenModel('parent', CodegenSchemaPurpose.MODEL, suggestedScope, possibleParentSchema, state)
+				const parentSchema = toCodegenSchema(possibleParentSchema, true, 'parent', CodegenSchemaPurpose.MODEL, suggestedScope, state)
+				const parentModel = parentSchema.model
 
 				/* If the parent model is an interface then we cannot use it as a parent */
-				if (!parentModel.isInterface) {
+				if (parentModel && !parentModel.isInterface) {
 					model.parent = parentModel
 					model.parentNativeType = parentModel.nativeType
 
@@ -1567,7 +1573,12 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
 		model.implements = idx.create()
 		for (const subSchema of anyOf) {
-			const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
+			const subSchemaObject = toCodegenSchema(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+			const subModel = subSchemaObject.model
+			if (!subModel) {
+				// TODO
+				throw new Error(`Non-model schema not yet supported in anyOf: ${subSchema}`)
+			}
 
 			absorbModel(subModel, { includeNestedModels: false, makePropertiesOptional: true })
 			subModel.isInterface = true // TODO if a submodel is also required to be concrete, perhaps we should create separate interface and concrete implementations of the same model
@@ -1597,7 +1608,12 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			}
 			
 			for (const subSchema of oneOf) {
-				const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
+				const subSchemaObject = toCodegenSchema(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subModel = subSchemaObject.model
+				if (!subModel) {
+					throw new Error(`Non-model schema not support in oneOf with discriminator: ${subSchema}`)
+				}
+
 				const subModelDiscriminatorProperty = removeModelProperty(subModel.properties, schemaDiscriminator.propertyName)
 				if (!subModelDiscriminatorProperty) {
 					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
@@ -1638,16 +1654,35 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			model.isInterface = true
 
 			for (const subSchema of oneOf) {
-				const subModel = toCodegenModel('submodel', CodegenSchemaPurpose.MODEL, model, subSchema, state)
+				const subSchemaObject = toCodegenSchema(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subModel = subSchemaObject.model
+				if (subModel) {
+					if (!subModel.implements) {
+						subModel.implements = idx.create()
+					}
+					idx.set(subModel.implements, model.name, model)
+					if (!model.implementors) {
+						model.implementors = idx.create()
+					}
+					idx.set(model.implementors, subModel.name, subModel)
+				} else {
+					// TODO resolve this hack as we can only have models as implementors, and the TypeScript generator politely handles it
+					const fakeName = toUniqueScopedName('fake', CodegenSchemaPurpose.PARTIAL_MODEL, model, subSchema, state)
+					const fakeModel: CodegenModel = {
+						...subSchemaObject,
+						name: fakeName.scopedName[fakeName.scopedName.length - 1],
+						propertyNativeType: subSchemaObject.nativeType,
+						scopedName: fakeName.scopedName,
+					}
+					fakeModel.implements = idx.create()
+					idx.set(fakeModel.implements, model.name, model)
+					if (!model.implementors) {
+						model.implementors = idx.create()
+					}
+					idx.set(model.implementors, fakeModel.name, fakeModel)
 
-				if (!subModel.implements) {
-					subModel.implements = idx.create()
+					state.usedModelFullyQualifiedNames[fullyQualifiedModelName(fakeName.scopedName)] = true
 				}
-				idx.set(subModel.implements, model.name, model)
-				if (!model.implementors) {
-					model.implementors = idx.create()
-				}
-				idx.set(model.implementors, subModel.name, subModel)
 			}
 		}
 	} else if (schema.enum) {
@@ -1683,7 +1718,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		}
 	} else if (schema.type === 'array') {
 		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
-			throw new InvalidModelError()
+			throw new Error(`Illegal entry into toCodegenModel for array schema when we do not generate collection models: ${schema}`)
 		}
 
 		const result = handleArraySchema(schema, 'array', model, CodegenArrayTypePurpose.PARENT, state)
@@ -1692,7 +1727,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
 			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
-				throw new InvalidModelError()
+				throw new Error(`Illegal entry into toCodegenModel for map schema when we do not generate collection models: ${schema}`)
 			}
 
 			const result = handleMapSchema(schema, 'map', model, CodegenMapTypePurpose.PARENT, state)
@@ -1722,8 +1757,9 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 			}
 		}
 	} else {
-		/* Other types aren't represented as models, they are just inline type definitions like a string with a format */
-		throw new InvalidModelError()
+		/* Other schema types aren't represented as models, they are just inline type definitions like a string with a format,
+		   and they shouldn't get into toCodegenModel. */
+		throw new Error(`Invalid schema to convert to model: ${schema.type}`)
 	}
 
 	/* Add child model */
@@ -1883,7 +1919,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 	const root = state.root
 
-	/* Process models first so we can check for duplicate names when creating new anonymous models */
+	/* Process schemas first so we can check for duplicate names when creating new anonymous models */
 	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
 	if (specModels) {
 		/* Collect defined schema names first, so no inline or external models can use those names */
@@ -1898,15 +1934,8 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 			const reference: OpenAPIX.ReferenceObject = {
 				$ref: refForSchemaName(schemaName, state),
 			}
-			try {
-				toCodegenModel(schemaName, CodegenSchemaPurpose.MODEL, null, reference, state)
-			} catch (error) {
-				if (error instanceof InvalidModelError || error.name === 'InvalidModelError') {
-					/* Ignoring invalid model. We don't need to generate invalid models, they are not intended to be generated */
-				} else {
-					throw error
-				}
-			}
+
+			toCodegenSchema(reference, true, schemaName, CodegenSchemaPurpose.MODEL, null, state)
 		}
 	}
 

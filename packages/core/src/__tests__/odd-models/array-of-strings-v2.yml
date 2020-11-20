@@ -3,7 +3,15 @@ swagger: '2.0'
 info:
   version: 1.0.1
   title: Example
-paths: {}
+paths:
+  /test:
+    get:
+      produces: [application/json]
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ArrayOfStrings'
 definitions:
   ArrayOfStrings:
     type: array

@@ -1,7 +1,7 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
 
-test('array of strings', async() => {
+test('array of strings with collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml', {
 		collectionModelsAllowed: true,
 	})
@@ -13,6 +13,20 @@ test('array of strings', async() => {
 	expect(model1.parent).toBeUndefined()
 	expect(model1.parentNativeType).not.toBeUndefined()
 	expect(model1.parentNativeType?.toString()).toEqual('array string')
+})
+
+test('array of strings without collection models', async() => {
+	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
+
+	const models = idx.allValues(result.models)
+	expect(models.length).toEqual(0)
+
+	const response = result.groups[0].operations[0].defaultResponse
+	expect(response).toBeDefined()
+
+	const nativeType = response!.nativeType
+	expect(nativeType).toBeDefined()
+	expect(nativeType!.toString()).toEqual('array string')
 })
 
 test('uuid', async() => {

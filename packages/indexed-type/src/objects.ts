@@ -33,11 +33,6 @@ export function filter<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boo
 	return result
 }
 
-export function filterToNothing<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectType<T> | undefined {
-	const filtered = filter(ob, predicate)
-	return isEmpty(filtered) ? undefined : filtered
-}
-
 export function isEmpty<T>(ob: IndexedObjectType<T>): boolean {
 	return size(ob) === 0
 }
@@ -156,6 +151,16 @@ export function size<T>(ob: IndexedObjectType<T>): number {
 export function merge<T>(ob: IndexedObjectType<T>, other: IndexedObjectType<T>): IndexedObjectType<T> {
 	for (const key in other) {
 		ob[key] = other[key]
+	}
+	return ob
+}
+
+export function undefinedIfEmpty<T>(ob: IndexedObjectType<T> | undefined): IndexedObjectType<T> | undefined {
+	if (!ob) {
+		return undefined
+	}
+	if (isEmpty(ob)) {
+		return undefined
 	}
 	return ob
 }

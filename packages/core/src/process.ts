@@ -358,11 +358,11 @@ function toCodegenOperation(path: string, method: string, operation: OpenAPI.Ope
 		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
 		
 		parameters,
-		queryParams: parameters && idx.filterToNothing(parameters, p => p.isQueryParam),
-		pathParams: parameters && idx.filterToNothing(parameters, p => p.isPathParam),
-		headerParams: parameters && idx.filterToNothing(parameters, p => p.isHeaderParam),
-		cookieParams: parameters && idx.filterToNothing(parameters, p => p.isCookieParam),
-		formParams: parameters && idx.filterToNothing(parameters, p => p.isFormParam),
+		queryParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isQueryParam)),
+		pathParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isPathParam)),
+		headerParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isHeaderParam)),
+		cookieParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isCookieParam)),
+		formParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isFormParam)),
 
 		requestBody: bodyParam,
 

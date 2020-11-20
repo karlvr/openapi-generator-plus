@@ -220,7 +220,7 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 	return state.generator.toOperationName(path, method)
 }
 
-function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters {
+function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | undefined {
 	const result: CodegenParameters = idx.create()
 	if (pathParameters) {
 		idx.merge(result, pathParameters)
@@ -229,7 +229,7 @@ function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: Co
 		const codegenParameter = toCodegenParameter(parameter, scopeName, state)
 		idx.set(result, codegenParameter.name, codegenParameter)
 	}
-	return result
+	return idx.undefinedIfEmpty(result)
 }
 
 interface CodegenOperationContext {
@@ -723,7 +723,7 @@ function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, sta
 		bestResponse.isDefault = true
 	}
 
-	return result
+	return idx.undefinedIfEmpty(result)
 }
 
 /**
@@ -911,7 +911,7 @@ function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.Example
 		}
 	}
 
-	return result
+	return idx.undefinedIfEmpty(result)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1307,7 +1307,7 @@ function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenS
 		idx.set(properties, property.name, property)
 	}
 
-	return properties
+	return idx.undefinedIfEmpty(properties)
 }
 
 function toCodegenSchemaType(schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
@@ -1468,24 +1468,22 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	model.properties = toCodegenModelProperties(schema, model, state)
 
 	function absorbProperties(otherProperties: CodegenProperties, options: { makePropertiesOptional?: boolean }) {
-		if (!model.properties) {
-			model.properties = idx.create()
-		}
-
 		for (const property of idx.allValues(otherProperties)) {
 			const newProperty = { ...property }
 			if (options.makePropertiesOptional) {
 				newProperty.required = false
 			}
+			if (!model.properties) {
+				model.properties = idx.create()
+			}
 			idx.set(model.properties, newProperty.name, newProperty)
 		}
 	}
 	function absorbModels(otherModels: CodegenModels) {
-		if (!model.models) {
-			model.models = idx.create()
-		}
-
 		for (const otherModel of idx.allValues(otherModels)) {
+			if (!model.models) {
+				model.models = idx.create()
+			}
 			idx.set(model.models, otherModel.name, otherModel)
 		}
 	}
@@ -1571,7 +1569,6 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	} else if (schema.anyOf) {
 		/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 		const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
-		model.implements = idx.create()
 		for (const subSchema of anyOf) {
 			const subSchemaObject = toCodegenSchema(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
 			const subModel = subSchemaObject.model
@@ -1582,6 +1579,10 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 			absorbModel(subModel, { includeNestedModels: false, makePropertiesOptional: true })
 			subModel.isInterface = true // TODO if a submodel is also required to be concrete, perhaps we should create separate interface and concrete implementations of the same model
+
+			if (!model.implements) {
+				model.implements = idx.create()
+			}
 			idx.set(model.implements, subModel.name, subModel)
 			if (!subModel.implementors) {
 				subModel.implementors = idx.create()
@@ -1714,7 +1715,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 		if (enumValues) {
 			model.enumValueNativeType = enumValueNativeType
-			model.enumValues = enumValues
+			model.enumValues = idx.undefinedIfEmpty(enumValues)
 		}
 	} else if (schema.type === 'array') {
 		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {

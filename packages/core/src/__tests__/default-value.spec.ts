@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import { CodegenPropertyType } from '@openapi-generator-plus/types'
+import { CodegenSchemaType } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('array property', async() => {
@@ -15,12 +15,12 @@ test('array property', async() => {
 	const model1Properties = idx.allValues(model1.properties!)
 	const prop1 = model1Properties[0]
 	expect(prop1.name).toBe('arrayProperty')
-	expect(prop1.propertyType).toEqual(CodegenPropertyType.ARRAY)
+	expect(prop1.schemaType).toEqual(CodegenSchemaType.ARRAY)
 	expect(prop1.defaultValue).toEqual({ value: [], literalValue: '[]' })
 
 	const prop2 = model1Properties[1]
 	expect(prop2.name).toBe('notRequiredArrayProperty')
-	expect(prop2.propertyType).toEqual(CodegenPropertyType.ARRAY)
+	expect(prop2.schemaType).toEqual(CodegenSchemaType.ARRAY)
 	expect(prop2.defaultValue).toEqual({ literalValue: 'undefined' })
 
 })

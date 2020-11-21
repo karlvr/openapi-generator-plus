@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import { CodegenPropertyType } from '@openapi-generator-plus/types'
+import { CodegenSchemaType } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('property conflict resolved', async() => {
@@ -11,5 +11,5 @@ test('property conflict resolved', async() => {
 
 	const property = idx.get(child!.properties!, 'childName')
 	expect(property).toBeDefined()
-	expect(property!.propertyType).toEqual(CodegenPropertyType.NUMBER)
+	expect(property!.schemaType).toEqual(CodegenSchemaType.NUMBER)
 })

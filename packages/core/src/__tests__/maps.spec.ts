@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import { CodegenPropertyType } from '@openapi-generator-plus/types'
+import { CodegenSchemaType } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('string map', async() => {
@@ -12,7 +12,7 @@ test('string map', async() => {
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 	const model1Properties = idx.allValues(model1.properties!)
-	expect(model1Properties![0].propertyType).toEqual(CodegenPropertyType.MAP)
+	expect(model1Properties![0].schemaType).toEqual(CodegenSchemaType.MAP)
 })
 
 test('object map', async() => {
@@ -27,7 +27,7 @@ test('object map', async() => {
 
 	const model1Properties = idx.allValues(model1.properties!)
 	const prop1 = model1Properties![0]
-	expect(prop1.propertyType).toEqual(CodegenPropertyType.MAP)
+	expect(prop1.schemaType).toEqual(CodegenSchemaType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')
 	
 	expect(model1.models).toBeUndefined()
@@ -48,7 +48,7 @@ test('object map with no map parents', async() => {
 
 	const model1Properties = idx.allValues(model1.properties!)
 	const prop1 = model1Properties![0]
-	expect(prop1.propertyType).toEqual(CodegenPropertyType.MAP)
+	expect(prop1.schemaType).toEqual(CodegenSchemaType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')
 	
 	expect(model1.models).toBeUndefined()

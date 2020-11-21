@@ -288,7 +288,7 @@ export interface CodegenNativeType {
 
 }
 
-export enum CodegenPropertyType {
+export enum CodegenSchemaType {
 	OBJECT = 'OBJECT',
 	MAP = 'MAP',
 	ARRAY = 'ARRAY',
@@ -306,7 +306,7 @@ export interface CodegenTypeInfo {
 	/** OpenAPI type */
 	type: string
 	format?: string
-	propertyType: CodegenPropertyType
+	schemaType: CodegenSchemaType
 
 	/** Type in native language */
 	nativeType: CodegenNativeType
@@ -451,16 +451,6 @@ export interface CodegenDiscriminatorMappings {
 	[$ref: string]: string
 }
 
-/**
- * Describes the type of object each schema is.
- */
-export enum CodegenSchemaType {
-	OBJECT = 'OBJECT',
-	ENUM = 'ENUM',
-	ARRAY = 'ARRAY',
-	MAP = 'MAP',
-}
-
 export interface CodegenSchemaNameOptions {
 	/** Whether the name of this schema was specified in the API specification, or guessed from context */
 	nameSpecified: boolean
@@ -476,7 +466,7 @@ interface CodegenTypeOptions {
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
-	propertyType: CodegenPropertyType
+	schemaType: CodegenSchemaType
 	nativeType: CodegenNativeType
 }
 

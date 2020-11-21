@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenPropertyType, CodegenOperationGroupingStrategy, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -27,11 +27,13 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toOperationGroupName: (name) => `${name} api`,
 		toSchemaName: (name, options) => {
 			if (options.nameSpecified) {
-				return `${name}`
+				return name
 			} else if (options.schemaType === CodegenSchemaType.ENUM) {
 				return `${name}_enum`
-			} else {
+			} else if (options.schemaType === CodegenSchemaType.OBJECT) {
 				return `${name}_model`
+			} else {
+				return name
 			}
 		},
 		toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
@@ -49,14 +51,14 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				return { literalValue: 'undefined' }
 			}
 
-			switch (options.propertyType) {
-				case CodegenPropertyType.ARRAY:
+			switch (options.schemaType) {
+				case CodegenSchemaType.ARRAY:
 					return { value: [], literalValue: '[]' }
-				case CodegenPropertyType.OBJECT:
+				case CodegenSchemaType.OBJECT:
 					return { value: {}, literalValue: '{}' }
-				case CodegenPropertyType.NUMBER:
+				case CodegenSchemaType.NUMBER:
 					return { value: 0, literalValue: '0' }
-				case CodegenPropertyType.BOOLEAN:
+				case CodegenSchemaType.BOOLEAN:
 					return { value: false, literalValue: 'false' }
 				default:
 					return { literalValue: 'undefined' }

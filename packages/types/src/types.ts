@@ -221,7 +221,7 @@ export interface CodegenHeader extends CodegenParameterBase {
 	examples: CodegenExamples | null
 }
 
-export interface CodegenContent extends CodegenSchemaInfo {
+export interface CodegenContent extends CodegenSchemaLike {
 	mediaType: CodegenMediaType
 	examples: CodegenExamples | null
 	schema: CodegenSchema
@@ -318,7 +318,11 @@ export interface CodegenTypeInfo {
 	componentSchema: CodegenSchema | null
 }
 
-export interface CodegenSchemaInfo extends CodegenTypeInfo {
+/**
+ * An interface for objects that look like schemas, but aren't necessarily what we'd consider to
+ * be CodegenSchemas themselves.
+ */
+export interface CodegenSchemaLike extends CodegenTypeInfo {
 	required: boolean
 	nullable: boolean
 	readOnly: boolean
@@ -330,7 +334,7 @@ export interface CodegenProperty extends CodegenSchema {
 	name: string
 }
 
-export interface CodegenSchema extends CodegenSchemaInfo {
+export interface CodegenSchema extends CodegenSchemaLike {
 	description: string | null
 	title: string | null
 	example: CodegenExample | null
@@ -580,7 +584,7 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-interface CodegenParameterBase extends CodegenSchemaInfo {
+interface CodegenParameterBase extends CodegenSchemaLike {
 	name: string
 	
 	description: string | null

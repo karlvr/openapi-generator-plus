@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenExamples } from './examples'
 import { toCodegenSchema } from './schema'
-import { extractCodegenSchemaInfo, resolveReference } from './utils'
+import { extractCodegenSchemaLike, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | null {
@@ -32,7 +32,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			name,
 			description: null,
 	
-			...extractCodegenSchemaInfo(schema),
+			...extractCodegenSchemaLike(schema),
 	
 			required: false,
 			collectionFormat: header.collectionFormat || null,
@@ -53,7 +53,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 		return {
 			name,
 	
-			...extractCodegenSchemaInfo(schema),
+			...extractCodegenSchemaLike(schema),
 	
 			description: header.description || null,
 			required: header.required || false,

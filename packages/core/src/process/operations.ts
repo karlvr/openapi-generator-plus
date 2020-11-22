@@ -3,7 +3,7 @@ import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'
-import { extractCodegenSchemaInfo, resolveReference, toUniqueName } from './utils'
+import { extractCodegenSchemaLike, resolveReference, toUniqueName } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import _ from 'lodash'
@@ -60,7 +60,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 				name: toUniqueName('request', parameters ? idx.allKeys(parameters) : undefined),
 
 				...commonTypes,
-				...extractCodegenSchemaInfo(requestBodyContents[0]),
+				...extractCodegenSchemaLike(requestBodyContents[0]),
 
 				description: requestBody.description || null,
 				required: requestBody.required || false,
@@ -91,7 +91,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 						mediaType,
 						schema: existingBodyParam.schema,
 						examples: null,
-						...extractCodegenSchemaInfo(existingBodyParam),
+						...extractCodegenSchemaLike(existingBodyParam),
 					}
 					return result
 				})
@@ -101,7 +101,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 				}
 
 				bodyParam = {
-					...extractCodegenSchemaInfo(existingBodyParam),
+					...extractCodegenSchemaLike(existingBodyParam),
 
 					name: existingBodyParam.name,
 					description: existingBodyParam.description,

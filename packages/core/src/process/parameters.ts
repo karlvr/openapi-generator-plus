@@ -3,7 +3,7 @@ import { OpenAPI } from 'openapi-types'
 import { isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
-import { extractCodegenSchemaInfo, resolveReference } from './utils'
+import { extractCodegenSchemaLike, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
@@ -52,7 +52,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	const result: CodegenParameter = {
 		name: parameter.name,
 
-		...extractCodegenSchemaInfo(schema),
+		...extractCodegenSchemaLike(schema),
 
 		in: parameter.in as CodegenParameterIn,
 		description: parameter.description || null,

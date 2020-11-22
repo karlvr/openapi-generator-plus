@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenSchema } from './schema'
-import { extractCodegenSchemaInfo, extractCodegenTypeInfo } from './utils'
+import { extractCodegenSchemaLike, extractCodegenTypeInfo } from './utils'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, suggestedModelName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
@@ -22,7 +22,7 @@ export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.Medi
 			mediaType: toCodegenMediaType(mediaType),
 			examples,
 			schema,
-			...extractCodegenSchemaInfo(schema),
+			...extractCodegenSchemaLike(schema),
 		}
 		result.push(item)
 	}

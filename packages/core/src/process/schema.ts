@@ -189,7 +189,7 @@ export function toCodegenSchemaType(type: string, format: string | undefined, is
 	}
 }
 
-export function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaType {
+function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaType {
 	schema = resolveReference(schema, state)
 
 	if (schema.allOf) {
@@ -200,16 +200,14 @@ export function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject, sta
 		return CodegenSchemaType.OBJECT
 	}
 
-	if (typeof schema.type !== 'string') {
-		throw new Error(`Invalid schema type: ${schema.type}`)
-	}
-
 	if (schema.enum) {
-		return toCodegenSchemaType(schema.type, schema.format, true, false)
+		return toCodegenSchemaType(typeof schema.type === 'string' ? schema.type : 'object', schema.format, true, false)
 	} else if (schema.type === 'object' && schema.additionalProperties) {
 		return toCodegenSchemaType(schema.type, schema.format, false, true)
-	} else {
+	} else if (typeof schema.type === 'string') {
 		return toCodegenSchemaType(schema.type, schema.format, false, false)
+	} else {
+		throw new Error(`Invalid schema type "${schema.type}": ${JSON.stringify(schema)}`)
 	}
 }
 

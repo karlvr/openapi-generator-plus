@@ -344,6 +344,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		scopedName,
 		description: schema.description || null,
 		properties: null,
+		examples: null,
 		discriminator: null,
 		discriminatorValues: null,
 		children: null,
@@ -364,6 +365,9 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		componentSchema: null,
 		deprecated: false,
 	}
+
+	// TODO models should be able to get the example from the schema
+	// model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
 		model.deprecated = schema.deprecated || false
@@ -586,6 +590,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 						name: fakeName.scopedName[fakeName.scopedName.length - 1],
 						serializedName: null,
 						properties: null,
+						examples: null,
 						discriminator: null,
 						discriminatorValues: null,
 						children: null,

@@ -399,6 +399,8 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 
 	properties: CodegenProperties | null
 
+	examples: CodegenExamples | null
+
 	/* Polymorphism */
 
 	/** Information about the discriminator that this model uses to differentiate either its children or submodels */

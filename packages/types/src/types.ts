@@ -337,6 +337,9 @@ export interface CodegenSchemaUse extends CodegenSchemaInfo {
 export interface CodegenProperty extends CodegenSchemaUse {
 	name: string
 	description: string | null
+
+	/** The initial value that the property should have. This is either the defaultValue, if there is one, or a default default from the generator. */
+	initialValue: CodegenValue
 }
 
 export interface CodegenSchema extends CodegenSchemaInfo {

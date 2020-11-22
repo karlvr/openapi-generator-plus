@@ -56,10 +56,10 @@ export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: bool
 	}
 
 	result.examples = schema.example ? toCodegenExamples(schema.example, undefined, undefined, result, state) : null
-	result.defaultValue = state.generator.toDefaultValue(schema.default, {
+	result.defaultValue = schema.default ? state.generator.toDefaultValue(schema.default, {
 		...result,
 		required,
-	})
+	}) : null
 
 	return result
 }
@@ -738,8 +738,8 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 	return {
 		...schemaUse,
 		name,
-		required,
 		description: schemaUse.schema.description,
+		initialValue: schemaUse.defaultValue || state.generator.toDefaultValue(undefined, schemaUse),
 	}
 }
 

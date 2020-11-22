@@ -218,13 +218,10 @@ export type CodegenHeaders = IndexedCollectionType<CodegenHeader>
 
 export interface CodegenHeader extends CodegenParameterBase {
 	name: string
-	examples: CodegenExamples | null
 }
 
-export interface CodegenContent extends CodegenSchemaLike {
+export interface CodegenContent extends CodegenSchemaUse {
 	mediaType: CodegenMediaType
-	examples: CodegenExamples | null
-	schema: CodegenSchema
 }
 
 export type CodegenExamples = IndexedCollectionType<CodegenExample>
@@ -318,27 +315,33 @@ export interface CodegenTypeInfo {
 	componentSchema: CodegenSchema | null
 }
 
-/**
- * An interface for objects that look like schemas, but aren't necessarily what we'd consider to
- * be CodegenSchemas themselves.
- */
-export interface CodegenSchemaLike extends CodegenTypeInfo {
-	required: boolean
+
+export interface CodegenSchemaInfo extends CodegenTypeInfo {
 	nullable: boolean
 	readOnly: boolean
 	writeOnly: boolean
 	deprecated: boolean
 }
 
-export interface CodegenProperty extends CodegenSchema {
-	name: string
+/**
+ * An interface for objects that use CodegenSchemas. It contains information from the API
+ * spec schema, applicable to the object that uses the schema.
+ */
+export interface CodegenSchemaUse extends CodegenSchemaInfo {
+	schema: CodegenSchema
+	required: boolean
+	examples: CodegenExamples | null
+	defaultValue: CodegenValue | null
 }
 
-export interface CodegenSchema extends CodegenSchemaLike {
+export interface CodegenProperty extends CodegenSchemaUse {
+	name: string
+	description: string | null
+}
+
+export interface CodegenSchema extends CodegenSchemaInfo {
 	description: string | null
 	title: string | null
-	example: CodegenExample | null
-	defaultValue: CodegenValue | null
 
 	vendorExtensions: CodegenVendorExtensions | null
 
@@ -538,7 +541,6 @@ export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
 export interface CodegenNativeObjectTypeOptions {
 	modelNames: string[]
 	purpose: CodegenTypePurpose
-	required?: boolean
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
@@ -551,7 +553,6 @@ export enum CodegenArrayTypePurpose {
 
 export interface CodegenNativeArrayTypeOptions {
 	componentNativeType: CodegenNativeType
-	required?: boolean
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
 	modelNames?: string[]
@@ -584,21 +585,17 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-interface CodegenParameterBase extends CodegenSchemaLike {
+interface CodegenParameterBase extends CodegenSchemaUse {
 	name: string
 	
 	description: string | null
 	collectionFormat: string | null
-
-	schema: CodegenSchema
 
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenParameter extends CodegenParameterBase {
 	in: CodegenParameterIn
-	examples: CodegenExamples | null
-	defaultValue: CodegenValue | null
 
 	isQueryParam: boolean
 	isPathParam: boolean

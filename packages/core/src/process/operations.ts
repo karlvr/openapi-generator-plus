@@ -3,14 +3,14 @@ import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'
-import { extractCodegenSchemaLike, resolveReference, toUniqueName } from './utils'
+import { extractCodegenSchemaUse, resolveReference, toUniqueName } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import _ from 'lodash'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
-import { commonTypeInfo, findAllContentMediaTypes, toCodegenContentArray } from './content'
+import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 
 export interface CodegenOperationContext {
@@ -42,33 +42,27 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 		if (requestBody) {
 			/* See toCodegenParameter for rationale about scopeNames */
-			const requestBodyContents = toCodegenContentArray(requestBody.content, `${name}_request`, CodegenSchemaPurpose.REQUEST_BODY, null, state)
+			const requestBodyContents = toCodegenContentArray(requestBody.content, requestBody.required || false, `${name}_request`, CodegenSchemaPurpose.REQUEST_BODY, null, state)
 			if (!requestBodyContents.length) {
 				throw new Error(`Request body contents is empty: ${path}`)
 			}
 
-			const commonTypes = commonTypeInfo(requestBodyContents)
-			if (!commonTypes) {
-				throw new Error(`Cannot find common types for request body contents: ${path}`)
-			}
 			consumes = findAllContentMediaTypes(requestBodyContents)
 			if (!consumes) {
 				throw new Error(`No contents for request body: ${path}`)
 			}
 
+			const defaultContent = requestBodyContents[0]
 			bodyParam = {
 				name: toUniqueName('request', parameters ? idx.allKeys(parameters) : undefined),
 
-				...commonTypes,
-				...extractCodegenSchemaLike(requestBodyContents[0]),
+				...extractCodegenSchemaUse(defaultContent),
 
 				description: requestBody.description || null,
-				required: requestBody.required || false,
 				collectionFormat: null,
-				schema: requestBodyContents[0].schema,
 				
 				contents: requestBodyContents,
-				defaultContent: requestBodyContents[0],
+				defaultContent,
 				consumes,
 
 				vendorExtensions: toCodegenVendorExtensions(requestBody),
@@ -89,9 +83,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 				const contents = consumes.map(mediaType => {
 					const result: CodegenContent = {
 						mediaType,
-						schema: existingBodyParam.schema,
-						examples: null,
-						...extractCodegenSchemaLike(existingBodyParam),
+						...extractCodegenSchemaUse(existingBodyParam),
 					}
 					return result
 				})
@@ -101,14 +93,12 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 				}
 
 				bodyParam = {
-					...extractCodegenSchemaLike(existingBodyParam),
+					...extractCodegenSchemaUse(existingBodyParam),
 
 					name: existingBodyParam.name,
 					description: existingBodyParam.description,
-					required: existingBodyParam.required,
 					collectionFormat: existingBodyParam.collectionFormat,
 					vendorExtensions: existingBodyParam.vendorExtensions,
-					schema: existingBodyParam.schema,
 
 					contents,
 					defaultContent: contents[0],

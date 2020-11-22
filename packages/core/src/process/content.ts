@@ -3,10 +3,10 @@ import { OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
 import { toCodegenMediaType } from './media-types'
-import { toCodegenSchema } from './schema'
-import { extractCodegenSchemaLike, extractCodegenTypeInfo } from './utils'
+import { toCodegenSchemaUse } from './schema'
+import { extractCodegenTypeInfo } from './utils'
 
-export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, suggestedModelName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
+export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedModelName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
 	for (const mediaType in content) {
 		const mediaTypeContent = content[mediaType]
@@ -14,15 +14,14 @@ export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.Medi
 		if (!mediaTypeContent.schema) {
 			throw new Error('Media type content without a schema')
 		}
-		const schema = toCodegenSchema(mediaTypeContent.schema, true, suggestedModelName, purpose, scope, state)
+		const schemaUse = toCodegenSchemaUse(mediaTypeContent.schema, required, suggestedModelName, purpose, scope, state)
 
-		const examples: CodegenExamples | null = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schema, state)
+		const examples: CodegenExamples | null = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schemaUse, state)
 
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),
 			examples,
-			schema,
-			...extractCodegenSchemaLike(schema),
+			...schemaUse,
 		}
 		result.push(item)
 	}

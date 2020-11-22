@@ -1,7 +1,7 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenSchemaLike, CodegenTypeInfo } from '@openapi-generator-plus/types'
+import { CodegenSchemaInfo, CodegenSchemaUse, CodegenTypeInfo } from '@openapi-generator-plus/types'
 import { OpenAPIX } from '../types/patches'
 
 /**
@@ -46,17 +46,27 @@ export function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo
 }
 
 /**
- * Extract _just_ the CodegenSchemaLike properties from the source.
+ * Extract _just_ the CodegenSchemaUse properties from the source.
  */
-export function extractCodegenSchemaLike(source: CodegenSchemaLike): CodegenSchemaLike {
+export function extractCodegenSchemaInfo(source: CodegenSchemaInfo): CodegenSchemaInfo {
 	return {
 		...extractCodegenTypeInfo(source),
 
-		required: source.required,
 		nullable: source.nullable,
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,
 		deprecated: source.deprecated,
+	}
+}
+
+export function extractCodegenSchemaUse(source: CodegenSchemaUse): CodegenSchemaUse {
+	return {
+		...extractCodegenSchemaInfo(source),
+
+		required: source.required,
+		schema: source.schema,
+		examples: source.examples,
+		defaultValue: source.defaultValue,
 	}
 }
 

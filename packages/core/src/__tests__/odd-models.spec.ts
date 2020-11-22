@@ -24,7 +24,7 @@ test('array of strings without collection models', async() => {
 	const response = result.groups[0].operations[0].defaultResponse
 	expect(response).not.toBeNull()
 
-	const nativeType = response!.nativeType
+	const nativeType = response!.defaultContent?.nativeType
 	expect(nativeType).not.toBeNull()
 	expect(nativeType!.toString()).toEqual('array string')
 })

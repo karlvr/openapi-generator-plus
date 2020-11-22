@@ -16,11 +16,11 @@ test('array property', async() => {
 	const prop1 = model1Properties[0]
 	expect(prop1.name).toBe('arrayProperty')
 	expect(prop1.schemaType).toEqual(CodegenSchemaType.ARRAY)
-	expect(prop1.defaultValue).toEqual({ value: [], literalValue: '[]' })
+	expect(prop1.initialValue).toEqual({ value: [], literalValue: '[]' })
 
 	const prop2 = model1Properties[1]
 	expect(prop2.name).toBe('notRequiredArrayProperty')
 	expect(prop2.schemaType).toEqual(CodegenSchemaType.ARRAY)
-	expect(prop2.defaultValue).toEqual({ literalValue: 'undefined' })
+	expect(prop2.initialValue).toEqual({ literalValue: 'undefined' })
 
 })

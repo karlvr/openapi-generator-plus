@@ -6,10 +6,10 @@ test('property conflict resolved', async() => {
 	const result = await createTestDocument('all-of-property-conflict-v3.yml')
 	const child = idx.get(result.models, 'Child')
 
-	expect(child).toBeDefined()
-	expect(child!.properties).toBeDefined()
+	expect(child).not.toBeNull()
+	expect(child!.properties).not.toBeNull()
 
 	const property = idx.get(child!.properties!, 'childName')
-	expect(property).toBeDefined()
+	expect(property).not.toBeNull()
 	expect(property!.schemaType).toEqual(CodegenSchemaType.NUMBER)
 })

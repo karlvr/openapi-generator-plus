@@ -11,6 +11,7 @@ import { toCodegenMediaType } from './media-types'
 import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
 import { commonTypeInfo, findAllContentMediaTypes, toCodegenContentArray } from './content'
+import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
@@ -23,11 +24,13 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
 
-	let parameters: CodegenParameters | undefined
+	let parameters: CodegenParameters | null
 	if (operation.parameters) {
 		parameters = toCodegenParameters(operation.parameters, context.parameters, name, state)
 	} else if (context.parameters) {
 		parameters = idx.merge(idx.create(), context.parameters)
+	} else {
+		parameters = null
 	}
 
 	let consumes: CodegenMediaType[] | undefined
@@ -54,14 +57,15 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 			}
 
 			bodyParam = {
-				name: toUniqueName('request', parameters && idx.allKeys(parameters)),
+				name: toUniqueName('request', parameters ? idx.allKeys(parameters) : undefined),
 
 				...commonTypes,
 				...extractCodegenSchemaInfo(requestBodyContents[0]),
 
-				description: requestBody.description,
+				description: requestBody.description || null,
 				required: requestBody.required || false,
-				schema: requestBodyContents[0],
+				collectionFormat: null,
+				schema: requestBodyContents[0].schema,
 				
 				contents: requestBodyContents,
 				defaultContent: requestBodyContents[0],
@@ -86,6 +90,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 					const result: CodegenContent = {
 						mediaType,
 						schema: existingBodyParam.schema,
+						examples: null,
 						...extractCodegenSchemaInfo(existingBodyParam),
 					}
 					return result
@@ -114,10 +119,8 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 		}
 	}
 
-	/* Ensure parameters is undefined if empty, as generators rely on that */
-	if (parameters && idx.isEmpty(parameters)) {
-		parameters = undefined
-	}
+	/* Ensure parameters is null if empty, as generators rely on that */
+	parameters = nullIfEmpty(parameters)
 
 	let securityRequirements: CodegenSecurityRequirement[] | undefined
 	if (operation.security) {
@@ -127,42 +130,49 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 		securityRequirements = toCodegenSecurityRequirements(state.root.security, state)
 	}
 
+	const queryParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isQueryParam)) : null
+	const pathParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isPathParam)) : null
+	const headerParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isHeaderParam)) : null
+	const cookieParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isCookieParam)) : null
+	const formParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isFormParam)) : null
+
 	const op: CodegenOperation = {
 		name,
 		httpMethod: method,
 		path, /* Path will later be made relative to a CodegenOperationGroup */
 		fullPath: path,
-		returnType: defaultResponse ? defaultResponse.type : undefined,
-		returnNativeType: defaultResponse ? defaultResponse.nativeType : undefined,
-		consumes,
-		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : undefined,
+		returnType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.type || null,
+		returnNativeType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.nativeType || null,
+		consumes: consumes || null,
+		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : null,
 		
 		parameters,
-		queryParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isQueryParam)),
-		pathParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isPathParam)),
-		headerParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isHeaderParam)),
-		cookieParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isCookieParam)),
-		formParams: parameters && idx.undefinedIfEmpty(idx.filter(parameters, p => p.isFormParam)),
+		queryParams,
+		pathParams,
+		headerParams,
+		cookieParams,
+		formParams,
 
-		requestBody: bodyParam,
+		requestBody: bodyParam || null,
 
-		securityRequirements,
-		defaultResponse,
-		responses,
-		deprecated: operation.deprecated,
-		summary: operation.summary || context.summary,
-		description: operation.description || context.description,
-		tags: operation.tags,
+		securityRequirements: securityRequirements || null,
+		defaultResponse: defaultResponse || null,
+		responses: responses || null,
+		deprecated: !!operation.deprecated,
+		summary: operation.summary || context.summary || null,
+		description: operation.description || context.description || null,
+		tags: operation.tags || null,
 		vendorExtensions: toCodegenVendorExtensions(operation),
+
+		hasParamExamples: parametersHaveExamples(parameters || null),
+		hasQueryParamExamples: parametersHaveExamples(queryParams),
+		hasPathParamExamples: parametersHaveExamples(pathParams),
+		hasHeaderParamExamples: parametersHaveExamples(headerParams),
+		hasCookieParamExamples: parametersHaveExamples(cookieParams),
+		hasRequestBodyExamples: requestBodyHasExamples(bodyParam || null),
+		hasFormParamExamples: parametersHaveExamples(formParams),
+		hasResponseExamples: responsesHaveExamples(responses || null),
 	}
-	op.hasParamExamples = parametersHaveExamples(op.parameters)
-	op.hasQueryParamExamples = parametersHaveExamples(op.queryParams)
-	op.hasPathParamExamples = parametersHaveExamples(op.pathParams)
-	op.hasHeaderParamExamples = parametersHaveExamples(op.headerParams)
-	op.hasCookieParamExamples = parametersHaveExamples(op.cookieParams)
-	op.hasRequestBodyExamples = requestBodyHasExamples(op.requestBody)
-	op.hasFormParamExamples = parametersHaveExamples(op.formParams)
-	op.hasResponseExamples = responsesHaveExamples(op.responses)
 	return op
 }
 
@@ -174,25 +184,25 @@ function toCodegenOperationName(path: string, method: string, operation: OpenAPI
 	return state.generator.toOperationName(path, method)
 }
 
-function parametersHaveExamples(parameters: CodegenParameters | undefined): boolean | undefined {
+function parametersHaveExamples(parameters: CodegenParameters | null): boolean {
 	if (!parameters) {
-		return undefined
+		return false
 	}
 
 	return !!idx.find(parameters, param => !!param.examples?.length)
 }
 
-function requestBodyHasExamples(parameter: CodegenRequestBody | undefined): boolean | undefined {
+function requestBodyHasExamples(parameter: CodegenRequestBody | null): boolean {
 	if (!parameter || !parameter.contents) {
-		return undefined
+		return false
 	}
 
 	return !!parameter.contents.find(c => !!c.examples?.length)
 }
 
-function responsesHaveExamples(responses: CodegenResponses | undefined): boolean | undefined {
+function responsesHaveExamples(responses: CodegenResponses | null): boolean {
 	if (!responses) {
-		return undefined
+		return false
 	}
 
 	return !!idx.findEntry(responses, response => response.contents && response.contents.find(c => !!c.examples?.length))

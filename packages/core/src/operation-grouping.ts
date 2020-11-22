@@ -45,6 +45,7 @@ export function addToGroupsByPath(operationInfo: CodegenOperation, groups: Codeg
 		group = {
 			name: groupName,
 			path: basePath,
+			description: null,
 			operations: [],
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
@@ -71,6 +72,7 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 		group = {
 			name: groupName,
 			path: '',
+			description: null,
 			operations: [],
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3

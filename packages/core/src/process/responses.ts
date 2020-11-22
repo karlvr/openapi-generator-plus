@@ -65,7 +65,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 				const result: CodegenContent = {
 					mediaType,
 					schema,
-					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : undefined,
+					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : null,
 					...extractCodegenSchemaInfo(schema),
 				}
 				return result
@@ -84,20 +84,18 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	const commonTypes = commonTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
 
-	const defaultContent = (contents && contents.length) ? contents[0] : undefined
+	const defaultContent = (contents && contents.length) ? contents[0] : null
 
 	return {
 		code,
 		description: response.description,
 		isDefault,
 		...commonTypes,
-		contents,
+		contents: contents && contents.length ? contents : null,
 		defaultContent,
-		produces,
+		produces: produces || null,
 		headers: toCodegenHeaders(response.headers, state),
 		vendorExtensions: toCodegenVendorExtensions(response),
-
-		...(defaultContent ? extractCodegenSchemaInfo(defaultContent) : {}),
 	}
 }
 

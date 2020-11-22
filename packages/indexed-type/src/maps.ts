@@ -83,12 +83,22 @@ export function merge<K, V>(map: Map<K, V>, other: Map<K, V>): Map<K, V> {
 	return map
 }
 
-export function undefinedIfEmpty<K, V>(map: Map<K, V>| undefined): Map<K, V> | undefined {
+export function undefinedIfEmpty<K, V>(map: Map<K, V> | undefined): Map<K, V> | undefined {
 	if (!map) {
 		return undefined
 	}
 	if (isEmpty(map)) {
 		return undefined
+	}
+	return map
+}
+
+export function nullIfEmpty<K, V>(map: Map<K, V> | null): Map<K, V> | null {
+	if (!map) {
+		return null
+	}
+	if (isEmpty(map)) {
+		return null
 	}
 	return map
 }

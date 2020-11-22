@@ -7,15 +7,18 @@ import { toCodegenSchema } from './schema'
 import { extractCodegenSchemaInfo, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
-export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | undefined {
+export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | null {
 	if (headers === undefined) {
-		return undefined
+		return null
 	}
 
 	const result: CodegenHeaders = {}
 	for (const key in headers) {
 		const header = toCodegenHeader(key, headers[key], state)
 		result[key] = header
+	}
+	if (Object.keys(result).length === 0) {
+		return null
 	}
 	return result
 }
@@ -27,15 +30,17 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 		const schema = toCodegenSchema(header, true, name, CodegenSchemaPurpose.HEADER, null, state)
 		return {
 			name,
+			description: null,
 	
 			...extractCodegenSchemaInfo(schema),
 	
 			required: false,
-			collectionFormat: header.collectionFormat,
+			collectionFormat: header.collectionFormat || null,
 	
 			schema,
 	
 			vendorExtensions: toCodegenVendorExtensions(header),
+			examples: null,
 		}
 	} else if (isOpenAPIV3HeaderObject(header, state.specVersion)) {
 		if (!header.schema) {
@@ -50,8 +55,9 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 	
 			...extractCodegenSchemaInfo(schema),
 	
-			description: header.description,
+			description: header.description || null,
 			required: header.required || false,
+			collectionFormat: null,
 			examples,
 	
 			schema,

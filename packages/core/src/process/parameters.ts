@@ -1,4 +1,4 @@
-import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchema, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
+import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchema, CodegenSchemaPurpose, CodegenValue } from '@openapi-generator-plus/types'
 import { OpenAPI } from 'openapi-types'
 import { isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -9,7 +9,7 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenSchema } from './schema'
 
-export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | undefined {
+export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | null {
 	const result: CodegenParameters = idx.create()
 	if (pathParameters) {
 		idx.merge(result, pathParameters)
@@ -18,14 +18,15 @@ export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParamet
 		const codegenParameter = toCodegenParameter(parameter, scopeName, state)
 		idx.set(result, codegenParameter.name, codegenParameter)
 	}
-	return idx.undefinedIfEmpty(result)
+	return idx.nullIfEmpty(result)
 }
 
 function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
 	parameter = resolveReference(parameter, state)
 
 	let schema: CodegenSchema | undefined
-	let examples: CodegenExamples | undefined
+	let examples: CodegenExamples | null
+	let defaultValue: CodegenValue | null
 	if (parameter.schema) {
 		/* We pass [] as scopeNames so we create any nested models at the root of the models package,
 		 * as we reference all models relative to the models package, but a parameter is in an
@@ -39,8 +40,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		schema = toCodegenSchema(parameter.schema, parameter.required || false, `${scopeName}_${parameter.name}`, CodegenSchemaPurpose.PARAMETER, null, state)
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schema, state)
+		defaultValue = null
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schema = toCodegenSchema(parameter, parameter.required || false, `${scopeName}_${parameter.name}`, CodegenSchemaPurpose.PARAMETER, null, state)
+		examples = null
+		defaultValue = parameter.default ? state.generator.toDefaultValue(parameter.default, schema) : null
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
 	}
@@ -51,37 +55,21 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		...extractCodegenSchemaInfo(schema),
 
 		in: parameter.in as CodegenParameterIn,
-		description: parameter.description,
-		required: parameter.required || false,
-		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat : undefined, // TODO OpenAPI3
+		description: parameter.description || null,
+		required: parameter.in === 'path' ? true : parameter.required || false,
+		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3
 		examples,
+		defaultValue,
 
 		schema,
 
 		vendorExtensions: toCodegenVendorExtensions(parameter),
-	}
-	switch (parameter.in) {
-		case 'query':
-			result.isQueryParam = true
-			break
-		case 'path':
-			result.isPathParam = true
-			result.required = true
-			break
-		case 'header':
-			result.isHeaderParam = true
-			break
-		case 'cookie':
-			result.isCookieParam = true
-			break
-		case 'body':
-			/* The body parameter will be extracted by the caller */
-			break
-		case 'formData':
-			result.isFormParam = true
-			break
-		default:
-			throw new Error(`Unsupported parameter "in" value: ${parameter.in}`)
+
+		isQueryParam: parameter.in === 'query',
+		isPathParam: parameter.in === 'path',
+		isHeaderParam: parameter.in === 'header',
+		isCookieParam: parameter.in === 'cookie',
+		isFormParam: parameter.in === 'formData',
 	}
 
 	return result

@@ -48,7 +48,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			}
 
 			if (!options.required) {
-				return { literalValue: 'undefined' }
+				return { value: undefined, literalValue: 'undefined' }
 			}
 
 			switch (options.schemaType) {
@@ -61,7 +61,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				case CodegenSchemaType.BOOLEAN:
 					return { value: false, literalValue: 'false' }
 				default:
-					return { literalValue: 'undefined' }
+					return { value: undefined, literalValue: 'undefined' }
 			}
 		},
 		operationGroupingStrategy: () => generatorOptions.config.operationGroupingStrategy || addToGroupsByPath,

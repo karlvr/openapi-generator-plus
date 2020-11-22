@@ -6,6 +6,7 @@ export function toCodegenMediaType(mediaType: string): CodegenMediaType {
 		return {
 			mediaType,
 			mimeType: mediaType,
+			encoding: null,
 		}
 	}
 
@@ -19,6 +20,6 @@ export function toCodegenMediaType(mediaType: string): CodegenMediaType {
 	return {
 		mediaType,
 		mimeType: mediaType.substring(0, i),
-		encoding: charset,
+		encoding: charset || null,
 	}
 }

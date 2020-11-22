@@ -6,7 +6,7 @@ interface ObjectWithVendorExtensions {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function toCodegenVendorExtensions(ob: ObjectWithVendorExtensions): CodegenVendorExtensions | undefined {
+export function toCodegenVendorExtensions(ob: ObjectWithVendorExtensions): CodegenVendorExtensions | null {
 	const result: CodegenVendorExtensions = {}
 	let found = false
 
@@ -17,5 +17,5 @@ export function toCodegenVendorExtensions(ob: ObjectWithVendorExtensions): Codeg
 		}
 	}
 
-	return found ? result : undefined
+	return found ? result : null
 }

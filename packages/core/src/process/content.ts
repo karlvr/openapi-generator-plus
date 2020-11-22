@@ -16,7 +16,7 @@ export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.Medi
 		}
 		const schema = toCodegenSchema(mediaTypeContent.schema, true, suggestedModelName, purpose, scope, state)
 
-		const examples: CodegenExamples | undefined = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schema, state)
+		const examples: CodegenExamples | null = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schema, state)
 
 		const item: CodegenContent = {
 			mediaType: toCodegenMediaType(mediaType),

@@ -6,6 +6,8 @@ import { coalesce, extractCodegenTypeInfo, fixSchema, nameFromRef, resolveRefere
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
+import { toCodegenExample } from './examples'
 
 export function toCodegenModels(specModels: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external models can use those names */
@@ -49,7 +51,7 @@ export function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean
 	if (isModelSchema(schema, state)) {
 		model = toCodegenModel(suggestedModelName, purpose, scope, originalSchema, state)
 		type = model.type
-		format = model.format
+		format = model.format || undefined
 		nativeType = model.propertyNativeType
 		schemaType = model.schemaType
 	} else {
@@ -91,8 +93,8 @@ export function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean
 	}
 
 	const result: CodegenSchema = {
-		description: coalesce(originalSchema.description, schema.description),
-		title: coalesce(originalSchema.title, schema.title),
+		description: coalesce(originalSchema.description, schema.description) || null,
+		title: coalesce(originalSchema.title, schema.title) || null,
 		readOnly: coalesce(originalSchema.readOnly != undefined ? !!originalSchema.readOnly : undefined, schema.readOnly !== undefined ? !!schema.readOnly : undefined) || false,
 		nullable: false, /* Set below for OpenAPI V3 */
 		writeOnly: false, /* Set below for OpenAPI V3 */
@@ -101,26 +103,29 @@ export function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean
 		vendorExtensions: toCodegenVendorExtensions(schema),
 
 		type,
-		format: schema.format,
+		format: schema.format || null,
 		schemaType,
 		nativeType,
 
+		example: null,
+		defaultValue: null,
+
 		/* Validation */
-		maximum: coalesce(originalSchema.maximum, schema.maximum),
-		exclusiveMaximum: coalesce(originalSchema.exclusiveMaximum, schema.exclusiveMaximum),
-		minimum: coalesce(originalSchema.minimum, schema.minimum),
-		exclusiveMinimum: coalesce(originalSchema.exclusiveMinimum, schema.exclusiveMinimum),
-		maxLength: coalesce(originalSchema.maxLength, schema.maxLength),
-		minLength: coalesce(originalSchema.minLength, schema.minLength),
-		pattern: coalesce(originalSchema.pattern, schema.pattern),
-		maxItems: coalesce(originalSchema.maxItems, schema.maxItems),
-		minItems: coalesce(originalSchema.minItems, schema.minItems),
-		uniqueItems: coalesce(originalSchema.uniqueItems, schema.uniqueItems),
-		multipleOf: coalesce(originalSchema.multipleOf, schema.multipleOf),
+		maximum: coalesce(originalSchema.maximum, schema.maximum) || null,
+		exclusiveMaximum: coalesce(originalSchema.exclusiveMaximum, schema.exclusiveMaximum) || null,
+		minimum: coalesce(originalSchema.minimum, schema.minimum) || null,
+		exclusiveMinimum: coalesce(originalSchema.exclusiveMinimum, schema.exclusiveMinimum) || null,
+		maxLength: coalesce(originalSchema.maxLength, schema.maxLength) || null,
+		minLength: coalesce(originalSchema.minLength, schema.minLength) || null,
+		pattern: coalesce(originalSchema.pattern, schema.pattern) || null,
+		maxItems: coalesce(originalSchema.maxItems, schema.maxItems) || null,
+		minItems: coalesce(originalSchema.minItems, schema.minItems) || null,
+		uniqueItems: coalesce(originalSchema.uniqueItems, schema.uniqueItems) || null,
+		multipleOf: coalesce(originalSchema.multipleOf, schema.multipleOf) || null,
 
 		/* Model */
-		model,
-		componentSchema,
+		model: model || null,
+		componentSchema: componentSchema || null,
 	}
 
 	if (isOpenAPIv3SchemaObject(originalSchema, state.specVersion) && isOpenAPIv3SchemaObject(schema, state.specVersion)) {
@@ -129,6 +134,7 @@ export function toCodegenSchema(schema: OpenAPIX.SchemaObject, required: boolean
 		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated) || false
 	}
 
+	result.example = schema.example ? toCodegenExample(schema.example, undefined, result, state) : null
 	result.defaultValue = state.generator.toDefaultValue(schema.default, result)
 	return result
 }
@@ -314,18 +320,33 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 	const model: CodegenModel = {
 		name,
-		serializedName: $ref ? nameFromRef($ref) : undefined,
+		serializedName: $ref ? (nameFromRef($ref) || null) : null,
 		scopedName,
-		description: schema.description,
+		description: schema.description || null,
+		properties: null,
+		discriminator: null,
+		discriminatorValues: null,
+		children: null,
+		isInterface: false,
 		vendorExtensions,
 		nativeType,
 		propertyNativeType,
 		type: 'object',
+		format: schema.format,
 		schemaType: toCodegenSchemaTypeFromSchema(schema, state),
+		implements: null,
+		implementors: null,
+		enumValueNativeType: null,
+		enumValues: null,
+		parent: null,
+		parentNativeType: null,
+		models: null,
+		componentSchema: null,
+		deprecated: false,
 	}
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated
+		model.deprecated = schema.deprecated || false
 	}
 
 	/* Add to known models */
@@ -334,7 +355,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 		state.modelsBySchema.set(schema, model)
 	}
 
-	model.properties = toCodegenModelProperties(schema, model, state)
+	model.properties = toCodegenModelProperties(schema, model, state) || null
 
 	function absorbProperties(otherProperties: CodegenProperties, options: { makePropertiesOptional?: boolean }) {
 		for (const property of idx.allValues(otherProperties)) {
@@ -473,6 +494,8 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				mappings,
 				references: [],
 				type: 'string',
+				format: null,
+				componentSchema: null,
 				schemaType: CodegenSchemaType.STRING,
 				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }),
 			}
@@ -484,7 +507,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 					throw new Error(`Non-model schema not support in oneOf with discriminator: ${subSchema}`)
 				}
 
-				const subModelDiscriminatorProperty = removeModelProperty(subModel.properties, schemaDiscriminator.propertyName)
+				const subModelDiscriminatorProperty = removeModelProperty(subModel.properties || undefined, schemaDiscriminator.propertyName)
 				if (!subModelDiscriminatorProperty) {
 					throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" for "${nativeType}" missing from "${subModel.nativeType}"`)
 				}
@@ -541,8 +564,21 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 					const fakeModel: CodegenModel = {
 						...subSchemaObject,
 						name: fakeName.scopedName[fakeName.scopedName.length - 1],
+						serializedName: null,
+						properties: null,
+						discriminator: null,
+						discriminatorValues: null,
+						children: null,
+						isInterface: false,
 						propertyNativeType: subSchemaObject.nativeType,
 						scopedName: fakeName.scopedName,
+						implements: null,
+						implementors: null,
+						enumValueNativeType: null,
+						enumValues: null,
+						parent: null,
+						parentNativeType: null,
+						models: null,
 					}
 					fakeModel.implements = idx.create()
 					idx.set(fakeModel.implements, model.name, model)
@@ -584,7 +620,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 
 		if (enumValues) {
 			model.enumValueNativeType = enumValueNativeType
-			model.enumValues = idx.undefinedIfEmpty(enumValues)
+			model.enumValues = idx.nullIfEmpty(enumValues)
 		}
 	} else if (schema.type === 'array') {
 		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
@@ -614,7 +650,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 				}
 			}
 
-			const discriminatorProperty = removeModelProperty(model.properties, schemaDiscriminator.propertyName)
+			const discriminatorProperty = removeModelProperty(model.properties || undefined, schemaDiscriminator.propertyName)
 			if (!discriminatorProperty) {
 				throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${nativeType}"`)
 			}
@@ -661,9 +697,7 @@ function toCodegenModel(suggestedName: string, purpose: CodegenSchemaPurpose, su
 	}
 
 	/* Check properties */
-	if (model.properties && idx.isEmpty(model.properties)) {
-		model.properties = undefined
-	}
+	model.properties = nullIfEmpty(model.properties)
 
 	/* Add to scope */
 	if (!partial) {

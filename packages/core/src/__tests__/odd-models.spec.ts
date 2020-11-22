@@ -10,8 +10,8 @@ test('array of strings with collection models', async() => {
 	const model1 = models[0]
 	expect(model1.name).toEqual('ArrayOfStrings')
 	expect(model1.nativeType.toString()).toEqual('ArrayOfStrings')
-	expect(model1.parent).toBeUndefined()
-	expect(model1.parentNativeType).not.toBeUndefined()
+	expect(model1.parent).toBeNull()
+	expect(model1.parentNativeType).not.toBeNull()
 	expect(model1.parentNativeType?.toString()).toEqual('array string')
 })
 
@@ -22,10 +22,10 @@ test('array of strings without collection models', async() => {
 	expect(models.length).toEqual(0)
 
 	const response = result.groups[0].operations[0].defaultResponse
-	expect(response).toBeDefined()
+	expect(response).not.toBeNull()
 
 	const nativeType = response!.nativeType
-	expect(nativeType).toBeDefined()
+	expect(nativeType).not.toBeNull()
 	expect(nativeType!.toString()).toEqual('array string')
 })
 

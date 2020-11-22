@@ -107,35 +107,35 @@ export interface CodegenDocument {
 	info: CodegenInfo
 	groups: CodegenOperationGroup[]
 	models: CodegenModels
-	servers?: CodegenServer[]
-	securitySchemes?: CodegenSecurityScheme[]
-	securityRequirements?: CodegenSecurityRequirement[]
+	servers: CodegenServer[] | null
+	securitySchemes: CodegenSecurityScheme[] | null
+	securityRequirements: CodegenSecurityRequirement[] | null
 }
 
 export interface CodegenInfo {
 	title: string
-	description?: string
-	termsOfService?: string
-	contact?: CodegenContactObject
-	license?: CodegenLicenseObject
+	description: string | null
+	termsOfService: string | null
+	contact: CodegenContactObject | null
+	license: CodegenLicenseObject | null
 	version: string
 }
 
 export interface CodegenContactObject {
-	name?: string
-	url?: string
-	email?: string
+	name: string | null
+	url: string | null
+	email: string | null
 }
 export interface CodegenLicenseObject {
 	name: string
-	url?: string
+	url: string | null
 }
 
 export interface CodegenServer {
 	/** The base URL of the API */
 	url: string
-	description?: string
-	vendorExtensions?: CodegenVendorExtensions
+	description: string | null
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenOperationGroups {
@@ -146,10 +146,11 @@ export interface CodegenOperationGroup {
 	name: string
 	/** The base path for operations in this group, relative to the server URLs */
 	path: string
+	description: string | null
 	
 	operations: CodegenOperation[]
-	consumes?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-	produces?: CodegenMediaType[] // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+	consumes: CodegenMediaType[] | null // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+	produces: CodegenMediaType[] | null // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 }
 
 export interface CodegenOperation {
@@ -160,37 +161,37 @@ export interface CodegenOperation {
 	/** The full operation path, relative to the server URLs */
 	fullPath: string
 
-	returnType?: string
-	returnNativeType?: CodegenNativeType
-	consumes?: CodegenMediaType[]
-	produces?: CodegenMediaType[]
+	returnType: string | null
+	returnNativeType: CodegenNativeType | null
+	consumes: CodegenMediaType[] | null
+	produces: CodegenMediaType[] | null
 
-	parameters?: CodegenParameters
-	queryParams?: CodegenParameters
-	pathParams?: CodegenParameters
-	headerParams?: CodegenParameters
-	cookieParams?: CodegenParameters
-	formParams?: CodegenParameters
+	parameters: CodegenParameters | null
+	queryParams: CodegenParameters | null
+	pathParams: CodegenParameters | null
+	headerParams: CodegenParameters | null
+	cookieParams: CodegenParameters | null
+	formParams: CodegenParameters | null
 
-	requestBody?: CodegenRequestBody
+	requestBody: CodegenRequestBody | null
 
-	securityRequirements?: CodegenSecurityRequirement[]
-	vendorExtensions?: CodegenVendorExtensions
-	responses?: CodegenResponses
-	defaultResponse?: CodegenResponse
-	deprecated?: boolean
-	summary?: string
-	description?: string
-	tags?: string[]
+	securityRequirements: CodegenSecurityRequirement[] | null
+	vendorExtensions: CodegenVendorExtensions | null
+	responses: CodegenResponses | null
+	defaultResponse: CodegenResponse | null
+	deprecated: boolean
+	summary: string | null
+	description: string | null
+	tags: string[] | null
 
-	hasParamExamples?: boolean
-	hasQueryParamExamples?: boolean
-	hasPathParamExamples?: boolean
-	hasHeaderParamExamples?: boolean
-	hasCookieParamExamples?: boolean
-	hasFormParamExamples?: boolean
-	hasRequestBodyExamples?: boolean
-	hasResponseExamples?: boolean
+	hasParamExamples: boolean
+	hasQueryParamExamples: boolean
+	hasPathParamExamples: boolean
+	hasHeaderParamExamples: boolean
+	hasCookieParamExamples: boolean
+	hasFormParamExamples: boolean
+	hasRequestBodyExamples: boolean
+	hasResponseExamples: boolean
 }
 
 export type IndexedCollectionType<T> = IndexedType<string, T>
@@ -198,41 +199,41 @@ export type IndexedCollectionType<T> = IndexedType<string, T>
 export type CodegenResponses = IndexedCollectionType<CodegenResponse>
 export type CodegenParameters = IndexedCollectionType<CodegenParameter>
 
-export interface CodegenResponse extends Partial<CodegenTypeInfo> {
+export interface CodegenResponse {
 	code: number
 	description: string
 
 	/** The responses contents */
-	contents?: CodegenContent[]
-	produces?: CodegenMediaType[]
+	contents: CodegenContent[] | null
+	produces: CodegenMediaType[] | null
 
-	defaultContent?: CodegenContent
+	defaultContent: CodegenContent | null
 
 	isDefault: boolean
-	vendorExtensions?: CodegenVendorExtensions
-	headers?: CodegenHeaders
+	vendorExtensions: CodegenVendorExtensions | null
+	headers: CodegenHeaders | null
 }
 
 export type CodegenHeaders = IndexedCollectionType<CodegenHeader>
 
 export interface CodegenHeader extends CodegenParameterBase {
 	name: string
-	examples?: CodegenExamples
+	examples: CodegenExamples | null
 }
 
 export interface CodegenContent extends CodegenSchemaInfo {
 	mediaType: CodegenMediaType
-	examples?: CodegenExamples
+	examples: CodegenExamples | null
 	schema: CodegenSchema
 }
 
 export type CodegenExamples = IndexedCollectionType<CodegenExample>
 
 export interface CodegenExample extends CodegenTypeInfo {
-	name?: string
-	mediaType?: CodegenMediaType
-	summary?: string
-	description?: string
+	name: string | null
+	mediaType: CodegenMediaType | null
+	summary: string | null
+	description: string | null
 	/** The raw example value, may be a string or any other JSON/YAML type */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	value: any
@@ -305,7 +306,7 @@ export enum CodegenSchemaType {
 export interface CodegenTypeInfo {
 	/** OpenAPI type */
 	type: string
-	format?: string
+	format: string | null
 	schemaType: CodegenSchemaType
 
 	/** Type in native language */
@@ -314,7 +315,7 @@ export interface CodegenTypeInfo {
 	// and then rename componentType in CodegenNativeType to be less confusing
 
 	/** Component types for array and map properties */
-	componentSchema?: CodegenSchema
+	componentSchema: CodegenSchema | null
 }
 
 export interface CodegenSchemaInfo extends CodegenTypeInfo {
@@ -330,28 +331,28 @@ export interface CodegenProperty extends CodegenSchema {
 }
 
 export interface CodegenSchema extends CodegenSchemaInfo {
-	description?: string
-	title?: string
-	exampleValue?: string
-	defaultValue?: CodegenValue
+	description: string | null
+	title: string | null
+	example: CodegenExample | null
+	defaultValue: CodegenValue | null
 
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 
 	/* Validation */
-	maximum?: number
-	exclusiveMaximum?: boolean
-	minimum?: number
-	exclusiveMinimum?: boolean
-	maxLength?: number
-	minLength?: number
-	pattern?: string
-	maxItems?: number
-	minItems?: number
-	uniqueItems?: boolean
-	multipleOf?: number
+	maximum: number | null
+	exclusiveMaximum: boolean | null
+	minimum: number | null
+	exclusiveMinimum: boolean | null
+	maxLength: number | null
+	minLength: number | null
+	pattern: string | null
+	maxItems: number | null
+	minItems: number | null
+	uniqueItems: boolean | null
+	multipleOf: number | null
 
 	/** The model that is the type of this schema, if any */
-	model?: CodegenModel
+	model: CodegenModel | null
 }
 
 /**
@@ -360,7 +361,7 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 export interface CodegenValue {
 	/** The value in its raw JavaScript format */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	value?: any
+	value: any | null
 	/** The value formatted as a literal in the native language */
 	literalValue: string
 }
@@ -374,7 +375,7 @@ export interface CodegenScope {
 	scopedName: string[]
 
 	/** Nested models */
-	models?: CodegenModels
+	models: CodegenModels | null
 }
 
 export type CodegenModels = IndexedCollectionType<CodegenModel>
@@ -383,48 +384,48 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	/** The name of this model, as returned by CodegenGenerator.toSchemaName */
 	name: string
 	/** The name of the model in the API spec as it should be used when serialized (e.g. in JSON), if the model was named */
-	serializedName?: string
-	description?: string
+	serializedName: string | null
+	description: string | null
 
-	properties?: CodegenProperties
+	properties: CodegenProperties | null
 
 	/* Polymorphism */
 
 	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
-	discriminator?: CodegenDiscriminator
+	discriminator: CodegenDiscriminator | null
 
 	/** Information about the values of discriminators for this model */
-	discriminatorValues?: CodegenDiscriminatorValue[]
+	discriminatorValues: CodegenDiscriminatorValue[] | null
 
 	/** The models that have this model as their parent */
-	children?: CodegenModels
+	children: CodegenModels | null
 
 	/** Whether this model is an interface; it has no properties and exists as a marker in the type system rather than a functional object */
-	isInterface?: boolean
+	isInterface: boolean
 
 	/** The interface models that this model complies with */
-	implements?: CodegenModels
-	implementors?: CodegenModels
+	implements: CodegenModels | null
+	implementors: CodegenModels | null
 
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 
 	/** The native type to use when declaring a property of this model type */
 	propertyNativeType: CodegenNativeType
 
 	/** Enums */
 	/** The native type of the enum value */
-	enumValueNativeType?: CodegenNativeType
+	enumValueNativeType: CodegenNativeType | null
 	/** The values making up the enum */
-	enumValues?: CodegenEnumValues
+	enumValues: CodegenEnumValues | null
 
 	/** Parent model */
-	parent?: CodegenModel
+	parent: CodegenModel | null
 	/** The native type of the parent.
 	 * This may be set even when `parent` is not set, in case the native parent is not a model.
 	 */
-	parentNativeType?: CodegenNativeType
+	parentNativeType: CodegenNativeType | null
 
-	deprecated?: boolean
+	deprecated: boolean
 }
 
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
@@ -436,7 +437,7 @@ export interface CodegenModelReference {
 
 export interface CodegenDiscriminator extends CodegenTypeInfo {
 	name: string
-	mappings?: CodegenDiscriminatorMappings
+	mappings: CodegenDiscriminatorMappings | null
 	references: CodegenModelReference[]
 }
 
@@ -460,9 +461,9 @@ export interface CodegenSchemaNameOptions {
 
 interface CodegenTypeOptions {
 	type: string
-	format?: string
+	format?: string | null
 	required: boolean
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions?: CodegenVendorExtensions | null
 }
 
 export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
@@ -534,7 +535,7 @@ export interface CodegenNativeObjectTypeOptions {
 	modelNames: string[]
 	purpose: CodegenTypePurpose
 	required?: boolean
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export enum CodegenArrayTypePurpose {
@@ -551,7 +552,7 @@ export interface CodegenNativeArrayTypeOptions {
 	uniqueItems?: boolean
 	modelNames?: string[]
 	purpose: CodegenArrayTypePurpose
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export enum CodegenMapTypePurpose {
@@ -565,7 +566,7 @@ export interface CodegenNativeMapTypeOptions {
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 	purpose: CodegenMapTypePurpose
 }
 
@@ -582,23 +583,24 @@ export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'bod
 interface CodegenParameterBase extends CodegenSchemaInfo {
 	name: string
 	
-	description?: string
-	collectionFormat?: string
+	description: string | null
+	collectionFormat: string | null
 
 	schema: CodegenSchema
 
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenParameter extends CodegenParameterBase {
 	in: CodegenParameterIn
-	examples?: CodegenExamples
+	examples: CodegenExamples | null
+	defaultValue: CodegenValue | null
 
-	isQueryParam?: boolean
-	isPathParam?: boolean
-	isHeaderParam?: boolean
-	isCookieParam?: boolean
-	isFormParam?: boolean
+	isQueryParam: boolean
+	isPathParam: boolean
+	isHeaderParam: boolean
+	isCookieParam: boolean
+	isFormParam: boolean
 }
 export interface CodegenRequestBody extends CodegenParameterBase {
 	contents: CodegenContent[]
@@ -613,51 +615,51 @@ export interface CodegenVendorExtensions {
 
 export interface CodegenSecurityRequirement {
 	scheme: CodegenSecurityScheme
-	scopes?: CodegenAuthScope[]
+	scopes: CodegenAuthScope[] | null
 }
 
 export interface CodegenSecurityScheme {
 	name: string
 	type: string
-	description?: string
+	description: string | null
 
 	/** The header or query parameter name for apiKey */
-	paramName?: string
-	in?: 'header' | 'query' | 'cookie'
+	paramName: string | null
+	in: 'header' | 'query' | 'cookie' | null
 
 	/** The http auth scheme for http auth */
-	scheme?: string
+	scheme: string | null
 	
-	flows?: CodegenOAuthFlow[]
-	openIdConnectUrl?: string
+	flows: CodegenOAuthFlow[] | null
+	openIdConnectUrl: string | null
 
-	isBasic?: boolean
-	isHttp?: boolean
-	isApiKey?: boolean
-	isOAuth?: boolean
-	isOpenIdConnect?: boolean
+	isBasic: boolean
+	isHttp: boolean
+	isApiKey: boolean
+	isOAuth: boolean
+	isOpenIdConnect: boolean
 
-	isInQuery?: boolean
-	isInHeader?: boolean
+	isInQuery: boolean
+	isInHeader: boolean
 
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenOAuthFlow {
 	type: string
-	authorizationUrl?: string
-	tokenUrl?: string
-	refreshUrl?: string
-	scopes?: CodegenAuthScope[]
+	authorizationUrl: string | null
+	tokenUrl: string | null
+	refreshUrl: string | null
+	scopes: CodegenAuthScope[] | null
 
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenAuthScope {
 	name: string
-	description?: string
+	description: string | null
 	
-	vendorExtensions?: CodegenVendorExtensions
+	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenMediaType {
@@ -666,7 +668,7 @@ export interface CodegenMediaType {
 	/** Just the mimeType part of the media type */
 	mimeType: string
 	/** The encoding / charset part of the media type, if present */
-	encoding?: string
+	encoding: string | null
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void

@@ -10,6 +10,7 @@ import { toCodegenSecurityRequirements, toCodegenSecuritySchemes } from './proce
 import { CodegenOperationContext, toCodegenOperation } from './process/operations'
 import { toCodegenParameters } from './process/parameters'
 import { toCodegenModels } from './process/schema'
+import { toCodegenInfo } from './process/info'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -131,7 +132,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		pathItem = resolveReference(pathItem, state)
 
 		const operationContext: CodegenOperationContext = {
-			parameters: pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) : undefined,
+			parameters: pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) || undefined : undefined,
 			summary: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.summary : undefined,
 			description: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.description : undefined,
 		}
@@ -151,12 +152,12 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const groups = groupOperations(operations, state)
 
 	const doc: CodegenDocument = {
-		info: root.info,
+		info: toCodegenInfo(root.info),
 		groups,
 		models: state.models,
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
-		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : undefined,
+		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : null,
 	}
 
 	processCodegenDocument(doc, state)

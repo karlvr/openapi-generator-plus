@@ -164,3 +164,13 @@ export function undefinedIfEmpty<T>(ob: IndexedObjectType<T> | undefined): Index
 	}
 	return ob
 }
+
+export function nullIfEmpty<T>(ob: IndexedObjectType<T> | null): IndexedObjectType<T> | null {
+	if (!ob) {
+		return null
+	}
+	if (isEmpty(ob)) {
+		return null
+	}
+	return ob
+}

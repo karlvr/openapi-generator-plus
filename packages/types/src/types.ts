@@ -37,6 +37,12 @@ export interface CodegenGenerator {
 	/** Convert the given name to the native schema name style */
 	toSchemaName: (name: string, options: CodegenSchemaNameOptions) => string
 	/**
+	 * For schemas that don't have names but need one, suggest a name for the schema in the context
+	 * of the API (rather than of the generated language), as it doesn't have to be in the correct form  
+	 * for the language as it will be passed through `toSchemaName` before being used.
+	 */
+	toSuggestedSchemaName: (suggestedName: string, options: CodegenSchemaNameSuggestionOptions) => string
+	/**
 	 * Return an iteration of a schema name in order to generate a unique schema name.
 	 * The method MUST return a different name for each iteration.
 	 * @param name the schema name
@@ -465,8 +471,10 @@ export interface CodegenDiscriminatorMappings {
 }
 
 export interface CodegenSchemaNameOptions {
-	/** Whether the name of this schema was specified in the API specification, or guessed from context */
-	nameSpecified: boolean
+	schemaType: CodegenSchemaType
+}
+
+export interface CodegenSchemaNameSuggestionOptions {
 	purpose: CodegenSchemaPurpose
 	schemaType: CodegenSchemaType
 }

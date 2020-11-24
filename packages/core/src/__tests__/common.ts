@@ -25,10 +25,11 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toEnumMemberName: (name) => `${name}_enum_member`,
 		toOperationName: (path, method) => `${method} ${path} operation`,
 		toOperationGroupName: (name) => `${name} api`,
-		toSchemaName: (name, options) => {
-			if (options.nameSpecified) {
-				return name
-			} else if (options.schemaType === CodegenSchemaType.ENUM) {
+		toSchemaName: (name) => {
+			return name
+		},
+		toSuggestedSchemaName: (name, options) => {
+			if (options.schemaType === CodegenSchemaType.ENUM) {
 				return `${name}_enum`
 			} else if (options.schemaType === CodegenSchemaType.OBJECT) {
 				return `${name}_model`

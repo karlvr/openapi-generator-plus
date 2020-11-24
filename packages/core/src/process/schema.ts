@@ -2,7 +2,7 @@ import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMapp
 import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
-import { coalesce, extractCodegenSchemaInfo, extractCodegenTypeInfo, nameFromRef, resolveReference } from './utils'
+import { extractCodegenSchemaInfo, extractCodegenTypeInfo, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
@@ -127,9 +127,9 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 	}
 
 	const result: CodegenSchema = {
-		description: coalesce(originalSchema.description, schema.description) || null,
-		title: coalesce(originalSchema.title, schema.title) || null,
-		readOnly: coalesce(originalSchema.readOnly != undefined ? !!originalSchema.readOnly : undefined, schema.readOnly !== undefined ? !!schema.readOnly : undefined) || false,
+		description: schema.description || null,
+		title: schema.title || null,
+		readOnly: schema.readOnly !== undefined ? !!schema.readOnly : false,
 		nullable: false, /* Set below for OpenAPI V3 */
 		writeOnly: false, /* Set below for OpenAPI V3 */
 		deprecated: false, /* Set below for OpenAPI V3 */
@@ -141,27 +141,27 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 		nativeType,
 
 		/* Validation */
-		maximum: coalesce(originalSchema.maximum, schema.maximum) || null,
-		exclusiveMaximum: coalesce(originalSchema.exclusiveMaximum, schema.exclusiveMaximum) || null,
-		minimum: coalesce(originalSchema.minimum, schema.minimum) || null,
-		exclusiveMinimum: coalesce(originalSchema.exclusiveMinimum, schema.exclusiveMinimum) || null,
-		maxLength: coalesce(originalSchema.maxLength, schema.maxLength) || null,
-		minLength: coalesce(originalSchema.minLength, schema.minLength) || null,
-		pattern: coalesce(originalSchema.pattern, schema.pattern) || null,
-		maxItems: coalesce(originalSchema.maxItems, schema.maxItems) || null,
-		minItems: coalesce(originalSchema.minItems, schema.minItems) || null,
-		uniqueItems: coalesce(originalSchema.uniqueItems, schema.uniqueItems) || null,
-		multipleOf: coalesce(originalSchema.multipleOf, schema.multipleOf) || null,
+		maximum: schema.maximum || null,
+		exclusiveMaximum: schema.exclusiveMaximum || null,
+		minimum: schema.minimum || null,
+		exclusiveMinimum: schema.exclusiveMinimum || null,
+		maxLength: schema.maxLength || null,
+		minLength: schema.minLength || null,
+		pattern: schema.pattern || null,
+		maxItems: schema.maxItems || null,
+		minItems: schema.minItems || null,
+		uniqueItems: schema.uniqueItems || null,
+		multipleOf: schema.multipleOf || null,
 
 		/* Model */
 		model: model || null,
 		componentSchema: componentSchema || null,
 	}
 
-	if (isOpenAPIv3SchemaObject(originalSchema, state.specVersion) && isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		result.nullable = coalesce(originalSchema.nullable, schema.nullable) || false
-		result.writeOnly = coalesce(originalSchema.writeOnly, schema.writeOnly) || false
-		result.deprecated = coalesce(originalSchema.deprecated, schema.deprecated) || false
+	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
+		result.nullable = schema.nullable || false
+		result.writeOnly = schema.writeOnly || false
+		result.deprecated = schema.deprecated || false
 	}
 
 	return result

@@ -2,7 +2,7 @@ import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMapp
 import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
-import { coalesce, extractCodegenSchemaInfo, extractCodegenTypeInfo, fixSchema, nameFromRef, resolveReference } from './utils'
+import { coalesce, extractCodegenSchemaInfo, extractCodegenTypeInfo, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
@@ -916,4 +916,28 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 		}
 	}
 	return schemaMappings
+}
+
+/**
+ * Sometimes a schema omits the `type`, even though the specification states that it must be a `string`.
+ * This method corrects for those cases where we can determine what the schema _should_ be.
+ * @param schema 
+ */
+function fixSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): void {
+	if (schema.type === undefined && (schema.required || schema.properties || schema.additionalProperties)) {
+		schema.type = 'object'
+	}
+
+	/* Some specs have the enum declared at the array level, rather than the items. The Vimeo API schema is an example.
+	   https://raw.githubusercontent.com/vimeo/openapi/master/api.yaml
+	*/
+	if (schema.type === 'array' && schema.enum) {
+		if (schema.items) {
+			const items = resolveReference(schema.items, state)
+			if (!items.enum) {
+				items.enum = schema.enum
+				schema.enum = undefined
+			}
+		}
+	}
 }

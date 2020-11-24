@@ -197,6 +197,7 @@ export function toCodegenSchemaType(type: string, format: string | undefined, is
 
 function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaType {
 	schema = resolveReference(schema, state)
+	fixSchema(schema, state)
 
 	if (schema.allOf) {
 		return CodegenSchemaType.OBJECT

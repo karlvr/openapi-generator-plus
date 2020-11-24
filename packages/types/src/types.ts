@@ -37,15 +37,15 @@ export interface CodegenGenerator {
 	/** Convert the given name to the native schema name style */
 	toSchemaName: (name: string, options: CodegenSchemaNameOptions) => string
 	/**
-	 * Return an iteration of a model name in order to generate a unique model name.
+	 * Return an iteration of a schema name in order to generate a unique schema name.
 	 * The method MUST return a different name for each iteration.
-	 * @param name the model name
-	 * @param parentNames the parent model names, if any, for reference
+	 * @param name the schema name
+	 * @param parentNames the parent schema names, if any, for reference
 	 * @param iteration the iteration number of searching for a unique name, starts from 1
 	 * @param state the state
-	 * @returns an iterated model name
+	 * @returns an iterated schema name
 	 */
-	toIteratedModelName: (name: string, parentNames: string[] | undefined, iteration: number) => string
+	toIteratedSchemaName: (name: string, parentNames: string[] | undefined, iteration: number) => string
 
 	/** Format a value as a literal in the language */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -36,8 +36,8 @@ function refForSchemaName(schemaName: string, state: InternalCodegenState): stri
 	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }
 
-export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: boolean, suggestedModelName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUse {
-	const schemaObject = toCodegenSchema(schema, suggestedModelName, purpose, scope, state)
+export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUse {
+	const schemaObject = toCodegenSchema(schema, suggestedName, purpose, scope, state)
 	const result: CodegenSchemaUse = {
 		...extractCodegenSchemaInfo(schemaObject),
 		required,
@@ -64,7 +64,7 @@ export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: bool
 	return result
 }
 
-function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
+function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
 	let type: string
 	let format: string | undefined
 	let nativeType: CodegenNativeType
@@ -77,7 +77,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 	fixSchema(schema, state)
 
 	if (isModelSchema(schema, state)) {
-		model = toCodegenModel(suggestedModelName, purpose, scope, originalSchema, state)
+		model = toCodegenModel(suggestedName, CodegenSchemaPurpose.MODEL, scope, originalSchema, state)
 		type = model.type
 		format = model.format || undefined
 		nativeType = model.propertyNativeType
@@ -90,7 +90,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 			type = 'array'
 			schemaType = CodegenSchemaType.ARRAY
 	
-			const result = handleArraySchema(originalSchema, suggestedModelName, scope, CodegenArrayTypePurpose.PROPERTY, state)
+			const result = handleArraySchema(originalSchema, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
 			componentSchema = result.componentSchema
 			nativeType = result.nativeType
 		} else if (schema.type === 'object') {
@@ -98,7 +98,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 				type = 'object'
 				schemaType = CodegenSchemaType.MAP
 
-				const result = handleMapSchema(originalSchema, suggestedModelName, scope, CodegenMapTypePurpose.PROPERTY, state)
+				const result = handleMapSchema(originalSchema, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
 				nativeType = result.nativeType
 				componentSchema = result.componentSchema
 			} else {
@@ -254,14 +254,14 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 	}
 }
 
-function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: string, scope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, scope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
 	if (isOpenAPIReferenceObject(schema)) {
 		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
 		   scope we came from.
 		 */
 		const possibleName = nameFromRef(schema.$ref)
 		if (possibleName) {
-			suggestedModelName = possibleName
+			suggestedName = possibleName
 		}
 		scope = null
 	}
@@ -274,7 +274,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedModelName: stri
 		required: true,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
-	const componentSchema = toCodegenSchema(schema.additionalProperties, suggestedModelName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
+	const componentSchema = toCodegenSchema(schema.additionalProperties, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
@@ -776,7 +776,7 @@ function uniqueModelName(scopedName: string[], state: InternalCodegenState): str
 	let iteration = 0
 	do {
 		iteration += 1
-		name = state.generator.toIteratedModelName(proposedName, scopeNames, iteration)
+		name = state.generator.toIteratedSchemaName(proposedName, scopeNames, iteration)
 	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName([...scopeNames, name])])
 
 	return [...scopeNames, name]
@@ -842,7 +842,7 @@ function toScopedName(suggestedName: string, purpose: CodegenSchemaPurpose, scop
 		let iteration = 0
 		while (scope.scopedName.indexOf(name) !== -1) {
 			iteration += 1
-			name = state.generator.toIteratedModelName(originalName, scope.scopedName, iteration)
+			name = state.generator.toIteratedSchemaName(originalName, scope.scopedName, iteration)
 		}
 
 		return {

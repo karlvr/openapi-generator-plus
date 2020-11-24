@@ -36,7 +36,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				return name
 			}
 		},
-		toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
+		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration}`,
 		toLiteral: (value) => `literal ${value}`,
 		toNativeType: (options) => new generatorContext.NativeType(options.type),
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),

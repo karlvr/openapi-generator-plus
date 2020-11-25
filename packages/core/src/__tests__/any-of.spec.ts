@@ -5,10 +5,10 @@ test('any-of', async() => {
 	const result = await createTestDocument('any-of/any-of.yml')
 
 	const someObject = idx.find(result.models, m => m.name === 'SomeObject')
-	expect(someObject).not.toBeNull()
+	expect(someObject).toBeDefined()
 	expect(someObject!.isInterface).toBeFalsy()
 
-	const submodels = idx.allValues(someObject?.models!)
+	const submodels = idx.allValues(someObject!.models!)
 	expect(submodels.length).toEqual(1)
 	expect(submodels[0].isInterface).toBeFalsy()
 	expect(submodels[0].implements).not.toBeNull()

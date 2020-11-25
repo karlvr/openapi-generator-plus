@@ -53,11 +53,11 @@ test('all of subclasses discriminator no properties', async() => {
 
 test('one of all of discriminator', async() => {
 	const result = await createTestDocument('discriminator/one-of-all-of-discriminator.yml')
-	expect(result).not.toBeNull()
+	expect(result).toBeDefined()
 	// console.log(util.inspect(result, { depth: 5 }))
 
 	const cat = idx.get(result.models, 'Cat')
-	expect(cat).not.toBeNull()
+	expect(cat).toBeDefined()
 
 	expect(cat?.implements).not.toBeNull()
 	expect(idx.size(cat!.implements!)).toEqual(1)
@@ -68,20 +68,20 @@ test('one of all of discriminator', async() => {
  */
 test('all of discriminator without superclass', async() => {
 	const result = await createTestDocument('discriminator/all-of-discriminator-without-superclass.yml')
-	expect(result).not.toBeNull()
+	expect(result).toBeDefined()
 	// console.log(util.inspect(result, { depth: null }))
 
 	const base = idx.get(result.models, 'Base')!
-	expect(base).not.toBeNull()
+	expect(base).toBeDefined()
 	expect(base.discriminator).not.toBeNull()
 	expect(base.discriminator!.references.length).toEqual(2)
 	
 	const a = idx.get(result.models, 'A')!
-	expect(a).not.toBeNull()
+	expect(a).toBeDefined()
 	expect(a.parent).toBeNull()
 
 	const b = idx.get(result.models, 'B')!
-	expect(b).not.toBeNull()
+	expect(b).toBeDefined()
 	expect(b.parent).not.toBeNull()
 
 	expect(a.discriminator).toBeNull()

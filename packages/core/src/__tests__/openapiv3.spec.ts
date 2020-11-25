@@ -3,7 +3,7 @@ import { idx } from '../'
 
 test('process document', async() => {
 	const result = await createTestDocument('openapiv3/simple.yml')
-	expect(result).not.toBeNull()
+	expect(result).toBeDefined()
 })
 
 test('parse info', async() => {

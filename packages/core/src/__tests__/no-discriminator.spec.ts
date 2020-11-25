@@ -5,7 +5,7 @@ test('one of no discriminator', async() => {
 	const result = await createTestDocument('no-discriminator/one-of-no-discriminator.yml')
 
 	const combinedModel = idx.find(result.models, m => m.name === 'MyResponseType')
-	expect(combinedModel).not.toBeNull()
+	expect(combinedModel).toBeDefined()
 	expect(combinedModel!.isInterface).toBeTruthy()
 
 	/* The combined model has no properties, as it implements the parent interfaces */
@@ -21,7 +21,7 @@ test('one of no discriminator need interface', async() => {
 	const result = await createTestDocument('no-discriminator/one-of-no-discriminator-needs-interfaces.yml')
 
 	const someObject = idx.find(result.models, m => m.name === 'SomeObject')
-	expect(someObject).not.toBeNull()
+	expect(someObject).toBeDefined()
 	expect(someObject!.isInterface).toBeFalsy()
 
 	const submodels = idx.allValues(someObject!.models!)
@@ -31,10 +31,10 @@ test('one of no discriminator need interface', async() => {
 
 test('polygon', async() => {
 	const result = await createTestDocument('no-discriminator/one-of-polygon.yml')
-	expect(result).not.toBeNull()
+	expect(result).toBeDefined()
 
 	const polygon = result.models['Polygon']
-	expect(polygon).not.toBeNull()
+	expect(polygon).toBeDefined()
 	expect(polygon.models).not.toBeNull()
 	const coordinates = polygon.models!['coordinates_model']
 	expect(coordinates.implementors).not.toBeNull()

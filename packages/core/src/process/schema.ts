@@ -12,7 +12,7 @@ import { toCodegenExamples } from './examples'
 export function toCodegenModels(specModels: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external models can use those names */
 	for (const schemaName in specModels) {
-		const fqmn = fullyQualifiedModelName([schemaName])
+		const fqmn = fullyQualifiedName([schemaName])
 		state.usedModelFullyQualifiedNames[fqmn] = true
 		state.reservedNames[refForSchemaName(schemaName, state)] = fqmn
 	}
@@ -381,7 +381,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 
 	/* Add to known models */
 	if (!partial) {
-		state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)] = true
+		state.usedModelFullyQualifiedNames[fullyQualifiedName(scopedName)] = true
 		state.modelsBySchema.set(schema, model)
 	}
 
@@ -624,7 +624,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 					}
 					idx.set(model.implementors, fakeModel.name, fakeModel)
 
-					state.usedModelFullyQualifiedNames[fullyQualifiedModelName(fakeName.scopedName)] = true
+					state.usedModelFullyQualifiedNames[fullyQualifiedName(fakeName.scopedName)] = true
 				}
 			}
 		}
@@ -761,13 +761,12 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 }
 
 /**
- * Returns a fully qualified model name using an internal format for creating fully qualified
+ * Returns a fully qualified schema name using an internal format for creating fully qualified
  * model names. This format does not need to reflect a native format as it is only used internally
- * to track unique model names.
- * @param name the model name
- * @param scopeNames the enclosing model names, if any
+ * to track unique schema names.
+ * @param scopedName the scoped schema names
  */
-function fullyQualifiedModelName(scopedName: string[]): string {
+function fullyQualifiedName(scopedName: string[]): string {
 	return scopedName.join('.')
 }
 
@@ -778,7 +777,7 @@ function fullyQualifiedModelName(scopedName: string[]): string {
  * @param state the state
  */
 function uniqueModelName(scopedName: string[], state: InternalCodegenState): string[] {
-	if (!state.usedModelFullyQualifiedNames[fullyQualifiedModelName(scopedName)]) {
+	if (!state.usedModelFullyQualifiedNames[fullyQualifiedName(scopedName)]) {
 		return scopedName
 	}
 
@@ -789,7 +788,7 @@ function uniqueModelName(scopedName: string[], state: InternalCodegenState): str
 	do {
 		iteration += 1
 		name = state.generator.toIteratedSchemaName(proposedName, scopeNames, iteration)
-	} while (state.usedModelFullyQualifiedNames[fullyQualifiedModelName([...scopeNames, name])])
+	} while (state.usedModelFullyQualifiedNames[fullyQualifiedName([...scopeNames, name])])
 
 	return [...scopeNames, name]
 }
@@ -867,7 +866,7 @@ function toUniqueScopedName(suggestedName: string, scope: CodegenScope | null, s
 	const result = toScopedName(suggestedName, scope, schema, state)
 
 	const reservedName = isOpenAPIReferenceObject(schema) ? state.reservedNames[schema.$ref] : undefined
-	if (reservedName !== fullyQualifiedModelName(result.scopedName)) {
+	if (reservedName !== fullyQualifiedName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
 		result.scopedName = uniqueModelName(result.scopedName, state)
 	}

@@ -764,19 +764,18 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
  * Returns a fully qualified schema name using an internal format for creating fully qualified
  * model names. This format does not need to reflect a native format as it is only used internally
  * to track unique schema names.
- * @param scopedName the scoped schema names
+ * @param scopedName the scoped schema name
  */
 function fullyQualifiedName(scopedName: string[]): string {
 	return scopedName.join('.')
 }
 
 /**
- * Returns a unique model name for a proposed model name.
- * @param proposedName the proposed model name
- * @param scopeNames the enclosing model names, if any
+ * Returns a unique model name for a proposed schema name.
+ * @param scopeNamed the scoped schema name
  * @param state the state
  */
-function uniqueModelName(scopedName: string[], state: InternalCodegenState): string[] {
+function uniqueName(scopedName: string[], state: InternalCodegenState): string[] {
 	if (!state.usedModelFullyQualifiedNames[fullyQualifiedName(scopedName)]) {
 		return scopedName
 	}
@@ -868,7 +867,7 @@ function toUniqueScopedName(suggestedName: string, scope: CodegenScope | null, s
 	const reservedName = isOpenAPIReferenceObject(schema) ? state.reservedNames[schema.$ref] : undefined
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
-		result.scopedName = uniqueModelName(result.scopedName, state)
+		result.scopedName = uniqueName(result.scopedName, state)
 	}
 
 	return result

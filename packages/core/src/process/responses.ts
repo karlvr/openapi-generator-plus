@@ -4,13 +4,13 @@ import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { resolveReference } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { isOpenAPIV2ResponseObject, isOpenAPIV3ResponseObject } from '../openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIV2ResponseObject, isOpenAPIV3ResponseObject } from '../openapi-type-guards'
 import { toCodegenExamples } from './examples'
 import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
-import { toCodegenSchemaUsage } from './schema'
+import { nameFromRef, toCodegenSchemaUsage } from './schema'
 
 export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses
@@ -46,6 +46,7 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 }
 
 function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, scopeName: string, state: InternalCodegenState): CodegenResponse {
+	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref) : `${scopeName}_${code}_response`
 	response = resolveReference(response, state)
 
 	if (code === 0) {
@@ -57,7 +58,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
 		if (response.schema) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			const schemaUse = toCodegenSchemaUsage(response.schema, true, `${scopeName}_${code}_response`, CodegenSchemaPurpose.RESPONSE, null, state)
+			const schemaUse = toCodegenSchemaUsage(response.schema, true, responseContextName, CodegenSchemaPurpose.RESPONSE, null, state)
 			const examples = toCodegenExamples(undefined, response.examples, undefined, schemaUse, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
@@ -73,7 +74,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	} else if (isOpenAPIV3ResponseObject(response, state.specVersion)) {
 		if (response.content) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			contents = toCodegenContentArray(response.content, true, `${scopeName}_${code}_response`, CodegenSchemaPurpose.RESPONSE, null, state)
+			contents = toCodegenContentArray(response.content, true, responseContextName, CodegenSchemaPurpose.RESPONSE, null, state)
 		}
 	} else {
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)

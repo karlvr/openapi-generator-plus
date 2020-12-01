@@ -1,9 +1,9 @@
 import { CodegenHeader, CodegenHeaders, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
-import { isOpenAPIV2HeaderObject, isOpenAPIV3HeaderObject } from '../openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIV2HeaderObject, isOpenAPIV3HeaderObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenExamples } from './examples'
-import { toCodegenSchemaUsage } from './schema'
+import { nameFromRef, toCodegenSchemaUsage } from './schema'
 import { resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
@@ -24,10 +24,11 @@ export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: I
 }
 
 function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalCodegenState): CodegenHeader {
+	const headerContextName = isOpenAPIReferenceObject(header) ? nameFromRef(header.$ref) : name
 	header = resolveReference(header, state)
 
 	if (isOpenAPIV2HeaderObject(header, state.specVersion)) {
-		const schemaUse = toCodegenSchemaUsage(header, false, name, CodegenSchemaPurpose.HEADER, null, state)
+		const schemaUse = toCodegenSchemaUsage(header, false, headerContextName, CodegenSchemaPurpose.HEADER, null, state)
 		return {
 			name,
 			description: null,

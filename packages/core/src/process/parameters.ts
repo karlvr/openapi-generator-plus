@@ -1,13 +1,13 @@
 import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue } from '@openapi-generator-plus/types'
 import { OpenAPI } from 'openapi-types'
-import { isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
 import { resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
-import { toCodegenSchemaUsage } from './schema'
+import { nameFromRef, toCodegenSchemaUsage } from './schema'
 
 export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | null {
 	const result: CodegenParameters = idx.create()
@@ -22,6 +22,7 @@ export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParamet
 }
 
 function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
+	const parameterContextName = isOpenAPIReferenceObject(parameter) ? nameFromRef(parameter.$ref) : `${scopeName}_${parameter.name}`
 	parameter = resolveReference(parameter, state)
 
 	let schemaUse: CodegenSchemaUsage | undefined
@@ -37,12 +38,12 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 * However it's sort of up to the templates to decide where to output models... so does that
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
-		schemaUse = toCodegenSchemaUsage(parameter.schema, parameter.required || false, `${scopeName}_${parameter.name}`, CodegenSchemaPurpose.PARAMETER, null, state)
+		schemaUse = toCodegenSchemaUsage(parameter.schema, parameter.required || false, parameterContextName, CodegenSchemaPurpose.PARAMETER, null, state)
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
 		defaultValue = null
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
-		schemaUse = toCodegenSchemaUsage(parameter, parameter.required || false, `${scopeName}_${parameter.name}`, CodegenSchemaPurpose.PARAMETER, null, state)
+		schemaUse = toCodegenSchemaUsage(parameter, parameter.required || false, parameterContextName, CodegenSchemaPurpose.PARAMETER, null, state)
 		examples = null
 		defaultValue = parameter.default ? state.generator.toDefaultValue(parameter.default, schemaUse) : null
 	} else {

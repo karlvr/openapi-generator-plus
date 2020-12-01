@@ -1,6 +1,6 @@
 import { CodegenContent, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirement } from '@openapi-generator-plus/types'
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
-import { isOpenAPIV3Operation } from '../openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'
 import { extractCodegenSchemaUsage, resolveReference, toUniqueName } from './utils'
@@ -12,6 +12,7 @@ import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
 import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
+import { nameFromRef } from './schema'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
@@ -38,11 +39,13 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 	if (isOpenAPIV3Operation(operation, state.specVersion)) {
 		let requestBody = operation.requestBody
-		requestBody = requestBody && resolveReference(requestBody, state)
 
 		if (requestBody) {
+			const requestBodyContextName = isOpenAPIReferenceObject(requestBody) ? nameFromRef(requestBody.$ref) : `${name}_request`
+			requestBody = resolveReference(requestBody, state)
+
 			/* See toCodegenParameter for rationale about scopeNames */
-			const requestBodyContents = toCodegenContentArray(requestBody.content, requestBody.required || false, `${name}_request`, CodegenSchemaPurpose.REQUEST_BODY, null, state)
+			const requestBodyContents = toCodegenContentArray(requestBody.content, requestBody.required || false, requestBodyContextName, CodegenSchemaPurpose.REQUEST_BODY, null, state)
 			if (!requestBodyContents.length) {
 				throw new Error(`Request body contents is empty: ${path}`)
 			}

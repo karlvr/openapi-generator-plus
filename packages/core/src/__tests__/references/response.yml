@@ -1,0 +1,21 @@
+openapi: 3.0.0
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          $ref: '#/components/responses/MyResponse'
+components:
+  responses:
+    MyResponse:
+      description: My response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                type: string

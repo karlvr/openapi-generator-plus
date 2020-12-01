@@ -40,7 +40,7 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject, required: bo
 	/* Use purpose to refine the suggested name */
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,
-		schemaType: toCodegenSchemaTypeFromSchema(schema, state),
+		schemaType: toCodegenSchemaTypeFromSchema(schema),
 	})
 
 	const schemaObject = toCodegenSchema(schema, suggestedName, scope, state)
@@ -120,7 +120,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 				vendorExtensions: toCodegenVendorExtensions(schema),
 				purpose: CodegenTypePurpose.PROPERTY,
 			})
-			schemaType = toCodegenSchemaType(type, format, false, false)
+			schemaType = toCodegenSchemaType(type, format)
 		} else {
 			throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 		}
@@ -167,12 +167,8 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 	return result
 }
 
-export function toCodegenSchemaType(type: string, format: string | undefined, isEnum: boolean, isMap: boolean): CodegenSchemaType {
-	if (isMap) {
-		return CodegenSchemaType.MAP
-	} else if (isEnum) {
-		return CodegenSchemaType.ENUM
-	} else if (type === 'object') {
+function toCodegenSchemaType(type: string, format: string | undefined): CodegenSchemaType {
+	if (type === 'object') {
 		return CodegenSchemaType.OBJECT
 	} else if (type === 'array') {
 		return CodegenSchemaType.ARRAY
@@ -195,24 +191,19 @@ export function toCodegenSchemaType(type: string, format: string | undefined, is
 	}
 }
 
-function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaType {
-	schema = resolveReference(schema, state)
-	fixSchema(schema, state)
-
+function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject): CodegenSchemaType {
 	if (schema.allOf) {
 		return CodegenSchemaType.OBJECT
 	} else if (schema.anyOf) {
 		return CodegenSchemaType.OBJECT
 	} else if (schema.oneOf) {
 		return CodegenSchemaType.OBJECT
-	}
-
-	if (schema.enum) {
-		return toCodegenSchemaType(typeof schema.type === 'string' ? schema.type : 'object', schema.format, true, false)
-	} else if (schema.type === 'object' && schema.additionalProperties) {
-		return toCodegenSchemaType(schema.type, schema.format, false, true)
+	} else if (schema.enum) {
+		return CodegenSchemaType.ENUM
+	} else if (schema.additionalProperties) {
+		return CodegenSchemaType.MAP
 	} else if (typeof schema.type === 'string') {
-		return toCodegenSchemaType(schema.type, schema.format, false, false)
+		return toCodegenSchemaType(schema.type, schema.format)
 	} else {
 		throw new Error(`Invalid schema type "${schema.type}": ${JSON.stringify(schema)}`)
 	}
@@ -360,7 +351,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 		propertyNativeType,
 		type: 'object',
 		format: schema.format,
-		schemaType: toCodegenSchemaTypeFromSchema(schema, state),
+		schemaType: toCodegenSchemaTypeFromSchema(schema),
 		implements: null,
 		implementors: null,
 		enumValueNativeType: null,
@@ -631,7 +622,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 	} else if (schema.enum) {
 		const enumValueType = 'string'
 		const enumValueFormat = schema.format
-		const enumValuePropertyType = toCodegenSchemaType(enumValueType, enumValueFormat, false, false)
+		const enumValuePropertyType = toCodegenSchemaType(enumValueType, enumValueFormat)
 
 		const enumValueNativeType = state.generator.toNativeType({
 			type: enumValueType,
@@ -836,7 +827,7 @@ function toScopedName(suggestedName: string, scope: CodegenScope | null, schema:
 	}
 
 	const nameOptions: CodegenSchemaNameOptions = {
-		schemaType: toCodegenSchemaTypeFromSchema(schema, state),
+		schemaType: toCodegenSchemaTypeFromSchema(schema),
 	}
 	let name = state.generator.toSchemaName(suggestedName, nameOptions)
 

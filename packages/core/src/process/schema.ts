@@ -220,10 +220,7 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
 		   scope we came from.
 		 */
-		const possibleName = nameFromRef(schema.$ref)
-		if (possibleName) {
-			suggestedItemModelName = possibleName
-		}
+		suggestedItemModelName = nameFromRef(schema.$ref)
 		scope = null
 	}
 
@@ -257,10 +254,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
 		   scope we came from.
 		 */
-		const possibleName = nameFromRef(schema.$ref)
-		if (possibleName) {
-			suggestedName = possibleName
-		}
+		suggestedName = nameFromRef(schema.$ref)
 		scope = null
 	}
 
@@ -811,10 +805,7 @@ function toScopedName(suggestedName: string, scope: CodegenScope | null, schema:
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
 
-		const refName = nameFromRef(schema.$ref)
-		if (refName) {
-			suggestedName = refName
-		}
+		suggestedName = nameFromRef(schema.$ref)
 
 		/* Resolve the schema for the following checks */
 		schema = resolveReference(schema, state)
@@ -935,13 +926,12 @@ function fixSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): 
  * Convert a `$ref` into a name that could be turned into a type.
  * @param $ref 
  */
-function nameFromRef($ref: string): string | undefined {
+export function nameFromRef($ref: string): string {
 	const i = $ref.indexOf('#')
-	if (i === -1) {
-		return undefined
+	if (i === 0) {
+		$ref = $ref.substring(i + 1)
 	}
-
-	$ref = $ref.substring(i + 1)
+	
 	const components = $ref.split('/')
 	return components[components.length - 1]
 }

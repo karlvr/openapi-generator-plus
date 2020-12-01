@@ -6,7 +6,7 @@ import { resolveReference } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIV2ResponseObject, isOpenAPIV3ResponseObject } from '../openapi-type-guards'
 import { toCodegenExamples } from './examples'
-import { commonTypeInfo, findAllContentMediaTypes, toCodegenContentArray } from './content'
+import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
@@ -79,17 +79,13 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
 	}
 
-	/* Determine if there's a common type and nativeType */
-	const commonTypes = commonTypeInfo(contents)
 	const produces = findAllContentMediaTypes(contents)
-
 	const defaultContent = (contents && contents.length) ? contents[0] : null
 
 	return {
 		code,
 		description: response.description,
 		isDefault,
-		...commonTypes,
 		contents: contents && contents.length ? contents : null,
 		defaultContent,
 		produces: produces || null,

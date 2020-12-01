@@ -69,21 +69,6 @@ export function extractCodegenSchemaUsage(source: CodegenSchemaUsage): CodegenSc
 	}
 }
 
-/**
- * Convert a `$ref` into a name that could be turned into a type.
- * @param $ref 
- */
-export function nameFromRef($ref: string): string | undefined {
-	const i = $ref.indexOf('#')
-	if (i === -1) {
-		return undefined
-	}
-
-	$ref = $ref.substring(i + 1)
-	const components = $ref.split('/')
-	return components[components.length - 1]
-}
-
 export function coalesce<T>(...values: (T | undefined)[]): T | undefined {
 	for (const value of values) {
 		if (value !== undefined) {

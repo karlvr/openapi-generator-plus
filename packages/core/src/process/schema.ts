@@ -2,7 +2,7 @@ import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMapp
 import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
-import { extractCodegenSchemaInfo, extractCodegenTypeInfo, nameFromRef, resolveReference } from './utils'
+import { extractCodegenSchemaInfo, extractCodegenTypeInfo, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
@@ -938,4 +938,19 @@ function fixSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): 
 			}
 		}
 	}
+}
+
+/**
+ * Convert a `$ref` into a name that could be turned into a type.
+ * @param $ref 
+ */
+function nameFromRef($ref: string): string | undefined {
+	const i = $ref.indexOf('#')
+	if (i === -1) {
+		return undefined
+	}
+
+	$ref = $ref.substring(i + 1)
+	const components = $ref.split('/')
+	return components[components.length - 1]
 }

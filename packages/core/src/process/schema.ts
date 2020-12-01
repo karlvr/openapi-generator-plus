@@ -23,7 +23,7 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 			$ref: refForSchemaName(schemaName, state),
 		}
 
-		toCodegenSchema(reference, schemaName, null, state)
+		toCodegenSchemaUsage(reference, true, schemaName, CodegenSchemaPurpose.MODEL, null, state)
 	}
 }
 
@@ -36,14 +36,18 @@ function refForSchemaName(schemaName: string, state: InternalCodegenState): stri
 	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }
 
-export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage {
+export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage {
+	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
+	schema = resolveReference(schema, state)
+	fixSchema(schema, state)
+
 	/* Use purpose to refine the suggested name */
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,
 		schemaType: toCodegenSchemaTypeFromSchema(schema),
 	})
 
-	const schemaObject = toCodegenSchema(schema, suggestedName, scope, state)
+	const schemaObject = toCodegenSchema(schema, $ref, suggestedName, purpose, scope, state)
 	const result: CodegenSchemaUsage = {
 		...extractCodegenSchemaInfo(schemaObject),
 		required,
@@ -70,7 +74,7 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject, required: bo
 	return result
 }
 
-function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
+function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
 	let type: string
 	let format: string | undefined
 	let nativeType: CodegenNativeType
@@ -78,12 +82,8 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 	let schemaType: CodegenSchemaType
 	let model: CodegenModel | undefined
 
-	const originalSchema = schema
-	schema = resolveReference(schema, state)
-	fixSchema(schema, state)
-
 	if (isModelSchema(schema, state)) {
-		model = toCodegenModel(suggestedName, false, scope, originalSchema, state)
+		model = toCodegenModel(schema, $ref, suggestedName, purpose === CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
 		type = model.type
 		format = model.format || undefined
 		nativeType = model.propertyNativeType
@@ -96,7 +96,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 			type = 'array'
 			schemaType = CodegenSchemaType.ARRAY
 	
-			const result = handleArraySchema(originalSchema, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
+			const result = handleArraySchema(schema, $ref, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
 			componentSchema = result.componentSchema
 			nativeType = result.nativeType
 		} else if (schema.type === 'object') {
@@ -104,7 +104,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 				type = 'object'
 				schemaType = CodegenSchemaType.MAP
 
-				const result = handleMapSchema(originalSchema, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
+				const result = handleMapSchema(schema, $ref, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
 				nativeType = result.nativeType
 				componentSchema = result.componentSchema
 			} else {
@@ -215,16 +215,14 @@ interface HandleSchemaResult {
 	nativeType: CodegenNativeType
 }
 
-function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName: string, scope: CodegenScope | null, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): HandleSchemaResult {
-	if (isOpenAPIReferenceObject(schema)) {
+function handleArraySchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedItemModelName: string, scope: CodegenScope | null, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+	if ($ref) {
 		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
 		   scope we came from.
 		 */
-		suggestedItemModelName = nameFromRef(schema.$ref)
+		suggestedItemModelName = nameFromRef($ref)
 		scope = null
 	}
-
-	schema = resolveReference(schema, state)
 
 	if (schema.type !== 'array') {
 		throw new Error('Not an array schema')
@@ -249,16 +247,14 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 	}
 }
 
-function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, scope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
-	if (isOpenAPIReferenceObject(schema)) {
+function handleMapSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, scope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): HandleSchemaResult {
+	if ($ref) {
 		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
 		   scope we came from.
 		 */
-		suggestedName = nameFromRef(schema.$ref)
+		suggestedName = nameFromRef($ref)
 		scope = null
 	}
-
-	schema = resolveReference(schema, state)
 	
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
@@ -282,38 +278,30 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 }
 
 function isModelSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
-	const resolvedSchema = resolveReference(schema, state)
-
-	if (resolvedSchema.enum || (resolvedSchema.type === 'object' && !resolvedSchema.additionalProperties) ||
-		resolvedSchema.allOf || resolvedSchema.anyOf || resolvedSchema.oneOf) {
+	if (schema.enum || (schema.type === 'object' && !schema.additionalProperties) || schema.allOf || schema.anyOf || schema.oneOf) {
 		return true
 	}
 
-	if (resolvedSchema.type === 'array' && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+	if (schema.type === 'array' && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
 		return true
 	}
 
-	if (resolvedSchema.type === 'object' && resolvedSchema.additionalProperties && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+	if (schema.type === 'object' && schema.additionalProperties && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
 		return true
 	}
 
 	return false
 }
 
-function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenModel {
-	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
-	const { scopedName, scope } = partial ? toScopedName(suggestedName, suggestedScope, schema, state) : toUniqueScopedName(suggestedName, suggestedScope, schema, state)
+function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, partial: boolean, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenModel {
+	const { scopedName, scope } = partial ? toScopedName($ref, suggestedName, suggestedScope, schema, state) : toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
 	const name = scopedName[scopedName.length - 1]
 	
-	schema = resolveReference(schema, state)
-
 	/* Check if we've already generated this model, and return it */
 	const existing = state.modelsBySchema.get(schema)
 	if (existing) {
 		return existing
 	}
-
-	fixSchema(schema, state)
 
 	const nativeType = state.generator.toNativeObjectType({
 		purpose: CodegenTypePurpose.MODEL,
@@ -400,8 +388,8 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 		   it creates end up scoped to this model.
 		 */
 		if (isOpenAPIReferenceObject(otherSchema)) {
-			const otherSchemaObject = toCodegenSchema(otherSchema, name, scope, state)
-			const otherSchemaModel = otherSchemaObject.model
+			const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.MODEL, scope, state)
+			const otherSchemaModel = otherSchemaUsage.schema.model
 			if (!otherSchemaModel) {
 				throw new Error(`Cannot absorb schema as it isn't a model: ${otherSchema}`)
 			}
@@ -410,10 +398,14 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 			absorbModel(otherSchemaModel, { includeNestedModels: false })
 			return otherSchemaModel
 		} else {
-			const otherSchemaModel = toCodegenModel(name, true, scope, otherSchema, state)
+			const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
 			/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
-			absorbModel(otherSchemaModel, { includeNestedModels: true })
-			return otherSchemaModel
+			if (otherSchemaUsage.schema.model) {
+				absorbModel(otherSchemaUsage.schema.model, { includeNestedModels: true })
+				return otherSchemaUsage.schema.model
+			} else {
+				throw new Error(`Cannot absorb a non-object schema in ${model.name}`)
+			}
 		}		
 	}
 
@@ -441,8 +433,8 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 
 			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && (!nextSchema || !isOpenAPIReferenceObject(nextSchema))
 			if (canDoSingleParentInheritance) {
-				const parentSchema = toCodegenSchema(possibleParentSchema, 'parent', suggestedScope, state)
-				const parentModel = parentSchema.model
+				const parentSchemaUsage = toCodegenSchemaUsage(possibleParentSchema, true, 'parent', CodegenSchemaPurpose.MODEL, suggestedScope, state)
+				const parentModel = parentSchemaUsage.schema.model
 
 				/* If the parent model is an interface then we cannot use it as a parent */
 				if (parentModel && !parentModel.isInterface) {
@@ -481,8 +473,8 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 		/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 		const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
 		for (const subSchema of anyOf) {
-			const subSchemaObject = toCodegenSchema(subSchema, 'submodel', model, state)
-			const subModel = subSchemaObject.model
+			const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+			const subModel = subSchemaUsage.schema.model
 			if (!subModel) {
 				// TODO
 				throw new Error(`Non-model schema not yet supported in anyOf: ${subSchema}`)
@@ -522,8 +514,8 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 			}
 			
 			for (const subSchema of oneOf) {
-				const subSchemaObject = toCodegenSchema(subSchema, 'submodel', model, state)
-				const subModel = subSchemaObject.model
+				const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subModel = subSchemaUsage.schema.model
 				if (!subModel) {
 					throw new Error(`Non-model schema not support in oneOf with discriminator: ${subSchema}`)
 				}
@@ -568,8 +560,8 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 			model.isInterface = true
 
 			for (const subSchema of oneOf) {
-				const subSchemaObject = toCodegenSchema(subSchema, 'submodel', model, state)
-				const subModel = subSchemaObject.model
+				const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subModel = subSchemaUsage.schema.model
 				if (subModel) {
 					if (!subModel.implements) {
 						subModel.implements = idx.create()
@@ -581,9 +573,9 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 					idx.set(model.implementors, subModel.name, subModel)
 				} else {
 					// TODO resolve this hack as we can only have models as implementors, and the TypeScript generator politely handles it
-					const fakeName = toUniqueScopedName('fake', model, subSchema, state)
+					const fakeName = toUniqueScopedName(undefined, 'fake', model, subSchema, state)
 					const fakeModel: CodegenModel = {
-						...subSchemaObject,
+						...subSchemaUsage.schema,
 						name: fakeName.scopedName[fakeName.scopedName.length - 1],
 						serializedName: null,
 						properties: null,
@@ -592,7 +584,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 						discriminatorValues: null,
 						children: null,
 						isInterface: false,
-						propertyNativeType: subSchemaObject.nativeType,
+						propertyNativeType: subSchemaUsage.nativeType,
 						scopedName: fakeName.scopedName,
 						implements: null,
 						implementors: null,
@@ -649,7 +641,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 			throw new Error(`Illegal entry into toCodegenModel for array schema when we do not generate collection models: ${schema}`)
 		}
 
-		const result = handleArraySchema(schema, 'array', model, CodegenArrayTypePurpose.PARENT, state)
+		const result = handleArraySchema(schema, $ref, 'array', model, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
 		model.componentSchema = result.componentSchema
 	} else if (schema.type === 'object') {
@@ -658,7 +650,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 				throw new Error(`Illegal entry into toCodegenModel for map schema when we do not generate collection models: ${schema}`)
 			}
 
-			const result = handleMapSchema(schema, 'map', model, CodegenMapTypePurpose.PARENT, state)
+			const result = handleMapSchema(schema, $ref, 'map', model, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
 			model.componentSchema = result.componentSchema
 		} else if (schema.discriminator) {
@@ -778,8 +770,6 @@ function uniqueName(scopedName: string[], state: InternalCodegenState): string[]
 }
 
 function toCodegenModelProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
-	schema = resolveReference(schema, state)
-
 	if (typeof schema.properties !== 'object') {
 		return undefined
 	}
@@ -800,15 +790,12 @@ interface ScopedModelInfo {
 	scope: CodegenScope | null
 }
 
-function toScopedName(suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): ScopedModelInfo {
-	if (isOpenAPIReferenceObject(schema)) {
+function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): ScopedModelInfo {
+	if ($ref) {
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
 
-		suggestedName = nameFromRef(schema.$ref)
-
-		/* Resolve the schema for the following checks */
-		schema = resolveReference(schema, state)
+		suggestedName = nameFromRef($ref)
 	}
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
@@ -843,10 +830,10 @@ function toScopedName(suggestedName: string, scope: CodegenScope | null, schema:
 	}
 }
 
-function toUniqueScopedName(suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
-	const result = toScopedName(suggestedName, scope, schema, state)
+function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
+	const result = toScopedName($ref, suggestedName, scope, schema, state)
 
-	const reservedName = isOpenAPIReferenceObject(schema) ? state.reservedNames[schema.$ref] : undefined
+	const reservedName = $ref ? state.reservedNames[$ref] : undefined
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
 		result.scopedName = uniqueName(result.scopedName, state)

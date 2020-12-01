@@ -1,4 +1,4 @@
-import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenEnumValues, CodegenLiteralValueOptions, CodegenMapTypePurpose, CodegenModel, CodegenModels, CodegenNativeType, CodegenProperties, CodegenProperty, CodegenSchema, CodegenSchemaUse, CodegenSchemaNameOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, CodegenTypePurpose } from '@openapi-generator-plus/types'
+import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenEnumValues, CodegenLiteralValueOptions, CodegenMapTypePurpose, CodegenModel, CodegenModels, CodegenNativeType, CodegenProperties, CodegenProperty, CodegenSchema, CodegenSchemaUsage, CodegenSchemaNameOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, CodegenTypePurpose } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
@@ -36,7 +36,7 @@ function refForSchemaName(schemaName: string, state: InternalCodegenState): stri
 	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }
 
-export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUse {
+export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage {
 	/* Use purpose to refine the suggested name */
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,
@@ -44,7 +44,7 @@ export function toCodegenSchemaUse(schema: OpenAPIX.SchemaObject, required: bool
 	})
 
 	const schemaObject = toCodegenSchema(schema, suggestedName, scope, state)
-	const result: CodegenSchemaUse = {
+	const result: CodegenSchemaUsage = {
 		...extractCodegenSchemaInfo(schemaObject),
 		required,
 		schema: schemaObject,
@@ -247,7 +247,7 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 	}
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchema = toCodegenSchemaUse(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, scope, state)
+	const componentSchema = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, scope, state)
 	const nativeType = state.generator.toNativeArrayType({
 		componentNativeType: componentSchema.nativeType,
 		uniqueItems: schema.uniqueItems,
@@ -281,7 +281,7 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 		required: true,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
-	const componentSchema = toCodegenSchemaUse(schema.additionalProperties, true, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
+	const componentSchema = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
@@ -751,7 +751,7 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
-	const schemaUse = toCodegenSchemaUse(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
+	const schemaUse = toCodegenSchemaUsage(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
 	return {
 		...schemaUse,
 		name,

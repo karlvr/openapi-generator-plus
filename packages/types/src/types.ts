@@ -226,7 +226,7 @@ export interface CodegenHeader extends CodegenParameterBase {
 	name: string
 }
 
-export interface CodegenContent extends CodegenSchemaUse {
+export interface CodegenContent extends CodegenSchemaUsage {
 	mediaType: CodegenMediaType
 }
 
@@ -333,14 +333,14 @@ export interface CodegenSchemaInfo extends CodegenTypeInfo {
  * An interface for objects that use CodegenSchemas. It contains information from the API
  * spec schema, applicable to the object that uses the schema.
  */
-export interface CodegenSchemaUse extends CodegenSchemaInfo {
+export interface CodegenSchemaUsage extends CodegenSchemaInfo {
 	schema: CodegenSchema
 	required: boolean
 	examples: CodegenExamples | null
 	defaultValue: CodegenValue | null
 }
 
-export interface CodegenProperty extends CodegenSchemaUse {
+export interface CodegenProperty extends CodegenSchemaUsage {
 	name: string
 	description: string | null
 
@@ -598,7 +598,7 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
 
-interface CodegenParameterBase extends CodegenSchemaUse {
+interface CodegenParameterBase extends CodegenSchemaUsage {
 	name: string
 	
 	description: string | null

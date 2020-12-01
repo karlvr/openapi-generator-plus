@@ -10,7 +10,7 @@ import { commonTypeInfo, findAllContentMediaTypes, toCodegenContentArray } from 
 import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
-import { toCodegenSchemaUse } from './schema'
+import { toCodegenSchemaUsage } from './schema'
 
 export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses
@@ -57,7 +57,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
 		if (response.schema) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			const schemaUse = toCodegenSchemaUse(response.schema, true, `${scopeName}_${code}_response`, CodegenSchemaPurpose.RESPONSE, null, state)
+			const schemaUse = toCodegenSchemaUsage(response.schema, true, `${scopeName}_${code}_response`, CodegenSchemaPurpose.RESPONSE, null, state)
 			const examples = toCodegenExamples(undefined, response.examples, undefined, schemaUse, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)

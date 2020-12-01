@@ -1,4 +1,4 @@
-import { CodegenExample, CodegenExamples, CodegenSchemaUse, CodegenSchemaType, CodegenTypeInfo } from '@openapi-generator-plus/types'
+import { CodegenExample, CodegenExamples, CodegenSchemaUsage, CodegenSchemaType, CodegenTypeInfo } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -14,7 +14,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchemaUse, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
+function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
 	return {
 		value,
 		valueLiteral: canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, schema) : value,
@@ -25,7 +25,7 @@ function exampleValue(value: any, mediaType: string | undefined, schema: Codegen
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-function toCodegenExample(example: any, mediaType: string | undefined, schema: CodegenSchemaUse, state: InternalCodegenState): CodegenExample {
+function toCodegenExample(example: any, mediaType: string | undefined, schema: CodegenSchemaUsage, state: InternalCodegenState): CodegenExample {
 	return {
 		name: null,
 		summary: null,
@@ -37,7 +37,7 @@ function toCodegenExample(example: any, mediaType: string | undefined, schema: C
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchemaUse, state: InternalCodegenState): CodegenExamples | null {
+export function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
 	if (example) {
 		return idx.create([
 			['default', toCodegenExample(example, mediaType, schema, state)],

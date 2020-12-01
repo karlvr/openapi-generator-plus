@@ -238,16 +238,16 @@ function handleArraySchema(schema: OpenAPIX.SchemaObject, suggestedItemModelName
 	}
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchema = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, scope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, scope, state)
 	const nativeType = state.generator.toNativeArrayType({
-		componentNativeType: componentSchema.nativeType,
+		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: schema.uniqueItems,
 		purpose,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
 
 	return {
-		componentSchema: componentSchema.schema,
+		componentSchema: componentSchemaUsage.schema,
 		nativeType,
 	}
 }
@@ -272,17 +272,17 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, suggestedName: string, s
 		required: true,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
-	const componentSchema = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
-		componentNativeType: componentSchema.nativeType,
+		componentNativeType: componentSchemaUsage.nativeType,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 		purpose,
 	})
 
 	return {
-		componentSchema: componentSchema.schema,
+		componentSchema: componentSchemaUsage.schema,
 		nativeType,
 	}
 }
@@ -742,12 +742,12 @@ function toCodegenModel(suggestedName: string, partial: boolean, suggestedScope:
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
-	const schemaUse = toCodegenSchemaUsage(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
+	const schemaUsage = toCodegenSchemaUsage(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
 	return {
-		...schemaUse,
+		...schemaUsage,
 		name,
-		description: schemaUse.schema.description,
-		initialValue: schemaUse.defaultValue || state.generator.toDefaultValue(undefined, schemaUse),
+		description: schemaUsage.schema.description,
+		initialValue: schemaUsage.defaultValue || state.generator.toDefaultValue(undefined, schemaUsage),
 	}
 }
 

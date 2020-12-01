@@ -9,15 +9,15 @@ import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from './examples'
 
-export function toCodegenModels(specModels: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
-	/* Collect defined schema names first, so no inline or external models can use those names */
-	for (const schemaName in specModels) {
-		const fqmn = fullyQualifiedName([schemaName])
-		state.usedModelFullyQualifiedNames[fqmn] = true
-		state.reservedNames[refForSchemaName(schemaName, state)] = fqmn
+export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
+	/* Collect defined schema names first, so no inline or external schemas can use those names */
+	for (const schemaName in specSchemas) {
+		const fqn = fullyQualifiedName([schemaName])
+		state.usedModelFullyQualifiedNames[fqn] = true
+		state.reservedNames[refForSchemaName(schemaName, state)] = fqn
 	}
 
-	for (const schemaName in specModels) {
+	for (const schemaName in specSchemas) {
 		/* We load the model using a reference as we use references to distinguish between explicit and inline models */
 		const reference: OpenAPIX.ReferenceObject = {
 			$ref: refForSchemaName(schemaName, state),

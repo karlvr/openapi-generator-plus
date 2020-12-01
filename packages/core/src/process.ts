@@ -9,7 +9,7 @@ import { resolveReference } from './process/utils'
 import { toCodegenSecurityRequirements, toCodegenSecuritySchemes } from './process/security'
 import { CodegenOperationContext, toCodegenOperation } from './process/operations'
 import { toCodegenParameters } from './process/parameters'
-import { toCodegenModels } from './process/schema'
+import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
@@ -118,9 +118,9 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const root = state.root
 
 	/* Process schemas first so we can check for duplicate names when creating new anonymous models */
-	const specModels = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
-	if (specModels) {
-		toCodegenModels(specModels, state)
+	const specSchemas = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
+	if (specSchemas) {
+		discoverCodegenSchemas(specSchemas, state)
 	}
 
 	for (const path in root.paths) {

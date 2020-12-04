@@ -532,28 +532,11 @@ export enum CodegenSchemaPurpose {
 	HEADER = 'HEADER',
 }
 
-export enum CodegenTypePurpose {
-	/** A type for a model class */
-	MODEL = 'MODEL',
-	/** A type for an object property */
-	PROPERTY = 'PROPERTY',
-	/** A type for an enum */
-	ENUM = 'ENUM',
-	/** A type for a model parent */
-	PARENT = 'PARENT',
-	/** A type for a Map key */
-	KEY = 'KEY',
-	/** A type for a discriminator */
-	DISCRIMINATOR = 'DISCRIMINATOR',
-}
-
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
-	purpose: CodegenTypePurpose
 }
 
 export interface CodegenNativeObjectTypeOptions {
 	modelNames: string[]
-	purpose: CodegenTypePurpose
 	vendorExtensions: CodegenVendorExtensions | null
 }
 

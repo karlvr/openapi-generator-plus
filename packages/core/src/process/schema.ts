@@ -1,4 +1,4 @@
-import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenEnumValues, CodegenLiteralValueOptions, CodegenMapTypePurpose, CodegenModel, CodegenModels, CodegenNativeType, CodegenProperties, CodegenProperty, CodegenSchema, CodegenSchemaUsage, CodegenSchemaNameOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, CodegenTypePurpose } from '@openapi-generator-plus/types'
+import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenEnumValues, CodegenLiteralValueOptions, CodegenMapTypePurpose, CodegenModel, CodegenModels, CodegenNativeType, CodegenProperties, CodegenProperty, CodegenSchema, CodegenSchemaUsage, CodegenSchemaNameOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
@@ -60,7 +60,6 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 			type: result.type,
 			format: result.format,
 			vendorExtensions: schemaObject.vendorExtensions,
-			purpose: CodegenTypePurpose.KEY,
 			required,
 		})
 	}
@@ -118,7 +117,6 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 				format,
 				required: true,
 				vendorExtensions: toCodegenVendorExtensions(schema),
-				purpose: CodegenTypePurpose.PROPERTY,
 			})
 			schemaType = toCodegenSchemaType(type, format)
 		} else {
@@ -258,7 +256,6 @@ function handleMapSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 	
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
-		purpose: CodegenTypePurpose.KEY,
 		required: true,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
@@ -304,13 +301,11 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 	}
 
 	const nativeType = state.generator.toNativeObjectType({
-		purpose: CodegenTypePurpose.MODEL,
 		modelNames: scopedName,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
 
 	const propertyNativeType = state.generator.toNativeObjectType({
-		purpose: CodegenTypePurpose.PROPERTY,
 		modelNames: scopedName,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
@@ -510,7 +505,7 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 				format: null,
 				componentSchema: null,
 				schemaType: CodegenSchemaType.STRING,
-				nativeType: state.generator.toNativeType({ type: 'string', required: true, purpose: CodegenTypePurpose.DISCRIMINATOR }),
+				nativeType: state.generator.toNativeType({ type: 'string', required: true }),
 			}
 			
 			for (const subSchema of oneOf) {
@@ -613,7 +608,6 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 		const enumValueNativeType = state.generator.toNativeType({
 			type: enumValueType,
 			format: schema.format,
-			purpose: CodegenTypePurpose.ENUM,
 			required: true,
 			vendorExtensions: toCodegenVendorExtensions(schema),
 		})

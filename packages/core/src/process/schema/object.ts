@@ -420,11 +420,15 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
+	/* We allow preserving the original description if the usage is by reference */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const description = isOpenAPIReferenceObject(schema) ? (schema as any).description : undefined
+
 	const schemaUsage = toCodegenSchemaUsage(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
 	return {
 		...schemaUsage,
 		name,
-		description: schemaUsage.schema.description,
+		description: description || schemaUsage.schema.description || null,
 		initialValue: schemaUsage.defaultValue || state.generator.toDefaultValue(undefined, schemaUsage),
 	}
 }

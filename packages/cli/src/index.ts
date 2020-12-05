@@ -144,7 +144,7 @@ export async function run(): Promise<void> {
 		console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
 	}
 
-	if (commandLineOptions.clean) {
+	if (result && commandLineOptions.clean) {
 		await clean(beforeGeneration, config, generatorConstructor)
 	}
 	

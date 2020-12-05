@@ -270,21 +270,21 @@ export interface CodegenNativeType {
 	 * The native language type to use if no translation is done from the communication layer.
 	 * e.g. the type as it will be when deserialised from JSON.
 	 */
-	serializedType?: string
+	serializedType: string | null
 	/**
 	 * The native language type when expressing this type as a type literal, e.g. in java `java.util.List`
 	 * as opposed to `java.util.List<java.lang.String>`, which is not valid as a type literal.
 	 */
-	literalType?: string
+	literalType: string | null
 	/**
 	 * The concrete native language type to use when creating an object of this type. 
 	 */
-	concreteType?: string
+	concreteType: string | null
 	/**
 	 * The native language type when this type is a component of another type, e.g. an array.
 	 * NOTE: The `componentType` may be set to `this` if there is no special component type for this type.
 	 */
-	componentType?: CodegenNativeType
+	componentType: CodegenNativeType | null
 
 	toString(): string
 

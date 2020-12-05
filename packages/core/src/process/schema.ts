@@ -85,7 +85,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 		model = toCodegenModel(schema, $ref, suggestedName, purpose === CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
 		type = model.type
 		format = model.format || undefined
-		nativeType = model.propertyNativeType
+		nativeType = model.nativeType
 		schemaType = model.schemaType
 	} else {
 		if (schema.type === 'array') {
@@ -305,11 +305,6 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 		vendorExtensions: toCodegenVendorExtensions(schema),
 	})
 
-	const propertyNativeType = state.generator.toNativeObjectType({
-		modelNames: scopedName,
-		vendorExtensions: toCodegenVendorExtensions(schema),
-	})
-
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const model: CodegenModel = {
@@ -325,7 +320,6 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 		isInterface: false,
 		vendorExtensions,
 		nativeType,
-		propertyNativeType,
 		type: 'object',
 		format: schema.format,
 		schemaType: toCodegenSchemaTypeFromSchema(schema),
@@ -579,7 +573,7 @@ function toCodegenModel(schema: OpenAPIX.SchemaObject, $ref: string | undefined,
 						discriminatorValues: null,
 						children: null,
 						isInterface: false,
-						propertyNativeType: subSchemaUsage.nativeType,
+						nativeType: subSchemaUsage.nativeType,
 						scopedName: fakeName.scopedName,
 						implements: null,
 						implementors: null,

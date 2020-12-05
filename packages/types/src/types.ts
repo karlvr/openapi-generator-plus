@@ -427,9 +427,6 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 
 	vendorExtensions: CodegenVendorExtensions | null
 
-	/** The native type to use when declaring a property of this model type */
-	propertyNativeType: CodegenNativeType
-
 	/** Enums */
 	/** The native type of the enum value */
 	enumValueNativeType: CodegenNativeType | null

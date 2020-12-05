@@ -13,7 +13,7 @@ test('array model', async() => {
 	const queryParams = idx.allValues(op1.queryParams!)
 	const queryParam1 = queryParams[0]
 	expect(queryParam1.name).toEqual('statuses')
-	expect(queryParam1.nativeType.toString()).toEqual('array Statuses_enum')
+	expect(queryParam1.nativeType.toString()).toEqual('array Status_enum')
 })
 
 test('array model with collection models', async() => {
@@ -45,7 +45,7 @@ test('map model', async() => {
 	const queryParams = idx.allValues(op1.queryParams!)
 	const queryParam1 = queryParams[0]
 	expect(queryParam1.name).toEqual('statuses')
-	expect(queryParam1.nativeType.toString()).toEqual('map Statuses_model')
+	expect(queryParam1.nativeType.toString()).toEqual('map Status_model')
 })
 
 test('map model with collection models', async() => {

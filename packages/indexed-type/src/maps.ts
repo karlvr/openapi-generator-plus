@@ -56,7 +56,7 @@ export function create<K, V>(entries?: [K, V][]): Map<K, V> {
 	}
 }
 
-export function set<K, V>(map: Map<K, V>, key: K, value: V): void {
+export function set<K, V, O extends V>(map: Map<K, V>, key: K, value: O): void {
 	map.set(key, value)
 }
 

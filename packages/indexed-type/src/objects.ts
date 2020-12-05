@@ -120,7 +120,7 @@ export function create<T>(entries?: [string, T][]): IndexedObjectType<T> {
 	return result
 }
 
-export function set<T>(ob: IndexedObjectType<T>, key: string, value: T): void {
+export function set<T, V extends T>(ob: IndexedObjectType<T>, key: string, value: V): void {
 	ob[key] = value
 }
 

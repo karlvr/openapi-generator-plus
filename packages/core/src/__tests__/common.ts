@@ -1,7 +1,8 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
+import pluralize from 'pluralize'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig
@@ -29,6 +30,9 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			return name
 		},
 		toSuggestedSchemaName: (name, options) => {
+			if (options.purpose === CodegenSchemaPurpose.ARRAY_ITEM || options.purpose === CodegenSchemaPurpose.MAP_VALUE) {
+				name = pluralize.singular(name)
+			}
 			if (options.schemaType === CodegenSchemaType.ENUM) {
 				return `${name}_enum`
 			} else if (options.schemaType === CodegenSchemaType.OBJECT) {

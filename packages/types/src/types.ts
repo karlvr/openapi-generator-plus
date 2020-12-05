@@ -298,6 +298,7 @@ export enum CodegenSchemaType {
 	ARRAY = 'ARRAY',
 	BOOLEAN = 'BOOLEAN',
 	NUMBER = 'NUMBER',
+	INTEGER = 'INTEGER',
 	ENUM = 'ENUM',
 	STRING = 'STRING',
 	DATETIME = 'DATETIME',
@@ -357,7 +358,7 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 
 export interface CodegenNumericSchema extends CodegenSchema {
 	type: 'number' | 'integer'
-	schemaType: CodegenSchemaType.NUMBER
+	schemaType: CodegenSchemaType.NUMBER | CodegenSchemaType.INTEGER
 
 	maximum: number | null
 	exclusiveMaximum: boolean | null

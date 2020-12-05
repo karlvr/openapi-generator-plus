@@ -2,6 +2,7 @@ import { CodegenNumericSchema, CodegenSchemaType } from '@openapi-generator-plus
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
+import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenNumericSchema {
@@ -9,6 +10,11 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, state: Int
 		throw new Error('Not a numeric schema')
 	}
 
+	const schemaType = toCodegenSchemaType(schema.type, schema.format)
+	if (schemaType !== CodegenSchemaType.NUMBER && schemaType !== CodegenSchemaType.INTEGER) {
+		throw new Error(`Unsupported numeric schema type: ${schemaType}`)
+	}
+	
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeType({
@@ -21,7 +27,7 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, state: Int
 	const result: CodegenNumericSchema = {
 		type: schema.type,
 		format: schema.format || null,
-		schemaType: CodegenSchemaType.NUMBER,
+		schemaType,
 		nativeType,
 		componentSchema: null,
 

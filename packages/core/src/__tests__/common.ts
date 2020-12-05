@@ -58,6 +58,8 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				case CodegenSchemaType.OBJECT:
 					return { value: {}, literalValue: '{}' }
 				case CodegenSchemaType.NUMBER:
+					return { value: 0.0, literalValue: '0.0' }
+				case CodegenSchemaType.INTEGER:
 					return { value: 0, literalValue: '0' }
 				case CodegenSchemaType.BOOLEAN:
 					return { value: false, literalValue: 'false' }

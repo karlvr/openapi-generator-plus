@@ -8,8 +8,10 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 		return CodegenSchemaType.ARRAY
 	} else if (type === 'boolean') {
 		return CodegenSchemaType.BOOLEAN
-	} else if (type === 'number' || type === 'integer') {
+	} else if (type === 'number') {
 		return CodegenSchemaType.NUMBER
+	} else if (type === 'integer') {
+		return CodegenSchemaType.INTEGER
 	} else if (type === 'string' && format === 'date-time') {
 		return CodegenSchemaType.DATETIME
 	} else if (type === 'string' && format === 'date') {

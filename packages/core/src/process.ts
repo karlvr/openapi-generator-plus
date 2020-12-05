@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenModel, CodegenOperationGroup, CodegenOperationGroups, HttpMethods, CodegenGeneratorType, CodegenModels } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenObjectSchema, CodegenOperationGroup, CodegenOperationGroups, HttpMethods, CodegenGeneratorType, CodegenObjectSchemas, CodegenSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
@@ -56,13 +56,13 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function processCodegenModels(models: CodegenModels, state: InternalCodegenState) {
+function processCodegenModels(models: CodegenObjectSchemas, state: InternalCodegenState) {
 	for (const entry of idx.iterable(models)) {
 		const result = processCodegenModel(entry[1], state)
 		if (!result) {
 			idx.remove(models, entry[0])
 		} else {
-			const subModels = entry[1].models
+			const subModels = entry[1].schemas
 			if (subModels) {
 				processCodegenModels(subModels, state)
 			}
@@ -78,7 +78,7 @@ function processCodegenOperation(op: CodegenOperation, state: InternalCodegenSta
 	return true
 }
 
-function processCodegenModel(model: CodegenModel, state: InternalCodegenState): boolean {
+function processCodegenModel(model: CodegenObjectSchema, state: InternalCodegenState): boolean {
 	if (hasNoGenerationRule(model, state)) {
 		return false
 	}
@@ -92,7 +92,7 @@ function processCodegenModel(model: CodegenModel, state: InternalCodegenState): 
 	return true
 }
 
-function hasNoGenerationRule(ob: CodegenOperation | CodegenModel, state: InternalCodegenState): boolean {
+function hasNoGenerationRule(ob: CodegenOperation | CodegenSchema, state: InternalCodegenState): boolean {
 	const generatorType = state.generator.generatorType()
 	if (generatorType === CodegenGeneratorType.SERVER) {
 		return (ob.vendorExtensions && ob.vendorExtensions['x-no-server'])

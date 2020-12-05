@@ -24,7 +24,7 @@ test('one of no discriminator need interface', async() => {
 	expect(someObject).toBeDefined()
 	expect(someObject!.isInterface).toBeFalsy()
 
-	const submodels = idx.allValues(someObject!.models!)
+	const submodels = idx.allValues(someObject!.schemas!)
 	expect(submodels.length).toEqual(1)
 	expect(submodels[0].isInterface).toBeTruthy()
 })
@@ -35,11 +35,11 @@ test('polygon', async() => {
 
 	const polygon = result.models['Polygon']
 	expect(polygon).toBeDefined()
-	expect(polygon.models).not.toBeNull()
-	const coordinates = polygon.models!['coordinates_model']
+	expect(polygon.schemas).not.toBeNull()
+	const coordinates = polygon.schemas!['coordinates_model']
 	expect(coordinates.implementors).not.toBeNull()
 	expect(idx.size(coordinates.implementors!)).toEqual(2)
 
 	const oneOfCoordinates = idx.allValues(coordinates.implementors!)[0]
-	expect(oneOfCoordinates.propertyNativeType.nativeType).toEqual('array array array number')
+	expect(oneOfCoordinates.nativeType.nativeType).toEqual('array array array number')
 })

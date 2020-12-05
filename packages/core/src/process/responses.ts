@@ -2,7 +2,7 @@ import { CodegenContent, CodegenMediaType, CodegenResponse, CodegenResponses, Co
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
-import { resolveReference } from './utils'
+import { nameFromRef, resolveReference } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIReferenceObject, isOpenAPIV2ResponseObject, isOpenAPIV3ResponseObject } from '../openapi-type-guards'
 import { toCodegenExamples } from './examples'
@@ -10,7 +10,7 @@ import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
-import { nameFromRef, toCodegenSchemaUsage } from './schema'
+import { toCodegenSchemaUsage } from './schema'
 
 export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses

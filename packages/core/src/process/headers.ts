@@ -3,8 +3,8 @@ import { isOpenAPIReferenceObject, isOpenAPIV2HeaderObject, isOpenAPIV3HeaderObj
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenExamples } from './examples'
-import { nameFromRef, toCodegenSchemaUsage } from './schema'
-import { resolveReference } from './utils'
+import { toCodegenSchemaUsage } from './schema'
+import { nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | null {

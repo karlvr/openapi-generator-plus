@@ -3,11 +3,11 @@ import { OpenAPI } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
-import { resolveReference } from './utils'
+import { nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
-import { nameFromRef, toCodegenSchemaUsage } from './schema'
+import { toCodegenSchemaUsage } from './schema'
 
 export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | null {
 	const result: CodegenParameters = idx.create()

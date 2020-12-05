@@ -30,7 +30,7 @@ test('object map', async() => {
 	expect(prop1.schemaType).toEqual(CodegenSchemaType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')
 	
-	expect(model1.models).toBeNull()
+	expect(model1.schemas).toBeNull()
 })
 
 /**
@@ -51,5 +51,5 @@ test('object map with no map parents', async() => {
 	expect(prop1.schemaType).toEqual(CodegenSchemaType.MAP)
 	expect(prop1.nativeType.toString()).toEqual('map model2')
 	
-	expect(model1.models).toBeNull()
+	expect(model1.schemas).toBeNull()
 })

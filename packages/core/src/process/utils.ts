@@ -77,3 +77,17 @@ export function coalesce<T>(...values: (T | undefined)[]): T | undefined {
 	}
 	return undefined
 }
+
+/**
+ * Convert a `$ref` into a name that could be turned into a type.
+ * @param $ref 
+ */
+export function nameFromRef($ref: string): string {
+	const i = $ref.indexOf('#')
+	if (i === 0) {
+		$ref = $ref.substring(i + 1)
+	}
+	
+	const components = $ref.split('/')
+	return components[components.length - 1]
+}

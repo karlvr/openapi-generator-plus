@@ -69,7 +69,7 @@ export interface CodegenGenerator {
 	/** Apply any post-processing to the given model.
 	 * @returns `false` if the model should be excluded.
 	 */
-	postProcessModel?: (model: CodegenModel) => boolean | void
+	postProcessModel?: (model: CodegenObjectSchema) => boolean | void
 
 	/**
 	 * Apply any post-processing to the given document.
@@ -112,7 +112,7 @@ export interface CodegenConfig {
 export interface CodegenDocument {
 	info: CodegenInfo
 	groups: CodegenOperationGroup[]
-	models: CodegenModels
+	models: CodegenObjectSchemas
 	servers: CodegenServer[] | null
 	securitySchemes: CodegenSecurityScheme[] | null
 	securityRequirements: CodegenSecurityRequirement[] | null
@@ -353,22 +353,65 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	title: string | null
 
 	vendorExtensions: CodegenVendorExtensions | null
+}
 
-	/* Validation */
+export interface CodegenNumericSchema extends CodegenSchema {
+	type: 'number' | 'integer'
+	schemaType: CodegenSchemaType.NUMBER
+
 	maximum: number | null
 	exclusiveMaximum: boolean | null
 	minimum: number | null
 	exclusiveMinimum: boolean | null
+	multipleOf: number | null
+}
+
+export interface CodegenBooleanSchema extends CodegenSchema {
+	type: 'boolean'
+	schemaType: CodegenSchemaType.BOOLEAN
+}
+
+export interface CodegenStringSchema extends CodegenSchema {
+	type: 'string'
+	schemaType: CodegenSchemaType.STRING | CodegenSchemaType.DATE | CodegenSchemaType.DATETIME | CodegenSchemaType.TIME
+
 	maxLength: number | null
 	minLength: number | null
 	pattern: string | null
+
+}
+
+export interface CodegenArraySchema extends CodegenSchema {
+	type: 'array'
+	schemaType: CodegenSchemaType.ARRAY
+
 	maxItems: number | null
 	minItems: number | null
 	uniqueItems: boolean | null
-	multipleOf: number | null
+}
 
-	/** The model that is the type of this schema, if any */
-	model: CodegenModel | null
+export interface CodegenMapSchema extends CodegenSchema {
+	type: 'object'
+	schemaType: CodegenSchemaType.MAP
+	
+	maxItems: number | null
+	minItems: number | null
+}
+
+export interface CodegenEnumSchema extends CodegenSchema, CodegenScope {
+	schemaType: CodegenSchemaType.ENUM
+
+	/** The name of the enum schema */
+	name: string
+
+	/** The name of the enum in the API spec as it should be used when serialized (e.g. in JSON), if the enum was named */
+	serializedName: string | null
+
+	/** Enums */
+	/** The native type of the enum value */
+	enumValueNativeType: CodegenNativeType | null
+	/** The values making up the enum */
+	enumValues: CodegenEnumValues | null
 }
 
 /**
@@ -387,21 +430,22 @@ export interface CodegenValue {
  * Allows room in future for operations to define a naming scope.
  */
 export interface CodegenScope {
-	/** The scoped name of this model as an array. The components are as returned by CodegenGenerator.toSchemaName */
+	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
 	scopedName: string[]
 
-	/** Nested models */
-	models: CodegenModels | null
+	/** Nested schemas */
+	schemas: CodegenObjectSchemas | null
 }
 
-export type CodegenModels = IndexedCollectionType<CodegenModel>
-
-export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
-	/** The name of this model, as returned by CodegenGenerator.toSchemaName */
+export interface CodegenObjectSchema extends CodegenSchema, CodegenScope {
+	/** The name of the object schema */
 	name: string
+
 	/** The name of the model in the API spec as it should be used when serialized (e.g. in JSON), if the model was named */
 	serializedName: string | null
-	description: string | null
+
+	type: 'object'
+	schemaType: CodegenSchemaType.OBJECT
 
 	properties: CodegenProperties | null
 
@@ -416,49 +460,41 @@ export interface CodegenModel extends CodegenTypeInfo, CodegenScope {
 	discriminatorValues: CodegenDiscriminatorValue[] | null
 
 	/** The models that have this model as their parent */
-	children: CodegenModels | null
+	children: CodegenObjectSchemas | null
 
 	/** Whether this model is an interface; it has no properties and exists as a marker in the type system rather than a functional object */
 	isInterface: boolean
 
 	/** The interface models that this model complies with */
-	implements: CodegenModels | null
-	implementors: CodegenModels | null
-
-	vendorExtensions: CodegenVendorExtensions | null
-
-	/** Enums */
-	/** The native type of the enum value */
-	enumValueNativeType: CodegenNativeType | null
-	/** The values making up the enum */
-	enumValues: CodegenEnumValues | null
+	implements: CodegenObjectSchemas | null
+	implementors: CodegenObjectSchemas | null
 
 	/** Parent model */
-	parent: CodegenModel | null
+	parent: CodegenObjectSchema | null
 	/** The native type of the parent.
 	 * This may be set even when `parent` is not set, in case the native parent is not a model.
 	 */
 	parentNativeType: CodegenNativeType | null
-
-	deprecated: boolean
 }
+
+export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
-export interface CodegenModelReference {
-	model: CodegenModel
+export interface CodegenObjectSchemaReference {
+	model: CodegenObjectSchema
 	name: string
 }
 
 export interface CodegenDiscriminator extends CodegenTypeInfo {
 	name: string
 	mappings: CodegenDiscriminatorMappings | null
-	references: CodegenModelReference[]
+	references: CodegenObjectSchemaReference[]
 }
 
 export interface CodegenDiscriminatorValue {
 	/** The model containing the discriminator */
-	model: CodegenModel
+	model: CodegenObjectSchema
 	/** The value literal in the native language */
 	value: string
 }

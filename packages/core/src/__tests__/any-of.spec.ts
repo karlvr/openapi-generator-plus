@@ -8,7 +8,7 @@ test('any-of', async() => {
 	expect(someObject).toBeDefined()
 	expect(someObject!.isInterface).toBeFalsy()
 
-	const submodels = idx.allValues(someObject!.models!)
+	const submodels = idx.allValues(someObject!.schemas!)
 	expect(submodels.length).toEqual(1)
 	expect(submodels[0].isInterface).toBeFalsy()
 	expect(submodels[0].implements).not.toBeNull()

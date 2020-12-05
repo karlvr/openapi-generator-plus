@@ -413,6 +413,8 @@ export interface CodegenEnumSchema extends CodegenSchema, CodegenScope {
 	enumValueNativeType: CodegenNativeType | null
 	/** The values making up the enum */
 	enumValues: CodegenEnumValues | null
+
+	examples: CodegenExamples | null
 }
 
 /**

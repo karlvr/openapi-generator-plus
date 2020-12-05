@@ -7,6 +7,7 @@ import { addToScope, extractCodegenSchemaCommon } from './utils'
 import { toCodegenSchemaType } from './schema-type'
 import { nameFromRef } from '../utils'
 import { toUniqueScopedName } from './naming'
+import { toCodegenExamples } from '../examples'
 
 export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenEnumSchema {
 	if (!schema.enum) {
@@ -75,7 +76,11 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 
 		enumValueNativeType,
 		enumValues,
+
+		examples: null,
 	}
+
+	result.examples = toCodegenExamples(schema.example, undefined, undefined, result, state)
 
 	addToScope(result, scope, state)
 	return result

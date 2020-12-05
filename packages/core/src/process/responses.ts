@@ -62,6 +62,10 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 			const examples = toCodegenExamples(undefined, response.examples, undefined, schemaUse, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
+			if (!mediaTypes) {
+				console.warn(`Response for operation ${scopeName} has a schema but operation doesn't specify any produces media types`)
+			}
+
 			contents = mediaTypes ? mediaTypes.map(mediaType => {
 				const result: CodegenContent = {
 					mediaType,

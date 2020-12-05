@@ -12,6 +12,7 @@ import { OpenAPIV3 } from 'openapi-types'
 import { toCodegenArraySchema } from './array'
 import { toCodegenMapSchema } from './map'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
+import { toCodegenExamples } from '../examples'
 
 export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, partial: boolean, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName, scope } = partial ? toScopedName($ref, suggestedName, suggestedScope, schema, state) : toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
@@ -57,8 +58,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 		deprecated: false,
 	}
 
-	// TODO models should be able to get the example from the schema
-	// model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
 
 	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
 		model.deprecated = schema.deprecated || false

@@ -46,7 +46,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 		vendorExtensions,
 		nativeType,
 		type: 'object',
-		format: schema.format,
+		format: schema.format || null,
 		schemaType: CodegenSchemaType.OBJECT,
 		implements: null,
 		implementors: null,

@@ -44,7 +44,7 @@ export function createCodegenDocument(input: CodegenInput, state: CodegenState):
 		...state,
 		...input,
 		usedModelFullyQualifiedNames: {},
-		modelsBySchema: new Map(),
+		knownSchemas: new Map(),
 		reservedNames: {},
 		models: idx.create(),
 		specVersion: toSpecVersion(input.root),

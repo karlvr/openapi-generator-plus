@@ -18,12 +18,6 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 	const { scopedName, scope } = partial ? toScopedName($ref, suggestedName, suggestedScope, schema, state) : toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
 	const name = scopedName[scopedName.length - 1]
 	
-	/* Check if we've already generated this model, and return it */
-	const existing = state.modelsBySchema.get(schema)
-	if (existing) {
-		return existing
-	}
-
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
@@ -67,7 +61,11 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 	/* Add to known models */
 	if (!partial) {
 		state.usedModelFullyQualifiedNames[fullyQualifiedName(scopedName)] = true
-		state.modelsBySchema.set(schema, model)
+
+		/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
+		   when a model references other models that in turn reference this model.
+		 */
+		state.knownSchemas.set(schema, model)
 	}
 
 	model.properties = toCodegenProperties(schema, model, state) || null

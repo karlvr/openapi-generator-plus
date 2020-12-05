@@ -82,20 +82,27 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 }
 
 function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
+	/* Check if we've already generated this schema, and return it */
+	const existing = state.knownSchemas.get(schema)
+	if (existing) {
+		return existing
+	}
+	
+	let result: CodegenSchema
 	if (isObjectSchema(schema, state)) {
-		return toCodegenObjectSchema(schema, $ref, suggestedName, purpose === CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
+		result = toCodegenObjectSchema(schema, $ref, suggestedName, purpose === CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
 	} else if (schema.type === 'array') {
-		return toCodegenArraySchema(schema, $ref, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
+		result = toCodegenArraySchema(schema, $ref, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
 	} else if (schema.type === 'object' && schema.additionalProperties) {
-		return toCodegenMapSchema(schema, $ref, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
+		result = toCodegenMapSchema(schema, $ref, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
 	} else if (schema.enum) {
-		return toCodegenEnumSchema(schema, $ref, suggestedName, scope, state)
+		result = toCodegenEnumSchema(schema, $ref, suggestedName, scope, state)
 	} else if (schema.type === 'number' || schema.type === 'integer') {
-		return toCodegenNumericSchema(schema, state)
+		result = toCodegenNumericSchema(schema, state)
 	} else if (schema.type === 'string') {
-		return toCodegenStringSchema(schema, state)
+		result = toCodegenStringSchema(schema, state)
 	} else if (schema.type === 'boolean') {
-		return toCodegenBooleanSchema(schema, state)
+		result = toCodegenBooleanSchema(schema, state)
 	} else if (typeof schema.type === 'string') {
 		/* Generic unsupported schema support */
 		const type = schema.type
@@ -109,7 +116,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			vendorExtensions,
 		})
 
-		const result: CodegenSchema = {
+		result = {
 			type,
 			format: format || null,
 			schemaType: toCodegenSchemaType(type, format),
@@ -120,10 +127,13 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 
 			...extractCodegenSchemaCommon(schema, state),
 		}
-		return result
 	} else {
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
+
+	/* Add the result to the knownSchemas to avoid generating again */
+	state.knownSchemas.set(schema, result)
+	return result
 }
 
 function isObjectSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {

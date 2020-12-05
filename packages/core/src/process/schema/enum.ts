@@ -19,12 +19,6 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 
 	const { scopedName, scope } = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
 	const name = scopedName[scopedName.length - 1]
-	
-	/* Check if we've already generated this model, and return it */
-	const existing = state.modelsBySchema.get(schema)
-	if (existing) {
-		return existing as any as CodegenEnumSchema // FIXME when modelsBySchema has all schemas, we'll no doubt move this "existing" check into toCodegenSchema
-	}
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 

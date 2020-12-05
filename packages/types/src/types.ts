@@ -394,8 +394,8 @@ export interface CodegenMapSchema extends CodegenSchema {
 	type: 'object'
 	schemaType: CodegenSchemaType.MAP
 	
-	maxItems: number | null
-	minItems: number | null
+	maxProperties: number | null
+	minProperties: number | null
 }
 
 export interface CodegenEnumSchema extends CodegenSchema, CodegenScope {

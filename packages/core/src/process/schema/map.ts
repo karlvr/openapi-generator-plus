@@ -41,8 +41,8 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, $ref: string |
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,
 
-		maxItems: schema.maxItems || null,
-		minItems: schema.minItems || null,
+		maxProperties: schema.maxProperties || null,
+		minProperties: schema.minProperties || null,
 	}
 	return result
 }

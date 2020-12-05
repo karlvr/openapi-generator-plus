@@ -148,8 +148,12 @@ function isObjectSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenSta
  * @param schema 
  */
 function fixSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): void {
-	if (schema.type === undefined && (schema.required || schema.properties || schema.additionalProperties)) {
-		schema.type = 'object'
+	if (schema.type === undefined) {
+		if (schema.required || schema.properties || schema.additionalProperties) {
+			schema.type = 'object'
+		} else if (schema.enum) {
+			schema.type = 'string'
+		}
 	}
 
 	/* Some specs have the enum declared at the array level, rather than the items. The Vimeo API schema is an example.

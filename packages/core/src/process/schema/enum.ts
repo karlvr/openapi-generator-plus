@@ -14,7 +14,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 		throw new Error('Not an enum schema')
 	}
 	if (typeof schema.type !== 'string') {
-		throw new Error(`Invalid schema type for enum schema: ${schema.type}`)
+		throw new Error(`Invalid schema type for enum schema: ${schema.type}: ${JSON.stringify(schema)}`)
 	}
 
 	const { scopedName, scope } = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)

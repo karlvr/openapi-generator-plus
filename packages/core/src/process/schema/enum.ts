@@ -56,7 +56,6 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 		name,
 		serializedName: $ref ? (nameFromRef($ref) || null) : null,
 		scopedName,
-		schemas: null,
 
 		type: schema.type,
 		format: schema.format || null,

@@ -399,7 +399,7 @@ export interface CodegenMapSchema extends CodegenSchema {
 	minProperties: number | null
 }
 
-export interface CodegenEnumSchema extends CodegenSchema, CodegenScope {
+export interface CodegenEnumSchema extends CodegenSchema {
 	schemaType: CodegenSchemaType.ENUM
 
 	/** The name of the enum schema */

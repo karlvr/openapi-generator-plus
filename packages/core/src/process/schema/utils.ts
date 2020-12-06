@@ -21,10 +21,6 @@ export function extractCodegenSchemaCommon(schema: OpenAPIX.SchemaObject, state:
 	}
 }
 
-export function isCodegenObjectSchema(schema: CodegenSchema): schema is CodegenObjectSchema {
-	return schema.schemaType === CodegenSchemaType.OBJECT
-}
-
 export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, state: InternalCodegenState): void {
 	const name: string = (schema as any).name // FIXME once we move name to CodegenSchema
 	if (scope) {

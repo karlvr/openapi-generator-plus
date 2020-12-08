@@ -1,15 +1,14 @@
-import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { addToScope, extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon } from './utils'
 import { toCodegenSchemaType } from './schema-type'
-import { nameFromRef } from '../utils'
-import { toUniqueScopedName } from './naming'
+import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
 
-export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenEnumSchema {
+export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
 	if (!schema.enum) {
 		throw new Error('Not an enum schema')
 	}
@@ -17,13 +16,19 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 		throw new Error(`Invalid schema type for enum schema: ${schema.type}: ${JSON.stringify(schema)}`)
 	}
 
-	const { scopedName, scope } = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
-	const name = scopedName[scopedName.length - 1]
-
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
+	if (!naming) {
+		// TODO what does an enum look like if it doesn't have a name? can enums be inline in some languages?
+		// perhaps in TypeScript that would mean our native type was a disjunction of our enum values?
+		// so the generator needs to do that for us.
+		// Perhaps that means we don't use toNativeObjectType, but instead a toNativeEnumType, that takes 
+		// the enum values as well and can optionally use them to make a type literal?
+		throw new Error('enum doesn\'t currently support not being named')
+	}
+	
 	const nativeType = state.generator.toNativeObjectType({
-		modelNames: scopedName,
+		modelNames: naming.scopedName,
 		vendorExtensions,
 	})
 
@@ -53,9 +58,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 	}])))
 
 	const result: CodegenEnumSchema = {
-		name,
-		serializedName: $ref ? (nameFromRef($ref) || null) : null,
-		scopedName,
+		...extractNaming(naming),
 
 		type: schema.type,
 		format: schema.format || null,
@@ -74,7 +77,5 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, $ref: string 
 	}
 
 	result.examples = toCodegenExamples(schema.example, undefined, undefined, result, state)
-
-	addToScope(result, scope, state)
 	return result
 }

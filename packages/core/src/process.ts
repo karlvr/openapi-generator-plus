@@ -1,5 +1,5 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenObjectSchema, CodegenOperationGroup, CodegenOperationGroups, HttpMethods, CodegenGeneratorType, CodegenObjectSchemas, CodegenSchema } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, HttpMethods, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
@@ -30,13 +30,13 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	}
 
 	/* Process models */
-	processCodegenModels(doc.models, state)
+	processCodegenSchemas(doc.schemas, state)
 
 	/* Sort groups */
 	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
 
-	/* Sort models */
-	doc.models = idx.sortValues(doc.models, (a, b) => a.name.localeCompare(b.name))
+	/* Sort schemas */
+	doc.schemas = idx.sortValues(doc.schemas, (a, b) => a.name.localeCompare(b.name))
 
 	if (state.generator.postProcessDocument) {
 		state.generator.postProcessDocument(doc)
@@ -56,15 +56,15 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-function processCodegenModels(models: CodegenObjectSchemas, state: InternalCodegenState) {
+function processCodegenSchemas(models: CodegenSchemas, state: InternalCodegenState) {
 	for (const entry of idx.iterable(models)) {
-		const result = processCodegenModel(entry[1], state)
+		const result = processCodegenSchema(entry[1], state)
 		if (!result) {
 			idx.remove(models, entry[0])
-		} else {
+		} else if (isCodegenScope(entry[1])) {
 			const subModels = entry[1].schemas
 			if (subModels) {
-				processCodegenModels(subModels, state)
+				processCodegenSchemas(subModels, state)
 			}
 		}
 	}
@@ -78,13 +78,13 @@ function processCodegenOperation(op: CodegenOperation, state: InternalCodegenSta
 	return true
 }
 
-function processCodegenModel(model: CodegenObjectSchema, state: InternalCodegenState): boolean {
-	if (hasNoGenerationRule(model, state)) {
+function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState): boolean {
+	if (hasNoGenerationRule(schema, state)) {
 		return false
 	}
 
-	if (state.generator.postProcessModel) {
-		const result = state.generator.postProcessModel(model)
+	if (state.generator.postProcessSchema) {
+		const result = state.generator.postProcessSchema(schema)
 		if (result === false) {
 			return false
 		}
@@ -154,7 +154,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const doc: CodegenDocument = {
 		info: toCodegenInfo(root.info),
 		groups,
-		models: state.models,
+		schemas: state.schemas,
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
 		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : null,

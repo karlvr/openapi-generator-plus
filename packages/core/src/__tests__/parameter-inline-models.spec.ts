@@ -15,9 +15,10 @@ test('inline response model', async() => {
 	expect(param1.name).toEqual('arg1')
 	expect(param1.nativeType.toString()).toEqual('getTest1_arg1_enum')
 
-	expect(idx.size(result.models)).toEqual(1)
+	expect(idx.size(result.schemas)).toEqual(1)
 
-	const models = idx.allValues(result.models)
+	const models = idx.allValues(result.schemas)
 	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_arg1_enum')
+	expect(model1.serializedName).toBeNull() /* As it's not a defined schema with a name */
 })

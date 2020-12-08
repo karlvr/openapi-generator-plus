@@ -4,17 +4,9 @@ import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
-import { nameFromRef } from '../utils'
+import { extractNaming, ScopedModelInfo } from './naming'
 
-export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, scope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): CodegenMapSchema {
-	if ($ref) {
-		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
-		   scope we came from.
-		 */
-		suggestedName = nameFromRef($ref)
-		scope = null
-	}
-
+export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): CodegenMapSchema {
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 	
 	const keyNativeType = state.generator.toNativeType({
@@ -22,7 +14,7 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, $ref: string |
 		required: true,
 		vendorExtensions,
 	})
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedName, CodegenSchemaPurpose.MAP_VALUE, scope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedValueModelName, CodegenSchemaPurpose.MAP_VALUE, suggestedValueModelScope, state)
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,
@@ -32,6 +24,8 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, $ref: string |
 	})
 
 	const result: CodegenMapSchema = {
+		...extractNaming(naming),
+		
 		type: 'object',
 		format: schema.format || null,
 		schemaType: CodegenSchemaType.MAP,

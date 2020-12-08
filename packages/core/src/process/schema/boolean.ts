@@ -2,9 +2,10 @@ import { CodegenBooleanSchema, CodegenSchemaType } from '@openapi-generator-plus
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
+import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenBooleanSchema {
+export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenBooleanSchema {
 	if (schema.type !== 'boolean') {
 		throw new Error('Not a boolean schema')
 	}
@@ -20,6 +21,8 @@ export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, state: Int
 	})
 
 	const result: CodegenBooleanSchema = {
+		...extractNaming(naming),
+
 		type: schema.type,
 		format: format || null,
 		schemaType: CodegenSchemaType.BOOLEAN,

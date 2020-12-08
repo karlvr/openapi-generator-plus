@@ -10,19 +10,19 @@ import { toCodegenArraySchema } from './array'
 import { toCodegenBooleanSchema } from './boolean'
 import { toCodegenEnumSchema } from './enum'
 import { toCodegenMapSchema } from './map'
-import { fullyQualifiedName } from './naming'
+import { fullyQualifiedName, toUniqueScopedName, extractNaming } from './naming'
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
-import { extractCodegenSchemaCommon } from './utils'
+import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
 	for (const schemaName in specSchemas) {
 		const fqn = fullyQualifiedName([schemaName])
-		state.usedModelFullyQualifiedNames[fqn] = true
-		state.reservedNames[refForSchemaName(schemaName, state)] = fqn
+		state.usedFullyQualifiedSchemaNames[fqn] = true
+		state.reservedSchemaNames[refForSchemaName(schemaName, state)] = fqn
 	}
 
 	for (const schemaName in specSchemas) {
@@ -48,12 +48,6 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
 	schema = resolveReference(schema, state)
 	fixSchema(schema, state)
-
-	/* Use purpose to refine the suggested name */
-	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
-		purpose,
-		schemaType: toCodegenSchemaTypeFromSchema(schema),
-	})
 
 	const schemaObject = toCodegenSchema(schema, $ref, suggestedName, purpose, scope, state)
 	const result: CodegenSchemaUsage = {
@@ -81,28 +75,45 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 	return result
 }
 
-function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
+function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, purpose: CodegenSchemaPurpose, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
 	/* Check if we've already generated this schema, and return it */
 	const existing = state.knownSchemas.get(schema)
 	if (existing) {
 		return existing
 	}
+
+	const schemaType = toCodegenSchemaTypeFromSchema(schema)
+
+	/* Use purpose to refine the suggested name */
+	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
+		purpose,
+		schemaType,
+	})
+
+	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state) : null
+	if (naming) {
+		state.usedFullyQualifiedSchemaNames[fullyQualifiedName(naming.scopedName)] = true
+	}
 	
 	let result: CodegenSchema
 	if (isObjectSchema(schema, state)) {
-		result = toCodegenObjectSchema(schema, $ref, suggestedName, purpose === CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
+		if (!naming) {
+			// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
+			throw new Error(`no name for ${JSON.stringify(schema)}`)
+		}
+		result = toCodegenObjectSchema(schema, naming, $ref, state)
 	} else if (schema.type === 'array') {
-		result = toCodegenArraySchema(schema, $ref, suggestedName, scope, CodegenArrayTypePurpose.PROPERTY, state)
+		result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, CodegenArrayTypePurpose.PROPERTY, state)
 	} else if (schema.type === 'object' && schema.additionalProperties) {
-		result = toCodegenMapSchema(schema, $ref, suggestedName, scope, CodegenMapTypePurpose.PROPERTY, state)
+		result = toCodegenMapSchema(schema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, CodegenMapTypePurpose.PROPERTY, state)
 	} else if (schema.enum) {
-		result = toCodegenEnumSchema(schema, $ref, suggestedName, scope, state)
+		result = toCodegenEnumSchema(schema, naming, state)
 	} else if (schema.type === 'number' || schema.type === 'integer') {
-		result = toCodegenNumericSchema(schema, state)
+		result = toCodegenNumericSchema(schema, naming, state)
 	} else if (schema.type === 'string') {
-		result = toCodegenStringSchema(schema, state)
+		result = toCodegenStringSchema(schema, naming, state)
 	} else if (schema.type === 'boolean') {
-		result = toCodegenBooleanSchema(schema, state)
+		result = toCodegenBooleanSchema(schema, naming, state)
 	} else if (typeof schema.type === 'string') {
 		/* Generic unsupported schema support */
 		const type = schema.type
@@ -117,6 +128,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 		})
 
 		result = {
+			...extractNaming(naming),
 			type,
 			format: format || null,
 			schemaType: toCodegenSchemaType(type, format),
@@ -131,9 +143,29 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
 
-	/* Add the result to the knownSchemas to avoid generating again */
-	state.knownSchemas.set(schema, result)
+	addToKnownSchemas(schema, result, state)
+
+	if (naming) {
+		addToScope(result, naming.scope, state)
+	}
 	return result
+}
+
+// TODO this will be customised by the generator
+function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean, purpose: CodegenSchemaPurpose, state: InternalCodegenState): boolean {
+	if (schemaType === CodegenSchemaType.OBJECT || schemaType === CodegenSchemaType.ENUM) {
+		return true
+	}
+	
+	if (schemaType === CodegenSchemaType.ARRAY && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+		return true
+	}
+
+	if (schemaType === CodegenSchemaType.MAP && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
+		return true
+	}
+
+	return false
 }
 
 function isObjectSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {

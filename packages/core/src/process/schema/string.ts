@@ -1,11 +1,13 @@
-import { CodegenSchemaType, CodegenStringSchema } from '@openapi-generator-plus/types'
+import { CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
+import { nameFromRef } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
+import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenStringSchema {
+export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
 	if (schema.type !== 'string') {
 		throw new Error('Not a string schema')
 	}
@@ -26,6 +28,8 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, state: Inte
 	})
 
 	const result: CodegenStringSchema = {
+		...extractNaming(naming),
+		
 		type: schema.type,
 		format: format || null,
 		schemaType,

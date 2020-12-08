@@ -2,10 +2,11 @@ import { CodegenNumericSchema, CodegenSchemaType } from '@openapi-generator-plus
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
+import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenNumericSchema {
+export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
 	if (schema.type !== 'number' && schema.type !== 'integer') {
 		throw new Error('Not a numeric schema')
 	}
@@ -25,6 +26,8 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, state: Int
 	})
 
 	const result: CodegenNumericSchema = {
+		...extractNaming(naming),
+		
 		type: schema.type,
 		format: schema.format || null,
 		schemaType,

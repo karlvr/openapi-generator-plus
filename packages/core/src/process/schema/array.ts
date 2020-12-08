@@ -2,19 +2,11 @@ import { CodegenArraySchema, CodegenArrayTypePurpose, CodegenSchemaPurpose, Code
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
-import { nameFromRef } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
+import { extractNaming, ScopedModelInfo } from './naming'
 
-export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedItemModelName: string, scope: CodegenScope | null, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): CodegenArraySchema {
-	if ($ref) {
-		/* This schema is a reference, so our item schema shouldn't be nested in whatever parent
-		   scope we came from.
-		 */
-		suggestedItemModelName = nameFromRef($ref)
-		scope = null
-	}
-
+export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): CodegenArraySchema {
 	if (schema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
@@ -26,7 +18,7 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, $ref: string
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, scope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, suggestedItemModelScope, state)
 	const nativeType = state.generator.toNativeArrayType({
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: schema.uniqueItems,
@@ -35,6 +27,8 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, $ref: string
 	})
 
 	const result: CodegenArraySchema = {
+		...extractNaming(naming),
+		
 		type: 'array',
 		format: schema.format || null,
 		schemaType: CodegenSchemaType.ARRAY,

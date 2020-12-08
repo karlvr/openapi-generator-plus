@@ -1,22 +1,21 @@
-import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenMapTypePurpose, CodegenObjectSchema, CodegenObjectSchemas, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenMapTypePurpose, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenTypeInfo, nameFromRef } from '../utils'
+import { extractCodegenTypeInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { fullyQualifiedName, toScopedName, toUniqueScopedName } from './naming'
-import { addToScope, extractCodegenSchemaCommon } from './utils'
+import { extractNaming, fullyQualifiedName, ScopedModelInfo, toUniqueScopedName } from './naming'
+import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
 import { OpenAPIV3 } from 'openapi-types'
-import { toCodegenArraySchema } from './array'
-import { toCodegenMapSchema } from './map'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from '../examples'
+import { toCodegenArraySchema } from './array'
+import { toCodegenMapSchema } from './map'
 
-export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, partial: boolean, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenObjectSchema {
-	const { scopedName, scope } = partial ? toScopedName($ref, suggestedName, suggestedScope, schema, state) : toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
-	const name = scopedName[scopedName.length - 1]
+export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
+	const { name, scopedName, scope } = naming
 	
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
@@ -26,9 +25,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 	})
 
 	const model: CodegenObjectSchema = {
-		name,
-		serializedName: $ref ? (nameFromRef($ref) || null) : null,
-		scopedName,
+		...extractNaming(naming),
 
 		...extractCodegenSchemaCommon(schema, state),
 
@@ -58,15 +55,10 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 		model.deprecated = schema.deprecated || false
 	}
 
-	/* Add to known models */
-	if (!partial) {
-		state.usedModelFullyQualifiedNames[fullyQualifiedName(scopedName)] = true
-
-		/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
-		   when a model references other models that in turn reference this model.
-		 */
-		state.knownSchemas.set(schema, model)
-	}
+	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
+	   when a model references other models that in turn reference this model.
+	 */
+	addToKnownSchemas(schema, model, state)
 
 	model.properties = toCodegenProperties(schema, model, state) || null
 
@@ -82,7 +74,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 			idx.set(model.properties, newProperty.name, newProperty)
 		}
 	}
-	function absorbModels(otherModels: CodegenObjectSchemas) {
+	function absorbModels(otherModels: CodegenNamedSchemas) {
 		for (const otherModel of idx.allValues(otherModels)) {
 			if (!model.schemas) {
 				model.schemas = idx.create()
@@ -92,31 +84,31 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 	}
 
 	function absorbSchema(otherSchema: OpenAPIX.SchemaObject) {
-		/* If the other schema is inline, then we create it as a PARTIAL MODEL, so it doesn't get recorded anywhere
-		   (we don't want it to actually exist). We also give it exactly the same name and scope as this model
-		   (which is only possible for partial models, as we don't unique their names), so that any submodels that
-		   it creates end up scoped to this model.
-		 */
-		if (isOpenAPIReferenceObject(otherSchema)) {
-			const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.MODEL, scope, state)
-			const otherSchemaModel = otherSchemaUsage.schema
-			if (!isCodegenObjectSchema(otherSchemaModel)) {
-				throw new Error(`Cannot absorb schema as it isn't an object: ${otherSchema}`)
-			}
+		if (!isOpenAPIReferenceObject(otherSchema)) {
+			/*
+			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
+			then we do. We absorb the sub-schemas it creates by passing this model as to scope to toCodegenProperties.
 
-			/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
-			absorbModel(otherSchemaModel, { includeNestedModels: false })
-			return otherSchemaModel
-		} else {
-			const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.PARTIAL_MODEL, scope, state)
-			/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
-			if (isCodegenObjectSchema(otherSchemaUsage.schema)) {
-				absorbModel(otherSchemaUsage.schema, { includeNestedModels: true })
-				return otherSchemaUsage.schema
-			} else {
-				throw new Error(`Cannot absorb a non-object schema in ${model.name}`)
+			This will not work in the inline schema is not an object schema, or is an allOf, oneOf, anyOf etc, in which
+			case we fall back to using toCodegenSchemaUsage.
+			*/
+
+			const otherProperties = toCodegenProperties(otherSchema, model, state)
+			if (otherProperties) {
+				absorbProperties(otherProperties, {})
+				return undefined
 			}
-		}		
+		}
+
+		const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.MODEL, scope, state)
+		const otherSchemaModel = otherSchemaUsage.schema
+		if (!isCodegenObjectSchema(otherSchemaModel)) {
+			throw new Error(`Cannot absorb schema as it isn't an object: ${otherSchema}`)
+		}
+
+		/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
+		absorbModel(otherSchemaModel, { includeNestedModels: false })
+		return otherSchemaModel
 	}
 
 	function absorbModel(otherModel: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean }) {
@@ -143,7 +135,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 
 			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && (!nextSchema || !isOpenAPIReferenceObject(nextSchema))
 			if (canDoSingleParentInheritance) {
-				const parentSchemaUsage = toCodegenSchemaUsage(possibleParentSchema, true, 'parent', CodegenSchemaPurpose.MODEL, suggestedScope, state)
+				const parentSchemaUsage = toCodegenSchemaUsage(possibleParentSchema, true, 'parent', CodegenSchemaPurpose.MODEL, scope, state)
 				const parentModel = parentSchemaUsage.schema
 
 				/* If the parent model is an interface then we cannot use it as a parent */
@@ -158,7 +150,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 
 		for (const otherSchema of allOf) {
 			const otherModel = absorbSchema(otherSchema)
-			if (otherModel.discriminator) {
+			if (otherModel && otherModel.discriminator) {
 				/* otherModel has a discriminator so we need to add ourselves as a subtype, and now otherModel must be an interface!!!
 				   As we're absorbing an already constructed model, it has already found its discriminator property.
 				*/
@@ -311,7 +303,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 					}
 					idx.set(model.implementors, fakeModel.name, fakeModel)
 
-					state.usedModelFullyQualifiedNames[fullyQualifiedName(fakeName.scopedName)] = true
+					state.usedFullyQualifiedSchemaNames[fullyQualifiedName(fakeName.scopedName)] = true
 				}
 			}
 		}
@@ -322,7 +314,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 			throw new Error(`Illegal entry into toCodegenObjectSchema for array schema when we do not generate collection models: ${schema}`)
 		}
 
-		const result = toCodegenArraySchema(schema, $ref, 'array', model, CodegenArrayTypePurpose.PARENT, state)
+		const result = toCodegenArraySchema(schema, naming, 'item', model, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
 		model.componentSchema = result.componentSchema
 	} else if (schema.type === 'object') {
@@ -331,7 +323,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 				throw new Error(`Illegal entry into toCodegenObjectSchema for map schema when we do not generate collection models: ${schema}`)
 			}
 
-			const result = toCodegenMapSchema(schema, $ref, 'map', model, CodegenMapTypePurpose.PARENT, state)
+			const result = toCodegenMapSchema(schema, naming, 'value', model, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
 			model.componentSchema = result.componentSchema
 		} else if (schema.discriminator) {
@@ -394,10 +386,6 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, $ref: strin
 	/* Check properties */
 	model.properties = nullIfEmpty(model.properties)
 
-	/* Add to scope */
-	if (!partial) {
-		addToScope(model, scope, state)
-	}
 	return model
 }
 

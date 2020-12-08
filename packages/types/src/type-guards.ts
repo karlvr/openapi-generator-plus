@@ -1,4 +1,4 @@
-import { CodegenArraySchema, CodegenBooleanSchema, CodegenEnumSchema, CodegenMapSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema } from './types'
+import { CodegenArraySchema, CodegenBooleanSchema, CodegenEnumSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -29,7 +29,11 @@ export function isCodegenObjectSchema(schema: CodegenSchema): schema is CodegenO
 	return schema.schemaType === CodegenSchemaType.OBJECT
 }
 
-export function isCodegenScope(schema: CodegenSchema): schema is CodegenSchema & CodegenScope {
+export function isCodegenNamedSchema(schema: CodegenSchema): schema is CodegenNamedSchema {
+	return !!schema.name && !!schema.scopedName
+}
+
+export function isCodegenScope(schema: CodegenSchema): schema is CodegenScope & CodegenSchema {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (schema as any).scopedName
 }

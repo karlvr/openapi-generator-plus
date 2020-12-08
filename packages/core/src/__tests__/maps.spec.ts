@@ -1,14 +1,16 @@
 import { createTestDocument } from './common'
-import { CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('string map', async() => {
 	const result = await createTestDocument('maps/string-map-v2.yml')
 
-	expect(idx.size(result.models)).toEqual(1)
+	expect(idx.size(result.schemas)).toEqual(1)
 
-	const models = idx.allValues(result.models)
-	const model1 = models[0]
+	const models = idx.allValues(result.schemas)
+	const model1 = models[0] as CodegenObjectSchema
+	expect(model1).toBeDefined()
+	expect(isCodegenObjectSchema(model1)).toBeTruthy()
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 	const model1Properties = idx.allValues(model1.properties!)
@@ -18,10 +20,12 @@ test('string map', async() => {
 test('object map', async() => {
 	const result = await createTestDocument('maps/object-map-v2.yml')
 
-	expect(idx.size(result.models)).toEqual(2)
+	expect(idx.size(result.schemas)).toEqual(2)
 
-	const models = idx.allValues(result.models)
-	const model1 = models[0]
+	const models = idx.allValues(result.schemas)
+	const model1 = models[0] as CodegenObjectSchema
+	expect(model1).toBeDefined()
+	expect(isCodegenObjectSchema(model1)).toBeTruthy()
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 
@@ -39,10 +43,12 @@ test('object map', async() => {
 test('object map with no map parents', async() => {
 	const result = await createTestDocument('maps/object-map-v2.yml')
 
-	expect(idx.size(result.models)).toEqual(2)
+	expect(idx.size(result.schemas)).toEqual(2)
 
-	const models = idx.allValues(result.models)
-	const model1 = models[0]
+	const models = idx.allValues(result.schemas)
+	const model1 = models[0] as CodegenObjectSchema
+	expect(model1).toBeDefined()
+	expect(isCodegenObjectSchema(model1)).toBeTruthy()
 	expect(model1.name).toEqual('model1')
 	expect(idx.size(model1.properties!)).toEqual(1)
 

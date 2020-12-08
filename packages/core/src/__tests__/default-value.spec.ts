@@ -1,14 +1,14 @@
 import { createTestDocument } from './common'
-import { CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('array property', async() => {
 	const result = await createTestDocument('default-value/arrays-v3.yml')
 
-	expect(idx.size(result.models)).toEqual(1)
+	expect(idx.size(result.schemas)).toEqual(1)
 
-	const models = idx.allValues(result.models)
-	const model1 = models[0]
+	const models = idx.allValues(result.schemas)
+	const model1 = models[0] as CodegenObjectSchema
 	expect(model1.name).toEqual('Test')
 	expect(idx.size(model1.properties!)).toEqual(2)
 

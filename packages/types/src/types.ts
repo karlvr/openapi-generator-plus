@@ -66,10 +66,10 @@ export interface CodegenGenerator {
 
 	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
 
-	/** Apply any post-processing to the given model.
-	 * @returns `false` if the model should be excluded.
+	/** Apply any post-processing to the given schema.
+	 * @returns `false` if the schema should be excluded.
 	 */
-	postProcessModel?: (model: CodegenObjectSchema) => boolean | void
+	postProcessSchema?: (model: CodegenSchema) => boolean | void
 
 	/**
 	 * Apply any post-processing to the given document.
@@ -112,7 +112,7 @@ export interface CodegenConfig {
 export interface CodegenDocument {
 	info: CodegenInfo
 	groups: CodegenOperationGroup[]
-	models: CodegenObjectSchemas
+	schemas: CodegenNamedSchemas
 	servers: CodegenServer[] | null
 	securitySchemes: CodegenSecurityScheme[] | null
 	securityRequirements: CodegenSecurityRequirement[] | null
@@ -350,11 +350,33 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 }
 
 export interface CodegenSchema extends CodegenSchemaInfo {
+	/* The name of the schema */
+	name: string | null
+	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
+	scopedName: string[] | null
+	/** The name of the schema in the API spec as it should be used when serialized (e.g. in JSON), if the schema was named in the spec */
+	serializedName: string | null
+
 	description: string | null
 	title: string | null
 
 	vendorExtensions: CodegenVendorExtensions | null
 }
+
+export type CodegenSchemas = IndexedCollectionType<CodegenSchema>
+
+/**
+ * A schema that _requires_ a name
+ */
+export interface CodegenNamedSchema extends CodegenSchema {
+	/* The name of the schema */
+	name: string
+
+	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
+	scopedName: string[]
+}
+
+export type CodegenNamedSchemas = IndexedCollectionType<CodegenNamedSchema>
 
 export interface CodegenNumericSchema extends CodegenSchema {
 	type: 'number' | 'integer'
@@ -402,12 +424,6 @@ export interface CodegenMapSchema extends CodegenSchema {
 export interface CodegenEnumSchema extends CodegenSchema {
 	schemaType: CodegenSchemaType.ENUM
 
-	/** The name of the enum schema */
-	name: string
-
-	/** The name of the enum in the API spec as it should be used when serialized (e.g. in JSON), if the enum was named */
-	serializedName: string | null
-
 	/** Enums */
 	/** The native type of the enum value */
 	enumValueNativeType: CodegenNativeType | null
@@ -435,18 +451,12 @@ export interface CodegenValue {
 export interface CodegenScope {
 	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
 	scopedName: string[]
-
+	
 	/** Nested schemas */
-	schemas: CodegenObjectSchemas | null
+	schemas: CodegenNamedSchemas | null
 }
 
-export interface CodegenObjectSchema extends CodegenSchema, CodegenScope {
-	/** The name of the object schema */
-	name: string
-
-	/** The name of the model in the API spec as it should be used when serialized (e.g. in JSON), if the model was named */
-	serializedName: string | null
-
+export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 	type: 'object'
 	schemaType: CodegenSchemaType.OBJECT
 
@@ -545,10 +555,6 @@ export enum CodegenSchemaPurpose {
 	 * The schema is being used as an object model.
 	 */
 	MODEL = 'MODEL',
-	/**
-	 * The schema is being used to create a partial model, for absorbing into another.
-	 */
-	PARTIAL_MODEL = 'PARTIAL_MODEL',
 	/**
 	 * The schema is being used as a parameter.
 	 */

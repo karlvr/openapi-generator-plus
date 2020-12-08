@@ -1,4 +1,4 @@
-import { CodegenObjectSchema, CodegenSchema, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenSchema, CodegenScope, isCodegenNamedSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -22,13 +22,23 @@ export function extractCodegenSchemaCommon(schema: OpenAPIX.SchemaObject, state:
 }
 
 export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, state: InternalCodegenState): void {
-	const name: string = (schema as any).name // FIXME once we move name to CodegenSchema
+	if (!isCodegenNamedSchema(schema)) {
+		throw new Error(`Cannot add schema without a name to a scope: ${JSON.stringify(schema)}`)
+	}
+
 	if (scope) {
 		if (!scope.schemas) {
 			scope.schemas = idx.create()
 		}
-		idx.set(scope.schemas, name, schema as any) // FIXME once we allow all schemas here
+		idx.set(scope.schemas, schema.name, schema)
 	} else {
-		idx.set(state.models, name, schema as any) // FIXME once we allow all schemas here
+		idx.set(state.schemas, schema.name, schema)
 	}
+}
+
+/**
+ * Add the result to the knownSchemas to avoid generating again.
+ */
+export function addToKnownSchemas(schema: OpenAPIX.SchemaObject, generatedSchema: CodegenSchema, state: InternalCodegenState): void {
+	state.knownSchemas.set(schema, generatedSchema)
 }

@@ -398,12 +398,24 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 		return undefined
 	}
 
+	const requiredPropertyNames = typeof schema.required === 'object' ? [...schema.required as string[]] : []
+
 	const properties: CodegenProperties = idx.create()
 	for (const propertyName in schema.properties) {
-		const required = typeof schema.required === 'object' ? schema.required.indexOf(propertyName) !== -1 : false
+		const requiredIndex = requiredPropertyNames.indexOf(propertyName)
+		const required = requiredIndex !== -1
+
 		const propertySchema = schema.properties[propertyName]
 		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
 		idx.set(properties, property.name, property)
+
+		if (required) {
+			requiredPropertyNames.splice(requiredIndex, 1)
+		}
+	}
+
+	if (requiredPropertyNames.length > 0) {
+		console.warn(`Required properties [${requiredPropertyNames.join(', ')}] missing from properties: ${JSON.stringify(schema)}`)
 	}
 
 	return idx.undefinedIfEmpty(properties)

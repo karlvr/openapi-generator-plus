@@ -47,6 +47,11 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 
 function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, scopeName: string, state: InternalCodegenState): CodegenResponse {
 	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref) : `${scopeName}_${code}_response`
+
+	/* We allow preserving the original description if the usage is by reference */
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const description = isOpenAPIReferenceObject(response) ? (response as any).description : undefined
+
 	response = resolveReference(response, state)
 
 	if (code === 0) {
@@ -89,7 +94,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 
 	return {
 		code,
-		description: response.description,
+		description: description || response.description,
 		isDefault,
 		contents: contents && contents.length ? contents : null,
 		defaultContent,

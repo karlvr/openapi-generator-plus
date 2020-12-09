@@ -13,6 +13,7 @@ import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from '../examples'
 import { toCodegenArraySchema } from './array'
 import { toCodegenMapSchema } from './map'
+import { CodegenFullTransformingNativeTypeImpl } from '../../native-type'
 
 export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
 	const { name, scopedName, scope } = naming
@@ -141,7 +142,10 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				/* If the parent model is an interface then we cannot use it as a parent */
 				if (isCodegenObjectSchema(parentModel) && !parentModel.isInterface) {
 					model.parent = parentModel
-					model.parentNativeType = parentModel.nativeType
+					/* We set this models native type to use the parentType from our parent's native type */
+					model.parentNativeType = new CodegenFullTransformingNativeTypeImpl(parentModel.nativeType, {
+						nativeType: t => t.parentType,
+					})
 
 					allOf.shift()
 				}

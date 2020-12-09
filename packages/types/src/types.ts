@@ -281,6 +281,10 @@ export interface CodegenNativeType {
 	 */
 	concreteType: string | null
 	/**
+	 * The native language type when this type is a parent of another type.
+	 */
+	parentType: string | null
+	/**
 	 * The native language type when this type is a component of another type, e.g. an array.
 	 * NOTE: The `componentType` may be set to `this` if there is no special component type for this type.
 	 */

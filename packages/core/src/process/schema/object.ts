@@ -279,33 +279,16 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 					idx.set(model.implementors, subModel.name, subModel)
 				} else {
 					// TODO resolve this hack as we can only have models as implementors, and the TypeScript generator politely handles it
-					const fakeName = toUniqueScopedName(undefined, 'fake', model, subSchema, state)
-					const fakeModel: CodegenObjectSchema = {
-						...subModel,
-						type: 'object',
-						schemaType: CodegenSchemaType.OBJECT,
-						nativeType: subSchemaUsage.nativeType,
-						name: fakeName.scopedName[fakeName.scopedName.length - 1],
-						serializedName: null,
-						properties: null,
-						examples: null,
-						discriminator: null,
-						discriminatorValues: null,
-						children: null,
-						isInterface: false,
-						scopedName: fakeName.scopedName,
-						implements: null,
-						implementors: null,
-						parent: null,
-						parentNativeType: null,
-						schemas: null,
+					const fakeName = toUniqueScopedName(undefined, subModel.name || 'fake', model, subSchema, state)
+					const fakeModel: CodegenObjectSchema = subModel as unknown as CodegenObjectSchema
+					if (!fakeModel.implements) {
+						fakeModel.implements = idx.create()
 					}
-					fakeModel.implements = idx.create()
 					idx.set(fakeModel.implements, model.name, model)
 					if (!model.implementors) {
 						model.implementors = idx.create()
 					}
-					idx.set(model.implementors, fakeModel.name, fakeModel)
+					idx.set(model.implementors, fakeName.name, subModel)
 
 					state.usedFullyQualifiedSchemaNames[fullyQualifiedName(fakeName.scopedName)] = true
 				}

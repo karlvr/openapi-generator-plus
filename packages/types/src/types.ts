@@ -483,8 +483,8 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 	isInterface: boolean
 
 	/** The interface models that this model complies with */
-	implements: CodegenObjectSchemas | null
-	implementors: CodegenObjectSchemas | null
+	implements: CodegenSchemas | null
+	implementors: CodegenSchemas | null
 
 	/** Parent model */
 	parent: CodegenObjectSchema | null

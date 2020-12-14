@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 
 test('one of no discriminator', async() => {
 	const result = await createTestDocument('no-discriminator/one-of-no-discriminator.yml')
@@ -51,4 +51,5 @@ test('polygon', async() => {
 
 	const oneOfCoordinates = idx.allValues(coordinates.implementors!)[0]
 	expect(oneOfCoordinates.nativeType.nativeType).toEqual('array array array number')
+	expect(oneOfCoordinates.schemaType).toEqual(CodegenSchemaType.ARRAY)
 })

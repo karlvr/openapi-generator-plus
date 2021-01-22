@@ -139,7 +139,14 @@ export async function run(): Promise<void> {
 	}
 
 	const beforeGeneration = Date.now()
-	const result = await generate(config, generatorConstructor)
+	let result: boolean
+	try {
+		result = await generate(config, generatorConstructor)
+	} catch (error) {
+		console.error(c.bold.red('Failed to generate:'), error)
+		process.exit(1)
+	}
+
 	if (result) {
 		console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
 	}

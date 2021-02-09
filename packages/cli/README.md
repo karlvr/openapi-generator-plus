@@ -129,6 +129,18 @@ of the group by:
 2. The first tag on the operation.
 3. The first path component.
 
+## Vendor extensions
+
+OpenAPI Generator+ supports the following vendor extensions:
+
+|Extension|Description|
+|---------|-----------|
+|x-group|Override the operation group name.|
+|x-no-client|Don't generate this operation or schema when generating client code.|
+|x-no-server|Don't generate this operation or schema when generating server code.|
+|x-schema-name|Override the name of the generated code for a schema.|
+|x-discriminator-mapping|Specify discriminator mappings in OpenAPI v2|
+
 ## Building
 
 See [OpenAPI Generator+](https://github.com/karlvr/openapi-generator-plus) for more information.

@@ -19,3 +19,22 @@ export function toCodegenVendorExtensions(ob: ObjectWithVendorExtensions): Codeg
 
 	return found ? result : null
 }
+
+/**
+ * Merges two CodegenVendorExtensions, with those in the second argument overwriting any duplicates in the first.
+ * @param a 
+ * @param b 
+ */
+export function mergeCodegenVendorExtensions(a: CodegenVendorExtensions | null, b: CodegenVendorExtensions | null): CodegenVendorExtensions | null {
+	if (!a) {
+		return b
+	} else if (!b) {
+		return a
+	} else {
+		const result: CodegenVendorExtensions = {
+			...a,
+			...b,
+		}
+		return result
+	}
+}

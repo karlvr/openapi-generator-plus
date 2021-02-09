@@ -11,6 +11,7 @@ import { CodegenOperationContext, toCodegenOperation } from './process/operation
 import { toCodegenParameters } from './process/parameters'
 import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
+import { toCodegenVendorExtensions } from './process/vendor-extensions'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -135,6 +136,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 			parameters: pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) || undefined : undefined,
 			summary: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.summary : undefined,
 			description: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.description : undefined,
+			vendorExtensions: toCodegenVendorExtensions(pathItem),
 		}
 		
 		createCodegenOperation(path, HttpMethods.GET, pathItem.get, operationContext)

@@ -120,6 +120,15 @@ OG+ uses [Handlebars](https://handlebarsjs.com) for templating. Handlebars build
 making templates more powerful and easy to customise. Handlebars also supports custom helpers to put more
 capability into templates, such as case transformations.
 
+## Operation grouping
+
+API operations are grouped by the generator module. The usual mode of operation is to work out the name
+of the group by:
+
+1. A vendor extension `x-group` on the operation or path.
+2. The first tag on the operation.
+3. The first path component.
+
 ## Building
 
 See [OpenAPI Generator+](https://github.com/karlvr/openapi-generator-plus) for more information.

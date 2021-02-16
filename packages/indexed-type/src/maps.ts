@@ -28,11 +28,6 @@ export function filter<K, V>(map: Map<K, V>, predicate: (value: V) => boolean | 
 	return result
 }
 
-export function filterToNothing<K, V>(map: Map<K, V>, predicate: (value: V) => boolean | undefined): Map<K, V> | undefined {
-	const filtered = filter(map, predicate)
-	return isEmpty(filtered) ? undefined : filtered
-}
-
 export function isEmpty<K, V>(map: Map<K, V>): boolean {
 	return size(map) === 0
 }
@@ -49,7 +44,7 @@ export function values<K, V>(map: Map<K, V>): Iterable<V> {
 	return map.values()
 }
 
-export function remove<K, V>(map: Map<K, V>, key: K) {
+export function remove<K, V>(map: Map<K, V>, key: K): void {
 	map.delete(key)
 }
 
@@ -61,7 +56,7 @@ export function create<K, V>(entries?: [K, V][]): Map<K, V> {
 	}
 }
 
-export function set<K, V>(map: Map<K, V>, key: K, value: V) {
+export function set<K, V, O extends V>(map: Map<K, V>, key: K, value: O): void {
 	map.set(key, value)
 }
 
@@ -84,6 +79,26 @@ export function size<K, V>(map: Map<K, V>): number {
 export function merge<K, V>(map: Map<K, V>, other: Map<K, V>): Map<K, V> {
 	for (const entry of other) {
 		map.set(entry[0], entry[1])
+	}
+	return map
+}
+
+export function undefinedIfEmpty<K, V>(map: Map<K, V> | undefined): Map<K, V> | undefined {
+	if (!map) {
+		return undefined
+	}
+	if (isEmpty(map)) {
+		return undefined
+	}
+	return map
+}
+
+export function nullIfEmpty<K, V>(map: Map<K, V> | null): Map<K, V> | null {
+	if (!map) {
+		return null
+	}
+	if (isEmpty(map)) {
+		return null
 	}
 	return map
 }

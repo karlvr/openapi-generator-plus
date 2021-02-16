@@ -43,10 +43,10 @@ export function createCodegenDocument(input: CodegenInput, state: CodegenState):
 	const internalState: InternalCodegenState = {
 		...state,
 		...input,
-		usedModelFullyQualifiedNames: {},
-		modelsBySchema: new Map(),
-		reservedNames: {},
-		models: idx.create(),
+		usedFullyQualifiedSchemaNames: {},
+		knownSchemas: new Map(),
+		reservedSchemaNames: {},
+		schemas: idx.create(),
 		specVersion: toSpecVersion(input.root),
 	}
 

@@ -52,25 +52,35 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	for (const pattern of cleanPathPatterns) {
 		paths.push(...await glob(pattern, {
 			cwd: outputPath,
-			nodir: true,
 			follow: false,
 		}))
 	}
 
+	const dirsToCheck: string[] = []
+	const resolvedOutputPath = path.resolve(outputPath)
 	for (const aPath of paths) {
 		const absolutePath = path.resolve(outputPath, aPath)
-		if (!absolutePath.startsWith(outputPath)) {
+		if (!absolutePath.startsWith(resolvedOutputPath)) {
 			console.warn(c.bold.red('Invalid clean path not under outputPath:'), absolutePath)
 			continue
 		}
 
 		try {
 			const stats = await fs.stat(absolutePath)
-			if (stats.mtime.getTime() < notModifiedSince) {
+			if (stats.isDirectory()) {
+				dirsToCheck.push(absolutePath)
+			} else if (stats.mtime.getTime() < notModifiedSince) {
 				await fs.unlink(absolutePath)
 			}
 		} catch (error) {
 			console.error(c.bold.red('Failed to clean path:'), absolutePath, error)
+		}
+	}
+
+	for (const absolutePath of dirsToCheck) {
+		const files = await fs.readdir(absolutePath)
+		if (files.length === 0) {
+			await fs.rmdir(absolutePath)
 		}
 	}
 }
@@ -129,12 +139,19 @@ export async function run(): Promise<void> {
 	}
 
 	const beforeGeneration = Date.now()
-	const result = await generate(config, generatorConstructor)
+	let result: boolean
+	try {
+		result = await generate(config, generatorConstructor)
+	} catch (error) {
+		console.error(c.bold.red('Failed to generate:'), error)
+		process.exit(1)
+	}
+
 	if (result) {
 		console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
 	}
 
-	if (commandLineOptions.clean) {
+	if (result && commandLineOptions.clean) {
 		await clean(beforeGeneration, config, generatorConstructor)
 	}
 	

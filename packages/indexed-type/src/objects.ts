@@ -1,10 +1,6 @@
-export interface IndexedType<K extends string, V> {
-	[key: string]: V
-}
+export type IndexedType<K extends string, V> = Record<K, V>
 
-interface IndexedObjectType<T> {
-	[key: string]: T
-}
+type IndexedObjectType<T> = Record<string, T>
 
 export function findEntry<T>(ob: IndexedObjectType<T>, predicate: (value: T) => unknown): [string, T] | undefined {
 	for (const key in ob) {
@@ -35,11 +31,6 @@ export function filter<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boo
 		}
 	}
 	return result
-}
-
-export function filterToNothing<T>(ob: IndexedObjectType<T>, predicate: (value: T) => boolean | undefined): IndexedObjectType<T> | undefined {
-	const filtered = filter(ob, predicate)
-	return isEmpty(filtered) ? undefined : filtered
 }
 
 export function isEmpty<T>(ob: IndexedObjectType<T>): boolean {
@@ -115,7 +106,7 @@ export function values<T>(ob: IndexedObjectType<T>): Iterable<T> {
 	}
 }
 
-export function remove<T>(ob: IndexedObjectType<T>, key: string) {
+export function remove<T>(ob: IndexedObjectType<T>, key: string): void {
 	delete ob[key]
 }
 
@@ -129,7 +120,7 @@ export function create<T>(entries?: [string, T][]): IndexedObjectType<T> {
 	return result
 }
 
-export function set<T>(ob: IndexedObjectType<T>, key: string, value: T) {
+export function set<T, V extends T>(ob: IndexedObjectType<T>, key: string, value: V): void {
 	ob[key] = value
 }
 
@@ -160,6 +151,26 @@ export function size<T>(ob: IndexedObjectType<T>): number {
 export function merge<T>(ob: IndexedObjectType<T>, other: IndexedObjectType<T>): IndexedObjectType<T> {
 	for (const key in other) {
 		ob[key] = other[key]
+	}
+	return ob
+}
+
+export function undefinedIfEmpty<T>(ob: IndexedObjectType<T> | undefined): IndexedObjectType<T> | undefined {
+	if (!ob) {
+		return undefined
+	}
+	if (isEmpty(ob)) {
+		return undefined
+	}
+	return ob
+}
+
+export function nullIfEmpty<T>(ob: IndexedObjectType<T> | null): IndexedObjectType<T> | null {
+	if (!ob) {
+		return null
+	}
+	if (isEmpty(ob)) {
+		return null
 	}
 	return ob
 }

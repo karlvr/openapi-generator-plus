@@ -16,13 +16,33 @@ function prepareOperationForGroup(operation: CodegenOperation, group: CodegenOpe
 	}
 }
 
+function addToGroups(operation: CodegenOperation, groupName: string, groupPath: string, groups: CodegenOperationGroups, state: CodegenState): void {
+	groupName = state.generator.toOperationGroupName(groupName)
+
+	let group = groups[groupName]
+	if (!group) {
+		group = {
+			name: groupName,
+			path: groupPath,
+			description: null,
+			operations: [],
+			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+		}
+		groups[groupName] = group
+	}
+
+	prepareOperationForGroup(operation, group)
+	group.operations.push(operation)
+}
+
 /**
  * See JavaJAXRSSpecServerCodegen.addOperationToGroup
- * @param operationInfo 
+ * @param operation 
  * @param apiInfo 
  */
-export function addToGroupsByPath(operationInfo: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
-	let basePath = operationInfo.path
+export function addToGroupsByPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
+	let basePath = operation.path
 	
 	const pos = basePath.indexOf('/', 1)
 	if (pos > 0) {
@@ -38,22 +58,7 @@ export function addToGroupsByPath(operationInfo: CodegenOperation, groups: Codeg
 		groupName = 'default'
 	}
 
-	groupName = state.generator.toOperationGroupName(groupName)
-
-	let group = groups[groupName]
-	if (!group) {
-		group = {
-			name: groupName,
-			path: basePath,
-			operations: [],
-			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-		}
-		groups[groupName] = group
-	}
-
-	prepareOperationForGroup(operationInfo, group)
-	group.operations.push(operationInfo)
+	addToGroups(operation, groupName, basePath, groups, state)
 }
 
 export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
@@ -64,27 +69,13 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 		groupName = 'default'
 	}
 
-	groupName = state.generator.toOperationGroupName(groupName)
-
-	let group = groups[groupName]
-	if (!group) {
-		group = {
-			name: groupName,
-			path: '',
-			operations: [],
-			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
-		}
-		groups[groupName] = group
-	}
-
-	prepareOperationForGroup(operation, group)
-
-	group.operations.push(operation)
+	addToGroups(operation, groupName, '', groups, state)
 }
 
 export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
-	if (operation.tags && operation.tags.length) {
+	if (operation.vendorExtensions && operation.vendorExtensions['x-group']) {
+		return addToGroups(operation, operation.vendorExtensions['x-group'], '', groups, state)
+	} else if (operation.tags && operation.tags.length) {
 		return addToGroupsByTag(operation, groups, state)
 	} else {
 		return addToGroupsByPath(operation, groups, state)

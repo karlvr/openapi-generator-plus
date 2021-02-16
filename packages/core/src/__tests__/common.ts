@@ -1,7 +1,8 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenPropertyType, CodegenOperationGroupingStrategy, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
+import pluralize from 'pluralize'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig
@@ -25,16 +26,22 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toEnumMemberName: (name) => `${name}_enum_member`,
 		toOperationName: (path, method) => `${method} ${path} operation`,
 		toOperationGroupName: (name) => `${name} api`,
-		toSchemaName: (name, options) => {
-			if (options.nameSpecified) {
-				return `${name}`
-			} else if (options.schemaType === CodegenSchemaType.ENUM) {
+		toSchemaName: (name) => {
+			return name
+		},
+		toSuggestedSchemaName: (name, options) => {
+			if (options.purpose === CodegenSchemaPurpose.ARRAY_ITEM || options.purpose === CodegenSchemaPurpose.MAP_VALUE) {
+				name = pluralize.singular(name)
+			}
+			if (options.schemaType === CodegenSchemaType.ENUM) {
 				return `${name}_enum`
-			} else {
+			} else if (options.schemaType === CodegenSchemaType.OBJECT) {
 				return `${name}_model`
+			} else {
+				return name
 			}
 		},
-		toIteratedModelName: (name, _, iteration) => `${name}${iteration}`,
+		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration}`,
 		toLiteral: (value) => `literal ${value}`,
 		toNativeType: (options) => new generatorContext.NativeType(options.type),
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),
@@ -46,20 +53,22 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			}
 
 			if (!options.required) {
-				return { literalValue: 'undefined' }
+				return { value: undefined, literalValue: 'undefined' }
 			}
 
-			switch (options.propertyType) {
-				case CodegenPropertyType.ARRAY:
+			switch (options.schemaType) {
+				case CodegenSchemaType.ARRAY:
 					return { value: [], literalValue: '[]' }
-				case CodegenPropertyType.OBJECT:
+				case CodegenSchemaType.OBJECT:
 					return { value: {}, literalValue: '{}' }
-				case CodegenPropertyType.NUMBER:
+				case CodegenSchemaType.NUMBER:
+					return { value: 0.0, literalValue: '0.0' }
+				case CodegenSchemaType.INTEGER:
 					return { value: 0, literalValue: '0' }
-				case CodegenPropertyType.BOOLEAN:
+				case CodegenSchemaType.BOOLEAN:
 					return { value: false, literalValue: 'false' }
 				default:
-					return { literalValue: 'undefined' }
+					return { value: undefined, literalValue: 'undefined' }
 			}
 		},
 		operationGroupingStrategy: () => generatorOptions.config.operationGroupingStrategy || addToGroupsByPath,

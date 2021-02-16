@@ -12,7 +12,7 @@ test('parse info', async() => {
 	expect(result.info.description).toEqual('Lorem ipsum')
 	expect(result.info.version).toEqual('1.0.1')
 	expect(result.info.title).toEqual('Example')
-	expect(result.servers).toBeDefined()
+	expect(result.servers).not.toBeNull()
 	expect(result.servers![0].url).toEqual('http://example.com/api/v1')
 	expect(result.servers![1].url).toEqual('https://example.com/api/v1')
 })
@@ -23,7 +23,7 @@ test('parse operation params', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 	expect(op1.name).toEqual('getTest1')
-	expect(op1.parameters).toBeDefined()
+	expect(op1.parameters).not.toBeNull()
 	expect(idx.size(op1.parameters!)).toEqual(2)
 })
 
@@ -32,8 +32,8 @@ test('parse operation body params', async() => {
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
-	expect(op2.parameters).toBeUndefined()
-	expect(op2.requestBody).toBeDefined()
+	expect(op2.parameters).toBeNull()
+	expect(op2.requestBody).not.toBeNull()
 	expect(op2.requestBody!.type).toEqual('object')
 	expect(op2.requestBody!.nativeType?.toString()).toEqual('Test2Request')
 })
@@ -46,13 +46,13 @@ test('parse operation response', async() => {
 	expect(op1.name).toEqual('getTest1')
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
-	expect(op1.produces).toEqual([{ mediaType: 'application/json', mimeType: 'application/json' }])
+	expect(op1.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
 	expect(op2.returnType).toEqual('object')
 	expect(op2.returnNativeType?.toString()).toEqual('Test2Response')
-	expect(op2.produces).toEqual([{ mediaType: 'application/json', mimeType: 'application/json' }])
+	expect(op2.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
 })
 
 test('parse groups', async() => {
@@ -74,8 +74,8 @@ test('parse groups', async() => {
 	const op2 = group2.operations[0]
 	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'POST')) /* Uses default name */
 	// expect(op2.allParams!.length).toEqual(1)
-	// expect(op2.returnType).not.toBeDefined()
-	// expect(op2.returnNativeType).not.toBeDefined()
+	// expect(op2.returnType).not.not.toBeNull()
+	// expect(op2.returnNativeType).not.not.toBeNull()
 })
 
 test('parameters at path level', async() => {
@@ -88,7 +88,7 @@ test('parameters at path level', async() => {
 	const op2 = group1.operations[1]
 
 	expect(op1.name).toBe('getTest1')
-	expect(op1.parameters).toBeDefined()
+	expect(op1.parameters).not.toBeNull()
 	expect(idx.size(op1.parameters!)).toBe(1)
 	expect(op2.name).toBe('postTest1')
 	expect(idx.size(op2.parameters!)).toBe(2)

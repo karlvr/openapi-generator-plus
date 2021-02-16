@@ -12,7 +12,7 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 const baseGenerator: CodegenBaseGeneratorConstructor = function(config, context) {
 	return {
 		toEnumMemberName: (name) => context.generator().toConstantName(name),
-		toIteratedModelName: (name, _, iteration) => `${name}${iteration + 1}`,
+		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration + 1}`,
 	}
 }
 

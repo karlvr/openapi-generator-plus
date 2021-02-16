@@ -1,4 +1,4 @@
-import { CodegenModel, CodegenState, CodegenInputDocument, CodegenModels } from '@openapi-generator-plus/types'
+import { CodegenState, CodegenInputDocument, CodegenSchema, CodegenNamedSchemas } from '@openapi-generator-plus/types'
 import { OpenAPIX } from './types/patches'
 
 
@@ -8,13 +8,13 @@ export enum CodegenSpecVersion {
 }
 
 export interface InternalCodegenState extends CodegenState, CodegenInputDocument {
-	/** A hash of fully qualified model names that have been used */
-	usedModelFullyQualifiedNames: { [name: string]: boolean | undefined }
-	/** A hash of generated models indexed by ref */
-	modelsBySchema: Map<OpenAPIX.SchemaObject, CodegenModel>
-	/** A hash of $ref to fully qualified model name, representing reserved model names */
-	reservedNames: { [$ref: string]: string | undefined }
-	/** The map of top-level models */
-	models: CodegenModels
+	/** A hash of fully qualified schema names that have been used */
+	usedFullyQualifiedSchemaNames: { [name: string]: boolean | undefined }
+	/** A hash of OpenAPI schemas to generated schemas, populated as we generate schemas to avoid generating the same schema twice */
+	knownSchemas: Map<OpenAPIX.SchemaObject, CodegenSchema>
+	/** A hash of $ref to fully qualified model name, representing reserved schema names */
+	reservedSchemaNames: { [$ref: string]: string | undefined }
+	/** The map of top-level named schemas */
+	schemas: CodegenNamedSchemas
 	specVersion: CodegenSpecVersion
 }

@@ -1,13 +1,13 @@
 import { CodegenNativeType } from './types'
 
-export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string | undefined
-export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string | undefined
+export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string | null
+export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string | null
 
 /** Simple transformer on a native type string */
-export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string | undefined
+export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string | null
 
 /**  */
-export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType) => string | undefined
+export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType) => string | null
 
 /**
  * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
@@ -24,8 +24,9 @@ export interface CodegenComposingNativeTypeConstructor {
 
 export interface CodegenNativeTypeTransformers {
 	nativeType: CodegenNativeTypeTransformer
-	wireType?: CodegenNativeTypeTransformer
+	serializedType?: CodegenNativeTypeTransformer
 	literalType?: CodegenNativeTypeTransformer
+	parentType?: CodegenNativeTypeTransformer
 	concreteType?: CodegenNativeTypeTransformer
 }
 
@@ -35,8 +36,9 @@ export interface CodegenFullTransformingNativeTypeConstructor {
 
 export interface CodegenNativeTypeComposers {
 	nativeType: CodegenNativeTypeComposer
-	wireType?: CodegenNativeTypeComposer
+	serializedType?: CodegenNativeTypeComposer
 	literalType?: CodegenNativeTypeComposer
+	parentType?: CodegenNativeTypeComposer
 	concreteType?: CodegenNativeTypeComposer
 }
 

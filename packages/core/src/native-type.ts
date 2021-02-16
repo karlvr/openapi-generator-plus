@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { CodegenNativeType, CodegenNativeTypeStringTransformer, CodegenNativeTypeTransformers, CodegenNativeTypeStringComposer, CodegenNativeTypeComposers, CodegenNativeTypeComposer } from '@openapi-generator-plus/types'
 
 /**
@@ -19,8 +20,8 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		return this.transformer(this.wrapped.nativeType) || this.wrapped.nativeType
 	}
 
-	public get wireType() {
-		return this.wrapped.wireType && this.transformer(this.wrapped.wireType)
+	public get serializedType() {
+		return this.wrapped.serializedType && this.transformer(this.wrapped.serializedType)
 	}
 
 	public get literalType() {
@@ -35,8 +36,12 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		if (this.wrapped.componentType) {
 			return new CodegenTransformingNativeTypeImpl(this.wrapped.componentType, this.transformer)
 		} else {
-			return undefined
+			return null
 		}
+	}
+
+	public get parentType() {
+		return this.wrapped.parentType && this.transformer(this.wrapped.parentType)
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
@@ -51,27 +56,31 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 	public nativeType: string
-	public wireType?: string
-	public literalType?: string
-	public concreteType?: string
-	public componentType?: CodegenNativeType
+	public serializedType: string | null
+	public literalType: string | null
+	public concreteType: string | null
+	public parentType: string | null
+	public componentType: CodegenNativeType | null
 
 	public constructor(nativeType: string, additionalTypes?: {
-		wireType?: string | null
+		serializedType?: string | null
 		literalType?: string | null
 		concreteType?: string | null
+		parentType?: string | null
 		componentType?: CodegenNativeType | null
 	}) {
 		this.nativeType = nativeType
 		if (additionalTypes) {
-			this.wireType = additionalTypes.wireType !== undefined ? additionalTypes.wireType !== null ? additionalTypes.wireType : undefined : nativeType
-			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType !== null ? additionalTypes.literalType : undefined : nativeType
-			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType !== null ? additionalTypes.concreteType : undefined : nativeType
-			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType !== null ? additionalTypes.componentType : undefined : this
+			this.serializedType = additionalTypes.serializedType !== undefined ? additionalTypes.serializedType : nativeType
+			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType : nativeType
+			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType : nativeType
+			this.parentType = additionalTypes.parentType !== undefined ? additionalTypes.parentType : nativeType
+			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType : this
 		} else {
-			this.wireType = nativeType
+			this.serializedType = nativeType
 			this.literalType = nativeType
 			this.concreteType = nativeType
+			this.parentType = nativeType
 			this.componentType = this
 		}
 	}
@@ -88,13 +97,16 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 		if (this.nativeType !== other.nativeType) {
 			return false
 		}
-		if (this.wireType !== other.wireType) {
+		if (this.serializedType !== other.serializedType) {
 			return false
 		}
 		if (this.literalType !== other.literalType) {
 			return false
 		}
 		if (this.concreteType !== other.concreteType) {
+			return false
+		}
+		if (this.parentType !== other.parentType) {
 			return false
 		}
 		if (this.componentType === other.componentType || (this.componentType === this && other.componentType === other)) {
@@ -115,12 +127,12 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 }
 
-function allOrNothing<T>(nativeTypes: (T | undefined)[]): T[] | undefined {
-	const result = nativeTypes.filter(n => n !== undefined)
+function allOrNothing<T>(nativeTypes: (T | null | undefined)[]): T[] | null {
+	const result = nativeTypes.filter(n => n !== undefined && n !== null)
 	if (result.length) {
 		return result as T[]
 	} else {
-		return undefined
+		return null
 	}
 }
 
@@ -138,8 +150,8 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.composer(this.wrapped.map(n => n.nativeType)) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
-	public get wireType() {
-		return this.compose(this.wrapped.map(n => n.wireType))
+	public get serializedType() {
+		return this.compose(this.wrapped.map(n => n.serializedType))
 	}
 
 	public get literalType() {
@@ -150,12 +162,16 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped.map(n => n.concreteType))
 	}
 
+	public get parentType() {
+		return this.compose(this.wrapped.map(n => n.parentType))
+	}
+
 	public get componentType() {
 		const componentTypes = this.wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
 		if (componentTypes.length === this.wrapped.length) {
 			return new CodegenComposingNativeTypeImpl(componentTypes, this.composer)
 		} else {
-			return undefined
+			return null
 		}
 	}
 
@@ -167,7 +183,7 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.nativeType
 	}
 
-	private compose(nativeTypeStrings: (string | undefined)[]): string | undefined {
+	private compose(nativeTypeStrings: (string | null)[]): string | null {
 		const filteredNativeTypes = allOrNothing(nativeTypeStrings)
 		return filteredNativeTypes && this.composer(filteredNativeTypes)
 	}
@@ -187,8 +203,8 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 		return this.transformers.nativeType(this.wrapped) || this.wrapped.nativeType
 	}
 
-	public get wireType() {
-		return this.wrapped.wireType && (this.transformers.wireType || this.transformers.nativeType)(this.wrapped)
+	public get serializedType() {
+		return this.wrapped.serializedType && (this.transformers.serializedType || this.transformers.nativeType)(this.wrapped)
 	}
 
 	public get literalType() {
@@ -199,11 +215,15 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 		return this.wrapped.concreteType && (this.transformers.concreteType || this.transformers.nativeType)(this.wrapped)
 	}
 
+	public get parentType() {
+		return this.wrapped.parentType && (this.transformers.parentType || this.transformers.nativeType)(this.wrapped)
+	}
+
 	public get componentType() {
 		if (this.wrapped.componentType) {
 			return new CodegenFullTransformingNativeTypeImpl(this.wrapped.componentType, this.transformers)
 		} else {
-			return undefined
+			return null
 		}
 	}
 
@@ -234,8 +254,8 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped, this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
-	public get wireType() {
-		return this.compose(this.wrapped, this.composers.wireType || this.composers.nativeType)
+	public get serializedType() {
+		return this.compose(this.wrapped, this.composers.serializedType || this.composers.nativeType)
 	}
 
 	public get literalType() {
@@ -246,13 +266,17 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped, this.composers.concreteType || this.composers.nativeType)
 	}
 
+	public get parentType() {
+		return this.compose(this.wrapped, this.composers.parentType || this.composers.nativeType)
+	}
+
 	public get componentType() {
 		const wrapped = this.wrapped
 		const componentTypes = wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
 		if (componentTypes.length === wrapped.length) {
 			return new CodegenFullComposingNativeTypeImpl(componentTypes, this.composers)
 		} else {
-			return undefined
+			return null
 		}
 	}
 
@@ -264,7 +288,7 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.nativeType
 	}
 
-	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string | undefined {
+	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string | null {
 		const filteredNativeTypes = allOrNothing(nativeTypes)
 		return filteredNativeTypes && composer(nativeTypes)
 	}

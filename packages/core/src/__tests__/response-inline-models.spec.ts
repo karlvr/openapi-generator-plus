@@ -10,9 +10,9 @@ test('inline response model', async() => {
 	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('getTest1_200_response_model')
 
-	expect(idx.size(result.models)).toEqual(1)
+	expect(idx.size(result.schemas)).toEqual(1)
 
-	const models = idx.allValues(result.models)
+	const models = idx.allValues(result.schemas)
 	const model1 = models[0]
 	expect(model1.name).toEqual('getTest1_200_response_model')
 })

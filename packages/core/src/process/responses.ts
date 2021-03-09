@@ -46,7 +46,7 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 }
 
 function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, scopeName: string, state: InternalCodegenState): CodegenResponse {
-	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref) : `${scopeName}_${code}_response`
+	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref, state) : `${scopeName}_${code}_response`
 
 	/* We allow preserving the original description if the usage is by reference */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

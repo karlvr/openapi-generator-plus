@@ -24,7 +24,7 @@ export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: I
 }
 
 function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalCodegenState): CodegenHeader {
-	const headerContextName = isOpenAPIReferenceObject(header) ? nameFromRef(header.$ref) : name
+	const headerContextName = isOpenAPIReferenceObject(header) ? nameFromRef(header.$ref, state) : name
 	header = resolveReference(header, state)
 
 	if (isOpenAPIV2HeaderObject(header, state.specVersion)) {

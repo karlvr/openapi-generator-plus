@@ -17,7 +17,7 @@ export function toScopedName($ref: string | undefined, suggestedName: string, sc
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
 
-		suggestedName = nameFromRef($ref)
+		suggestedName = nameFromRef($ref, state)
 	}
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
@@ -31,7 +31,7 @@ export function toScopedName($ref: string | undefined, suggestedName: string, sc
 	}
 	let name = state.generator.toSchemaName(suggestedName, nameOptions)
 
-	const serializedName = $ref ? (nameFromRef($ref) || null) : null
+	const serializedName = $ref ? (nameFromRef($ref, state) || null) : null
 
 	if (scope) {
 		/* Check that our name is unique in our scope, as some languages (Java) don't allow an inner class to shadow an ancestor */

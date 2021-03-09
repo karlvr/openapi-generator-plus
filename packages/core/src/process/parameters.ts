@@ -22,7 +22,7 @@ export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParamet
 }
 
 function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
-	const parameterContextName = isOpenAPIReferenceObject(parameter) ? nameFromRef(parameter.$ref) : `${scopeName}_${parameter.name}`
+	const parameterContextName = isOpenAPIReferenceObject(parameter) ? nameFromRef(parameter.$ref, state) : `${scopeName}_${parameter.name}`
 	parameter = resolveReference(parameter, state)
 
 	let schemaUse: CodegenSchemaUsage | undefined

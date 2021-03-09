@@ -41,7 +41,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 		let requestBody = operation.requestBody
 
 		if (requestBody) {
-			const requestBodyContextName = isOpenAPIReferenceObject(requestBody) ? nameFromRef(requestBody.$ref) : `${name}_request`
+			const requestBodyContextName = isOpenAPIReferenceObject(requestBody) ? nameFromRef(requestBody.$ref, state) : `${name}_request`
 			requestBody = resolveReference(requestBody, state)
 
 			/* See toCodegenParameter for rationale about scopeNames */

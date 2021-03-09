@@ -27,10 +27,17 @@ export function createCodegenState(generator: CodegenGenerator): CodegenState {
 
 export async function createCodegenInput(inputPath: string): Promise<CodegenInput> {
 	const parser = new SwaggerParser()
+	/* Parse the document _without_ resolving references, as we use the presence of a reference
+	   as important information in our parsing.
+	 */
 	const root = await parser.parse(inputPath)
+
+	/* Create the references resolver, including resolving external references */
+	const $refs = await parser.resolve(inputPath)
+	
 	return {
 		root, 
-		$refs: parser.$refs,
+		$refs,
 	}
 }
 

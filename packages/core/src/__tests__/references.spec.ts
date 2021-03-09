@@ -9,3 +9,9 @@ test('response reference names nested models', async() => {
 	expect(op.responses![200].defaultContent).not.toBeNull()
 	expect(op.responses![200].defaultContent!.nativeType.nativeType).toEqual('MyResponse_model')
 })
+
+test('external references', async() => {
+	const result = await createTestDocument('references/external.yml')
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+})

@@ -1,17 +1,15 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, HttpMethods, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
-import { isOpenAPIV2Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
+import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
+import { isOpenAPIV2Document } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenServers } from './process/servers'
 import { resolveReference } from './process/utils'
 import { toCodegenSecurityRequirements, toCodegenSecuritySchemes } from './process/security'
-import { CodegenOperationContext, toCodegenOperation } from './process/operations'
-import { toCodegenParameters } from './process/parameters'
 import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
-import { toCodegenVendorExtensions } from './process/vendor-extensions'
+import { toCodegenOperations } from './process/paths'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -107,15 +105,6 @@ function hasNoGenerationRule(ob: CodegenOperation | CodegenSchema, state: Intern
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
-	function createCodegenOperation(path: string, method: string, operation: OpenAPI.Operation | undefined, context: CodegenOperationContext) {
-		if (!operation) {
-			return
-		}
-	
-		const op = toCodegenOperation(path, method, operation, context, state)
-		operations.push(op)
-	}
-
 	const root = state.root
 
 	/* Process schemas first so we can check for duplicate names when creating new anonymous models */
@@ -132,23 +121,8 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 
 		pathItem = resolveReference(pathItem, state)
 
-		const operationContext: CodegenOperationContext = {
-			parameters: pathItem.parameters ? toCodegenParameters(pathItem.parameters, undefined, path, state) || undefined : undefined,
-			summary: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.summary : undefined,
-			description: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.description : undefined,
-			vendorExtensions: toCodegenVendorExtensions(pathItem),
-		}
-		
-		createCodegenOperation(path, HttpMethods.GET, pathItem.get, operationContext)
-		createCodegenOperation(path, HttpMethods.PUT, pathItem.put, operationContext)
-		createCodegenOperation(path, HttpMethods.POST, pathItem.post, operationContext)
-		createCodegenOperation(path, HttpMethods.DELETE, pathItem.delete, operationContext)
-		createCodegenOperation(path, HttpMethods.OPTIONS, pathItem.options, operationContext)
-		createCodegenOperation(path, HttpMethods.HEAD, pathItem.head, operationContext)
-		createCodegenOperation(path, HttpMethods.PATCH, pathItem.patch, operationContext)
-		if (isOpenAPIV3PathItemObject(pathItem, state.specVersion)) {
-			createCodegenOperation(path, HttpMethods.TRACE, pathItem.trace, operationContext)
-		}
+		const pathOperations = toCodegenOperations(path, pathItem, state)
+		operations.push(...pathOperations)
 	}
 
 	const groups = groupOperations(operations, state)

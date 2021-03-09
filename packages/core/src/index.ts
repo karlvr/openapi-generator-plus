@@ -33,7 +33,7 @@ export async function createCodegenInput(inputPath: string): Promise<CodegenInpu
 	const root = await parser.parse(inputPath)
 
 	/* Create the references resolver, including resolving external references */
-	const $refs = await parser.resolve(inputPath)
+	const $refs = await parser.resolve(inputPath, root, {})
 	
 	return {
 		root, 

@@ -21,8 +21,7 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.1",
-    "@apidevtools/json-schema-ref-parser": "karlvr/json-schema-ref-parser#external-relative-refs",
+    "@openapi-generator-plus/swagger-parser": "^10.0.4",
     "@openapi-generator-plus/indexed-type": "file:../indexed-type",
     "lodash": "^4.17.19"
   },

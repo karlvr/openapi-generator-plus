@@ -1,7 +1,7 @@
 import { CodegenConfig, CodegenGenerator, CodegenGeneratorConstructor, CodegenState, CodegenDocument, CodegenInputDocument as CodegenInput } from '@openapi-generator-plus/types'
 import { processDocument } from './process'
 import { defaultGeneratorOptions } from './generators'
-import SwaggerParser from '@apidevtools/swagger-parser'
+import SwaggerParser from '@openapi-generator-plus/swagger-parser'
 import { toSpecVersion } from './utils'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'

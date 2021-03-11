@@ -1,0 +1,14 @@
+openapi: 3.0.0
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          description: Test
+          content:
+            application/json:
+              schema:
+                $ref: './external-part.yml#/components/schemas/MyExternalSchema'

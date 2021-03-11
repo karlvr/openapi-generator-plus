@@ -2,6 +2,7 @@ import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo } from '@openapi-generator-plus/types'
+import { toCodegenOperations } from './paths'
 
 /**
  * Resolve anything that may also be a ReferenceObject to the base type.
@@ -83,11 +84,80 @@ export function coalesce<T>(...values: (T | undefined)[]): T | undefined {
  * @param $ref 
  */
 export function nameFromRef($ref: string, state: InternalCodegenState): string {
-	const i = $ref.indexOf('#')
-	if (i === 0) {
-		$ref = $ref.substring(i + 1)
-	}
+	const pathRef = pathPartOfRef($ref)
+	const relativeRef = relativePartOfRef($ref)
 	
-	const components = $ref.split('/')
+	if (!relativeRef) {
+		return 'Unknown'
+	}
+
+	const components = relativeRef.split('/')
+
+	/* OpenAPI v3 schemas */
+	if (components.length > 2 && components[0] === 'components' && components[1] === 'schemas') {
+		return components[components.length - 1]
+	}
+
+	/* OpenAPI v2 schemas */
+	if (components.length > 1 && components[0] === 'definitions') {
+		return components[components.length - 1]
+	}
+
+	/* References to things in paths */
+	if (components.length && components[0] === 'paths') {
+		/* References to responses */
+		if (components.length === 5 && components[3] === 'responses') {
+			const pathItem = state.$refs.get(`${pathRef}#/paths/${components[1]}`) as OpenAPIV3.PathItemObject
+			if (pathItem) {
+				const operations = toCodegenOperations(unescape(components[1]), pathItem, state)
+				const operation = operations.find(op => op.httpMethod === components[2].toUpperCase())
+				if (operation && operation.responses) {
+					const response = operation.responses[components[4]]
+					if (response && response.defaultContent) {
+						return response.defaultContent.nativeType.nativeType
+					}
+				}
+			}
+		} else if (components.length === 8 && components[3] === 'responses' && components[5] === 'content' && components[7] === 'schema') {
+			const pathItem = state.$refs.get(`${pathRef}#/paths/${components[1]}`) as OpenAPIV3.PathItemObject
+			if (pathItem) {
+				const operations = toCodegenOperations(unescape(components[1]), pathItem, state)
+				const operation = operations.find(op => op.httpMethod === components[2].toUpperCase())
+				if (operation && operation.responses) {
+					const response = operation.responses[components[4]]
+					if (response && response.contents) {
+						const content = response.contents.find(co => co.mediaType.mediaType === unescape(components[6]))
+						if (content) {
+							return content.nativeType.nativeType
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* Fallback */
 	return components[components.length - 1]
+}
+
+function pathPartOfRef($ref: string): string | null {
+	const i = $ref.indexOf('#')
+	if (i !== -1) {
+		return $ref.substring(0, i)
+	} else {
+		return $ref
+	}
+}
+
+function relativePartOfRef($ref: string): string | null {
+	const i = $ref.indexOf('#')
+	if (i !== -1) {
+		$ref = $ref.substring(i + 1)
+		if ($ref.startsWith('/')) {
+			$ref = $ref.substring(1)
+		}
+		return $ref
+	} else {
+		return null
+	}
 }

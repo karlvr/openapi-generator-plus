@@ -1,0 +1,44 @@
+openapi: 3.0.0
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test-part:
+    get:
+      responses:
+        200:
+          description: Test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+
+components:
+  responses:
+    MyResponse:
+      description: My response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                type: string
+
+  schemas:
+    MyExternalSchema:
+      type: object
+      properties:
+        test3:
+          type: string
+    MyExternalSchemaWithReference:
+      type: object
+      properties:
+        test4:
+          type: string
+        testReference:
+          $ref: '#/components/schemas/MyExternalSchema'
+          

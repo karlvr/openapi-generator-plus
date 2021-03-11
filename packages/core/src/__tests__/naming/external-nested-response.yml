@@ -1,0 +1,10 @@
+openapi: 3.0.0
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          $ref: './external-part.yml#/paths/%2Ftest-part/get/responses/200'

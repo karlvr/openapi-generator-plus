@@ -37,8 +37,16 @@ export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, st
 }
 
 /**
- * Add the result to the knownSchemas to avoid generating again.
+ * Add the result to the knownSchemas to avoid generating again, and returns the canonical schema.
+ * If theres already a known schcema for the given schema, the already existing version is returned.
+ * This helps to dedupe what we generate.
  */
-export function addToKnownSchemas(schema: OpenAPIX.SchemaObject, generatedSchema: CodegenSchema, state: InternalCodegenState): void {
-	state.knownSchemas.set(schema, generatedSchema)
+export function addToKnownSchemas<T extends CodegenSchema>(schema: OpenAPIX.SchemaObject, generatedSchema: T, state: InternalCodegenState): T {
+	const existing = state.knownSchemas.get(schema)
+	if (existing) {
+		return existing as T
+	} else {
+		state.knownSchemas.set(schema, generatedSchema)
+		return generatedSchema
+	}
 }

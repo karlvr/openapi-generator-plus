@@ -25,7 +25,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		vendorExtensions,
 	})
 
-	const model: CodegenObjectSchema = {
+	let model: CodegenObjectSchema = {
 		...extractNaming(naming),
 
 		...extractCodegenSchemaCommon(schema, state),
@@ -59,7 +59,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	addToKnownSchemas(schema, model, state)
+	model = addToKnownSchemas(schema, model, state)
 
 	model.properties = toCodegenProperties(schema, model, state) || null
 

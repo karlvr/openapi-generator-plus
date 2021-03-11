@@ -94,6 +94,12 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 	if (naming) {
 		state.usedFullyQualifiedSchemaNames[fullyQualifiedName(naming.scopedName)] = true
 	}
+
+	/* Due to the recursive nature of nameFromRef, we might have actually generated a schema for us now! */
+	const existingNow = state.knownSchemas.get(schema)
+	if (existingNow) {
+		return existingNow
+	}
 	
 	let result: CodegenSchema
 	if (isObjectSchema(schema, state)) {
@@ -143,7 +149,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
 
-	addToKnownSchemas(schema, result, state)
+	result = addToKnownSchemas(schema, result, state)
 
 	if (naming) {
 		addToScope(result, naming.scope, state)

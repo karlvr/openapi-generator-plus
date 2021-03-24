@@ -335,6 +335,16 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				references: [],
 				...extractCodegenTypeInfo(discriminatorProperty),
 			}
+
+			/* Make sure we load any models referenced by the discriminator, as they may not be
+			   in our components/schemas that we load automatically, such as when they're in external
+			   documents.
+			 */
+			if (model.discriminator.mappings) {
+				for (const mappingRef of Object.keys(model.discriminator.mappings)) {
+					toCodegenSchemaUsage({ $ref: mappingRef }, false, 'discriminatorMapping', CodegenSchemaPurpose.MODEL, scope, state)
+				}
+			}
 		}
 	} else {
 		/* Other schema types aren't represented as models, they are just inline type definitions like a string with a format,

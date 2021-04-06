@@ -9,10 +9,7 @@ import watch from 'node-watch'
 import glob from 'glob-promise'
 import { loadGeneratorConstructor } from './generator'
 import c from 'ansi-colors'
-
-function usage() {
-	console.log(`usage: ${process.argv[1]} [-c <config file>] [-o <output dir>] [-g <generator module or path>] [--watch] [<path or url to api spec>]`)
-}
+import { usage } from './usage'
 
 async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
 	const generator = constructGenerator(config, generatorConstructor)
@@ -85,8 +82,8 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	}
 }
 
-export async function run(): Promise<void> {
-	const commandLineOptions: CommandLineOptions = getopts(process.argv.slice(2), {
+export default async function generateCommand(argv: string[]): Promise<void> {
+	const commandLineOptions: CommandLineOptions = getopts(argv, {
 		alias: {
 			config: 'c',
 			output: 'o',
@@ -203,5 +200,3 @@ export async function run(): Promise<void> {
 		process.exit(1)
 	}
 }
-
-run()

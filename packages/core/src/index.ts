@@ -5,6 +5,7 @@ import SwaggerParser from '@openapi-generator-plus/swagger-parser'
 import { toSpecVersion } from './utils'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
+import { OpenAPI } from 'openapi-types'
 
 export * as idx from '@openapi-generator-plus/indexed-type'
 
@@ -39,6 +40,11 @@ export async function createCodegenInput(inputPath: string): Promise<CodegenInpu
 		root, 
 		$refs,
 	}
+}
+
+export async function bundleCodegenInput(inputPath: string): Promise<OpenAPI.Document> {
+	const parser = new SwaggerParser()
+	return await parser.bundle(inputPath)
 }
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/core",
-  "version": "0.21.4",
+  "version": "0.23.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

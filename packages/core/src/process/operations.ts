@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirement, CodegenVendorExtensions } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirement, CodegenSecurityRequirements, CodegenVendorExtensions } from '@openapi-generator-plus/types'
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -115,7 +115,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 	/* Ensure parameters is null if empty, as generators rely on that */
 	parameters = nullIfEmpty(parameters)
 
-	let securityRequirements: CodegenSecurityRequirement[] | undefined
+	let securityRequirements: CodegenSecurityRequirements | undefined
 	if (operation.security) {
 		securityRequirements = toCodegenSecurityRequirements(operation.security, state)
 	} else if (state.root.security) {

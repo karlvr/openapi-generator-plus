@@ -115,7 +115,7 @@ export interface CodegenDocument {
 	schemas: CodegenNamedSchemas
 	servers: CodegenServer[] | null
 	securitySchemes: CodegenSecurityScheme[] | null
-	securityRequirements: CodegenSecurityRequirement[] | null
+	securityRequirements: CodegenSecurityRequirements | null
 }
 
 export interface CodegenInfo {
@@ -181,7 +181,7 @@ export interface CodegenOperation {
 
 	requestBody: CodegenRequestBody | null
 
-	securityRequirements: CodegenSecurityRequirement[] | null
+	securityRequirements: CodegenSecurityRequirements | null
 	vendorExtensions: CodegenVendorExtensions | null
 	responses: CodegenResponses | null
 	defaultResponse: CodegenResponse | null
@@ -656,7 +656,24 @@ export interface CodegenVendorExtensions {
 	[name: string]: any
 }
 
+/** The list of security requirement options. One of which must be satisfied, unless `optional` is `true`. */
+export interface CodegenSecurityRequirements {
+	/**
+	 * Whether the security requirements are optional or not.
+	 */
+	optional: boolean
+
+	requirements: CodegenSecurityRequirement[]
+}
+
+/**
+ * All of the security requirements required.
+ */
 export interface CodegenSecurityRequirement {
+	schemes: CodegenSecurityRequirementScheme[]
+}
+
+export interface CodegenSecurityRequirementScheme {
 	scheme: CodegenSecurityScheme
 	scopes: CodegenAuthScope[] | null
 }

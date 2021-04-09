@@ -133,7 +133,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		schemas: state.schemas,
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
-		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) : null,
+		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) || null : null,
 	}
 
 	processCodegenDocument(doc, state)

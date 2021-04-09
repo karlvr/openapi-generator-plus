@@ -1,4 +1,4 @@
-import { CodegenAuthScope, CodegenOAuthFlow, CodegenSecurityRequirement, CodegenSecurityScheme } from '@openapi-generator-plus/types'
+import { CodegenAuthScope, CodegenOAuthFlow, CodegenSecurityRequirements, CodegenSecurityRequirementScheme, CodegenSecurityScheme } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIV2Document, isOpenAPIV2SecurityScheme, isOpenAPIV3Document, isOpenAPIV3SecurityScheme } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -34,17 +34,33 @@ export function toCodegenSecuritySchemes(state: InternalCodegenState): CodegenSe
 	}
 }
 
-export function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: InternalCodegenState): CodegenSecurityRequirement[] {
-	const result: CodegenSecurityRequirement[] = []
-	for (const securityElement of security) { /* Don't know why it's an array at the top level */
+export function toCodegenSecurityRequirements(security: OpenAPIV2.SecurityRequirementObject[] | OpenAPIV3.SecurityRequirementObject[], state: InternalCodegenState): CodegenSecurityRequirements | undefined {
+	const result: CodegenSecurityRequirements = {
+		optional: false,
+		requirements: [],
+	}
+	for (const securityElement of security) {
+		const schemes: CodegenSecurityRequirementScheme[] = []
 		for (const name in securityElement) {
-			result.push(toCodegenSecurityRequirement(name, securityElement[name], state))
+			schemes.push(toCodegenSecurityRequirementScheme(name, securityElement[name], state))
+		}
+		if (schemes.length === 0) {
+			/* See the note on `security` field at https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#operation-object */
+			result.optional = true
+		} else {
+			result.requirements.push({
+				schemes,
+			})
 		}
 	}
+	if (result.requirements.length === 0) {
+		return undefined
+	}
+
 	return result
 }
 
-function toCodegenSecurityRequirement(name: string, scopes: string[], state: InternalCodegenState): CodegenSecurityRequirement {
+function toCodegenSecurityRequirementScheme(name: string, scopes: string[], state: InternalCodegenState): CodegenSecurityRequirementScheme {
 	let definition: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject
 	if (isOpenAPIV2Document(state.root)) {
 		if (!state.root.securityDefinitions) {

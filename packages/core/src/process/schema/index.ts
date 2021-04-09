@@ -67,10 +67,13 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 	}
 
 	result.examples = schema.example ? toCodegenExamples(schema.example, undefined, undefined, result, state) : null
-	result.defaultValue = schema.default ? state.generator.toDefaultValue(schema.default, {
-		...result,
-		required,
-	}) : null
+	result.defaultValue = schema.default !== undefined ? {
+		value: schema.default,
+		literalValue: state.generator.toLiteral(schema.default, {
+			...result,
+			required,
+		}),
+	} : null
 
 	return result
 }

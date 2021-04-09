@@ -47,13 +47,29 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.modelNames.join('.')),
 		toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
 		toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
-		toDefaultValue: (defaultValue, options) => {
-			if (defaultValue) {
-				return { value: defaultValue, literalValue: generatorContext.generator().toLiteral(defaultValue, options) }
-			}
-
+		defaultValue: (options) => {
 			if (!options.required) {
 				return { value: undefined, literalValue: 'undefined' }
+			}
+
+			switch (options.schemaType) {
+				case CodegenSchemaType.ARRAY:
+					return { value: [], literalValue: '[]' }
+				case CodegenSchemaType.OBJECT:
+					return { value: {}, literalValue: '{}' }
+				case CodegenSchemaType.NUMBER:
+					return { value: 0.0, literalValue: '0.0' }
+				case CodegenSchemaType.INTEGER:
+					return { value: 0, literalValue: '0' }
+				case CodegenSchemaType.BOOLEAN:
+					return { value: false, literalValue: 'false' }
+				default:
+					return { value: undefined, literalValue: 'undefined' }
+			}
+		},
+		initialValue: (options) => {
+			if (!options.required) {
+				return null
 			}
 
 			switch (options.schemaType) {

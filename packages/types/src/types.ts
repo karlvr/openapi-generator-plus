@@ -60,9 +60,13 @@ export interface CodegenGenerator {
 	toNativeObjectType: (options: CodegenNativeObjectTypeOptions) => CodegenNativeType
 	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => CodegenNativeType
 	toNativeMapType: (options: CodegenNativeMapTypeOptions) => CodegenNativeType
-	/** Return the default value to use for a property as a literal in the language */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toDefaultValue: (defaultValue: any, options: CodegenDefaultValueOptions) => CodegenValue
+	/**
+	 * Return a default value to use for a property, where we MUST provide a default value. This will
+	 * usuaully be an undefined, null or initial value for primitives.
+	 */
+	defaultValue: (options: CodegenDefaultValueOptions) => CodegenValue
+	/** Return the initial value to use for a property, or `null` if it shouldn't have an initial value */
+	initialValue: (options: CodegenInitialValueOptions) => CodegenValue | null
 
 	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
 
@@ -350,7 +354,7 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	description: string | null
 
 	/** The initial value that the property should have. This is either the defaultValue, if there is one, or a default default from the generator. */
-	initialValue: CodegenValue
+	initialValue: CodegenValue | null
 }
 
 export interface CodegenSchema extends CodegenSchemaInfo {
@@ -540,6 +544,8 @@ export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
 	schemaType: CodegenSchemaType
 	nativeType: CodegenNativeType
 }
+
+export type CodegenInitialValueOptions = CodegenDefaultValueOptions
 
 export type CodegenLiteralValueOptions = CodegenDefaultValueOptions
 

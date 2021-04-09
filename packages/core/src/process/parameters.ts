@@ -45,7 +45,10 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, parameter.required || false, parameterContextName, CodegenSchemaPurpose.PARAMETER, null, state)
 		examples = null
-		defaultValue = parameter.default ? state.generator.toDefaultValue(parameter.default, schemaUse) : null
+		defaultValue = parameter.default !== undefined ? {
+			value: parameter.default,
+			literalValue: state.generator.toLiteral(parameter.default, schemaUse),
+		} : null
 	} else {
 		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
 	}

@@ -424,7 +424,7 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 		...schemaUsage,
 		name,
 		description: description || schemaUsage.schema.description || null,
-		initialValue: schemaUsage.defaultValue || state.generator.toDefaultValue(undefined, schemaUsage),
+		initialValue: schemaUsage.defaultValue || state.generator.initialValue(schemaUsage) || null,
 	}
 }
 

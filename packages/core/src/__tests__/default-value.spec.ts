@@ -21,6 +21,6 @@ test('array property', async() => {
 	const prop2 = model1Properties[1]
 	expect(prop2.name).toBe('notRequiredArrayProperty')
 	expect(prop2.schemaType).toEqual(CodegenSchemaType.ARRAY)
-	expect(prop2.initialValue).toEqual({ literalValue: 'undefined' })
+	expect(prop2.initialValue).toBeNull()
 
 })

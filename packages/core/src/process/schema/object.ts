@@ -101,7 +101,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 			}
 		}
 
-		const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, true, name, CodegenSchemaPurpose.MODEL, scope, state)
+		const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, state, {
+			required: true,
+			suggestedName: name,
+			purpose: CodegenSchemaPurpose.MODEL,
+			scope,
+		})
 		const otherSchemaModel = otherSchemaUsage.schema
 		if (!isCodegenObjectSchema(otherSchemaModel)) {
 			throw new Error(`Cannot absorb schema as it isn't an object: ${otherSchema}`)
@@ -136,7 +141,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 
 			const canDoSingleParentInheritance = isOpenAPIReferenceObject(possibleParentSchema) && (!nextSchema || !isOpenAPIReferenceObject(nextSchema))
 			if (canDoSingleParentInheritance) {
-				const parentSchemaUsage = toCodegenSchemaUsage(possibleParentSchema, true, 'parent', CodegenSchemaPurpose.MODEL, scope, state)
+				const parentSchemaUsage = toCodegenSchemaUsage(possibleParentSchema, state, {
+					required: true,
+					suggestedName: 'parent',
+					purpose: CodegenSchemaPurpose.MODEL,
+					scope,
+				})
 				const parentModel = parentSchemaUsage.schema
 
 				/* If the parent model is an interface then we cannot use it as a parent */
@@ -179,7 +189,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 		const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
 		for (const subSchema of anyOf) {
-			const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+			const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
+				required: true,
+				suggestedName: 'submodel',
+				purpose: CodegenSchemaPurpose.MODEL,
+				scope: model,
+			})
 			const subModel = subSchemaUsage.schema
 			if (!isCodegenObjectSchema(subModel)) {
 				// TODO
@@ -220,7 +235,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 			}
 			
 			for (const subSchema of oneOf) {
-				const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
+					required: true, 
+					suggestedName: 'submodel',
+					purpose: CodegenSchemaPurpose.MODEL,
+					scope: model,
+				})
 				const subModel = subSchemaUsage.schema
 				if (!isCodegenObjectSchema(subModel)) {
 					throw new Error(`Non-model schema not support in oneOf with discriminator: ${subSchema}`)
@@ -266,7 +286,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 			model.isInterface = true
 
 			for (const subSchema of oneOf) {
-				const subSchemaUsage = toCodegenSchemaUsage(subSchema, true, 'submodel', CodegenSchemaPurpose.MODEL, model, state)
+				const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
+					required: true,
+					suggestedName: 'submodel',
+					purpose: CodegenSchemaPurpose.MODEL,
+					scope: model,
+				})
 				const subModel = subSchemaUsage.schema
 				if (isCodegenObjectSchema(subModel)) {
 					if (!subModel.implements) {
@@ -342,7 +367,12 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 			 */
 			if (model.discriminator.mappings) {
 				for (const mappingRef of Object.keys(model.discriminator.mappings)) {
-					toCodegenSchemaUsage({ $ref: mappingRef }, false, 'discriminatorMapping', CodegenSchemaPurpose.MODEL, scope, state)
+					toCodegenSchemaUsage({ $ref: mappingRef }, state, {
+						required: false,
+						suggestedName: 'discriminatorMapping',
+						purpose: CodegenSchemaPurpose.MODEL,
+						scope,
+					})
 				}
 			}
 		}
@@ -419,7 +449,12 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const description = isOpenAPIReferenceObject(schema) ? (schema as any).description : undefined
 
-	const schemaUsage = toCodegenSchemaUsage(schema, required, name, CodegenSchemaPurpose.PROPERTY, scope, state)
+	const schemaUsage = toCodegenSchemaUsage(schema, state, {
+		required, 
+		suggestedName: name,
+		purpose: CodegenSchemaPurpose.PROPERTY,
+		scope,
+	})
 	return {
 		...schemaUsage,
 		name,

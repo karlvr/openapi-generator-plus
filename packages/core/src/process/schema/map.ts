@@ -14,7 +14,12 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 		required: true,
 		vendorExtensions,
 	})
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, true, suggestedValueModelName, CodegenSchemaPurpose.MAP_VALUE, suggestedValueModelScope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, state, {
+		required: true,
+		suggestedName: suggestedValueModelName,
+		purpose: CodegenSchemaPurpose.MAP_VALUE,
+		scope: suggestedValueModelScope,
+	})
 
 	const nativeType = state.generator.toNativeMapType({
 		keyNativeType,

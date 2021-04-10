@@ -31,7 +31,12 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 			$ref: refForSchemaName(schemaName, state),
 		}
 
-		toCodegenSchemaUsage(reference, true, schemaName, CodegenSchemaPurpose.MODEL, null, state)
+		toCodegenSchemaUsage(reference, state, {
+			required: true, 
+			suggestedName: schemaName,
+			purpose: CodegenSchemaPurpose.MODEL,
+			scope: null,
+		})
 	}
 }
 
@@ -44,15 +49,22 @@ function refForSchemaName(schemaName: string, state: InternalCodegenState): stri
 	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }
 
-export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, required: boolean, suggestedName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage {
+export interface SchemaUsageOptions {
+	required: boolean
+	suggestedName: string
+	purpose: CodegenSchemaPurpose
+	scope: CodegenScope | null
+}
+
+export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
 	schema = resolveReference(schema, state)
 	fixSchema(schema, state)
 
-	const schemaObject = toCodegenSchema(schema, $ref, suggestedName, purpose, scope, state)
+	const schemaObject = toCodegenSchema(schema, $ref, options.suggestedName, options.purpose, options.scope, state)
 	const result: CodegenSchemaUsage = {
 		...extractCodegenSchemaInfo(schemaObject),
-		required,
+		required: options.required,
 		schema: schemaObject,
 		examples: null,
 		defaultValue: null,
@@ -62,7 +74,7 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 			type: result.type,
 			format: result.format,
 			vendorExtensions: schemaObject.vendorExtensions,
-			required,
+			required: options.required,
 		})
 	}
 
@@ -71,7 +83,7 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 		value: schema.default,
 		literalValue: state.generator.toLiteral(schema.default, {
 			...result,
-			required,
+			required: options.required,
 		}),
 	} : null
 

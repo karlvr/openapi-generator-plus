@@ -13,7 +13,12 @@ export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.Medi
 		if (!mediaTypeContent.schema) {
 			throw new Error('Media type content without a schema')
 		}
-		const schemaUse = toCodegenSchemaUsage(mediaTypeContent.schema, required, suggestedSchemaName, purpose, scope, state)
+		const schemaUse = toCodegenSchemaUsage(mediaTypeContent.schema, state, {
+			required,
+			suggestedName: suggestedSchemaName,
+			purpose,
+			scope,
+		})
 
 		const examples: CodegenExamples | null = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schemaUse, state)
 

@@ -63,7 +63,12 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	if (isOpenAPIV2ResponseObject(response, state.specVersion)) {
 		if (response.schema) {
 			/* We don't pass scopeNames to toCodegenProperty; see toCodegenParameter for rationale */
-			const schemaUse = toCodegenSchemaUsage(response.schema, true, responseContextName, CodegenSchemaPurpose.RESPONSE, null, state)
+			const schemaUse = toCodegenSchemaUsage(response.schema, state, {
+				required: true,
+				suggestedName: responseContextName,
+				purpose: CodegenSchemaPurpose.RESPONSE,
+				scope: null,
+			})
 			const examples = toCodegenExamples(undefined, response.examples, undefined, schemaUse, state)
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)

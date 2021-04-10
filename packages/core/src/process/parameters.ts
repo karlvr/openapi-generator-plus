@@ -38,12 +38,22 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 * However it's sort of up to the templates to decide where to output models... so does that
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
-		schemaUse = toCodegenSchemaUsage(parameter.schema, parameter.required || false, parameterContextName, CodegenSchemaPurpose.PARAMETER, null, state)
+		schemaUse = toCodegenSchemaUsage(parameter.schema, state, {
+			required: parameter.required || false,
+			suggestedName: parameterContextName,
+			purpose: CodegenSchemaPurpose.PARAMETER,
+			scope: null,
+		})
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
 		defaultValue = null
 	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
-		schemaUse = toCodegenSchemaUsage(parameter, parameter.required || false, parameterContextName, CodegenSchemaPurpose.PARAMETER, null, state)
+		schemaUse = toCodegenSchemaUsage(parameter, state, {
+			required: parameter.required || false,
+			suggestedName: parameterContextName,
+			purpose: CodegenSchemaPurpose.PARAMETER,
+			scope: null,
+		})
 		examples = null
 		defaultValue = parameter.default !== undefined ? {
 			value: parameter.default,

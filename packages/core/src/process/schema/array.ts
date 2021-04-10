@@ -18,7 +18,12 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, true, suggestedItemModelName, CodegenSchemaPurpose.ARRAY_ITEM, suggestedItemModelScope, state)
+	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, state, {
+		required: true,
+		suggestedName: suggestedItemModelName,
+		purpose: CodegenSchemaPurpose.ARRAY_ITEM,
+		scope: suggestedItemModelScope,
+	})
 	const nativeType = state.generator.toNativeArrayType({
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: schema.uniqueItems,

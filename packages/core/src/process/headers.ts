@@ -28,7 +28,12 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 	header = resolveReference(header, state)
 
 	if (isOpenAPIV2HeaderObject(header, state.specVersion)) {
-		const schemaUse = toCodegenSchemaUsage(header, false, headerContextName, CodegenSchemaPurpose.HEADER, null, state)
+		const schemaUse = toCodegenSchemaUsage(header, state, {
+			required: false, 
+			suggestedName: headerContextName, 
+			purpose: CodegenSchemaPurpose.HEADER, 
+			scope: null,
+		})
 		return {
 			name,
 			description: null,
@@ -46,7 +51,12 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			throw new Error(`Cannot resolve schema for header "${name}: ${JSON.stringify(header)}`)
 		}
 		
-		const schemaUse = toCodegenSchemaUsage(header.schema, header.required || false, name, CodegenSchemaPurpose.HEADER, null, state)
+		const schemaUse = toCodegenSchemaUsage(header.schema, state, {
+			required: header.required || false, 
+			suggestedName: name, 
+			purpose: CodegenSchemaPurpose.HEADER,
+			scope: null,
+		})
 		const examples = toCodegenExamples(header.example, header.examples, undefined, schemaUse, state)
 
 		return {

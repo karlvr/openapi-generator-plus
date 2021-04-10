@@ -40,6 +40,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		type: enumValueType,
 		format: schema.format,
 		required: true,
+		nullable: schema.nullable || false,
 		vendorExtensions,
 	})
 
@@ -49,6 +50,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		schemaType: enumValuePropertyType,
 		nativeType: enumValueNativeType,
 		required: true,
+		nullable: false,
 	}
 	
 	const enumValues: CodegenEnumValues = idx.create(schema.enum.map(name => ([`${name}`, {

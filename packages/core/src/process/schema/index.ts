@@ -75,6 +75,7 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 			format: result.format,
 			vendorExtensions: schemaObject.vendorExtensions,
 			required: options.required,
+			nullable: schema.nullable || false,
 		})
 	}
 
@@ -145,6 +146,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			type,
 			format,
 			required: true,
+			nullable: schema.nullable || false,
 			vendorExtensions,
 		})
 

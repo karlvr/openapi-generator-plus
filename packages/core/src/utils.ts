@@ -29,8 +29,9 @@ export function stringLiteralValueOptions(generator: CodegenGenerator): CodegenL
 	return {
 		type: 'string', 
 		schemaType: CodegenSchemaType.STRING, 
-		nativeType: generator.toNativeType({ type: 'string', required: true }),
+		nativeType: generator.toNativeType({ type: 'string', required: true, nullable: false }),
 		required: true,
+		nullable: false,
 	}
 }
 

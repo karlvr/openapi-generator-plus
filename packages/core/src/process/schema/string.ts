@@ -24,6 +24,7 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		type: schema.type,
 		format,
 		required: true,
+		nullable: schema.nullable || false,
 		vendorExtensions,
 	})
 

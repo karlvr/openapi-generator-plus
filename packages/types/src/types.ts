@@ -537,6 +537,7 @@ interface CodegenTypeOptions {
 	type: string
 	format?: string | null
 	required: boolean
+	nullable: boolean
 	vendorExtensions?: CodegenVendorExtensions | null
 }
 

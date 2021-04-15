@@ -24,8 +24,13 @@ function groupOperations(operationInfos: CodegenOperation[], state: InternalCode
 
 function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenState) {
 	/* Process groups */
-	for (const group of doc.groups) {
-		processCodegenOperationGroup(group, state)
+	for (let i = 0; i < doc.groups.length; i++) {
+		const group = doc.groups[i]
+		const result = processCodegenOperationGroup(group, state)
+		if (!result) {
+			doc.groups.splice(i, 1)
+			i--
+		}
 	}
 
 	/* Process models */
@@ -42,7 +47,7 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	}
 }
 
-function processCodegenOperationGroup(group: CodegenOperationGroup, state: InternalCodegenState) {
+function processCodegenOperationGroup(group: CodegenOperationGroup, state: InternalCodegenState): boolean {
 	for (let i = 0; i < group.operations.length; i++) {
 		const result = processCodegenOperation(group.operations[i], state)
 		if (!result) {
@@ -51,8 +56,14 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 		}
 	}
 
+	/* Remove empty groups */
+	if (group.operations.length === 0) {
+		return false
+	}
+
 	/* Sort operations */
 	group.operations.sort((a, b) => a.name.localeCompare(b.name))
+	return true
 }
 
 function processCodegenSchemas(models: CodegenSchemas, state: InternalCodegenState) {

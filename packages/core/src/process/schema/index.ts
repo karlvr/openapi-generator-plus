@@ -58,6 +58,7 @@ export interface SchemaUsageOptions {
 
 export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
 	const $ref = isOpenAPIReferenceObject(schema) ? schema.$ref : undefined
+	const originalSchema = isOpenAPIReferenceObject(schema) ? schema : undefined
 	schema = resolveReference(schema, state)
 	fixSchema(schema, state)
 
@@ -69,6 +70,24 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 		examples: null,
 		defaultValue: null,
 	}
+
+	if (originalSchema) {
+		/* We allow some properties to be overriden on a $ref */
+		const originalSchemaAsSchema: OpenAPIX.SchemaObject = originalSchema
+		if (originalSchemaAsSchema.nullable) {
+			result.nullable = true
+		}
+		if (originalSchemaAsSchema.readOnly) {
+			result.readOnly = true
+		}
+		if (originalSchemaAsSchema.writeOnly) {
+			result.writeOnly = true
+		}
+		if (originalSchemaAsSchema.deprecated) {
+			result.deprecated = true
+		}
+	}
+
 	if (result.schemaType !== CodegenSchemaType.OBJECT && result.schemaType !== CodegenSchemaType.ENUM && result.schemaType !== CodegenSchemaType.ARRAY && result.schemaType !== CodegenSchemaType.MAP) {
 		result.nativeType = state.generator.toNativeType({
 			type: result.type,

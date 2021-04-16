@@ -154,7 +154,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 					model.parent = parentModel
 					/* We set this models native type to use the parentType from our parent's native type */
 					model.parentNativeType = new CodegenFullTransformingNativeTypeImpl(parentModel.nativeType, {
-						nativeType: t => t.parentType,
+						default: t => t.parentType,
 					})
 
 					allOf.shift()

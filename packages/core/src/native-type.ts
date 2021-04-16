@@ -200,30 +200,76 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 	
 	public get nativeType() {
-		return this.transformers.nativeType(this.wrapped) || this.wrapped.nativeType
+		const transformer = this.transformers.nativeType || this.transformers.default
+		if (transformer) {
+			return transformer(this.wrapped, this.wrapped.nativeType) || this.wrapped.nativeType
+		} else {
+			return this.wrapped.nativeType
+		}
 	}
 
 	public get serializedType() {
-		return this.wrapped.serializedType && (this.transformers.serializedType || this.transformers.nativeType)(this.wrapped)
+		if (!this.wrapped.serializedType) {
+			return null
+		}
+
+		const transformer = this.transformers.serializedType !== undefined ? this.transformers.serializedType : this.transformers.default
+		if (transformer) {
+			return transformer(this.wrapped, this.wrapped.serializedType)
+		} else {
+			return this.wrapped.serializedType
+		}
 	}
 
 	public get literalType() {
-		return this.wrapped.literalType && (this.transformers.literalType || this.transformers.nativeType)(this.wrapped)
+		if (!this.wrapped.literalType) {
+			return null
+		}
+		
+		const transformer = this.transformers.literalType !== undefined ? this.transformers.literalType : this.transformers.default
+		if (transformer) {
+			return transformer(this.wrapped, this.wrapped.literalType)
+		} else {
+			return this.wrapped.literalType
+		}
 	}
 
 	public get concreteType() {
-		return this.wrapped.concreteType && (this.transformers.concreteType || this.transformers.nativeType)(this.wrapped)
+		if (!this.wrapped.concreteType) {
+			return null
+		}
+		
+		const transformer = this.transformers.concreteType !== undefined ? this.transformers.concreteType : this.transformers.default
+		if (transformer) {
+			return transformer(this.wrapped, this.wrapped.concreteType)
+		} else {
+			return this.wrapped.concreteType
+		}
 	}
 
 	public get parentType() {
-		return this.wrapped.parentType && (this.transformers.parentType || this.transformers.nativeType)(this.wrapped)
+		if (!this.wrapped.parentType) {
+			return null
+		}
+		
+		const transformer = this.transformers.parentType !== undefined ? this.transformers.parentType : this.transformers.default
+		if (transformer) {
+			return transformer(this.wrapped, this.wrapped.parentType)
+		} else {
+			return this.wrapped.parentType
+		}
 	}
 
-	public get componentType() {
-		if (this.wrapped.componentType) {
-			return new CodegenFullTransformingNativeTypeImpl(this.wrapped.componentType, this.transformers)
-		} else {
+	public get componentType(): CodegenNativeType | null {
+		if (!this.wrapped.componentType) {
 			return null
+		}
+
+		const transformers = this.transformers.componentType !== undefined ? this.transformers.componentType : this.transformers
+		if (transformers) {
+			return new CodegenFullTransformingNativeTypeImpl(this.wrapped.componentType, transformers)
+		} else {
+			return this.wrapped.componentType
 		}
 	}
 
@@ -251,23 +297,23 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public get nativeType() {
-		return this.compose(this.wrapped, this.composers.nativeType) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
+		return this.compose(this.wrapped, this.composers.nativeType || this.composers.default) || this.wrapped.map(n => n.nativeType).filter(n => !!n)[0]
 	}
 
 	public get serializedType() {
-		return this.compose(this.wrapped, this.composers.serializedType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.serializedType || this.composers.default)
 	}
 
 	public get literalType() {
-		return this.compose(this.wrapped, this.composers.literalType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.literalType || this.composers.default)
 	}
 
 	public get concreteType() {
-		return this.compose(this.wrapped, this.composers.concreteType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.concreteType || this.composers.default)
 	}
 
 	public get parentType() {
-		return this.compose(this.wrapped, this.composers.parentType || this.composers.nativeType)
+		return this.compose(this.wrapped, this.composers.parentType || this.composers.default)
 	}
 
 	public get componentType() {

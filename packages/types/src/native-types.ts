@@ -3,11 +3,17 @@ import { CodegenNativeType } from './types'
 export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string | null
 export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string | null
 
-/** Simple transformer on a native type string */
+/**
+ * Simple transformer on a native type string.
+ * @returns a new native type string, or `null` to remove the native type.
+ */
 export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string | null
 
-/**  */
-export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType) => string | null
+/**
+ * Transform the given native type.
+ * @returns a new native type string, or `null` to remove the native type.
+ */
+export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType, nativeTypeString: string) => string | null
 
 /**
  * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
@@ -23,11 +29,17 @@ export interface CodegenComposingNativeTypeConstructor {
 }
 
 export interface CodegenNativeTypeTransformers {
-	nativeType: CodegenNativeTypeTransformer
-	serializedType?: CodegenNativeTypeTransformer
-	literalType?: CodegenNativeTypeTransformer
-	parentType?: CodegenNativeTypeTransformer
-	concreteType?: CodegenNativeTypeTransformer
+	default?: CodegenNativeTypeTransformer
+	nativeType?: CodegenNativeTypeTransformer | null
+	serializedType?: CodegenNativeTypeTransformer | null
+	literalType?: CodegenNativeTypeTransformer | null
+	parentType?: CodegenNativeTypeTransformer | null
+	concreteType?: CodegenNativeTypeTransformer | null
+	/**
+	 * The transformer for the component type, or `null` if the component type shouldn't be transformed.
+	 * If undefined, the component type is transformed using this set of transformers.
+	 */
+	componentType?: CodegenNativeTypeTransformers | null
 }
 
 export interface CodegenFullTransformingNativeTypeConstructor {
@@ -35,7 +47,8 @@ export interface CodegenFullTransformingNativeTypeConstructor {
 }
 
 export interface CodegenNativeTypeComposers {
-	nativeType: CodegenNativeTypeComposer
+	default: CodegenNativeTypeComposer
+	nativeType?: CodegenNativeTypeComposer
 	serializedType?: CodegenNativeTypeComposer
 	literalType?: CodegenNativeTypeComposer
 	parentType?: CodegenNativeTypeComposer

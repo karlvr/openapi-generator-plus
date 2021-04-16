@@ -25,6 +25,8 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 		scope: suggestedItemModelScope,
 	})
 	const nativeType = state.generator.toNativeArrayType({
+		type: schema.type,
+		format: schema.format,
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: schema.uniqueItems,
 		purpose,

@@ -601,7 +601,7 @@ export enum CodegenSchemaPurpose {
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
 }
 
-export interface CodegenNativeObjectTypeOptions {
+export interface CodegenNativeObjectTypeOptions extends CodegenTypeOptions {
 	scopedName: string[]
 	vendorExtensions: CodegenVendorExtensions | null
 }
@@ -613,13 +613,12 @@ export enum CodegenArrayTypePurpose {
 	PARENT = 'PARENT',
 }
 
-export interface CodegenNativeArrayTypeOptions {
+export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
 	componentNativeType: CodegenNativeType
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
 	scopedName?: string[]
 	purpose: CodegenArrayTypePurpose
-	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export enum CodegenMapTypePurpose {
@@ -629,11 +628,10 @@ export enum CodegenMapTypePurpose {
 	PARENT = 'PARENT',
 }
 
-export interface CodegenNativeMapTypeOptions {
+export interface CodegenNativeMapTypeOptions extends CodegenTypeOptions {
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]
-	vendorExtensions: CodegenVendorExtensions | null
 	purpose: CodegenMapTypePurpose
 }
 

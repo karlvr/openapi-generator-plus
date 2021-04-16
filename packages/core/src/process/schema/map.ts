@@ -21,6 +21,8 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 	})
 
 	const nativeType = state.generator.toNativeMapType({
+		type: schema.type as string,
+		format: schema.format,
 		keyNativeType,
 		componentNativeType: componentSchemaUsage.nativeType,
 		vendorExtensions,

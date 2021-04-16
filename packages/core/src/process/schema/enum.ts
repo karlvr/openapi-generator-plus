@@ -28,6 +28,8 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 	
 	const nativeType = state.generator.toNativeObjectType({
+		type: schema.type,
+		format: schema.format,
 		scopedName: naming.scopedName,
 		vendorExtensions,
 	})

@@ -589,7 +589,7 @@ export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
 }
 
 export interface CodegenNativeObjectTypeOptions {
-	modelNames: string[]
+	scopedName: string[]
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
@@ -604,7 +604,7 @@ export interface CodegenNativeArrayTypeOptions {
 	componentNativeType: CodegenNativeType
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
-	modelNames?: string[]
+	scopedName?: string[]
 	purpose: CodegenArrayTypePurpose
 	vendorExtensions: CodegenVendorExtensions | null
 }

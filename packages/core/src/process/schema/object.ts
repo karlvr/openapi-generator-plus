@@ -21,7 +21,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		modelNames: scopedName,
+		scopedName,
 		vendorExtensions,
 	})
 

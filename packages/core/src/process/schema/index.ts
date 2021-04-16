@@ -1,5 +1,6 @@
 import { CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { CodegenFullTransformingNativeTypeImpl, CodegenTransformingNativeTypeImpl } from '../../native-type'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -88,22 +89,17 @@ export function toCodegenSchemaUsage(schema: OpenAPIX.SchemaObject | OpenAPIX.Re
 		}
 	}
 
-	if (result.schemaType !== CodegenSchemaType.OBJECT && result.schemaType !== CodegenSchemaType.ENUM && result.schemaType !== CodegenSchemaType.ARRAY && result.schemaType !== CodegenSchemaType.MAP) {
-		result.nativeType = state.generator.toNativeType({
-			type: result.type,
-			format: result.format,
-			vendorExtensions: schemaObject.vendorExtensions,
-			required: options.required,
-			nullable: schema.nullable || false,
-		})
-	}
+	/* Apply the schema usage to the native type */
+	const usageTransformer = state.generator.nativeTypeUsageTransformer(result)
+	result.nativeType = typeof usageTransformer === 'object'
+		? new CodegenFullTransformingNativeTypeImpl(result.nativeType, usageTransformer)
+		: new CodegenTransformingNativeTypeImpl(result.nativeType, usageTransformer)
 
 	result.examples = schema.example ? toCodegenExamples(schema.example, undefined, undefined, result, state) : null
 	result.defaultValue = schema.default !== undefined ? {
 		value: schema.default,
 		literalValue: state.generator.toLiteral(schema.default, {
 			...result,
-			required: options.required,
 		}),
 	} : null
 
@@ -164,8 +160,6 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 		const nativeType = state.generator.toNativeType({
 			type,
 			format,
-			required: true,
-			nullable: schema.nullable || false,
 			vendorExtensions,
 		})
 

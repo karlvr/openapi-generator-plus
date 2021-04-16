@@ -47,6 +47,9 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.scopedName.join('.')),
 		toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
 		toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
+		nativeTypeUsageTransformer: () => ({
+			default: (nativeType) => nativeType.nativeType,
+		}),
 		defaultValue: (options) => {
 			if (!options.required) {
 				return { value: undefined, literalValue: 'undefined' }

@@ -1,5 +1,6 @@
 import { OpenAPI } from 'openapi-types'
 import { IndexedType } from '@openapi-generator-plus/indexed-type'
+import { CodegenNativeTypeStringTransformer, CodegenNativeTypeTransformers } from './native-types'
 
 export interface CodegenInputDocument {
 	$refs: {
@@ -60,6 +61,10 @@ export interface CodegenGenerator {
 	toNativeObjectType: (options: CodegenNativeObjectTypeOptions) => CodegenNativeType
 	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => CodegenNativeType
 	toNativeMapType: (options: CodegenNativeMapTypeOptions) => CodegenNativeType
+	/**
+	 * Return a transformer to apply to native types when they are used.
+	 */
+	nativeTypeUsageTransformer: (options: CodegenNativeTypeUsageOptions) => CodegenNativeTypeTransformers | CodegenNativeTypeStringTransformer
 	/**
 	 * Return a default value to use for a property, where we MUST provide a default value. This will
 	 * usuaully be an undefined, null or initial value for primitives.
@@ -536,12 +541,20 @@ export interface CodegenSchemaNameSuggestionOptions {
 interface CodegenTypeOptions {
 	type: string
 	format?: string | null
-	required: boolean
-	nullable: boolean
 	vendorExtensions?: CodegenVendorExtensions | null
 }
 
-export interface CodegenDefaultValueOptions extends CodegenTypeOptions {
+/**
+ * Possible transformations to a native type based upon usage of that type.
+ */
+export interface CodegenNativeTypeUsageOptions {
+	required: boolean
+	nullable: boolean
+	readOnly: boolean
+	writeOnly: boolean
+}
+
+export interface CodegenDefaultValueOptions extends CodegenTypeOptions, CodegenNativeTypeUsageOptions {
 	schemaType: CodegenSchemaType
 	nativeType: CodegenNativeType
 }

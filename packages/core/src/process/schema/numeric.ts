@@ -21,8 +21,6 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 	const nativeType = state.generator.toNativeType({
 		type: schema.type,
 		format: schema.format,
-		required: true,
-		nullable: schema.nullable || false,
 		vendorExtensions,
 	})
 

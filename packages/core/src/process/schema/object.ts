@@ -179,9 +179,11 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				model.discriminatorValues.push({
 					model: otherModel,
 					value: state.generator.toLiteral(discriminatorValue, {
-						...otherModel.discriminator, 
+						...otherModel.discriminator,
 						required: true,
 						nullable: false,
+						readOnly: false,
+						writeOnly: false,
 					}),
 				})
 			}
@@ -232,7 +234,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				format: null,
 				componentSchema: null,
 				schemaType: CodegenSchemaType.STRING,
-				nativeType: state.generator.toNativeType({ type: 'string', required: true, nullable: false }),
+				nativeType: state.generator.toNativeType({ type: 'string' }),
 			}
 			
 			for (const subSchema of oneOf) {
@@ -268,9 +270,11 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				subModel.discriminatorValues.push({
 					model,
 					value: state.generator.toLiteral(discriminatorValue, {
-						...model.discriminator, 
+						...model.discriminator,
 						required: true,
 						nullable: false,
+						readOnly: false,
+						writeOnly: false,
 					}),
 				})
 
@@ -401,9 +405,11 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 			model.discriminatorValues.push({
 				model: discriminatorModel,
 				value: state.generator.toLiteral(discriminatorValue, {
-					...discriminator, 
+					...discriminator,
 					required: true,
 					nullable: false,
+					readOnly: false,
+					writeOnly: false,
 				}),
 			})
 			discriminator.references.push({

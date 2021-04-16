@@ -1,7 +1,6 @@
-import { CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema } from '@openapi-generator-plus/types'
+import { CodegenSchemaType, CodegenStringSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { nameFromRef } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
@@ -23,8 +22,6 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	const nativeType = state.generator.toNativeType({
 		type: schema.type,
 		format,
-		required: true,
-		nullable: schema.nullable || false,
 		vendorExtensions,
 	})
 

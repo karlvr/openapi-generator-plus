@@ -331,8 +331,8 @@ export interface CodegenTypeInfo {
 	// TODO we should have a CodegenNativeArrayType implementation of CodegenNativeType that has componentType, and same for map
 	// and then rename componentType in CodegenNativeType to be less confusing
 
-	/** Component types for array and map properties */
-	componentSchema: CodegenSchema | null
+	/** Component schema usage for array and map properties */
+	component: CodegenSchemaUsage | null
 }
 
 

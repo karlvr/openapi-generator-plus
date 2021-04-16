@@ -32,7 +32,7 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		format: format || null,
 		schemaType,
 		nativeType,
-		componentSchema: null,
+		component: null,
 
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,

@@ -26,7 +26,7 @@ export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 		format: format || null,
 		schemaType: CodegenSchemaType.BOOLEAN,
 		nativeType,
-		componentSchema: null,
+		component: null,
 
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,

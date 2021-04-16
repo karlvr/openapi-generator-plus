@@ -31,7 +31,7 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 		format: schema.format || null,
 		schemaType,
 		nativeType,
-		componentSchema: null,
+		component: null,
 
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,

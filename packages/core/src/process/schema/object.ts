@@ -48,7 +48,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		parent: null,
 		parentNativeType: null,
 		schemas: null,
-		componentSchema: null,
+		component: null,
 		deprecated: false,
 	}
 
@@ -234,7 +234,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				references: [],
 				type: 'string',
 				format: null,
-				componentSchema: null,
+				component: null,
 				schemaType: CodegenSchemaType.STRING,
 				nativeType: state.generator.toNativeType({ type: 'string' }),
 			}
@@ -336,7 +336,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 
 		const result = toCodegenArraySchema(schema, naming, 'item', model, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
-		model.componentSchema = result.componentSchema
+		model.component = result.component
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
 			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
@@ -345,7 +345,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 
 			const result = toCodegenMapSchema(schema, naming, 'value', model, CodegenMapTypePurpose.PARENT, state)
 			model.parentNativeType = result.nativeType
-			model.componentSchema = result.componentSchema
+			model.component = result.component
 		} else if (schema.discriminator) {
 			/* Object has a discriminator so all submodels will need to add themselves */
 			let schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject

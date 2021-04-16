@@ -169,7 +169,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			format: format || null,
 			schemaType: toCodegenSchemaType(type, format),
 			nativeType,
-			componentSchema: null,
+			component: null,
 
 			vendorExtensions,
 

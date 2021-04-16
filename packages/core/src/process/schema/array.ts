@@ -39,7 +39,7 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 		type: 'array',
 		format: schema.format || null,
 		schemaType: CodegenSchemaType.ARRAY,
-		componentSchema: componentSchemaUsage.schema,
+		component: componentSchemaUsage,
 		nativeType,
 
 		...extractCodegenSchemaCommon(schema, state),

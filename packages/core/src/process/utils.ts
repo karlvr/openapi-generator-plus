@@ -41,7 +41,7 @@ export function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo
 		schemaType: source.schemaType,
 
 		nativeType: source.nativeType,
-		componentSchema: source.componentSchema,
+		component: source.component,
 	}
 }
 

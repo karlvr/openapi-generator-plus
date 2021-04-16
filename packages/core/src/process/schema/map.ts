@@ -35,7 +35,7 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 		type: 'object',
 		format: schema.format || null,
 		schemaType: CodegenSchemaType.MAP,
-		componentSchema: componentSchemaUsage.schema,
+		component: componentSchemaUsage,
 		nativeType,
 
 		...extractCodegenSchemaCommon(schema, state),

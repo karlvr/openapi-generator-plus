@@ -67,7 +67,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		type: schema.type,
 		format: schema.format || null,
 		schemaType: CodegenSchemaType.ENUM,
-		componentSchema: null,
+		component: null,
 		nativeType,
 
 		...extractCodegenSchemaCommon(schema, state),

@@ -67,6 +67,10 @@ export function isOpenAPIv3SchemaObject(ob: OpenAPIV2.Schema | OpenAPIV3.SchemaO
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
 
+export function isOpenAPIV2PathItemObject(ob: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject, specVersion: CodegenSpecVersion): ob is OpenAPIV2.PathItemObject {
+	return specVersion === CodegenSpecVersion.OpenAPIV2
+}
+
 export function isOpenAPIV3PathItemObject(ob: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.PathItemObject {
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }

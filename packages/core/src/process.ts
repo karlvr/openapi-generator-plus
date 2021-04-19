@@ -1,6 +1,6 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
-import { isOpenAPIV2Document } from './openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -113,6 +113,55 @@ function hasNoGenerationRule(ob: CodegenOperation | CodegenSchema, state: Intern
 	}
 }
 
+/**
+ * Paths are a bit special, in that they can have a $ref and their own keys. So we need to do a special merge
+ * so we can correctly traverse a chain of references and override things correctly.
+ * @param pathItem 
+ * @param state 
+ * @returns 
+ */
+function mergeReferencedPathItems(pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject, state: InternalCodegenState): OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject {
+	if (pathItem.$ref) {
+		const result: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = { ...pathItem }
+		const referenceChainItem = mergeReferencedPathItems(resolveReference(pathItem, state), state)
+		if (isOpenAPIV3PathItemObject(result, state.specVersion) && isOpenAPIV3PathItemObject(referenceChainItem, state.specVersion)) {
+			if (!result.summary) result.summary = referenceChainItem.summary
+			if (!result.description) result.description = referenceChainItem.description
+			if (!result.trace) result.trace = referenceChainItem.trace
+			if (!result.servers) result.servers = referenceChainItem.servers
+
+			if (!result.parameters) {
+				result.parameters = referenceChainItem.parameters
+			} else if (referenceChainItem.parameters) {
+				/* Merge parameters */
+				result.parameters = [...result.parameters, ...referenceChainItem.parameters]
+			}
+		}
+		if (isOpenAPIV2PathItemObject(result, state.specVersion) && isOpenAPIV2PathItemObject(referenceChainItem, state.specVersion)) {
+			if (!result.del) result.del = referenceChainItem.del
+			
+			if (!result.parameters) {
+				result.parameters = referenceChainItem.parameters
+			} else if (referenceChainItem.parameters) {
+				/* Merge parameters */
+				result.parameters = [...result.parameters, ...referenceChainItem.parameters]
+			}
+		}
+		
+		if (!result.get) result.get = referenceChainItem.get
+		if (!result.put) result.put = referenceChainItem.put
+		if (!result.post) result.post = referenceChainItem.post
+		if (!result.delete) result.delete = referenceChainItem.delete
+		if (!result.options) result.options = referenceChainItem.options
+		if (!result.head) result.head = referenceChainItem.head
+		if (!result.patch) result.patch = referenceChainItem.patch
+		
+		return result
+	} else {
+		return pathItem
+	}
+}
+
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
@@ -125,14 +174,13 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	}
 
 	for (const path in root.paths) {
-		let pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
+		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
 		if (!pathItem) {
 			continue
 		}
 
-		pathItem = resolveReference(pathItem, state)
-
-		const pathOperations = toCodegenOperations(path, pathItem, state)
+		const merged = mergeReferencedPathItems(pathItem, state)
+		const pathOperations = toCodegenOperations(path, merged, state)
 		operations.push(...pathOperations)
 	}
 

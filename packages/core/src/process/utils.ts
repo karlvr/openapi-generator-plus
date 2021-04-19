@@ -10,11 +10,16 @@ import { toCodegenOperations } from './paths'
  * @param state 
  */
 export function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: InternalCodegenState): T {
-	if (isOpenAPIReferenceObject(ob)) {
-		return state.$refs.get(ob.$ref)
-	} else {
-		return ob
+	const seen = new Set()
+	while (isOpenAPIReferenceObject(ob)) {
+		if (seen.has(ob)) {
+			throw new Error('Recursive $ref')
+		}
+		seen.add(ob)
+		
+		ob = state.$refs.get(ob.$ref)
 	}
+	return ob
 }
 
 export function toUniqueName(suggestedName: string, existingNames: string[] | undefined): string {

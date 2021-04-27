@@ -510,6 +510,8 @@ export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 export interface CodegenObjectSchemaReference {
 	model: CodegenObjectSchema
 	name: string
+	/** The value literal in the native language */
+	value: string
 }
 
 export interface CodegenDiscriminator extends CodegenTypeInfo {

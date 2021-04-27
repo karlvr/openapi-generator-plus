@@ -171,22 +171,24 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				   As we're absorbing an already constructed model, it has already found its discriminator property.
 				*/
 				const discriminatorValue = $ref && otherModel.discriminator.mappings && otherModel.discriminator.mappings[$ref] ? otherModel.discriminator.mappings[$ref] : name
+				const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
+					...otherModel.discriminator,
+					required: true,
+					nullable: false,
+					readOnly: false,
+					writeOnly: false,
+				})
 				otherModel.discriminator.references.push({
 					model,
 					name: discriminatorValue,
+					value: discriminatorValueLiteral,
 				})
 				if (!model.discriminatorValues) {
 					model.discriminatorValues = []
 				}
 				model.discriminatorValues.push({
 					model: otherModel,
-					value: state.generator.toLiteral(discriminatorValue, {
-						...otherModel.discriminator,
-						required: true,
-						nullable: false,
-						readOnly: false,
-						writeOnly: false,
-					}),
+					value: discriminatorValueLiteral,
 				})
 			}
 		}
@@ -260,10 +262,19 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				if (isOpenAPIReferenceObject(subSchema) && mappings[subSchema.$ref]) {
 					discriminatorValue = mappings[subSchema.$ref]
 				}
+
+				const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
+					...model.discriminator,
+					required: true,
+					nullable: false,
+					readOnly: false,
+					writeOnly: false,
+				})
 				
 				model.discriminator.references.push({
 					model: subModel,
 					name: discriminatorValue,
+					value: discriminatorValueLiteral,
 				})
 
 				if (!subModel.discriminatorValues) {
@@ -271,13 +282,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 				}
 				subModel.discriminatorValues.push({
 					model,
-					value: state.generator.toLiteral(discriminatorValue, {
-						...model.discriminator,
-						required: true,
-						nullable: false,
-						readOnly: false,
-						writeOnly: false,
-					}),
+					value: discriminatorValueLiteral,
 				})
 
 				if (!subModel.implements) {
@@ -401,22 +406,24 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		if (discriminatorModel) {
 			const discriminator = discriminatorModel.discriminator!
 			const discriminatorValue = ($ref && findDiscriminatorMapping(discriminator, $ref)) || model.name
+			const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
+				...discriminator,
+				required: true,
+				nullable: false,
+				readOnly: false,
+				writeOnly: false,
+			})
 			if (!model.discriminatorValues) {
 				model.discriminatorValues = []
 			}
 			model.discriminatorValues.push({
 				model: discriminatorModel,
-				value: state.generator.toLiteral(discriminatorValue, {
-					...discriminator,
-					required: true,
-					nullable: false,
-					readOnly: false,
-					writeOnly: false,
-				}),
+				value: discriminatorValueLiteral,
 			})
 			discriminator.references.push({
 				model,
 				name: discriminatorValue,
+				value: discriminatorValueLiteral,
 			})
 		}
 	}

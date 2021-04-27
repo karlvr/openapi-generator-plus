@@ -507,7 +507,7 @@ export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
-export interface CodegenObjectSchemaReference {
+export interface CodegenDiscriminatorReference {
 	model: CodegenObjectSchema
 	name: string
 	/** The value literal in the native language */
@@ -517,7 +517,7 @@ export interface CodegenObjectSchemaReference {
 export interface CodegenDiscriminator extends CodegenTypeInfo {
 	name: string
 	mappings: CodegenDiscriminatorMappings | null
-	references: CodegenObjectSchemaReference[]
+	references: CodegenDiscriminatorReference[]
 }
 
 export interface CodegenDiscriminatorValue {

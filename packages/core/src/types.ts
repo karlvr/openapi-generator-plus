@@ -1,4 +1,4 @@
-import { CodegenState, CodegenInputDocument, CodegenSchema, CodegenNamedSchemas } from '@openapi-generator-plus/types'
+import { CodegenState, CodegenInputDocument, CodegenSchema, CodegenNamedSchemas, CodegenLogFunction } from '@openapi-generator-plus/types'
 import { OpenAPIX } from './types/patches'
 
 
@@ -17,4 +17,6 @@ export interface InternalCodegenState extends CodegenState, CodegenInputDocument
 	/** The map of top-level named schemas */
 	schemas: CodegenNamedSchemas
 	specVersion: CodegenSpecVersion
+	/* We override CodegenState so we always have a log function */
+	log: CodegenLogFunction
 }

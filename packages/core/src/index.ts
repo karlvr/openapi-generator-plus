@@ -1,4 +1,4 @@
-import { CodegenConfig, CodegenGenerator, CodegenGeneratorConstructor, CodegenState, CodegenDocument, CodegenInputDocument as CodegenInput } from '@openapi-generator-plus/types'
+import { CodegenConfig, CodegenGenerator, CodegenGeneratorConstructor, CodegenState, CodegenDocument, CodegenInputDocument as CodegenInput, CodegenLogLevel } from '@openapi-generator-plus/types'
 import { processDocument } from './process'
 import { defaultGeneratorOptions } from './generators'
 import SwaggerParser from '@openapi-generator-plus/swagger-parser'
@@ -61,8 +61,22 @@ export function createCodegenDocument(input: CodegenInput, state: CodegenState):
 		reservedSchemaNames: {},
 		schemas: idx.create(),
 		specVersion: toSpecVersion(input.root),
+		log: state.log || defaultLog,
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return processDocument(internalState as any as InternalCodegenState)
+}
+
+function defaultLog(level: CodegenLogLevel, message: string): void {
+	switch (level) {
+		case CodegenLogLevel.INFO:
+			console.log(`[INFO] ${message}`)
+			return
+		case CodegenLogLevel.WARN:
+			console.warn(`[WARN] ${message}`)
+			return
+	}
+
+	console.log(`[${level}] ${message}`)
 }

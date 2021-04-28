@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenMediaType, CodegenResponse, CodegenResponses, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenResponse, CodegenResponses, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
@@ -73,7 +73,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 
 			const mediaTypes = toProduceMediaTypes(operation as OpenAPIV2.OperationObject, state)
 			if (!mediaTypes) {
-				console.warn(`Response for operation ${scopeName} has a schema but operation doesn't specify any produces media types`)
+				state.log(CodegenLogLevel.WARN, `Response for operation ${scopeName} has a schema but operation doesn't specify any produces media types`)
 			}
 
 			contents = mediaTypes ? mediaTypes.map(mediaType => {

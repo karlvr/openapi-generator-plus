@@ -11,6 +11,14 @@ export interface CodegenInputDocument {
 
 export interface CodegenState {
 	generator: CodegenGenerator
+	log?: CodegenLogFunction
+}
+
+export type CodegenLogFunction = (level: CodegenLogLevel, message: string) => void
+
+export enum CodegenLogLevel {
+	INFO,
+	WARN,
 }
 
 export enum CodegenGeneratorType {

@@ -10,11 +10,13 @@ import glob from 'glob-promise'
 import { loadGeneratorConstructor } from './generator'
 import c from 'ansi-colors'
 import { usage } from './usage'
+import { log } from './log'
 
 async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
 	const generator = constructGenerator(config, generatorConstructor)
 
 	const state = createCodegenState(generator)
+	state.log = log
 	const input = await createCodegenInput(config.inputPath)
 
 	let doc: CodegenDocument

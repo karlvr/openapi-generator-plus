@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirements, CodegenVendorExtensions } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirements, CodegenVendorExtensions } from '@openapi-generator-plus/types'
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -128,6 +128,15 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 	const headerParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isHeaderParam)) : null
 	const cookieParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isCookieParam)) : null
 	const formParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isFormParam)) : null
+
+	/* Validate path params */
+	if (pathParams) {
+		for (const paramName of idx.allKeys(pathParams)) {
+			if (path.indexOf(`{${paramName}}`) === -1) {
+				state.log(CodegenLogLevel.WARN, `${path} has a path parameter "${paramName}" that is not contained in the path.`)
+			}
+		}
+	}
 
 	const op: CodegenOperation = {
 		name,

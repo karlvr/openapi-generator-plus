@@ -34,7 +34,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		vendorExtensions,
 	})
 
-	const enumValueType = 'string'
+	const enumValueType = schema.type
 	const enumValueFormat = schema.format
 	const enumValuePropertyType = toCodegenSchemaType(enumValueType, enumValueFormat)
 

@@ -1,0 +1,24 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test1/a:
+    get:
+      operationId: duplicateOperation
+      responses:
+        200:
+          description: OK
+  /test1/b:
+    get:
+      operationId: duplicateOperation
+      responses:
+        200:
+          description: OK
+  /test1/c:
+    get:
+      operationId: uniqueOperation
+      responses:
+        200:
+          description: OK

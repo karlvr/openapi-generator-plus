@@ -1,6 +1,6 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
-import { isOpenAPIReferenceObject, isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
+import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -19,7 +19,60 @@ function groupOperations(operationInfos: CodegenOperation[], state: InternalCode
 		strategy(operationInfo, groups, state)
 	}
 
+	uniqueifyOperationNames(groups, state)
+
 	return _.values(groups)
+}
+
+/**
+ * Ensure that operation names are unique within a group.
+ * This can be a problem if an API spec uses non-unique operationIds.
+ */
+function uniqueifyOperationNames(groups: CodegenOperationGroups, state: InternalCodegenState) {
+	for (const name in groups) {
+		const group = groups[name]
+		
+		const duplicateNames = findDuplicateNamesLowerCase(group.operations)
+
+		if (duplicateNames.length > 0) {
+			/* First try replacing with full names, but with path relative to this group, as we're assuming they were using operationIds
+			   and they weren't unique, which is how they had this problem in the first place.
+			 */
+			for (const op of group.operations) {
+				if (duplicateNames.indexOf(op.name.toLowerCase()) !== -1) {
+					op.name = state.generator.toOperationName(op.path, op.httpMethod)
+				}
+			}
+
+			/* If there are any more duplicates, we'll iterate them by appending a number */
+			let newDuplicateNames = findDuplicateNamesLowerCase(group.operations)
+			while (newDuplicateNames.length > 0) {
+				const iterations: number[] = [0].fill(1, 0, newDuplicateNames.length)
+				for (const op of group.operations) {
+					const index = duplicateNames.indexOf(op.name.toLowerCase())
+					if (index !== -1) {
+						const iteration = iterations[index]++
+						op.name = `${op.name}${iteration}`
+					}
+				}
+
+				newDuplicateNames = findDuplicateNamesLowerCase(group.operations)
+			}
+		}
+	}
+}
+
+function findDuplicateNamesLowerCase(operations: CodegenOperation[]): string[] {
+	const seenNames = new Set<string>()
+	const problemNames: string[] = []
+	for (const op of operations) {
+		const opNameLowerCase = op.name.toLowerCase()
+		if (seenNames.has(opNameLowerCase) && problemNames.indexOf(opNameLowerCase) === -1) {
+			problemNames.push(opNameLowerCase)
+		}
+		seenNames.add(opNameLowerCase)
+	}
+	return problemNames
 }
 
 function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenState) {

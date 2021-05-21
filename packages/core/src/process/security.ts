@@ -147,7 +147,7 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 		case 'basic':
 			return {
 				...DEFAULT_SECURITY_SCHEME,
-				type: scheme.type,
+				type: 'http',
 				description: scheme.description || null,
 				name,
 				scheme: 'basic',
@@ -162,7 +162,7 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 				description: scheme.description || null,
 				name,
 				scheme: scheme.scheme,
-				isBasic: true,
+				isBasic: scheme.scheme ? scheme.scheme.toLowerCase() === 'basic' : false,
 				isHttp: true,
 				vendorExtensions: toCodegenVendorExtensions(scheme),
 			}

@@ -708,7 +708,7 @@ export interface CodegenSecurityRequirementScheme {
 
 export interface CodegenSecurityScheme {
 	name: string
-	type: string
+	type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
 	description: string | null
 
 	/** The header or query parameter name for apiKey */

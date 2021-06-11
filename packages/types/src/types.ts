@@ -106,13 +106,6 @@ export interface CodegenGenerator {
 	 * haven't been modified after exporting.
 	 */
 	cleanPathPatterns: () => string[] | undefined
-
-	/**
-	 * Return `true` if named models of a collection type (ie. array or map) should be generated.
-	 * They will use the collection type as their parent class.
-	 * If not, then the collection type is used directly without generating a model class for it.
-	 */
-	generateCollectionModels?: () => boolean
 }
 
 /**
@@ -482,6 +475,9 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 	schemaType: CodegenSchemaType.OBJECT
 
 	properties: CodegenProperties | null
+
+	/** If the object supports additional properties */
+	additionalProperties: CodegenMapSchema | null
 
 	examples: CodegenExamples | null
 

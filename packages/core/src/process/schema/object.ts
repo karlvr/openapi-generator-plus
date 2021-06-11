@@ -33,6 +33,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		...extractCodegenSchemaCommon(schema, state),
 
 		properties: null,
+		additionalProperties: null,
 		examples: null,
 		discriminator: null,
 		discriminatorValues: null,
@@ -335,23 +336,17 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	} else if (schema.enum) {
 		throw new Error(`Illegal entry into toCodegenObjectSchema for enum schema: ${schema}`)
 	} else if (schema.type === 'array') {
-		if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
-			throw new Error(`Illegal entry into toCodegenObjectSchema for array schema when we do not generate collection models: ${schema}`)
-		}
-
 		const result = toCodegenArraySchema(schema, naming, 'item', model, CodegenArrayTypePurpose.PARENT, state)
 		model.parentNativeType = result.nativeType
 		model.component = result.component
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
-			if (!state.generator.generateCollectionModels || !state.generator.generateCollectionModels()) {
-				throw new Error(`Illegal entry into toCodegenObjectSchema for map schema when we do not generate collection models: ${schema}`)
-			}
-
-			const result = toCodegenMapSchema(schema, naming, 'value', model, CodegenMapTypePurpose.PARENT, state)
-			model.parentNativeType = result.nativeType
-			model.component = result.component
-		} else if (schema.discriminator) {
+			/* This schema also has additional properties */
+			const mapSchema = toCodegenMapSchema(schema, naming, 'value', model, CodegenMapTypePurpose.PROPERTY, state)
+			model.additionalProperties = mapSchema
+		}
+		
+		if (schema.discriminator) {
 			/* Object has a discriminator so all submodels will need to add themselves */
 			let schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject
 			if (typeof schemaDiscriminator === 'string') {

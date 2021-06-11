@@ -1,22 +1,5 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
-
-test('array of strings with collection models', async() => {
-	const result = await createTestDocument('odd-models/array-of-strings-v2.yml', {
-		collectionModelsAllowed: true,
-	})
-
-	const models = idx.allValues(result.schemas)
-	const model1 = models[0] as CodegenObjectSchema
-	expect(model1).toBeDefined()
-	expect(isCodegenObjectSchema(model1)).toBeTruthy()
-	expect(model1.name).toEqual('ArrayOfStrings')
-	expect(model1.nativeType.toString()).toEqual('ArrayOfStrings')
-	expect(model1.parent).toBeNull()
-	expect(model1.parentNativeType).not.toBeNull()
-	expect(model1.parentNativeType?.toString()).toEqual('array string')
-})
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')

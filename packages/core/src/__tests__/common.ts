@@ -9,7 +9,6 @@ interface TestCodegenOptions {
 }
 
 export interface TestCodegenConfig {
-	collectionModelsAllowed?: boolean
 	operationGroupingStrategy?: CodegenOperationGroupingStrategy
 }
 
@@ -96,7 +95,6 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		},
 		watchPaths: () => [],
 		cleanPathPatterns: () => undefined,
-		generateCollectionModels: () => !!generatorOptions.config.collectionModelsAllowed,
 		templateRootContext: () => ({}),
 	}
 }

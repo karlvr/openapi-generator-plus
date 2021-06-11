@@ -36,7 +36,7 @@ export function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject): Co
 		return CodegenSchemaType.OBJECT
 	} else if (schema.enum) {
 		return CodegenSchemaType.ENUM
-	} else if (schema.additionalProperties) {
+	} else if (schema.type === 'object' && schema.additionalProperties && (!schema.properties || Object.keys(schema.properties).length === 0)) {
 		return CodegenSchemaType.MAP
 	} else if (typeof schema.type === 'string') {
 		return toCodegenSchemaType(schema.type, schema.format)

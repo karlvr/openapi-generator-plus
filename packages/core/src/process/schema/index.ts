@@ -133,50 +133,66 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 	}
 	
 	let result: CodegenSchema
-	if (isObjectSchema(schema, state)) {
-		if (!naming) {
-			// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
-			throw new Error(`no name for ${JSON.stringify(schema)}`)
+	switch (schemaType) {
+		case CodegenSchemaType.MAP:
+			result = toCodegenMapSchema(schema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, CodegenMapTypePurpose.PROPERTY, state)
+			break
+		case CodegenSchemaType.OBJECT:
+			if (!naming) {
+				// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
+				throw new Error(`no name for ${JSON.stringify(schema)}`)
+			}
+			result = toCodegenObjectSchema(schema, naming, $ref, state)
+			break
+		case CodegenSchemaType.ARRAY:
+			result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, CodegenArrayTypePurpose.PROPERTY, state)
+			break
+		case CodegenSchemaType.ENUM:
+			result = toCodegenEnumSchema(schema, naming, state)
+			break
+		case CodegenSchemaType.NUMBER:
+		case CodegenSchemaType.INTEGER:
+			result = toCodegenNumericSchema(schema, naming, state)
+			break
+		case CodegenSchemaType.STRING:
+			result = toCodegenStringSchema(schema, naming, state)
+			break
+		case CodegenSchemaType.BOOLEAN:
+			result = toCodegenBooleanSchema(schema, naming, state)
+			break
+		case CodegenSchemaType.DATE:
+		case CodegenSchemaType.DATETIME:
+		case CodegenSchemaType.TIME:
+		case CodegenSchemaType.FILE: {
+			if (typeof schema.type !== 'string') {
+				throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
+			}
+
+			/* Generic unsupported schema support */
+			const type = schema.type
+			const format: string | undefined = schema.format
+			const vendorExtensions = toCodegenVendorExtensions(schema)
+
+			const nativeType = state.generator.toNativeType({
+				type,
+				format,
+				vendorExtensions,
+			})
+
+			result = {
+				...extractNaming(naming),
+				type,
+				format: format || null,
+				schemaType: toCodegenSchemaType(type, format),
+				nativeType,
+				component: null,
+
+				vendorExtensions,
+
+				...extractCodegenSchemaCommon(schema, state),
+			}
+			break
 		}
-		result = toCodegenObjectSchema(schema, naming, $ref, state)
-	} else if (schema.type === 'array') {
-		result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, CodegenArrayTypePurpose.PROPERTY, state)
-	} else if (schema.type === 'object' && schema.additionalProperties) {
-		result = toCodegenMapSchema(schema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, CodegenMapTypePurpose.PROPERTY, state)
-	} else if (schema.enum) {
-		result = toCodegenEnumSchema(schema, naming, state)
-	} else if (schema.type === 'number' || schema.type === 'integer') {
-		result = toCodegenNumericSchema(schema, naming, state)
-	} else if (schema.type === 'string') {
-		result = toCodegenStringSchema(schema, naming, state)
-	} else if (schema.type === 'boolean') {
-		result = toCodegenBooleanSchema(schema, naming, state)
-	} else if (typeof schema.type === 'string') {
-		/* Generic unsupported schema support */
-		const type = schema.type
-		const format: string | undefined = schema.format
-		const vendorExtensions = toCodegenVendorExtensions(schema)
-
-		const nativeType = state.generator.toNativeType({
-			type,
-			format,
-			vendorExtensions,
-		})
-
-		result = {
-			...extractNaming(naming),
-			type,
-			format: format || null,
-			schemaType: toCodegenSchemaType(type, format),
-			nativeType,
-			component: null,
-
-			vendorExtensions,
-
-			...extractCodegenSchemaCommon(schema, state),
-		}
-	} else {
-		throw new Error(`Unsupported schema type "${schema.type}" for property in ${JSON.stringify(schema)}`)
 	}
 
 	result = addToKnownSchemas(schema, result, state)
@@ -190,30 +206,6 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 // TODO this will be customised by the generator
 function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean, purpose: CodegenSchemaPurpose, state: InternalCodegenState): boolean {
 	if (schemaType === CodegenSchemaType.OBJECT || schemaType === CodegenSchemaType.ENUM) {
-		return true
-	}
-	
-	if (schemaType === CodegenSchemaType.ARRAY && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
-		return true
-	}
-
-	if (schemaType === CodegenSchemaType.MAP && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
-		return true
-	}
-
-	return false
-}
-
-function isObjectSchema(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
-	if ((schema.type === 'object' && !schema.additionalProperties) || schema.allOf || schema.anyOf || schema.oneOf) {
-		return true
-	}
-
-	if (schema.type === 'array' && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
-		return true
-	}
-
-	if (schema.type === 'object' && schema.additionalProperties && state.generator.generateCollectionModels && state.generator.generateCollectionModels()) {
 		return true
 	}
 

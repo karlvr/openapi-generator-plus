@@ -1,0 +1,20 @@
+---
+# An example where some things don't have explicit schemas
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      parameters:
+      - name: param1
+        in: query
+        description: Missing schema
+        required: false
+      responses:
+        200:
+          description: OK
+          headers:
+            ResponseHeader:
+              description: A response header without a schema

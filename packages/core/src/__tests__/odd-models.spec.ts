@@ -1,5 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
+import { CodegenSchemaType } from '../../../types/dist'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -22,4 +23,15 @@ test('uuid', async() => {
 	expect(idx.size(result.schemas)).toEqual(0)
 
 	/* Note that there doesn't seem to be a way to _use_ schemas like this actually */
+})
+
+test('missing schema', async() => {
+	const result = await createTestDocument('odd-models/missing-schema.yml')
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+	expect(op.queryParams!['param1']).toBeDefined()
+	expect(op.queryParams!['param1'].schemaType).toEqual(CodegenSchemaType.STRING)
+	expect(op.responses![200]).toBeDefined()
+	expect(op.responses![200].headers!['ResponseHeader']).toBeDefined()
+	expect(op.responses![200].headers!['ResponseHeader'].schemaType).toEqual(CodegenSchemaType.STRING)
 })

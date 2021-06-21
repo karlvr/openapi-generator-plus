@@ -28,26 +28,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let schemaUse: CodegenSchemaUsage | undefined
 	let examples: CodegenExamples | null
 	let defaultValue: CodegenValue | null
-	if (parameter.schema) {
-		/* We pass [] as scopeNames so we create any nested models at the root of the models package,
-		 * as we reference all models relative to the models package, but a parameter is in an
-		 * operation. TODO it would be nice to improve this; maybe we can declare an enum in an Api
-		 * interface... we'd just need to make sure that the nativeTypes referring to it were fixed.
-		 * But we don't know the Api class name at this point. If we knew it, we could perhaps pass
-		 * the package along with the scope names in all cases. 
-		 * However it's sort of up to the templates to decide where to output models... so does that
-		 * mean that we need to provide more info to toNativeType so it can put in full package names?
-		 */
-		schemaUse = toCodegenSchemaUsage(parameter.schema, state, {
-			required: parameter.required || false,
-			suggestedName: parameterContextName,
-			purpose: CodegenSchemaPurpose.PARAMETER,
-			scope: null,
-		})
-
-		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
-		defaultValue = null
-	} else if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
+	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
 			required: parameter.required || false,
 			suggestedName: parameterContextName,
@@ -60,7 +41,24 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			literalValue: state.generator.toLiteral(parameter.default, schemaUse),
 		} : null
 	} else {
-		throw new Error(`Cannot resolve schema for parameter: ${JSON.stringify(parameter)}`)
+		/* We pass [] as scopeNames so we create any nested models at the root of the models package,
+		 * as we reference all models relative to the models package, but a parameter is in an
+		 * operation. TODO it would be nice to improve this; maybe we can declare an enum in an Api
+		 * interface... we'd just need to make sure that the nativeTypes referring to it were fixed.
+		 * But we don't know the Api class name at this point. If we knew it, we could perhaps pass
+		 * the package along with the scope names in all cases. 
+		 * However it's sort of up to the templates to decide where to output models... so does that
+		 * mean that we need to provide more info to toNativeType so it can put in full package names?
+		 */
+		schemaUse = toCodegenSchemaUsage(parameter.schema || { type: 'string' }, state, {
+			required: parameter.required || false,
+			suggestedName: parameterContextName,
+			purpose: CodegenSchemaPurpose.PARAMETER,
+			scope: null,
+		})
+
+		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
+		defaultValue = null
 	}
 
 	const result: CodegenParameter = {

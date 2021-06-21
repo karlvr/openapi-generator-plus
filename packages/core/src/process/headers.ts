@@ -47,11 +47,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			examples: null,
 		}
 	} else if (isOpenAPIV3HeaderObject(header, state.specVersion)) {
-		if (!header.schema) {
-			throw new Error(`Cannot resolve schema for header "${name}: ${JSON.stringify(header)}`)
-		}
-		
-		const schemaUse = toCodegenSchemaUsage(header.schema, state, {
+		const schemaUse = toCodegenSchemaUsage(header.schema || { type: 'string' }, state, {
 			required: header.required || false, 
 			suggestedName: name, 
 			purpose: CodegenSchemaPurpose.HEADER,

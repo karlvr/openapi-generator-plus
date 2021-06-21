@@ -1,0 +1,18 @@
+---
+# An example where there are enum values that will map to duplicate names
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      parameters:
+      - name: param1
+        in: query
+        schema:
+          type: string
+          enum: [0, 1, 2, 3, -1]
+      responses:
+        200:
+          description: OK

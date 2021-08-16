@@ -126,6 +126,7 @@ export interface CodegenDocument {
 	servers: CodegenServer[] | null
 	securitySchemes: CodegenSecurityScheme[] | null
 	securityRequirements: CodegenSecurityRequirements | null
+	externalDocs: CodegenExternalDocs | null
 }
 
 export interface CodegenInfo {
@@ -771,4 +772,9 @@ export enum HttpMethods {
 	PATCH = 'PATCH',
 	DELETE = 'DELETE',
 	TRACE = 'TRACE',
+}
+
+export interface CodegenExternalDocs {
+	description: string | null
+	url: string
 }

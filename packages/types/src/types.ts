@@ -553,16 +553,17 @@ interface CodegenTypeOptions {
 /**
  * Possible transformations to a native type based upon usage of that type.
  */
-export interface CodegenNativeTypeUsageOptions {
+export interface CodegenNativeTypeUsageOptions extends CodegenTypeOptions {
 	required: boolean
 	nullable: boolean
 	readOnly: boolean
 	writeOnly: boolean
 }
 
-export interface CodegenDefaultValueOptions extends CodegenTypeOptions, CodegenNativeTypeUsageOptions {
+export interface CodegenDefaultValueOptions extends CodegenNativeTypeUsageOptions {
 	schemaType: CodegenSchemaType
 	nativeType: CodegenNativeType
+	component: CodegenSchemaUsage | null
 }
 
 export type CodegenInitialValueOptions = CodegenDefaultValueOptions

@@ -30,6 +30,7 @@ export function stringLiteralValueOptions(generator: CodegenGenerator): CodegenL
 		type: 'string', 
 		schemaType: CodegenSchemaType.STRING, 
 		nativeType: generator.toNativeType({ type: 'string' }),
+		component: null,
 		required: true,
 		nullable: false,
 		readOnly: false,

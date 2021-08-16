@@ -49,6 +49,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		format: enumValueFormat,
 		schemaType: enumValuePropertyType,
 		nativeType: enumValueNativeType,
+		component: null,
 		required: true,
 		nullable: false,
 		readOnly: false,

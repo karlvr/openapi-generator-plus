@@ -4,10 +4,10 @@ A code generator for OpenAPI 2.0 and 3.0 written in TypeScript and Node.js, with
 
 ## Installing
 
-### Locally
-
 We recommend installing OG+ locally in your project so you can control the version of the tool
 and any generator modules that you use.
+
+If you don't already have a node project, create one using `npm init` (you can just press return for any questions you don't know the answer to).
 
 ```shell
 npm install --save-dev openapi-generator-plus
@@ -19,18 +19,12 @@ Then run using:
 npx openapi-generator-plus ...
 ```
 
-### Globally
+Or add a run script, e.g.
 
-Or, if you prefer, you can install OG+ globally:
-
-```
-npm install -g openapi-generator-plus
-```
-
-Then run using:
-
-```shell
-openapi-generator-plus ...
+```json
+"scripts": {
+    "api": "openapi-generator-plus -c config.yml --clean"
+}
 ```
 
 ## Using
@@ -51,8 +45,7 @@ npx openapi-generator-plus -c <config file>
 
 OpenAPI Generator+ requires a generator module in order to generate code in your target language and style.
 
-You can find generator modules on the [Generators Wiki Page](https://github.com/karlvr/openapi-generator-plus/wiki/Generators)
-or by searching for the [#openapi-generator-plus-generator](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator) keyword on npm.
+You can find generator modules by searching for the [#openapi-generator-plus-generator](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator) keyword on npm.
 
 For example, to install a generator for a [Java server using the CXF library with CDI](https://github.com/karlvr/openapi-generator-plus-generators/tree/master/packages/java-cxf-cdi-server):
 

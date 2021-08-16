@@ -20,7 +20,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 	return {
 		generatorType: () => CodegenGeneratorType.SERVER,
 		toClassName: (name) => `${name}_class`,
-		toIdentifier: (name) => `${name}_identifier`,
+		toIdentifier: (name) => `${name.replace(/[^a-zA-Z0-9_]/g, '_')}`,
 		toConstantName: (name) => `${name}_constant`,
 		toEnumMemberName: (name) => `${name.replace('-', '')}_enum_member`,
 		toOperationName: (path, method) => `${method} ${path} operation`,

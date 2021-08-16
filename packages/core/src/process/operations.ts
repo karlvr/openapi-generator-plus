@@ -180,7 +180,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 function toCodegenOperationName(path: string, method: string, operation: OpenAPI.Operation, state: InternalCodegenState) {
 	if (operation.operationId) {
-		return operation.operationId
+		return state.generator.toIdentifier(operation.operationId)
 	}
 
 	return state.generator.toOperationName(path, method)

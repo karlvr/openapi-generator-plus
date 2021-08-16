@@ -58,10 +58,11 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	
 	const existingEnumValueNames = new Set<string>()
 	const enumValues: CodegenEnumValues = idx.create(schema.enum.map(name => {
-		let uniqueName = state.generator.toEnumMemberName(`${name}`)
+		const originalEnumMemberName = state.generator.toEnumMemberName(`${name}`)
+		let uniqueName = originalEnumMemberName
 		let iterations = 1
 		while (existingEnumValueNames.has(uniqueName)) {
-			uniqueName = state.generator.toEnumMemberName(`${name}_${iterations}`)
+			uniqueName = state.generator.toEnumMemberName(`${originalEnumMemberName}_${iterations}`)
 			iterations += 1
 		}
 		existingEnumValueNames.add(uniqueName)

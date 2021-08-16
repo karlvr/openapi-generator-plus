@@ -10,7 +10,7 @@ import { stringLiteralValueOptions } from '../utils'
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
 function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
-	return schema.schemaType !== CodegenSchemaType.ARRAY && schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
+	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

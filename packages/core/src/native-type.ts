@@ -32,7 +32,7 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		return this.wrapped.concreteType && this.transformer(this.wrapped.concreteType)
 	}
 
-	public get componentType() {
+	public get componentType(): CodegenNativeType | null {
 		if (this.wrapped.componentType) {
 			return new CodegenTransformingNativeTypeImpl(this.wrapped.componentType, this.transformer)
 		} else {
@@ -166,7 +166,7 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped.map(n => n.parentType))
 	}
 
-	public get componentType() {
+	public get componentType(): CodegenNativeType | null {
 		const componentTypes = this.wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
 		if (componentTypes.length === this.wrapped.length) {
 			return new CodegenComposingNativeTypeImpl(componentTypes, this.composer)
@@ -316,7 +316,7 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 		return this.compose(this.wrapped, this.composers.parentType || this.composers.default)
 	}
 
-	public get componentType() {
+	public get componentType(): CodegenNativeType | null {
 		const wrapped = this.wrapped
 		const componentTypes = wrapped.map(n => n.componentType).filter(n => !!n) as CodegenNativeType[]
 		if (componentTypes.length === wrapped.length) {

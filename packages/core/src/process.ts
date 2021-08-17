@@ -1,6 +1,6 @@
 import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenExternalDocs } from '@openapi-generator-plus/types'
-import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3PathItemObject } from './openapi-type-guards'
+import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -191,8 +191,6 @@ function mergeReferencedPathItems(pathItem: OpenAPIV2.PathItemObject | OpenAPIV3
 			}
 		}
 		if (isOpenAPIV2PathItemObject(result, state.specVersion) && isOpenAPIV2PathItemObject(referenceChainItem, state.specVersion)) {
-			if (!result.del) result.del = referenceChainItem.del
-			
 			if (!result.parameters) {
 				result.parameters = referenceChainItem.parameters
 			} else if (referenceChainItem.parameters) {
@@ -232,7 +230,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const root = state.root
 
 	/* Process schemas first so we can check for duplicate names when creating new anonymous models */
-	const specSchemas = isOpenAPIV2Document(root) ? root.definitions : root.components?.schemas
+	const specSchemas = isOpenAPIV2Document(root) ? root.definitions : isOpenAPIV3Document(root) ? root.components?.schemas : undefined
 	if (specSchemas) {
 		discoverCodegenSchemas(specSchemas, state)
 	}

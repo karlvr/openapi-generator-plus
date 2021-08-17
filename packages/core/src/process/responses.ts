@@ -25,7 +25,7 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 
 	for (const responseCodeString in responses) {
 		const responseCode = responseCodeString === 'default' ? 0 : parseInt(responseCodeString, 10)
-		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString], false, scopeName, state)
+		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString]!, false, scopeName, state)
 
 		idx.set(result, `${responseCode}`, response)
 

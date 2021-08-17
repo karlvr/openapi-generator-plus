@@ -236,7 +236,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 	}
 
 	for (const path in root.paths) {
-		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]
+		const pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject = root.paths[path]!
 		if (!pathItem) {
 			continue
 		}

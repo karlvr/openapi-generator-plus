@@ -218,6 +218,7 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 				description: scheme.description || null,
 				name,
 				openIdConnectUrl: scheme.openIdConnectUrl,
+				isOpenIdConnect: true,
 				vendorExtensions: toCodegenVendorExtensions(scheme),
 			}
 		default:

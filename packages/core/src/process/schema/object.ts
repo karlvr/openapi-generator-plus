@@ -8,7 +8,7 @@ import { extractNaming, fullyQualifiedName, ScopedModelInfo, toUniqueScopedName 
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
-import { OpenAPIV3 } from 'openapi-types'
+import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from '../examples'
 import { toCodegenArraySchema } from './array'
@@ -459,8 +459,7 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
 	/* We allow preserving the original description if the usage is by reference */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const description = isOpenAPIReferenceObject(schema) ? (schema as any).description : undefined
+	const description = isOpenAPIReferenceObject(schema) ? (schema as OpenAPIV3_1.ReferenceObject).description : undefined
 
 	const schemaUsage = toCodegenSchemaUsage(schema, state, {
 		required, 

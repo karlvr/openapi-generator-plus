@@ -48,11 +48,18 @@ export function remove<K, V>(map: Map<K, V>, key: K): void {
 	map.delete(key)
 }
 
-export function create<K, V>(entries?: [K, V][]): Map<K, V> {
+export function create<K, V>(): Map<K, V>
+export function create<K, V>(entries: [K, V][]): Map<K, V>
+export function create<K, V>(source: Map<K, V>): Map<K, V>
+export function create<K, V>(entries?: [K, V][] | Map<K, V>): Map<K, V> {
 	if (!entries) {
 		return new Map()
-	} else {
+	} else if (Array.isArray(entries)) {
 		return new Map(entries)
+	} else if (entries instanceof Map) {
+		return new Map(entries)
+	} else {
+		throw new Error(`Unsupported argument to create: ${typeof entries}`)
 	}
 }
 

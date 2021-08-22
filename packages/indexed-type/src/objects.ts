@@ -110,14 +110,27 @@ export function remove<T>(ob: IndexedObjectType<T>, key: string): void {
 	delete ob[key]
 }
 
-export function create<T>(entries?: [string, T][]): IndexedObjectType<T> {
-	const result: IndexedObjectType<T> = {}
-	if (entries) {
+export function create<T>(): IndexedObjectType<T>
+export function create<T>(entries: [string, T][]): IndexedObjectType<T>
+export function create<T>(source: IndexedObjectType<T>): IndexedObjectType<T>
+export function create<T>(entries?: [string, T][] | IndexedObjectType<T>): IndexedObjectType<T> {
+	if (!entries) {
+		return {}
+	} else if (Array.isArray(entries)) {
+		const result: IndexedObjectType<T> = {}
 		for (const entry of entries) {
 			result[entry[0]] = entry[1]
 		}
+		return result
+	} else if (typeof entries === 'object') {
+		const result: IndexedObjectType<T> = {}
+		for (const name in entries) {
+			result[name] = entries[name]
+		}
+		return result
+	} else {
+		throw new Error(`Unsupported argument to create: ${typeof entries}`)
 	}
-	return result
 }
 
 export function set<T, V extends T>(ob: IndexedObjectType<T>, key: string, value: V): void {

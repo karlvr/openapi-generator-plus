@@ -349,8 +349,8 @@ export interface CodegenSchemaInfo extends CodegenTypeInfo {
  * An interface for objects that use CodegenSchemas. It contains information from the API
  * spec schema, applicable to the object that uses the schema.
  */
-export interface CodegenSchemaUsage extends CodegenSchemaInfo {
-	schema: CodegenSchema
+export interface CodegenSchemaUsage<T extends CodegenSchema = CodegenSchema> extends CodegenSchemaInfo {
+	schema: T
 	required: boolean
 	examples: CodegenExamples | null
 	defaultValue: CodegenValue | null

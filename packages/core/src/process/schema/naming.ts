@@ -123,15 +123,18 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 }
 
 type TestUniqueNameFunc = (name: string, parentNames: string[] | undefined) => boolean
+interface WithName {
+	name: string
+}
 
-export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, existingNames: IndexedCollectionType<unknown> | null, state: InternalCodegenState): string
+export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, existingNames: IndexedCollectionType<WithName> | null, state: InternalCodegenState): string
 export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, testUniqueName: TestUniqueNameFunc, state: InternalCodegenState): string 
-export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, testOrData: IndexedCollectionType<unknown> | TestUniqueNameFunc | null, state: InternalCodegenState): string {
+export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, testOrData: IndexedCollectionType<WithName> | TestUniqueNameFunc | null, state: InternalCodegenState): string {
 	if (!testOrData) {
 		return suggestedName
 	}
 
-	const testUniqueName = typeof testOrData === 'function' ? testOrData : (possibleName: string) => !idx.has(testOrData, possibleName)
+	const testUniqueName = typeof testOrData === 'function' ? testOrData : (possibleName: string) => uniqueNameInIndexedCollection(possibleName, testOrData)
 
 	let name = suggestedName
 	let iteration = 0
@@ -140,4 +143,19 @@ export function toUniqueName(suggestedName: string, parentNames: string[] | unde
 		name = state.generator.toIteratedSchemaName(suggestedName, parentNames, iteration)
 	}
 	return name
+}
+
+/**
+ * Returns `true` if the given name is unique in the collection of objects with names.
+ * @param name a possible name
+ * @param collection a collection of objects with names
+ * @returns 
+ */
+function uniqueNameInIndexedCollection(name: string, collection: IndexedCollectionType<WithName>): boolean {
+	for (const value of idx.allValues(collection)) {
+		if (value.name === name) {
+			return false
+		}
+	}
+	return true
 }

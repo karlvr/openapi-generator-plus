@@ -513,8 +513,7 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 
 /**
- * The set of properties for an object. The keys are the property names converted
- * to safe identifiers by the generator.
+ * The set of properties for an object. The keys are the property names from the spec.
  */
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 

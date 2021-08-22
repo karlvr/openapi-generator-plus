@@ -469,7 +469,11 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 export function addCodegenProperty(properties: CodegenProperties, property: CodegenProperty, state: InternalCodegenState): CodegenProperty {
 	const uniquePropertyName = toUniqueName(property.name, undefined, properties, state)
 	property.name = uniquePropertyName
-	idx.set(properties, property.name, property)
+
+	if (idx.has(properties, property.serializedName)) {
+		throw new Error(`properties already includes "${property.serializedName}" in ${properties}`)
+	}
+	idx.set(properties, property.serializedName, property)
 	return property
 }
 

@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenObjectSchemas, CodegenSchemaType } from '../../../types/dist'
+import { CodegenObjectSchema, CodegenSchemaType } from '../../../types/dist'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -47,7 +47,7 @@ test('property names not legal identifiers', async() => {
 	const propertyName = generator.toIdentifier('a-hyphenated-property')
 	expect(propertyName).not.toEqual('a-hyphenated-property')
 	
-	const property = idx.get(schema.properties!, propertyName)
+	const property = idx.get(schema.properties!, 'a-hyphenated-property')
 	expect(property).toBeDefined()
 	expect(property!.name).toEqual(propertyName)
 	expect(property!.serializedName).toEqual('a-hyphenated-property')
@@ -68,13 +68,13 @@ test('property names not legal identifiers non-unique', async() => {
 	expect(propertyName).not.toEqual('a-hyphenated-property')
 	expect(propertyName).toEqual(propertyName2)
 	
-	const property = idx.get(schema.properties!, propertyName)
+	const property = idx.get(schema.properties!, 'a-hyphenated-property')
 	expect(property).toBeDefined()
 	expect(property!.name).toEqual(propertyName)
 	expect(property!.serializedName).toEqual('a-hyphenated-property')
 
 	const actualPropertyName2 = generator.toIteratedSchemaName(propertyName2, undefined, 1)
-	const property2 = idx.get(schema.properties!, actualPropertyName2)
+	const property2 = idx.get(schema.properties!, 'a-hyphenated-Property')
 	expect(property2).toBeDefined()
 	expect(property2!.name).toEqual(actualPropertyName2)
 	expect(property2!.serializedName).toEqual('a-hyphenated-Property')

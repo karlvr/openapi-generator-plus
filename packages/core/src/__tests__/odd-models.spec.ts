@@ -68,8 +68,6 @@ test('property names not legal identifiers non-unique', async() => {
 	expect(propertyName).not.toEqual('a-hyphenated-property')
 	expect(propertyName).toEqual(propertyName2)
 	
-	console.log(schema.properties)
-
 	const property = idx.get(schema.properties!, propertyName)
 	expect(property).toBeDefined()
 	expect(property!.name).toEqual(propertyName)

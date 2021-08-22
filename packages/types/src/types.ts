@@ -239,6 +239,62 @@ export interface CodegenHeader extends CodegenParameterBase {
 
 export interface CodegenContent extends CodegenSchemaUsage {
 	mediaType: CodegenMediaType
+	encoding: CodegenContentEncoding | null
+}
+
+/**
+ * Contains information about special encoding that is required for a CodegenContent
+ */
+export interface CodegenContentEncoding {
+	/**
+	 * The type of encoding required. The enum contains the list of supported types.
+	 */
+	type: CodegenContentEncodingType
+	/**
+	 * The media type of the content.
+	 */
+	mediaType: CodegenMediaType
+	/**
+	 * Encoding information for *all* properties in the content.
+	 */
+	properties: CodegenEncodingProperties
+}
+
+export enum CodegenContentEncodingType {
+	MULTIPART = 'MULTIPART',
+	WWW_FORM_URLENCODED = 'WWW_FORM_URLENCODED',
+}
+
+export type CodegenEncodingProperties = IndexedCollectionType<CodegenEncoding>
+
+/**
+ * Extra encoding information for multipart and application/x-www-form-urlencoded request bodies
+ * https://swagger.io/specification/#encoding-object
+ */
+export interface CodegenEncoding {
+	contentType: string
+	headers: CodegenHeaders | null
+	style: string | null
+	explode: boolean
+	allowReserved: boolean
+	vendorExtensions: CodegenVendorExtensions | null
+
+	/**
+	 * The value or container property in the content object.
+	 */
+	property: CodegenProperty
+	/**
+	 * The value property in the container object, if there is one.
+	 */
+	valueProperty: CodegenProperty | null
+	/**
+	 * The filename property in the container object, if there is one.
+	 */
+	filenameProperty: CodegenProperty | null
+	/**
+	 * The header property in the container object, if there is one, and if there are any headers.
+	 */
+	headerProperties: IndexedCollectionType<CodegenProperty> | null
 }
 
 export type CodegenExamples = IndexedCollectionType<CodegenExample>

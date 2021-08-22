@@ -1,4 +1,4 @@
-import { CodegenSchema, CodegenScope, isCodegenNamedSchema } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenScope, isCodegenNamedSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -49,4 +49,21 @@ export function addToKnownSchemas<T extends CodegenSchema>(schema: OpenAPIX.Sche
 		state.knownSchemas.set(schema, generatedSchema)
 		return generatedSchema
 	}
+}
+
+/**
+ * Return all of the unique properties, including inherited properties, for a model, where properties
+ * in submodels override any same-named properties in parent models.
+ * @param model 
+ * @param result 
+ */
+export function uniquePropertiesIncludingInherited(model: CodegenObjectSchema, result: CodegenProperties = idx.create()): CodegenProperties {
+	if (model.parent) {
+		uniquePropertiesIncludingInherited(model.parent, result)
+	}
+	if (model.properties) {
+		idx.merge(result, model.properties)
+	}
+
+	return result
 }

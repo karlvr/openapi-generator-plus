@@ -10,7 +10,7 @@ import _ from 'lodash'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
-import { findAllContentMediaTypes, toCodegenContentArray } from './content'
+import { applyCodegenContentEncoding, findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './schema/naming'
 
@@ -85,10 +85,13 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 				const existingBodyParam = bodyParamEntry[1]
 				const contents = consumes.map(mediaType => {
+					const schemaUse = extractCodegenSchemaUsage(existingBodyParam)
 					const result: CodegenContent = {
 						mediaType,
-						...extractCodegenSchemaUsage(existingBodyParam),
+						encoding: null,
+						...schemaUse,
 					}
+					applyCodegenContentEncoding(result, undefined, state)
 					return result
 				})
 

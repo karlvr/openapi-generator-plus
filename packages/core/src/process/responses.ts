@@ -6,7 +6,7 @@ import { nameFromRef, resolveReference } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIReferenceObject, isOpenAPIV2ResponseObject, isOpenAPIV3ResponseObject } from '../openapi-type-guards'
 import { toCodegenExamples } from './examples'
-import { findAllContentMediaTypes, toCodegenContentArray } from './content'
+import { applyCodegenContentEncoding, findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
@@ -80,7 +80,9 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 					mediaType,
 					...schemaUse,
 					examples: examples && examples[mediaType.mediaType] ? { default: examples[mediaType.mediaType] } : null,
+					encoding: null,
 				}
+				applyCodegenContentEncoding(result, undefined, state)
 				return result
 			}) : undefined
 		}

@@ -1,0 +1,33 @@
+openapi: 3.0.3
+info:
+  title: Multipart
+  version: '1.0'
+paths:
+  /object/conflicts2:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                info:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    size:
+                      type: number
+            encoding:
+              info:
+                headers:
+                  # These two headers don't conflict in the spec, but they will conflict when we turn them into identifiers for properties
+                  value:
+                    schema:
+                      type: string
+                  Value:
+                    schema:
+                      type: number
+      responses:
+        200:
+          description: OK

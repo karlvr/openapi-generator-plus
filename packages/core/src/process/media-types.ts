@@ -23,3 +23,7 @@ export function toCodegenMediaType(mediaType: string): CodegenMediaType {
 		encoding: charset || null,
 	}
 }
+
+export function isMultipart(mediaType: CodegenMediaType): boolean {
+	return mediaType.mimeType.startsWith('multipart/')
+}

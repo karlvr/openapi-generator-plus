@@ -1,11 +1,11 @@
-import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenLogLevel, CodegenMapTypePurpose, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenLogLevel, CodegenMapTypePurpose, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenTypeInfo } from '../utils'
+import { extractCodegenSchemaInfo, extractCodegenSchemaUsage, extractCodegenTypeInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo, toUniqueName, toUniqueScopedName, usedSchemaName } from './naming'
+import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
@@ -537,4 +537,70 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 		}
 	}
 	return schemaMappings
+}
+
+/**
+ * Create a new schema usage of an object type with the given name, in the given scope, and add it to that scope.
+ * @param suggestedName the suggested name to use, but a unique name will be chosen in that scope
+ * @param scope the scope in which to create the object, or `null` to create in the global scope 
+ * @param state 
+ * @returns 
+ */
+export function createObjectSchemaUsage(suggestedName: string, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage<CodegenObjectSchema> {
+	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.OBJECT, state)
+
+	const nativeType = state.generator.toNativeObjectType({
+		type: 'object',
+		scopedName: naming.scopedName,
+		vendorExtensions: null,
+	})
+
+	const schema: CodegenObjectSchema = {
+		...extractNaming(naming),
+		type: 'object',
+		format: null,
+		schemaType: CodegenSchemaType.OBJECT,
+		properties: null,
+		additionalProperties: null,
+		examples: null,
+		discriminator: null,
+		discriminatorValues: null,
+		children: null,
+		isInterface: false,
+		implements: null,
+		implementors: null,
+		parent: null,
+		parentNativeType: null,
+		description: null,
+		title: null,
+		vendorExtensions: null,
+		nullable: false,
+		readOnly: false,
+		writeOnly: false,
+		deprecated: false,
+		nativeType,
+		component: null,
+		schemas: null,
+	}
+
+	addToScope(schema, scope, state)
+
+	return {
+		...extractCodegenSchemaInfo(schema),
+		required: false,
+		schema,
+		examples: null,
+		defaultValue: null,
+	}
+}
+
+export function createProperty(name: string, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenProperty {
+	const property: CodegenProperty = {
+		name: state.generator.toIdentifier(name),
+		serializedName: name,
+		description: null,
+		...extractCodegenSchemaUsage(schemaUsage),
+		initialValue: null,
+	}
+	return property
 }

@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Multipart
+  version: '1.0'
+paths:
+  /object/headers:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                info:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    size:
+                      type: number
+            encoding:
+              info:
+                headers:
+                  Content-Disposition:
+                    schema:
+                      type: string
+      responses:
+        200:
+          description: OK

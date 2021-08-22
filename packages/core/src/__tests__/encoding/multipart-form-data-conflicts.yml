@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: Multipart
+  version: '1.0'
+paths:
+  /object/conflicts:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                info:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    size:
+                      type: number
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              info:
+                headers:
+                  # The value header should conflict with the value property we automatically create
+                  value:
+                    schema:
+                      type: string
+              file:
+                headers:
+                  # The filename header should conflict with the filename property we automatically create
+                  filename:
+                    schema:
+                      type: string
+      responses:
+        200:
+          description: OK

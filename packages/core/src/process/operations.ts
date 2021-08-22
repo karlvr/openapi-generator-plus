@@ -3,7 +3,7 @@ import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'
-import { extractCodegenSchemaUsage, nameFromRef, resolveReference, toUniqueName } from './utils'
+import { extractCodegenSchemaUsage, nameFromRef, resolveReference } from './utils'
 import { mergeCodegenVendorExtensions, toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import _ from 'lodash'
@@ -12,6 +12,7 @@ import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
 import { findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
+import { toUniqueName } from './schema/naming'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
@@ -57,7 +58,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 			const defaultContent = requestBodyContents[0]
 			bodyParam = {
-				name: toUniqueName('request', parameters ? idx.allKeys(parameters) : undefined),
+				name: toUniqueName('request', undefined, parameters, state),
 
 				...extractCodegenSchemaUsage(defaultContent),
 

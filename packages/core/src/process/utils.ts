@@ -22,20 +22,6 @@ export function resolveReference<T>(ob: T | OpenAPIV3_1.ReferenceObject | OpenAP
 	return ob
 }
 
-export function toUniqueName(suggestedName: string, existingNames: string[] | undefined): string {
-	if (!existingNames) {
-		return suggestedName
-	}
-
-	const baseName = suggestedName
-	let iteration = 0
-	while (existingNames.indexOf(suggestedName) !== -1) {
-		iteration += 1
-		suggestedName = `${baseName}${iteration}`
-	}
-	return suggestedName
-}
-
 /**
  * Extract _just_ the CodegenTypeInfo properties from the source.
  */

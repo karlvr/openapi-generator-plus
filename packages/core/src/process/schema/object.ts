@@ -14,6 +14,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenArraySchema } from './array'
 import { toCodegenMapSchema } from './map'
 import { CodegenFullTransformingNativeTypeImpl } from '../../native-type'
+import { toCodegenSchemaTypeFromSchema } from './schema-type'
 
 export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
 	const { name, scopedName, scope } = naming
@@ -318,7 +319,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 					idx.set(model.implementors, subModel.name, subModel)
 				} else {
 					// TODO resolve this hack as we can only have models as implementors, and the TypeScript generator politely handles it
-					const fakeName = toUniqueScopedName(undefined, subModel.name || 'fake', model, subSchema, state)
+					const fakeName = toUniqueScopedName(undefined, subModel.name || 'fake', model, subSchema, toCodegenSchemaTypeFromSchema(subSchema), state)
 					const fakeModel: CodegenObjectSchema = subModel as unknown as CodegenObjectSchema
 					if (!fakeModel.implements) {
 						fakeModel.implements = idx.create()

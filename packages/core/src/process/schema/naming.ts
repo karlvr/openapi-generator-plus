@@ -2,7 +2,6 @@ import { CodegenNamedSchema, CodegenSchema, CodegenSchemaNameOptions, CodegenSch
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { toCodegenSchemaTypeFromSchema } from './schema-type'
 import { nameFromRef } from '../utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 
@@ -13,7 +12,7 @@ export interface ScopedModelInfo {
 	scope: CodegenScope | null
 }
 
-export function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): ScopedModelInfo {
+function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
 	if ($ref) {
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
@@ -21,27 +20,26 @@ export function toScopedName($ref: string | undefined, suggestedName: string, sc
 		suggestedName = nameFromRef($ref, state)
 	}
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
-	/* Support vendor extension to override the automatic naming of schemas */
-	if (vendorExtensions && vendorExtensions['x-schema-name']) {
-		suggestedName = vendorExtensions['x-schema-name']
+	if (schema) {
+		const vendorExtensions = toCodegenVendorExtensions(schema)
+		/* Support vendor extension to override the automatic naming of schemas */
+		if (vendorExtensions && vendorExtensions['x-schema-name']) {
+			suggestedName = vendorExtensions['x-schema-name']
+		}
 	}
 
 	const nameOptions: CodegenSchemaNameOptions = {
-		schemaType: toCodegenSchemaTypeFromSchema(schema),
+		schemaType,
 	}
 	let name = state.generator.toSchemaName(suggestedName, nameOptions)
 
 	const serializedName = $ref ? (nameFromRef($ref, state) || null) : null
 
 	if (scope) {
-		/* Check that our name is unique in our scope, as some languages (Java) don't allow an inner class to shadow an ancestor */
-		const originalName = name
-		let iteration = 0
-		while (scope.scopedName.indexOf(name) !== -1) {
-			iteration += 1
-			name = state.generator.toIteratedSchemaName(originalName, scope.scopedName, iteration)
-		}
+		/* Check that our name is unique in our scope, as some languages (Java) don't allow an inner class to shadow the
+		   name of a containing class.
+		 */
+		name = toUniqueName(name, scope.scopedName, possibleName => scope!.scopedName.indexOf(possibleName) === -1, state)
 
 		return {
 			name,
@@ -59,13 +57,13 @@ export function toScopedName($ref: string | undefined, suggestedName: string, sc
 	}
 }
 
-export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject, state: InternalCodegenState): ScopedModelInfo {
-	const result = toScopedName($ref, suggestedName, scope, schema, state)
+export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
+	const result = toScopedName($ref, suggestedName, scope, schema, schemaType, state)
 
 	const reservedName = $ref ? state.reservedSchemaNames[$ref] : undefined
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
-		result.scopedName = uniqueName(result.scopedName, state)
+		result.scopedName = uniqueScopedName(result.scopedName, state)
 		result.name = result.scopedName[result.scopedName.length - 1]
 	}
 
@@ -96,21 +94,12 @@ export function usedSchemaName(scopedName: string[], state: InternalCodegenState
  * @param scopeNamed the scoped schema name
  * @param state the state
  */
-function uniqueName(scopedName: string[], state: InternalCodegenState): string[] {
-	if (!state.usedFullyQualifiedSchemaNames[fullyQualifiedName(scopedName)]) {
-		return scopedName
-	}
-
+function uniqueScopedName(scopedName: string[], state: InternalCodegenState): string[] {
 	const proposedName = scopedName[scopedName.length - 1]
-	const scopeNames = scopedName.slice(0, scopedName.length - 1)
-	let name = proposedName
-	let iteration = 0
-	do {
-		iteration += 1
-		name = state.generator.toIteratedSchemaName(proposedName, scopeNames, iteration)
-	} while (state.usedFullyQualifiedSchemaNames[fullyQualifiedName([...scopeNames, name])])
+	const parentNames = scopedName.slice(0, scopedName.length - 1)
 
-	return [...scopeNames, name]
+	const name = toUniqueName(proposedName, parentNames, possibleName => !state.usedFullyQualifiedSchemaNames[fullyQualifiedName([...parentNames, possibleName])], state)
+	return [...parentNames, name]
 }
 
 type ExtractNamingKeys = 'name' | 'scopedName' | 'serializedName'

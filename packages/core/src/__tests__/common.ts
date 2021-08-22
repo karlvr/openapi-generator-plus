@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -11,6 +11,7 @@ interface TestCodegenOptions {
 
 export interface TestCodegenConfig {
 	operationGroupingStrategy?: CodegenOperationGroupingStrategy
+	expectLogWarnings?: boolean
 }
 
 const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generatorContext) => {
@@ -115,11 +116,22 @@ export interface TestResult {
 
 export async function createTestResult(inputPath: string, config?: TestCodegenConfig): Promise<TestResult> {
 	const generator = createTestGenerator(config)
-	const state = createCodegenState(generator)
+	const state = createTestCodegenState(generator, config)
 	const input = await createCodegenInput(path.resolve(__dirname, inputPath))
 	const result = createCodegenDocument(input, state)
 	return {
 		result,
 		state,
 	}
+}
+
+function createTestCodegenState(generator: CodegenGenerator, config?: TestCodegenConfig): CodegenState {
+	const state = createCodegenState(generator)
+	state.log = function(level, message) {
+		if (level >= CodegenLogLevel.WARN && (!config || !config.expectLogWarnings)) {
+			/* We should not emit any warning messages during the tests */
+			throw new Error(`Warning message generated: ${message}`)
+		}
+	}
+	return state
 }

@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { extractCodegenTypeInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { extractNaming, fullyQualifiedName, ScopedModelInfo, toUniqueScopedName } from './naming'
+import { extractNaming, fullyQualifiedName, ScopedModelInfo, toUniqueName, toUniqueScopedName } from './naming'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
@@ -443,7 +443,7 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 
 		const propertySchema = schema.properties[propertyName]
 		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
-		idx.set(properties, property.name, property)
+		addCodegenProperty(properties, property, state)
 
 		if (required) {
 			requiredPropertyNames.splice(requiredIndex, 1)
@@ -455,6 +455,21 @@ function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope,
 	}
 
 	return idx.undefinedIfEmpty(properties)
+}
+
+/**
+ * Add the given property to the given set of object properties. Ensures that the property name is unique within the set of properties.
+ * Note that property names are unique in the spec, but may not be when converted to identifiers for the current generator.
+ * @param properties the object properties
+ * @param property the property to add
+ * @param state 
+ * @returns 
+ */
+export function addCodegenProperty(properties: CodegenProperties, property: CodegenProperty, state: InternalCodegenState): CodegenProperty {
+	const uniquePropertyName = toUniqueName(property.name, undefined, properties, state)
+	property.name = uniquePropertyName
+	idx.set(properties, property.name, property)
+	return property
 }
 
 function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
@@ -469,7 +484,8 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 	})
 	return {
 		...schemaUsage,
-		name,
+		name: state.generator.toIdentifier(name),
+		serializedName: name,
 		description: description || schemaUsage.schema.description || null,
 		initialValue: schemaUsage.defaultValue || state.generator.initialValue(schemaUsage) || null,
 	}

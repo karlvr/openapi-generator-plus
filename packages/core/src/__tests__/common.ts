@@ -3,6 +3,7 @@ import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
 import pluralize from 'pluralize'
+import { camelCase } from 'lodash'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig
@@ -20,7 +21,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 	return {
 		generatorType: () => CodegenGeneratorType.SERVER,
 		toClassName: (name) => `${name}_class`,
-		toIdentifier: (name) => `${name.replace(/[^a-zA-Z0-9_]/g, '_')}`,
+		toIdentifier: (name) => camelCase(`${name.replace(/[^a-zA-Z0-9_]/g, '_')}`),
 		toConstantName: (name) => `${name}_constant`,
 		toEnumMemberName: (name) => `${name.replace('-', '')}_enum_member`,
 		toOperationName: (path, method) => `${method} ${path} operation`,

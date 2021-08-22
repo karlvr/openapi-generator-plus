@@ -128,6 +128,10 @@ export function get<T>(ob: IndexedObjectType<T>, key: string): T | undefined {
 	return ob[key]
 }
 
+export function has<T>(ob: IndexedObjectType<T>, key: string): boolean {
+	return Object.keys(ob).indexOf(key) !== -1
+}
+
 export function allKeys<T>(ob: IndexedObjectType<T>): string[] {
 	const result: string[] = []
 	for (const key in ob) {

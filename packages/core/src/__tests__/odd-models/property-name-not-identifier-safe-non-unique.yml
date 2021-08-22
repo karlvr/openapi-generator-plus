@@ -1,0 +1,22 @@
+---
+# Not all object properties have names that are safe as identifiers
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  a-hyphenated-property:
+                    type: string
+                  a-hyphenated-Property:
+                    type: string
+                    

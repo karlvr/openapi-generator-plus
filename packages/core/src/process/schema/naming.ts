@@ -1,9 +1,10 @@
-import { CodegenNamedSchema, CodegenSchema, CodegenSchemaNameOptions, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenNamedSchema, CodegenSchema, CodegenSchemaNameOptions, CodegenSchemaType, CodegenScope, IndexedCollectionType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { toCodegenSchemaTypeFromSchema } from './schema-type'
 import { nameFromRef } from '../utils'
+import * as idx from '@openapi-generator-plus/indexed-type'
 
 export interface ScopedModelInfo {
 	name: string
@@ -121,4 +122,24 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 		scopedName: naming.scopedName,
 		serializedName: naming.serializedName,
 	}
+}
+
+type TestUniqueNameFunc = (name: string, parentNames: string[] | undefined) => boolean
+
+export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, existingNames: IndexedCollectionType<unknown> | null, state: InternalCodegenState): string
+export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, testUniqueName: TestUniqueNameFunc, state: InternalCodegenState): string 
+export function toUniqueName(suggestedName: string, parentNames: string[] | undefined, testOrData: IndexedCollectionType<unknown> | TestUniqueNameFunc | null, state: InternalCodegenState): string {
+	if (!testOrData) {
+		return suggestedName
+	}
+
+	const testUniqueName = typeof testOrData === 'function' ? testOrData : (possibleName: string) => !idx.has(testOrData, possibleName)
+
+	let name = suggestedName
+	let iteration = 0
+	while (!testUniqueName(name, parentNames)) {
+		iteration += 1
+		name = state.generator.toIteratedSchemaName(suggestedName, parentNames, iteration)
+	}
+	return name
 }

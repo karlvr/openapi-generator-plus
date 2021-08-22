@@ -358,6 +358,8 @@ export interface CodegenSchemaUsage extends CodegenSchemaInfo {
 
 export interface CodegenProperty extends CodegenSchemaUsage {
 	name: string
+	/** The name of the property in the API spec as it should be used when serialized (e.g. in JSON) */
+	serializedName: string
 	description: string | null
 
 	/** The initial value that the property should have. This is either the defaultValue, if there is one, or a default default from the generator. */
@@ -510,6 +512,10 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 
 export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 
+/**
+ * The set of properties for an object. The keys are the property names converted
+ * to safe identifiers by the generator.
+ */
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenDiscriminatorReference {

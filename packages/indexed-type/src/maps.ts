@@ -64,6 +64,10 @@ export function get<K, V>(map: Map<K, V>, key: K): V | undefined {
 	return map.get(key)
 }
 
+export function has<K, V>(map: Map<K, V>, key: K): boolean {
+	return map.has(key)
+}
+
 export function allKeys<K, V>(map: Map<K, V>): K[] {
 	return [...map.keys()]
 }

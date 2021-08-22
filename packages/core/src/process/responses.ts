@@ -1,5 +1,5 @@
 import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenResponse, CodegenResponses, CodegenSchemaPurpose } from '@openapi-generator-plus/types'
-import { OpenAPI, OpenAPIV2 } from 'openapi-types'
+import { OpenAPI, OpenAPIV2, OpenAPIV3_1 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { nameFromRef, resolveReference } from './utils'
@@ -49,8 +49,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref, state) : `${scopeName}_${code}_response`
 
 	/* We allow preserving the original description if the usage is by reference */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const description = isOpenAPIReferenceObject(response) ? (response as any).description : undefined
+	const description = isOpenAPIReferenceObject(response) ? (response as OpenAPIV3_1.ReferenceObject).description : undefined
 
 	response = resolveReference(response, state)
 

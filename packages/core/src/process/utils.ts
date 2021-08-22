@@ -1,6 +1,6 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 
@@ -9,7 +9,7 @@ import { toCodegenOperations } from './paths'
  * @param ob 
  * @param state 
  */
-export function resolveReference<T>(ob: T | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: InternalCodegenState): T {
+export function resolveReference<T>(ob: T | OpenAPIV3_1.ReferenceObject | OpenAPIV3.ReferenceObject | OpenAPIV2.ReferenceObject, state: InternalCodegenState): T {
 	const seen = new Set()
 	while (isOpenAPIReferenceObject(ob)) {
 		if (seen.has(ob)) {

@@ -4,8 +4,8 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { extractCodegenTypeInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { extractNaming, fullyQualifiedName, ScopedModelInfo, toUniqueName, toUniqueScopedName } from './naming'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { extractNaming, ScopedModelInfo, toUniqueName, toUniqueScopedName, usedSchemaName } from './naming'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
@@ -329,7 +329,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 					}
 					idx.set(model.implementors, fakeName.name, subModel)
 
-					state.usedFullyQualifiedSchemaNames[fullyQualifiedName(fakeName.scopedName)] = true
+					usedSchemaName(fakeName.scopedName, state)
 				}
 			}
 		}

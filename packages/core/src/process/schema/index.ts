@@ -11,7 +11,7 @@ import { toCodegenArraySchema } from './array'
 import { toCodegenBooleanSchema } from './boolean'
 import { toCodegenEnumSchema } from './enum'
 import { toCodegenMapSchema } from './map'
-import { fullyQualifiedName, toUniqueScopedName, extractNaming } from './naming'
+import { fullyQualifiedName, toUniqueScopedName, extractNaming, usedSchemaName } from './naming'
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromSchema } from './schema-type'
@@ -22,7 +22,7 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
 	for (const schemaName in specSchemas) {
 		const fqn = fullyQualifiedName([schemaName])
-		state.usedFullyQualifiedSchemaNames[fqn] = true
+		usedSchemaName([schemaName], state)
 		state.reservedSchemaNames[refForSchemaName(schemaName, state)] = fqn
 	}
 
@@ -123,7 +123,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 
 	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state) : null
 	if (naming) {
-		state.usedFullyQualifiedSchemaNames[fullyQualifiedName(naming.scopedName)] = true
+		usedSchemaName(naming.scopedName, state)
 	}
 
 	/* Due to the recursive nature of nameFromRef, we might have actually generated a schema for us now! */

@@ -83,6 +83,15 @@ export function fullyQualifiedName(scopedName: string[]): string {
 }
 
 /**
+ * Record that the given schema name has been used.
+ * @param scopedName
+ * @param state 
+ */
+export function usedSchemaName(scopedName: string[], state: InternalCodegenState): void {
+	state.usedFullyQualifiedSchemaNames[fullyQualifiedName(scopedName)] = true
+}
+
+/**
  * Returns a unique model name for a proposed schema name.
  * @param scopeNamed the scoped schema name
  * @param state the state

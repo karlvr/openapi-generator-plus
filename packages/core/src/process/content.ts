@@ -165,7 +165,10 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				newPropertySchemaUsage.schema.properties = idx.create()
 
 				/* Value property contains the actual value */
-				const valueProperty = createProperty('value', property, state)
+				const valueProperty = createProperty('value', {
+					...(property.component ? property.component : property),
+					required: true, /* As if there's no value, our container shouldn't be created */
+				}, state)
 				addCodegenProperty(newPropertySchemaUsage.schema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
 

@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenArrayTypePurpose } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { idx } from '..'
 import { InternalCodegenState } from '../types'
@@ -155,7 +155,20 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				/* Duplicate the property so we don't change the original */
 				const newProperty: CodegenProperty = {
 					...property,
-					...newPropertySchemaUsage,
+				}
+				if (property.component) {
+					newProperty.component = newPropertySchemaUsage
+					if (property.type === 'array') {
+						newProperty.nativeType = state.generator.toNativeArrayType({
+							type: 'array',
+							purpose: CodegenArrayTypePurpose.PROPERTY,
+							componentNativeType: newPropertySchemaUsage.nativeType,
+						})
+					} else {
+						throw new Error(`encoded non-array property not supported: ${property.name}`)
+					}
+				} else {
+					Object.assign(newProperty, newPropertySchemaUsage)
 				}
 				idx.set(newSchemaUsage.schema.properties, name, newProperty)
 				addToScope(newPropertySchemaUsage.schema, newSchemaUsage.schema, state)

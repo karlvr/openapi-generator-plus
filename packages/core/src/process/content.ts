@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { idx } from '..'
 import { InternalCodegenState } from '../types'
@@ -126,7 +126,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 		const contentType = propertyEncodingSpec.contentType || 'text/plain'
 		const style = propertyEncodingSpec.style || 'form'
 
-		const propertyEncoding: CodegenEncoding = {
+		const propertyEncoding: CodegenPropertyEncoding = {
 			contentType,
 			headers: supportsHeaders ? toCodegenHeaders(propertyEncodingSpec.headers, state) : null,
 			style,
@@ -221,7 +221,7 @@ function requiresMetadata(encoding: CodegenContentEncoding): boolean {
 	return false
 }
 
-function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenEncoding): boolean {
+function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenPropertyEncoding): boolean {
 	if (propertyEncoding.headers) {
 		return true
 	}
@@ -231,7 +231,7 @@ function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEnco
 	return false	
 }
 
-function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenEncoding): boolean {
+function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenPropertyEncoding): boolean {
 	if (encoding.mediaType.mimeType === 'multipart/form-data' && propertyEncoding.contentType === 'application/octet-stream') {
 		return true
 	}

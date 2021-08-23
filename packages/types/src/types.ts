@@ -265,13 +265,13 @@ export enum CodegenContentEncodingType {
 	WWW_FORM_URLENCODED = 'WWW_FORM_URLENCODED',
 }
 
-export type CodegenEncodingProperties = IndexedCollectionType<CodegenEncoding>
+export type CodegenEncodingProperties = IndexedCollectionType<CodegenPropertyEncoding>
 
 /**
  * Extra encoding information for multipart and application/x-www-form-urlencoded request bodies
  * https://swagger.io/specification/#encoding-object
  */
-export interface CodegenEncoding {
+export interface CodegenPropertyEncoding {
 	contentType: string
 	headers: CodegenHeaders | null
 	style: string | null

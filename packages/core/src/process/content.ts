@@ -160,6 +160,8 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				idx.set(newSchemaUsage.schema.properties, name, newProperty)
 				addToScope(newPropertySchemaUsage.schema, newSchemaUsage.schema, state)
 
+				propertyEncoding.property = newProperty
+
 				newPropertySchemaUsage.schema.properties = idx.create()
 
 				/* Value property contains the actual value */

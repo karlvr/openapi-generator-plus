@@ -156,17 +156,13 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				const newProperty: CodegenProperty = {
 					...property,
 				}
-				if (property.component) {
+				if (property.type === 'array') {
 					newProperty.component = newPropertySchemaUsage
-					if (property.type === 'array') {
-						newProperty.nativeType = state.generator.toNativeArrayType({
-							type: 'array',
-							purpose: CodegenArrayTypePurpose.PROPERTY,
-							componentNativeType: newPropertySchemaUsage.nativeType,
-						})
-					} else {
-						throw new Error(`encoded non-array property not supported: ${property.name}`)
-					}
+					newProperty.nativeType = state.generator.toNativeArrayType({
+						type: 'array',
+						purpose: CodegenArrayTypePurpose.PROPERTY,
+						componentNativeType: newPropertySchemaUsage.nativeType,
+					})
 				} else {
 					Object.assign(newProperty, newPropertySchemaUsage)
 				}

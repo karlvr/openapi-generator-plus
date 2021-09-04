@@ -1,4 +1,4 @@
-import { CodegenArraySchema, CodegenArrayTypePurpose, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenArraySchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
@@ -6,7 +6,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 
-export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, purpose: CodegenArrayTypePurpose, state: InternalCodegenState): CodegenArraySchema {
+export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, state: InternalCodegenState): CodegenArraySchema {
 	if (schema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
@@ -29,7 +29,6 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 		format: schema.format,
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: schema.uniqueItems,
-		purpose,
 		vendorExtensions,
 	})
 

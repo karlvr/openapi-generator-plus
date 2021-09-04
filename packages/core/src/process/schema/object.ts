@@ -1,4 +1,4 @@
-import { CodegenArrayTypePurpose, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenLogLevel, CodegenMapTypePurpose, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenLogLevel, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -338,7 +338,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
 			/* This schema also has additional properties */
-			const mapSchema = toCodegenMapSchema(schema, naming, 'value', model, CodegenMapTypePurpose.PROPERTY, state)
+			const mapSchema = toCodegenMapSchema(schema, naming, 'value', model, state)
 			model.additionalProperties = mapSchema
 		}
 		

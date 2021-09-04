@@ -1,4 +1,4 @@
-import { CodegenMapSchema, CodegenMapTypePurpose, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenMapSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
@@ -6,7 +6,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 
-export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, purpose: CodegenMapTypePurpose, state: InternalCodegenState): CodegenMapSchema {
+export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 	
 	const keyNativeType = state.generator.toNativeType({
@@ -26,7 +26,6 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 		keyNativeType,
 		componentNativeType: componentSchemaUsage.nativeType,
 		vendorExtensions,
-		purpose,
 	})
 
 	const result: CodegenMapSchema = {

@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenArrayTypePurpose } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { idx } from '..'
 import { InternalCodegenState } from '../types'
@@ -160,7 +160,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 					newProperty.component = newPropertySchemaUsage
 					newProperty.nativeType = state.generator.toNativeArrayType({
 						type: 'array',
-						purpose: CodegenArrayTypePurpose.PROPERTY,
 						componentNativeType: newPropertySchemaUsage.nativeType,
 					})
 				} else {

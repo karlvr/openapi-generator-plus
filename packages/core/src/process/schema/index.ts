@@ -1,4 +1,4 @@
-import { CodegenArrayTypePurpose, CodegenMapTypePurpose, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenFullTransformingNativeTypeImpl, CodegenTransformingNativeTypeImpl } from '../../native-type'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
@@ -135,7 +135,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 	let result: CodegenSchema
 	switch (schemaType) {
 		case CodegenSchemaType.MAP:
-			result = toCodegenMapSchema(schema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, CodegenMapTypePurpose.PROPERTY, state)
+			result = toCodegenMapSchema(schema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, state)
 			break
 		case CodegenSchemaType.OBJECT:
 			if (!naming) {
@@ -145,7 +145,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			result = toCodegenObjectSchema(schema, naming, $ref, state)
 			break
 		case CodegenSchemaType.ARRAY:
-			result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, CodegenArrayTypePurpose.PROPERTY, state)
+			result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, state)
 			break
 		case CodegenSchemaType.ENUM:
 			result = toCodegenEnumSchema(schema, naming, state)

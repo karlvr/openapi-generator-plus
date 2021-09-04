@@ -675,33 +675,17 @@ export interface CodegenNativeObjectTypeOptions extends CodegenTypeOptions {
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
-export enum CodegenArrayTypePurpose {
-	/** A type for an object property */
-	PROPERTY = 'PROPERTY',
-	/** A type for a model parent */
-	PARENT = 'PARENT',
-}
-
 export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
 	componentNativeType: CodegenNativeType
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
 	scopedName?: string[]
-	purpose: CodegenArrayTypePurpose
-}
-
-export enum CodegenMapTypePurpose {
-	/** A type for an object property */
-	PROPERTY = 'PROPERTY',
-	/** A type for a model parent */
-	PARENT = 'PARENT',
 }
 
 export interface CodegenNativeMapTypeOptions extends CodegenTypeOptions {
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]
-	purpose: CodegenMapTypePurpose
 }
 
 export type CodegenEnumValues = IndexedCollectionType<CodegenEnumValue>

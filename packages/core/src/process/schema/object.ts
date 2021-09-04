@@ -11,7 +11,6 @@ import { toCodegenSchemaUsage } from './index'
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from '../examples'
-import { toCodegenArraySchema } from './array'
 import { toCodegenMapSchema } from './map'
 import { CodegenFullTransformingNativeTypeImpl } from '../../native-type'
 import { toCodegenSchemaTypeFromSchema } from './schema-type'
@@ -336,10 +335,6 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		}
 	} else if (schema.enum) {
 		throw new Error(`Illegal entry into toCodegenObjectSchema for enum schema: ${schema}`)
-	} else if (schema.type === 'array') {
-		const result = toCodegenArraySchema(schema, naming, 'item', model, CodegenArrayTypePurpose.PARENT, state)
-		model.parentNativeType = result.nativeType
-		model.component = result.component
 	} else if (schema.type === 'object') {
 		if (schema.additionalProperties) {
 			/* This schema also has additional properties */

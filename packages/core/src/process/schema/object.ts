@@ -514,6 +514,7 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 	}
 
 	addToScope(schema, scope, state)
+	usedSchemaName(naming.scopedName, state)
 
 	return {
 		...extractCodegenSchemaInfo(schema),

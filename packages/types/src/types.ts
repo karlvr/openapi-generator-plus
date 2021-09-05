@@ -429,6 +429,8 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	scopedName: string[] | null
 	/** The name of the schema in the API spec as it should be used when serialized (e.g. in JSON), if the schema was named in the spec */
 	serializedName: string | null
+	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
+	anonymous: boolean | null
 
 	description: string | null
 	title: string | null
@@ -447,6 +449,9 @@ export interface CodegenNamedSchema extends CodegenSchema {
 
 	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
 	scopedName: string[]
+
+	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
+	anonymous: boolean
 }
 
 export type CodegenNamedSchemas = IndexedCollectionType<CodegenNamedSchema>

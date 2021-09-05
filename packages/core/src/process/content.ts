@@ -6,7 +6,7 @@ import { toCodegenExamples } from './examples'
 import { toCodegenHeaders } from './headers'
 import { isMultipart, toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
-import { toUniqueName } from './schema/naming'
+import { toUniqueName, usedSchemaName } from './schema/naming'
 import { createObjectSchemaUsage } from './schema/object'
 import { addCodegenProperty, createProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
@@ -145,6 +145,8 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 	if (requiresMetadata(content.encoding)) {
 		const newSchemaUsage = createObjectSchemaUsage(content.mediaType.mimeType, content.schema, state)
+		usedSchemaName(newSchemaUsage.schema.scopedName, state)
+		
 		newSchemaUsage.schema.properties = idx.create(allProperties)
 
 		for (const name of idx.allKeys(newSchemaUsage.schema.properties)) {

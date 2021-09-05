@@ -1,4 +1,5 @@
 ---
+# A oneOf with no discriminator
 openapi: '3.0.3'
 info:
   version: 1.0.1
@@ -6,31 +7,23 @@ info:
 paths: {}
 components:
   schemas:
-    MyResponseType:
+    Pet:
       oneOf:
         - $ref: '#/components/schemas/Cat'
         - $ref: '#/components/schemas/Dog'
         - $ref: '#/components/schemas/Lizard'
-      discriminator:
-        propertyName: petType
     Cat:
       type: object
       properties:
         name:
-          type: string
-        petType:
           type: string
     Dog:
       type: object
       properties:
         bark:
           type: string
-        petType:
-          type: string
     Lizard:
       type: object
       properties:
         lovesRocks:
           type: boolean
-        petType:
-          type: string

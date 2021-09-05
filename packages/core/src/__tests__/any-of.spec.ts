@@ -1,24 +1,42 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 
-test('any-of', async() => {
-	const result = await createTestDocument('any-of/any-of.yml')
+test('anyOf (native)', async() => {
+	const result = await createTestDocument('any-of/any-of.yml', {
+		anyOfStrategy: CodegenAnyOfStrategy.NATIVE,
+	})
 
-	const someObject = idx.find(result.schemas, m => m.name === 'SomeObject')
+	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
 	expect(someObject).toBeDefined()
-	if (!isCodegenObjectSchema(someObject!)) {
-		throw new Error('Not an object schema')
-	}
-	expect(someObject!.isInterface).toBeFalsy()
+	expect(someObject.schemaType).toEqual(CodegenSchemaType.OBJECT)
+
+	const submodels = idx.allValues(someObject.schemas!)
+	expect(submodels.length).toEqual(1)
+
+	const submodel = submodels[0] as CodegenAnyOfSchema
+	expect(submodel.schemaType).toEqual(CodegenSchemaType.ANYOF)
+	expect(submodel.implements).toBeNull()
+	expect(submodel.composes).toBeTruthy()
+	expect(submodel.composes!.length).toEqual(2)
+})
+
+test('anyOf (object)', async() => {
+	const result = await createTestDocument('any-of/any-of.yml', {
+		anyOfStrategy: CodegenAnyOfStrategy.OBJECT,
+	})
+
+	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
+	expect(someObject).toBeDefined()
+	expect(someObject.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const submodels = idx.allValues(someObject!.schemas!)
 	expect(submodels.length).toEqual(1)
 
 	const submodel = submodels[0] as CodegenObjectSchema
-	expect(submodel.isInterface).toBeFalsy()
+	expect(submodel.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(submodel.implements).not.toBeNull()
-	expect(idx.size(submodel.implements!)).toEqual(2)
+	expect(submodel.implements!.length).toEqual(2)
 
 	expect(idx.size(submodel.properties!)).toEqual(5)
 	for (const property of idx.values(submodel.properties!)) {

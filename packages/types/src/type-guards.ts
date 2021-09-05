@@ -1,4 +1,4 @@
-import { CodegenArraySchema, CodegenBooleanSchema, CodegenEnumSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -29,6 +29,10 @@ export function isCodegenObjectSchema(schema: CodegenSchema): schema is CodegenO
 	return schema.schemaType === CodegenSchemaType.OBJECT
 }
 
+export function isCodegenInterfaceSchema(schema: CodegenSchema): schema is CodegenInterfaceSchema {
+	return schema.schemaType === CodegenSchemaType.INTERFACE
+}
+
 export function isCodegenNamedSchema(schema: CodegenSchema): schema is CodegenNamedSchema {
 	return !!schema.name && !!schema.scopedName
 }
@@ -36,4 +40,26 @@ export function isCodegenNamedSchema(schema: CodegenSchema): schema is CodegenNa
 export function isCodegenScope(schema: CodegenSchema): schema is CodegenScope & CodegenSchema {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (schema as any).scopedName
+}
+
+export function isCodegenCompositionSchema(schema: CodegenSchema): schema is CodegenAllOfSchema | CodegenAnyOfSchema | CodegenOneOfSchema {
+	return schema.schemaType === CodegenSchemaType.ALLOF ||
+		schema.schemaType === CodegenSchemaType.ANYOF ||
+		schema.schemaType === CodegenSchemaType.ONEOF
+}
+
+export function isCodegenAllOfSchema(schema: CodegenSchema): schema is CodegenAllOfSchema {
+	return schema.schemaType === CodegenSchemaType.ALLOF
+}
+
+export function isCodegenAnyOfSchema(schema: CodegenSchema): schema is CodegenAnyOfSchema {
+	return schema.schemaType === CodegenSchemaType.ANYOF
+}
+
+export function isCodegenOneOfSchema(schema: CodegenSchema): schema is CodegenOneOfSchema {
+	return schema.schemaType === CodegenSchemaType.ONEOF
+}
+
+export function isCodegenWrapperSchema(schema: CodegenSchema): schema is CodegenWrapperSchema {
+	return schema.schemaType === CodegenSchemaType.WRAPPER
 }

@@ -1,0 +1,55 @@
+---
+# allOf that uses a discriminator and multiple parent object refs
+# Which means we consider whether we can use multiple inheritance.
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Pet:
+      type: object
+      required: [petType]
+      properties:
+        petType:
+          type: string
+      discriminator:
+        propertyName: petType
+    Cat:
+      allOf:
+      - $ref: '#/components/schemas/Pet'
+      - $ref: '#/components/schemas/Mammal'
+      - type: object
+        # all other properties specific to a `Cat`
+        properties:
+          name:
+            type: string
+    Dog:
+      allOf:
+      - $ref: '#/components/schemas/Pet'
+      - $ref: '#/components/schemas/Mammal'
+      - type: object
+        # all other properties specific to a `Dog`
+        properties:
+          bark:
+            type: string
+    Lizard:
+      allOf:
+      - type: object
+        # all other properties specific to a `Lizard`
+        properties:
+          lovesRocks:
+            type: boolean
+      # The order of inline or ref shouldn't matter
+      - $ref: '#/components/schemas/Pet'
+    Mammal:
+      type: object
+      properties:
+        hairColour:
+          type: string
+          enum:
+            - brown
+            - black
+            - green
+            - blue

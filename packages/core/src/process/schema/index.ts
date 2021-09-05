@@ -7,6 +7,8 @@ import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { extractCodegenSchemaInfo, resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
+import { toCodegenAllOfSchema } from './all-of'
+import { toCodegenAnyOfSchema } from './any-of'
 import { toCodegenArraySchema } from './array'
 import { toCodegenBooleanSchema } from './boolean'
 import { toCodegenEnumSchema } from './enum'
@@ -14,6 +16,7 @@ import { toCodegenMapSchema } from './map'
 import { fullyQualifiedName, toUniqueScopedName, extractNaming, usedSchemaName } from './naming'
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
+import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
@@ -144,6 +147,28 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			}
 			result = toCodegenObjectSchema(schema, naming, $ref, state)
 			break
+		case CodegenSchemaType.INTERFACE:
+			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${schema}`)
+		case CodegenSchemaType.WRAPPER:
+			throw new Error(`Cannot create a wrapper directly from an OpenAPI schema: ${schema}`)
+		case CodegenSchemaType.ALLOF:
+			if (!naming) {
+				throw new Error(`no name for ${JSON.stringify(schema)}`)
+			}
+			result = toCodegenAllOfSchema(schema, naming, $ref, state)
+			break
+		case CodegenSchemaType.ANYOF:
+			if (!naming) {
+				throw new Error(`no name for ${JSON.stringify(schema)}`)
+			}
+			result = toCodegenAnyOfSchema(schema, naming, $ref, state)
+			break
+		case CodegenSchemaType.ONEOF:
+			if (!naming) {
+				throw new Error(`no name for ${JSON.stringify(schema)}`)
+			}
+			result = toCodegenOneOfSchema(schema, naming, $ref, state)
+			break
 		case CodegenSchemaType.ARRAY:
 			result = toCodegenArraySchema(schema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, state)
 			break
@@ -205,7 +230,13 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 
 // TODO this will be customised by the generator
 function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean, purpose: CodegenSchemaPurpose, state: InternalCodegenState): boolean {
-	if (schemaType === CodegenSchemaType.OBJECT || schemaType === CodegenSchemaType.ENUM) {
+	if (
+		schemaType === CodegenSchemaType.OBJECT ||
+		schemaType === CodegenSchemaType.ENUM ||
+		schemaType === CodegenSchemaType.ALLOF ||
+		schemaType === CodegenSchemaType.ANYOF ||
+		schemaType === CodegenSchemaType.ONEOF
+	) {
 		return true
 	}
 

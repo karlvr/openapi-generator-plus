@@ -6,7 +6,7 @@ info:
 paths: {}
 components:
   schemas:
-    MyResponseType:
+    Pet:
       oneOf:
         - $ref: '#/components/schemas/Cat'
         - $ref: '#/components/schemas/Dog'
@@ -14,14 +14,12 @@ components:
       discriminator:
         propertyName: petType
     Cat:
-      allOf:
-        - $ref: '#/components/schemas/MyResponseType'
-        - type: object
-          properties:
-            name:
-              type: string
-            petType:
-              type: string
+      type: object
+      properties:
+        name:
+          type: string
+        petType:
+          type: string
     Dog:
       type: object
       properties:

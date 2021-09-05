@@ -1,0 +1,19 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Parent:
+      properties:
+        name:
+          type: string
+    Child:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          properties:
+            childName:
+              type: string

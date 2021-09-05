@@ -29,11 +29,11 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 
 export function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject): CodegenSchemaType {
 	if (schema.allOf) {
-		return CodegenSchemaType.OBJECT
+		return CodegenSchemaType.ALLOF
 	} else if (schema.anyOf) {
-		return CodegenSchemaType.OBJECT
+		return CodegenSchemaType.ANYOF
 	} else if (schema.oneOf) {
-		return CodegenSchemaType.OBJECT
+		return CodegenSchemaType.ONEOF
 	} else if (schema.enum) {
 		return CodegenSchemaType.ENUM
 	} else if (schema.type === 'object' && schema.additionalProperties && (!schema.properties || Object.keys(schema.properties).length === 0)) {

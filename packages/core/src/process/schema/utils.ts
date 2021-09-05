@@ -1,8 +1,9 @@
-import { CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenScope, isCodegenNamedSchema } from '@openapi-generator-plus/types'
+import { CodegenNamedSchema, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, isCodegenNamedSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
+import { fullyQualifiedName } from './naming'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -37,6 +38,41 @@ export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, st
 }
 
 /**
+ * Returns the scope of the given schema
+ * @param schema 
+ * @param state 
+ * @returns a CodegenScope, or null if it is in the global scope
+ */
+export function scopeOf(schema: CodegenNamedSchema, state: InternalCodegenState): CodegenScope | null {
+	const scopedName = schema.scopedName
+	if (scopedName.length === 1) {
+		return null
+	}
+	
+	let result = idx.get(state.schemas, scopedName[0])
+	for (let i = 1; i < scopedName.length; i++) {
+		if (!result) {
+			break
+		} else if (isCodegenScope(result)) {
+			if (result.schemas) {
+				result = idx.get(result.schemas, scopedName[i])
+			} else {
+				result = undefined
+				break
+			}
+		} else {
+			break
+		}
+	}
+
+	if (result && isCodegenScope(result)) {
+		return result
+	} else {
+		throw new Error(`Could not lookup scope of ${fullyQualifiedName(scopedName)}`)
+	}
+}
+
+/**
  * Add the result to the knownSchemas to avoid generating again, and returns the canonical schema.
  * If theres already a known schema for the given schema, the already existing version is returned.
  * This helps to dedupe what we generate.
@@ -58,12 +94,38 @@ export function addToKnownSchemas<T extends CodegenSchema>(schema: OpenAPIX.Sche
  * @param result 
  */
 export function uniquePropertiesIncludingInherited(model: CodegenObjectSchema, result: CodegenProperties = idx.create()): CodegenProperties {
-	if (model.parent) {
-		uniquePropertiesIncludingInherited(model.parent, result)
+	if (model.parents) {
+		for (const aParent of model.parents) {
+			uniquePropertiesIncludingInherited(aParent, result)
+		}
 	}
 	if (model.properties) {
 		idx.merge(result, model.properties)
 	}
 
 	return result
+}
+
+/**
+ * Finds and removes the named property from the given set of properties.
+ * @param properties the properties to look in
+ * @param name the name of the property
+ * @returns a CodegenProperty or undefined if not found
+ */
+export function removeProperty(schema: CodegenObjectSchema, name: string): CodegenProperty | undefined {
+	if (!schema.properties) {
+		return undefined
+	}
+
+	const entry = idx.findEntry(schema.properties, p => p.name === name)
+	if (!entry) {
+		return undefined
+	}
+
+	idx.remove(schema.properties, entry[0])
+	if (idx.isEmpty(schema.properties)) {
+		schema.properties = null
+	}
+
+	return entry[1]
 }

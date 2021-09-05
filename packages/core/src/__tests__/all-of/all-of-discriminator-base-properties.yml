@@ -1,4 +1,7 @@
 ---
+# The base schema has more properties than just the discriminator, so we can
+# check that properties are handled correctly with the removal of the
+# discriminator.
 openapi: '3.0.3'
 info:
   version: 1.0.1
@@ -11,6 +14,8 @@ components:
       required: [petType]
       properties:
         petType:
+          type: string
+        colour:
           type: string
       discriminator:
         propertyName: petType
@@ -32,10 +37,11 @@ components:
             type: string
     Lizard:
       allOf:
-      - $ref: '#/components/schemas/Pet'
       - type: object
         # all other properties specific to a `Lizard`
         properties:
           lovesRocks:
             type: boolean
+      # The order of inline or ref shouldn't matter
+      - $ref: '#/components/schemas/Pet'
 

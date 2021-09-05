@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel, CodegenAllOfStrategy, CodegenOneOfStrategy, CodegenAnyOfStrategy } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -11,6 +11,11 @@ interface TestCodegenOptions {
 
 export interface TestCodegenConfig {
 	operationGroupingStrategy?: CodegenOperationGroupingStrategy
+	allOfStrategy?: CodegenAllOfStrategy
+	anyOfStrategy?: CodegenAnyOfStrategy
+	oneOfStrategy?: CodegenOneOfStrategy
+	supportsInheritance?: boolean
+	supportsMultipleInheritance?: boolean
 	expectLogWarnings?: boolean
 }
 
@@ -38,6 +43,8 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				return `${name}_enum`
 			} else if (options.schemaType === CodegenSchemaType.OBJECT) {
 				return `${name}_model`
+			} else if (options.schemaType === CodegenSchemaType.INTERFACE) {
+				return `i_${name}`
 			} else {
 				return name
 			}
@@ -92,6 +99,11 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			}
 		},
 		operationGroupingStrategy: () => generatorOptions.config.operationGroupingStrategy || addToGroupsByPath,
+		allOfStrategy: () => generatorOptions.config.allOfStrategy || CodegenAllOfStrategy.NATIVE,
+		anyOfStrategy: () => generatorOptions.config.anyOfStrategy || CodegenAnyOfStrategy.NATIVE,
+		oneOfStrategy: () => generatorOptions.config.oneOfStrategy || CodegenOneOfStrategy.NATIVE,
+		supportsMultipleInheritance: () => generatorOptions.config.supportsMultipleInheritance || false,
+		supportsInheritance: () => generatorOptions.config.supportsInheritance || false,
 		exportTemplates: async() => {
 			// NOOP
 		},

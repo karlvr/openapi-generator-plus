@@ -82,6 +82,12 @@ export interface CodegenGenerator {
 	initialValue: (options: CodegenInitialValueOptions) => CodegenValue | null
 
 	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
+	allOfStrategy: () => CodegenAllOfStrategy
+	anyOfStrategy: () => CodegenAnyOfStrategy
+	oneOfStrategy: () => CodegenOneOfStrategy
+	// TODO it feels like these could go into a Features object or something
+	supportsInheritance: () => boolean
+	supportsMultipleInheritance: () => boolean
 
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.
@@ -365,6 +371,11 @@ export interface CodegenNativeType {
 
 export enum CodegenSchemaType {
 	OBJECT = 'OBJECT',
+	INTERFACE = 'INTERFACE',
+	WRAPPER = 'WRAPPER',
+	ALLOF = 'ALLOF',
+	ANYOF = 'ANYOF',
+	ONEOF = 'ONEOF',
 	MAP = 'MAP',
 	ARRAY = 'ARRAY',
 	BOOLEAN = 'BOOLEAN',
@@ -534,7 +545,18 @@ export interface CodegenScope {
 	schemas: CodegenNamedSchemas | null
 }
 
-export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
+/**
+ * An interface to be extended by schemas that support polymorphism.
+ */
+export interface CodegenDiscriminatorSchema extends CodegenNamedSchema {
+	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
+	discriminator: CodegenDiscriminator | null
+
+	/** Information about the values of discriminators for this model */
+	discriminatorValues: CodegenDiscriminatorValue[] | null
+}
+
+export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
 	type: 'object'
 	schemaType: CodegenSchemaType.OBJECT
 
@@ -545,33 +567,84 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope {
 
 	examples: CodegenExamples | null
 
-	/* Polymorphism */
+	/** The interface created for this object schema, so other object schemas can implement it */
+	interface: CodegenInterfaceSchema | null
 
-	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
-	discriminator: CodegenDiscriminator | null
+	/** The interface schemas that this schema complies with */
+	implements: CodegenInterfaceSchema[] | null
 
-	/** Information about the values of discriminators for this model */
-	discriminatorValues: CodegenDiscriminatorValue[] | null
+	/** Parent schemas */
+	parents: CodegenObjectSchema[] | null
 
-	/** The models that have this model as their parent */
-	children: CodegenObjectSchemas | null
-
-	/** Whether this model is an interface; it has no properties and exists as a marker in the type system rather than a functional object */
-	isInterface: boolean
-
-	/** The interface models that this model complies with */
-	implements: CodegenSchemas | null
-	implementors: CodegenSchemas | null
-
-	/** Parent model */
-	parent: CodegenObjectSchema | null
-	/** The native type of the parent.
-	 * This may be set even when `parent` is not set, in case the native parent is not a model.
-	 */
-	parentNativeType: CodegenNativeType | null
+	/** The object schemas that have this schema as their parent */
+	children: CodegenObjectSchema[] | null
 }
 
 export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
+
+export interface CodegenInterfaceSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
+	type: 'object'
+	schemaType: CodegenSchemaType.INTERFACE
+
+	properties: CodegenProperties | null
+
+	/** If the object supports additional properties */
+	additionalProperties: CodegenMapSchema | null
+
+	examples: CodegenExamples | null
+
+	/** Parent interface schemas */
+	parents: CodegenInterfaceSchema[] | null
+
+	/** The interface schemas that have this schema as their parent */
+	children: CodegenInterfaceSchema[] | null
+
+	/** The object schema that this interface was created for */
+	implementation: CodegenObjectSchema | null
+
+	/** The object schemas that implement this interface */
+	implementors: CodegenSchema[] | null
+}
+
+interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenDiscriminatorSchema {
+	examples: CodegenExamples | null
+
+	composes: CodegenSchema[]
+
+	/** The interface schemas that this schema complies with */
+	implements: CodegenInterfaceSchema[] | null
+}
+
+export interface CodegenAllOfSchema extends CodegenCompositionSchema {
+	type: 'allOf' // TODO do we want to introduce new types? can this be null?
+	schemaType: CodegenSchemaType.ALLOF
+}
+
+export interface CodegenAnyOfSchema extends CodegenCompositionSchema {
+	type: 'anyOf' // TODO do we want to introduce new types? can this be null?
+	schemaType: CodegenSchemaType.ANYOF
+}
+
+export interface CodegenOneOfSchema extends CodegenCompositionSchema {
+	type: 'oneOf' // TODO do we want to introduce new types? can this be null?
+	schemaType: CodegenSchemaType.ONEOF
+}
+
+/**
+ * An object-like schema created to wrap primitive schemas that aren't natively supported
+ * in composition by some generators.
+ * 
+ * A wrapper contains a single property that is the wrapped value.
+ */
+export interface CodegenWrapperSchema extends CodegenNamedSchema, CodegenScope {
+	type: 'object'
+	schemaType: CodegenSchemaType.WRAPPER
+
+	property: CodegenProperty
+
+	/** The interface schemas that this schema complies with */
+	implements: CodegenInterfaceSchema[] | null
+}
 
 /**
  * The set of properties for an object. The keys are the property names from the spec.
@@ -579,7 +652,7 @@ export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenDiscriminatorReference {
-	model: CodegenObjectSchema
+	model: CodegenNamedSchema
 	name: string
 	/** The value literal in the native language */
 	value: string
@@ -593,7 +666,7 @@ export interface CodegenDiscriminator extends CodegenTypeInfo {
 
 export interface CodegenDiscriminatorValue {
 	/** The model containing the discriminator */
-	model: CodegenObjectSchema
+	model: CodegenDiscriminatorSchema
 	/** The value literal in the native language */
 	value: string
 }
@@ -827,4 +900,25 @@ export enum HttpMethods {
 export interface CodegenExternalDocs {
 	description: string | null
 	url: string
+}
+
+export enum CodegenAllOfStrategy {
+	/** Leave the CodegenAllOfSchema in the result for the generator implementation to deal with */
+	NATIVE = 'NATIVE',
+	/** Convert the allOf structure to object schemas with relationships */
+	OBJECT = 'OBJECT',
+}
+
+export enum CodegenAnyOfStrategy {
+	/** Leave the CodegenAnyOfSchema in the result for the generator implementation to deal with */
+	NATIVE = 'NATIVE',
+	/** Convert the anyOf structure to object schemas with relationships */
+	OBJECT = 'OBJECT',
+}
+
+export enum CodegenOneOfStrategy {
+	/** Leave the CodegenOneOfSchema in the result for the generator implementation to deal with */
+	NATIVE = 'NATIVE',
+	/** Convert the oneOf structure to object schemas with relationships */
+	OBJECT = 'OBJECT',
 }

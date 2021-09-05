@@ -6,7 +6,7 @@ import { toCodegenExamples } from './examples'
 import { toCodegenHeaders } from './headers'
 import { isMultipart, toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
-import { toUniqueName, usedSchemaName } from './schema/naming'
+import { toUniqueName } from './schema/naming'
 import { createObjectSchemaUsage } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
@@ -40,8 +40,8 @@ function toCodegenContent(mediaType: string, mediaTypeContent: OpenAPIV3.MediaTy
 	const item: CodegenContent = {
 		mediaType: toCodegenMediaType(mediaType),
 		encoding: null,
-		examples,
 		...schemaUse,
+		examples,
 	}
 	applyCodegenContentEncoding(item, mediaTypeContent.encoding, state)
 	return item

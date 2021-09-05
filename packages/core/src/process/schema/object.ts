@@ -1,19 +1,20 @@
-import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenLogLevel, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenSchemaInfo, extractCodegenSchemaUsage, extractCodegenTypeInfo } from '../utils'
+import { extractCodegenSchemaInfo, extractCodegenTypeInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { extractNaming, ScopedModelInfo, toUniqueName, toUniqueScopedName, usedSchemaName } from './naming'
+import { extractNaming, ScopedModelInfo, toUniqueScopedName, usedSchemaName } from './naming'
 import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from './index'
-import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import { OpenAPIV3 } from 'openapi-types'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toCodegenExamples } from '../examples'
 import { toCodegenMapSchema } from './map'
 import { CodegenFullTransformingNativeTypeImpl } from '../../native-type'
 import { toCodegenSchemaTypeFromSchema } from './schema-type'
+import { toCodegenProperties } from './property'
 
 export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
 	const { name, scopedName, scope } = naming
@@ -425,72 +426,6 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	return model
 }
 
-function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
-	if (typeof schema.properties !== 'object') {
-		return undefined
-	}
-
-	const requiredPropertyNames = typeof schema.required === 'object' ? [...schema.required as string[]] : []
-
-	const properties: CodegenProperties = idx.create()
-	for (const propertyName in schema.properties) {
-		const requiredIndex = requiredPropertyNames.indexOf(propertyName)
-		const required = requiredIndex !== -1
-
-		const propertySchema = schema.properties[propertyName]
-		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
-		addCodegenProperty(properties, property, state)
-
-		if (required) {
-			requiredPropertyNames.splice(requiredIndex, 1)
-		}
-	}
-
-	if (requiredPropertyNames.length > 0) {
-		state.log(CodegenLogLevel.WARN, `Required properties [${requiredPropertyNames.join(', ')}] missing from properties: ${JSON.stringify(schema)}`)
-	}
-
-	return idx.undefinedIfEmpty(properties)
-}
-
-/**
- * Add the given property to the given set of object properties. Ensures that the property name is unique within the set of properties.
- * Note that property names are unique in the spec, but may not be when converted to identifiers for the current generator.
- * @param properties the object properties
- * @param property the property to add
- * @param state 
- * @returns 
- */
-export function addCodegenProperty(properties: CodegenProperties, property: CodegenProperty, state: InternalCodegenState): CodegenProperty {
-	const uniquePropertyName = toUniqueName(property.name, undefined, properties, state)
-	property.name = uniquePropertyName
-
-	if (idx.has(properties, property.serializedName)) {
-		throw new Error(`properties already includes "${property.serializedName}" in ${properties}`)
-	}
-	idx.set(properties, property.serializedName, property)
-	return property
-}
-
-function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
-	/* We allow preserving the original description if the usage is by reference */
-	const description = isOpenAPIReferenceObject(schema) ? (schema as OpenAPIV3_1.ReferenceObject).description : undefined
-
-	const schemaUsage = toCodegenSchemaUsage(schema, state, {
-		required, 
-		suggestedName: name,
-		purpose: CodegenSchemaPurpose.PROPERTY,
-		scope,
-	})
-	return {
-		...schemaUsage,
-		name: state.generator.toIdentifier(name),
-		serializedName: name,
-		description: description || schemaUsage.schema.description || null,
-		initialValue: schemaUsage.defaultValue || state.generator.initialValue(schemaUsage) || null,
-	}
-}
-
 function findDiscriminatorMapping(discriminator: CodegenDiscriminator, ref: string): string | undefined {
 	if (discriminator.mappings) {
 		return discriminator.mappings[ref]
@@ -587,15 +522,4 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 		examples: null,
 		defaultValue: null,
 	}
-}
-
-export function createProperty(name: string, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenProperty {
-	const property: CodegenProperty = {
-		name: state.generator.toIdentifier(name),
-		serializedName: name,
-		description: null,
-		...extractCodegenSchemaUsage(schemaUsage),
-		initialValue: null,
-	}
-	return property
 }

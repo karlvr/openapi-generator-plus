@@ -8,7 +8,7 @@ import { isMultipart, toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
 import { toUniqueName, usedSchemaName } from './schema/naming'
 import { createObjectSchemaUsage } from './schema/object'
-import { addCodegenProperty, createProperty } from './schema/property'
+import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
 import { addToScope, uniquePropertiesIncludingInherited } from './schema/utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
@@ -174,7 +174,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				newPropertySchemaUsage.schema.properties = idx.create()
 
 				/* Value property contains the actual value */
-				const valueProperty = createProperty('value', {
+				const valueProperty = createCodegenProperty('value', {
 					...(property.component ? property.component : property),
 					required: true, /* As if there's no value, our container shouldn't be created */
 				}, state)
@@ -183,7 +183,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				/* Filename property */
 				if (propertyRequiresFilenameMetadata(encoding, propertyEncoding)) {
-					const filenameProperty = createProperty('filename', createStringSchemaUsage(state), state)
+					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(state), state)
 					addCodegenProperty(newPropertySchemaUsage.schema.properties, filenameProperty, state)
 					propertyEncoding.filenameProperty = filenameProperty
 				}
@@ -192,11 +192,11 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				if (propertyEncoding.headers) {
 					propertyEncoding.headerProperties = idx.create()
 					for (const [headerName, header] of idx.iterable(propertyEncoding.headers)) {
-						let headerProperty = createProperty(headerName, header, state)
+						let headerProperty = createCodegenProperty(headerName, header, state)
 
 						let uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchemaUsage.schema.properties, state)
 						if (uniquePropertyName !== headerProperty.name) {
-							headerProperty = createProperty(`${headerName}_header`, header, state)
+							headerProperty = createCodegenProperty(`${headerName}_header`, header, state)
 							uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchemaUsage.schema.properties, state)
 						}
 						headerProperty.name = uniquePropertyName

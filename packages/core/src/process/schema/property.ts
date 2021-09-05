@@ -74,7 +74,7 @@ function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required
 	}
 }
 
-export function createProperty(name: string, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenProperty {
+export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenProperty {
 	const property: CodegenProperty = {
 		name: state.generator.toIdentifier(name),
 		serializedName: name,

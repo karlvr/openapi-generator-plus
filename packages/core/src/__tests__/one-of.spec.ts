@@ -26,7 +26,7 @@ test('oneOf simple (native)', async() => {
 
 test('oneOf simple (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-simple.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	})
 
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
@@ -72,7 +72,7 @@ test('oneOf discriminator (native)', async() => {
 
 test('oneOf discriminator (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-discriminator.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	})
 
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
@@ -98,7 +98,7 @@ test('oneOf discriminator missing property (native)', async() => {
 
 test('oneOf discriminator missing property (object)', async() => {
 	await expect(createTestDocument('one-of/one-of-discriminator-missing-property.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	}))
 		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')
 })
@@ -124,7 +124,7 @@ test('oneOf no discriminator (native)', async() => {
 
 test('oneOf no discriminator (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-no-discriminator.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	})
 
 	const combinedModel = idx.get(result.schemas, 'MyResponseType') as CodegenInterfaceSchema
@@ -142,7 +142,7 @@ test('oneOf no discriminator (object)', async() => {
 
 test('oneOf property no discriminator (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-property-no-discriminator.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	})
 
 	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
@@ -177,7 +177,7 @@ test('oneOf arrays (native)', async() => {
 
 test('oneOf arrays (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-arrays.yml', {
-		oneOfStrategy: CodegenOneOfStrategy.OBJECT,
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	})
 	expect(result).toBeDefined()
 

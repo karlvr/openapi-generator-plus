@@ -18,8 +18,8 @@ export function toCodegenOneOfSchema(schema: OpenAPIX.SchemaObject, naming: Scop
 	switch (strategy) {
 		case CodegenOneOfStrategy.NATIVE:
 			return toCodegenOneOfSchemaNative(schema, naming, $ref, state)
-		case CodegenOneOfStrategy.OBJECT:
-			return toCodegenOneOfSchemaObject(schema, naming, $ref, state)
+		case CodegenOneOfStrategy.INTERFACE:
+			return toCodegenOneOfSchemaInterface(schema, naming, $ref, state)
 	}
 	throw new Error(`Unsupported oneOf strategy: ${strategy}`)
 }
@@ -200,7 +200,7 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	return model
 }
 
-function toCodegenOneOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)

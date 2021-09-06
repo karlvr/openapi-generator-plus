@@ -919,6 +919,6 @@ export enum CodegenAnyOfStrategy {
 export enum CodegenOneOfStrategy {
 	/** Leave the CodegenOneOfSchema in the result for the generator implementation to deal with */
 	NATIVE = 'NATIVE',
-	/** Convert the oneOf structure to object schemas with relationships */
-	OBJECT = 'OBJECT',
+	/** Convert the oneOf structure to interfaces schemas with relationships */
+	INTERFACE = 'INTERFACE',
 }

@@ -117,15 +117,15 @@ export function removeProperty(schema: CodegenObjectSchema, name: string): Codeg
 		return undefined
 	}
 
-	const entry = idx.findEntry(schema.properties, p => p.name === name)
+	const entry = idx.get(schema.properties, name)
 	if (!entry) {
 		return undefined
 	}
 
-	idx.remove(schema.properties, entry[0])
+	idx.remove(schema.properties, name)
 	if (idx.isEmpty(schema.properties)) {
 		schema.properties = null
 	}
 
-	return entry[1]
+	return entry
 }

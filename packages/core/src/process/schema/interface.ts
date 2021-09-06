@@ -65,6 +65,11 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 	}
 	schema.interface = result
 
+	if (!schema.implements) {
+		schema.implements = []
+	}
+	schema.implements.push(result)
+
 	if (parents) {
 		for (const aParent of parents) {
 			if (!aParent.children) {

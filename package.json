@@ -4,14 +4,14 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "build": "lerna run build",
-    "clean": "lerna run clean",
-    "link": "lerna exec npm link && lerna clean --yes && rimraf packages/*/package-lock.json",
-    "update": "npx lerna-update-wizard",
-    "release": "npm run clean && npm run build && npm test && lerna publish",
-    "test": "lerna run test",
-    "test-core": "cd packages/core && npm t -- --watch",
-    "watch": "lerna run --parallel watch"
+    "build": "pnpm build --recursive",
+    "clean": "pnpm clean --recursive",
+    "link": "pnpm --recursive exec pnpm link --global",
+    "update": "pnpm outdated --recursive",
+    "release": "pnpm clean && pnpm build && pnpm test && pnpm publish --recursive",
+    "test": "pnpm test --recursive",
+    "test-core": "cd packages/core && pnpm t -- --watch",
+    "watch": "pnpm watch --parallel"
   },
   "repository": {
     "type": "git",
@@ -24,27 +24,20 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "devDependencies": {
+    "@changesets/cli": "^2.17.0",
     "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.172",
     "@types/node": "^16.6.1",
     "@types/pluralize": "0.0.29",
-    "@types/yaml": "^1.9.7",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
     "@typescript-eslint/parser": "^4.29.2",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^24.4.0",
     "jest": "^27.0.6",
-    "lerna": "^4.0.0",
     "openapi-types": "^9.1.0",
     "pluralize": "^8.0.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^27.0.4",
     "typescript": "^4.3.5"
-  },
-  "dependencies": {
-    "@openapi-generator-plus/core": "file:packages/core",
-    "@openapi-generator-plus/indexed-type": "file:packages/indexed-type",
-    "@openapi-generator-plus/testing": "file:packages/testing",
-    "@openapi-generator-plus/types": "file:packages/types",
-    "openapi-generator-plus": "file:packages/cli"
   }
 }

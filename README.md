@@ -8,7 +8,7 @@ See [OpenAPI Generator+ CLI](https://github.com/karlvr/openapi-generator-plus/tr
 
 ## Building the project
 
-This project uses [nvm](https://github.com/nvm-sh/nvm) for managing the versions of node and npm, and [lerna](https://github.com/lerna/lerna) for managing the monorepo project structure.
+This project uses [nvm](https://github.com/nvm-sh/nvm) for managing the versions of node, and [pnpm](https://pnpm.io) for installing packages and managing the monorepo project structure.
 
 To setup `nvm`:
 
@@ -17,16 +17,22 @@ nvm install
 nvm use
 ```
 
+To install pnpm:
+
+```shell
+npm -g install pnpm
+```
+
 To install and build the project:
 
 ```shell
-npx lerna bootstrap
-npm run build
-npm run watch
+pnpm install
+pnpm build
+pnpm watch
 ```
 
 To run the tests:
 
 ```shell
-npm test
+pnpm test
 ```

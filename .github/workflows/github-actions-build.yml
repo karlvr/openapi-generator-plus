@@ -22,6 +22,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npx lerna bootstrap --ci
-      - run: npm run build
-      - run: npm test
+      # https://pnpm.io/continuous-integration
+      - name: Cache .pnpm-store
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-node${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+      - name: Install pnpm
+        run: curl -f https://get.pnpm.io/v6.14.js | node - add --global pnpm@6
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm test

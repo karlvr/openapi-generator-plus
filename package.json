@@ -6,6 +6,7 @@
   "scripts": {
     "build": "pnpm build --recursive",
     "clean": "pnpm clean --recursive",
+    "clean:node_modules": "pnpm --recursive exec rm -rf node_modules",
     "link": "pnpm --recursive exec pnpm link --global",
     "update": "pnpm outdated --recursive",
     "release": "pnpm clean && pnpm build && pnpm test && pnpm publish --recursive",

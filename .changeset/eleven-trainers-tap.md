@@ -1,9 +1,9 @@
 ---
-"openapi-generator-plus": major
-"@openapi-generator-plus/core": major
-"@openapi-generator-plus/indexed-type": major
-"@openapi-generator-plus/testing": major
-"@openapi-generator-plus/types": major
+"openapi-generator-plus": minor
+"@openapi-generator-plus/core": minor
+"@openapi-generator-plus/indexed-type": minor
+"@openapi-generator-plus/testing": minor
+"@openapi-generator-plus/types": minor
 ---
 
 Refactor support for allOf, anyOf and oneOf so we can accurately represent these concepts in different languages with different capabilities.

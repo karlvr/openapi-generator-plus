@@ -15,7 +15,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
-	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : value
+	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : state.generator.toLiteral(null, { required: true, ...schema })
 	return {
 		value,
 		valueLiteral,

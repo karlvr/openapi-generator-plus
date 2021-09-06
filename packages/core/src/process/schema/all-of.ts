@@ -48,6 +48,7 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		component: null,
 		deprecated: false,
 		examples: null,
+		schemas: null,
 
 		composes: [],
 		implements: null,

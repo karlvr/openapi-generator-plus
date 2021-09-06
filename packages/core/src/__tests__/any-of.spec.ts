@@ -30,10 +30,7 @@ test('anyOf (object)', async() => {
 	expect(someObject).toBeDefined()
 	expect(someObject.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
-	const submodels = idx.allValues(someObject!.schemas!)
-	expect(submodels.length).toEqual(1)
-
-	const submodel = submodels[0] as CodegenObjectSchema
+	const submodel = idx.get(someObject!.schemas!, 'color') as CodegenObjectSchema
 	expect(submodel.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(submodel.implements).not.toBeNull()
 	expect(submodel.implements!.length).toEqual(2)

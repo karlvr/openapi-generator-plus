@@ -48,6 +48,7 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		component: null,
 		deprecated: false,
 		examples: null,
+		schemas: null,
 
 		composes: [],
 		implements: null,
@@ -70,7 +71,7 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		const otherModel = toCodegenSchemaUsage(otherSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
-			scope,
+			scope: state.generator.nativeOneOfCanBeScope() ? model : scope,
 			suggestedName: `${model.name}_option`,
 		}).schema
 

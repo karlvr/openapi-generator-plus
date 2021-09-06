@@ -88,6 +88,7 @@ export interface CodegenGenerator {
 	// TODO it feels like these could go into a Features object or something
 	supportsInheritance: () => boolean
 	supportsMultipleInheritance: () => boolean
+	nativeOneOfCanBeScope: () => boolean
 
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.
@@ -606,7 +607,7 @@ export interface CodegenInterfaceSchema extends CodegenNamedSchema, CodegenScope
 	implementors: CodegenSchema[] | null
 }
 
-interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenDiscriminatorSchema {
+interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
 	examples: CodegenExamples | null
 
 	composes: CodegenSchema[]

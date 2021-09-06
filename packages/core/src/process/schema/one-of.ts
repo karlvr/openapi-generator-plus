@@ -29,6 +29,7 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.ONEOF,
 		scopedName,
 		vendorExtensions,
 	})
@@ -203,12 +204,13 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 }
 
 function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenInterfaceSchema {
-	const { scopedName, scope } = naming
+	const { scopedName } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName,
 		vendorExtensions,
 	})

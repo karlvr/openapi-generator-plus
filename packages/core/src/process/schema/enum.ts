@@ -30,6 +30,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	const nativeType = state.generator.toNativeObjectType({
 		type: schema.type,
 		format: schema.format,
+		schemaType: CodegenSchemaType.ENUM,
 		scopedName: naming.scopedName,
 		vendorExtensions,
 	})
@@ -41,6 +42,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	const enumValueNativeType = state.generator.toNativeType({
 		type: enumValueType,
 		format: schema.format,
+		schemaType: enumValuePropertyType,
 		vendorExtensions,
 	})
 

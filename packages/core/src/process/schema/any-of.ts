@@ -23,12 +23,13 @@ export function toCodegenAnyOfSchema(schema: OpenAPIX.SchemaObject, naming: Scop
 }
 
 function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema {
-	const { name, scopedName, scope } = naming
+	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: schema.type as string,
+		schemaType: CodegenSchemaType.ANYOF,
 		scopedName,
 		vendorExtensions,
 	})
@@ -120,12 +121,13 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 }
 
 function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
-	const { name, scopedName, scope } = naming
+	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(schema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: schema.type as string,
+		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
 	})

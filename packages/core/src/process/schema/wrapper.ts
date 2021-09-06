@@ -9,6 +9,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.WRAPPER,
 		scopedName: naming.scopedName,
 		vendorExtensions: null,
 	})

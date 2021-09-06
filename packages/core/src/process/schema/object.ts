@@ -19,6 +19,7 @@ export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	const nativeType = state.generator.toNativeObjectType({
 		type: schema.type as string,
 		format: schema.format,
+		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
 	})
@@ -83,6 +84,7 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.OBJECT,
 		scopedName: naming.scopedName,
 		vendorExtensions: null,
 	})

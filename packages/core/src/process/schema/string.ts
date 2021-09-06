@@ -23,6 +23,7 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	const nativeType = state.generator.toNativeType({
 		type: schema.type,
 		format,
+		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
 	})
 

@@ -687,6 +687,7 @@ export interface CodegenSchemaNameSuggestionOptions {
 interface CodegenTypeOptions {
 	type: string
 	format?: string | null
+	schemaType: CodegenSchemaType
 	vendorExtensions?: CodegenVendorExtensions | null
 }
 
@@ -754,6 +755,7 @@ export interface CodegenNativeObjectTypeOptions extends CodegenTypeOptions {
 }
 
 export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
+	schemaType: CodegenSchemaType.ARRAY
 	componentNativeType: CodegenNativeType
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
@@ -761,6 +763,7 @@ export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
 }
 
 export interface CodegenNativeMapTypeOptions extends CodegenTypeOptions {
+	schemaType: CodegenSchemaType.MAP
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]

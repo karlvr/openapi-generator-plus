@@ -29,6 +29,7 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.ALLOF,
 		scopedName,
 		vendorExtensions,
 	})
@@ -151,6 +152,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
 	})

@@ -16,6 +16,7 @@ export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 	const nativeType = state.generator.toNativeType({
 		type: schema.type,
 		format,
+		schemaType: CodegenSchemaType.BOOLEAN,
 		vendorExtensions,
 	})
 

@@ -33,6 +33,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName: naming.scopedName,
 		vendorExtensions: schema.vendorExtensions,
 	})

@@ -3,6 +3,7 @@ import { stringLiteralValueOptions } from './utils'
 import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
 import * as allOperationGroupingStrategies from './operation-grouping'
 import * as idx from '@openapi-generator-plus/indexed-type'
+import { defaultLog } from './logging'
 
 /**
  * A partial generator implementation that should be the base of all generators.
@@ -16,7 +17,7 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function(config, context)
 	}
 }
 
-export function defaultGeneratorOptions(): CodegenGeneratorContext {
+export function createGeneratorContext(options?: Partial<CodegenGeneratorContext>): CodegenGeneratorContext {
 	let _generator: CodegenGenerator | undefined
 	return {
 		generator: () => {
@@ -39,5 +40,7 @@ export function defaultGeneratorOptions(): CodegenGeneratorContext {
 			stringLiteralValueOptions: () => stringLiteralValueOptions(_generator!),
 			values: idx.values,
 		},
+		log: defaultLog,
+		...options,
 	}
 }

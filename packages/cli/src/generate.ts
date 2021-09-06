@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import { constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput } from '@openapi-generator-plus/core'
+import { constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext } from '@openapi-generator-plus/core'
 import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
@@ -12,9 +12,15 @@ import c from 'ansi-colors'
 import { usage } from './usage'
 import { log } from './log'
 
-async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
-	const generator = constructGenerator(config, generatorConstructor)
+function createMyGeneratorContext() {
+	return createGeneratorContext({
+		log,
+	})
+}
 
+async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
+	const generator = constructGenerator(config, createMyGeneratorContext(), generatorConstructor)
+	
 	const state = createCodegenState(generator)
 	state.log = log
 	const input = await createCodegenInput(config.inputPath)
@@ -38,7 +44,7 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 }
 
 async function clean(notModifiedSince: number, config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor) {
-	const generator = constructGenerator(config, generatorConstructor)
+	const generator = constructGenerator(config, createMyGeneratorContext(), generatorConstructor)
 	const cleanPathPatterns = generator.cleanPathPatterns()
 	if (!cleanPathPatterns) {
 		return
@@ -162,7 +168,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 			console.warn(c.red('Not watching for API specification changes as it is not a local file path:'), config.inputPath)
 		}
 
-		const generatorWatchPaths = constructGenerator(config, generatorConstructor).watchPaths()
+		const generatorWatchPaths = constructGenerator(config, createMyGeneratorContext(), generatorConstructor).watchPaths()
 		if (generatorWatchPaths) {
 			watchPaths.push(...generatorWatchPaths)
 		}

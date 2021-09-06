@@ -4,6 +4,7 @@ import { constructGenerator, createCodegenState, createCodegenDocument, createCo
 import path from 'path'
 import pluralize from 'pluralize'
 import { camelCase } from 'lodash'
+import { createGeneratorContext } from '../generators'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig
@@ -114,7 +115,8 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 }
 
 export function createTestGenerator(config?: TestCodegenConfig): CodegenGenerator {
-	return constructGenerator(config || {}, testGeneratorConstructor)
+	
+	return constructGenerator(config || {}, createGeneratorContext(), testGeneratorConstructor)
 }
 
 export async function createTestDocument(inputPath: string, config?: TestCodegenConfig): Promise<CodegenDocument> {

@@ -1,4 +1,4 @@
-import { CodegenGenerator, CodegenLiteralValueOptions, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy, IndexedCollectionType, CodegenConfig } from './types'
+import { CodegenGenerator, CodegenLiteralValueOptions, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy, IndexedCollectionType, CodegenConfig, CodegenLogFunction } from './types'
 import { CodegenTransformingNativeTypeConstructor, CodegenComposingNativeTypeConstructor, CodegenFullTransformingNativeTypeConstructor, CodegenFullComposingNativeTypeConstructor } from './native-types'
 
 export type CodegenBaseGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => Pick<CodegenGenerator, 'toEnumMemberName' | 'toIteratedSchemaName'>
@@ -32,6 +32,7 @@ export interface CodegenGeneratorContext {
 		/** Convert the internal IndexedObjectsType to an iterable of values */
 		values: <T>(indexed: IndexedCollectionType<T>) => Iterable<T>
 	}
+	log: CodegenLogFunction
 }
 
 export type CodegenGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => CodegenGenerator

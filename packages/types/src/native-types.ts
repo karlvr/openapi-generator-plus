@@ -1,19 +1,19 @@
 import { CodegenNativeType } from './types'
 
-export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string | null
-export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string | null
+export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string
+export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string
 
 /**
  * Simple transformer on a native type string.
  * @returns a new native type string, or `null` to remove the native type.
  */
-export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string | null
+export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string
 
 /**
  * Transform the given native type.
  * @returns a new native type string, or `null` to remove the native type.
  */
-export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType, nativeTypeString: string) => string | null
+export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType, nativeTypeString: string) => string
 
 /**
  * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.

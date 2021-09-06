@@ -45,7 +45,7 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
-		return other === this
+		return equalNativeType(this, other)
 	}
 
 	public toString() {
@@ -56,17 +56,17 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 export class CodegenNativeTypeImpl implements CodegenNativeType {
 
 	public nativeType: string
-	public serializedType: string | null
-	public literalType: string | null
-	public concreteType: string | null
-	public parentType: string | null
+	public serializedType: string
+	public literalType: string
+	public concreteType: string
+	public parentType: string
 	public componentType: CodegenNativeType | null
 
 	public constructor(nativeType: string, additionalTypes?: {
-		serializedType?: string | null
-		literalType?: string | null
-		concreteType?: string | null
-		parentType?: string | null
+		serializedType?: string
+		literalType?: string
+		concreteType?: string
+		parentType?: string
 		componentType?: CodegenNativeType | null
 	}) {
 		this.nativeType = nativeType
@@ -75,13 +75,13 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 			this.literalType = additionalTypes.literalType !== undefined ? additionalTypes.literalType : nativeType
 			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType : nativeType
 			this.parentType = additionalTypes.parentType !== undefined ? additionalTypes.parentType : nativeType
-			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType : this
+			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType : null
 		} else {
 			this.serializedType = nativeType
 			this.literalType = nativeType
 			this.concreteType = nativeType
 			this.parentType = nativeType
-			this.componentType = this
+			this.componentType = null
 		}
 	}
 
@@ -90,50 +90,9 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
-		if (!other) {
-			return false
-		}
-
-		if (this.nativeType !== other.nativeType) {
-			return false
-		}
-		if (this.serializedType !== other.serializedType) {
-			return false
-		}
-		if (this.literalType !== other.literalType) {
-			return false
-		}
-		if (this.concreteType !== other.concreteType) {
-			return false
-		}
-		if (this.parentType !== other.parentType) {
-			return false
-		}
-		if (this.componentType === other.componentType || (this.componentType === this && other.componentType === other)) {
-			/* okay */
-		} else if (!this.componentType || !other.componentType) {
-			return false
-		} else {
-			if (this.componentType !== this || other.componentType !== other) {
-				/* Component type is not recursive */
-				if (!this.componentType.equals(other.componentType)) {
-					return false
-				}
-			}
-		}
-		
-		return true
+		return equalNativeType(this, other)
 	}
 
-}
-
-function allOrNothing<T>(nativeTypes: (T | null | undefined)[]): T[] | null {
-	const result = nativeTypes.filter(n => n !== undefined && n !== null)
-	if (result.length) {
-		return result as T[]
-	} else {
-		return null
-	}
 }
 
 export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
@@ -176,16 +135,15 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
-		return other === this
+		return equalNativeType(this, other)
 	}
 
 	public toString() {
 		return this.nativeType
 	}
 
-	private compose(nativeTypeStrings: (string | null)[]): string | null {
-		const filteredNativeTypes = allOrNothing(nativeTypeStrings)
-		return filteredNativeTypes && this.composer(filteredNativeTypes)
+	private compose(nativeTypeStrings: string[]): string {
+		return this.composer(nativeTypeStrings)
 	}
 }
 
@@ -209,10 +167,6 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 
 	public get serializedType() {
-		if (!this.wrapped.serializedType) {
-			return null
-		}
-
 		const transformer = this.transformers.serializedType !== undefined ? this.transformers.serializedType : this.transformers.default
 		if (transformer) {
 			return transformer(this.wrapped, this.wrapped.serializedType)
@@ -222,10 +176,6 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 
 	public get literalType() {
-		if (!this.wrapped.literalType) {
-			return null
-		}
-		
 		const transformer = this.transformers.literalType !== undefined ? this.transformers.literalType : this.transformers.default
 		if (transformer) {
 			return transformer(this.wrapped, this.wrapped.literalType)
@@ -235,10 +185,6 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 
 	public get concreteType() {
-		if (!this.wrapped.concreteType) {
-			return null
-		}
-		
 		const transformer = this.transformers.concreteType !== undefined ? this.transformers.concreteType : this.transformers.default
 		if (transformer) {
 			return transformer(this.wrapped, this.wrapped.concreteType)
@@ -248,10 +194,6 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 
 	public get parentType() {
-		if (!this.wrapped.parentType) {
-			return null
-		}
-		
 		const transformer = this.transformers.parentType !== undefined ? this.transformers.parentType : this.transformers.default
 		if (transformer) {
 			return transformer(this.wrapped, this.wrapped.parentType)
@@ -274,7 +216,7 @@ export class CodegenFullTransformingNativeTypeImpl implements CodegenNativeType 
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
-		return other === this
+		return equalNativeType(this, other)
 	}
 
 	public toString() {
@@ -327,20 +269,46 @@ export class CodegenFullComposingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public equals(other: CodegenNativeType | undefined): boolean {
-		return other === this
+		return equalNativeType(this, other)
 	}
 
 	public toString() {
 		return this.nativeType
 	}
 
-	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string | null {
-		const filteredNativeTypes = allOrNothing(nativeTypes)
-		return filteredNativeTypes && composer(nativeTypes)
+	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string {
+		return composer(nativeTypes)
 	}
 
 	private get wrapped(): CodegenNativeType[] {
 		return this.actualWrapped
 	}
 
+}
+
+function equalNativeType(a: CodegenNativeType, b: CodegenNativeType | undefined): boolean {
+	if (!b) {
+		return false
+	}
+
+	if (a.nativeType !== b.nativeType) {
+		return false
+	}
+	if (a.serializedType !== b.serializedType) {
+		return false
+	}
+	if (a.literalType !== b.literalType) {
+		return false
+	}
+	if (a.concreteType !== b.concreteType) {
+		return false
+	}
+	if (a.parentType !== b.parentType) {
+		return false
+	}
+	if (a.componentType !== b.componentType) {
+		return false
+	}
+	
+	return true
 }

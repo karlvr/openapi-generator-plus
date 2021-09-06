@@ -255,7 +255,7 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 		const otherModelUsage = toCodegenSchemaUsage(otherSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
-			scope,
+			scope: model,
 			suggestedName: `${model.name}_option`,
 		})
 		let otherModel = otherModelUsage.schema

@@ -1,19 +1,25 @@
-import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenTypeInfo, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenTypeInfo, isCodegenAnyOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { toCodegenSchemaUsage } from '.'
-import { idx } from '../..'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenTypeInfo, resolveReference } from '../utils'
+import { equalCodegenTypeInfo, extractCodegenTypeInfo, resolveReference, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { removeProperty } from './utils'
 
+/**
+ * Create a CodegenDiscriminator for the given schema, to be put into the target
+ * @param schema the schema containing the discriminator
+ * @param target the CodegenDiscriminatorSchema where the discriminator will go 
+ * @param state 
+ * @returns 
+ */
 export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema, state: InternalCodegenState): CodegenDiscriminator | null {
 	if (!schema.discriminator) {
 		return null
 	}
 
-	/* Object has a discriminator so all submodels will need to add themselves */
 	let schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject
 	if (typeof schemaDiscriminator === 'string') {
 		/* OpenAPIv2 support */
@@ -34,13 +40,21 @@ export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, targ
 		}
 
 		discriminatorType = extractCodegenTypeInfo(discriminatorProperty)
+	} else if (isCodegenAnyOfSchema(target) || isCodegenOneOfSchema(target)) {
+		/* For an anyOf or oneOf schemas we have to look in their composes to find the property */
+		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.composes, target)
+	} else if (isCodegenInterfaceSchema(target)) {
+		/* For an interface schema, we need to look in its implementors */
+		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target)
+	} else {
+		throw new Error(`Unsupported schema type for discriminator: ${target.schemaType}`)
 	}
 
 	const result: CodegenDiscriminator = {
 		name: schemaDiscriminator.propertyName,
 		mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
 		references: [],
-		...discriminatorType!,
+		...discriminatorType,
 	}
 
 	/* Make sure we load any models referenced by the discriminator, as they may not be
@@ -72,6 +86,40 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 		schemaMappings[ref] = mapping
 	}
 	return schemaMappings
+}
+
+/**
+ * Find the common discriminator property type for a named discimrinator property across a collection of schemas.
+ * @param propertyName the name of the property
+ * @param schemas the schemas to look for the property in
+ * @param container the container of the discriminator property
+ * @returns 
+ */
+function findCommonDiscriminatorPropertyType(propertyName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenTypeInfo {
+	let result: CodegenTypeInfo | undefined = undefined
+	for (const schema of schemas) {
+		if (isCodegenObjectSchema(schema)) {
+			if (schema.properties) {
+				const property = idx.get(schema.properties, propertyName)
+				if (property) {
+					const propertyType = extractCodegenTypeInfo(property)
+					if (result === undefined) {
+						result = propertyType
+					} else if (!equalCodegenTypeInfo(result, propertyType)) {
+						throw new Error(`Found mismatching type for discriminator property "${propertyName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
+					}
+				} else {
+					throw new Error(`Discriminator property "${propertyName}" for "${container.name}" missing in "${schema.name}"`)
+				}
+			}
+		} else {
+			throw new Error(`Found unexpected schema type (${schema.schemaType}) when looking for discriminator property "${propertyName}" for "${container.name}"`)
+		}
+	}
+	if (!result) {
+		throw new Error(`Discriminator property "${propertyName}" missing from all schemas for "${container.name}"`)
+	}
+	return result
 }
 
 /**

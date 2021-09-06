@@ -36,6 +36,32 @@ export function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo
 	}
 }
 
+export function equalCodegenTypeInfo(a: CodegenTypeInfo, b: CodegenTypeInfo): boolean {
+	return (
+		a.type === b.type &&
+		a.format === b.format &&
+		a.schemaType === b.schemaType &&
+		a.nativeType.equals(b.nativeType) &&
+		(a.component === b.component || (
+			!!a.component && !!b.component && a.component.nativeType.equals(b.component.nativeType)
+		))
+	)
+}
+
+export function typeInfoToString(a: CodegenTypeInfo): string {
+	let result = `${a.type} (`
+	if (a.format) {
+		result += `format = ${a.format}, `
+	}
+	result += `schemaType = ${a.schemaType}`
+	result += `, nativeType = ${a.nativeType}`
+	if (a.component) {
+		result += `, component = ${a.component.nativeType}`
+	}
+	result += ')'
+	return result
+}
+
 /**
  * Extract _just_ the CodegenSchemaUsage properties from the source.
  */

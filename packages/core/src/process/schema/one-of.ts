@@ -1,6 +1,5 @@
 import { CodegenDiscriminatorSchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
-import { idx } from '../..'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -8,7 +7,6 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { createObjectSchemaUsage } from './object'
 import { createCodegenProperty } from './property'
 import { addToKnownSchemas, extractCodegenSchemaCommon, removeProperty } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
@@ -65,9 +63,8 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	 */
 	model = addToKnownSchemas(schema, model, state)
 
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
-
 	const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const otherSchema of oneOf) {
 		const otherModel = toCodegenSchemaUsage(otherSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
@@ -77,8 +74,13 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		}).schema
 
 		model.composes.push(otherModel)
+		added.push([otherSchema, otherModel])
+	}
 
-		if (model.discriminator) {
+	/* Process discriminator after adding composes so they can be used */
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	if (model.discriminator) {
+		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}
@@ -247,9 +249,8 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 	 */
 	model = addToKnownSchemas(schema, model, state)
 
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
-
 	const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const otherSchema of oneOf) {
 		const otherModelUsage = toCodegenSchemaUsage(otherSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
@@ -280,7 +281,13 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 		}
 		otherModel.implements.push(model)
 
-		if (model.discriminator) {
+		added.push([otherSchema, otherModel])
+	}
+
+	/* Discriminator - must come after the oneOf relationships are established */
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	if (model.discriminator) {
+		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}

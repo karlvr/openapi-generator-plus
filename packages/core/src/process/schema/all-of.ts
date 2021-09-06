@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenDiscriminatorSchema, CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenAllOfSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenDiscriminatorSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -9,7 +9,6 @@ import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discrimi
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbSchema } from './object-absorb'
-import { toCodegenProperties } from './property'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenAllOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {

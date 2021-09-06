@@ -1,6 +1,5 @@
 import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenDiscriminatorSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
-import { idx } from '../..'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -9,7 +8,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { absorbModel, absorbSchema } from './object-absorb'
+import { absorbModel } from './object-absorb'
 import { addToKnownSchemas, extractCodegenSchemaCommon, removeProperty } from './utils'
 
 export function toCodegenAnyOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
@@ -65,10 +64,9 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	 */
 	model = addToKnownSchemas(schema, model, state)
 
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
-
 	/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 	const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const otherSchema of anyOf) {
 		const otherModel = toCodegenSchemaUsage(otherSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
@@ -78,14 +76,20 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		}).schema
 
 		model.composes.push(otherModel)
+		added.push([otherSchema, otherModel])
+	}
 
-		if (model.discriminator) {
+	/* Process discriminator after adding composes so they can be used */
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	if (model.discriminator) {
+		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${otherSchema}`)
 			}
 			handleDiscriminator(model, otherModel, state)
 		}
 	}
+
 	// for (const subSchema of anyOf) {
 	// 	const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
 	// 		required: true,
@@ -162,9 +166,8 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	 */
 	model = addToKnownSchemas(schema, model, state)
 
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
-
 	const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 
 	/* Absorb models and use interface conformance */
 	for (const otherSchema of anyOf) {
@@ -194,6 +197,7 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			interfaceSchema.implementors = []
 		}
 		interfaceSchema.implementors.push(model)
+		added.push([otherSchema, interfaceSchema])
 
 		// addDiscriminatorValues(otherModel, model, state)
 
@@ -211,6 +215,18 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		// 	handleDiscriminator(model, subModel, state)
 		// }
 	}
+
+	/* Process discriminator after adding composes so they can be used */
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	if (model.discriminator) {
+		for (const [otherSchema, otherModel] of added) {
+			if (!isCodegenObjectSchema(otherModel)) {
+				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
+			}
+			handleDiscriminator(model, otherModel, state)
+		}
+	}
+
 	// for (const subSchema of anyOf) {
 	// 	const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
 	// 		required: true,

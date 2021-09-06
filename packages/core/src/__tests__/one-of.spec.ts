@@ -93,14 +93,14 @@ test('oneOf discriminator missing property (native)', async() => {
 	await expect(createTestDocument('one-of/one-of-discriminator-missing-property.yml', {
 		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
 	}))
-		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')
+		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing in "Cat"')
 })
 
 test('oneOf discriminator missing property (object)', async() => {
 	await expect(createTestDocument('one-of/one-of-discriminator-missing-property.yml', {
 		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
 	}))
-		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing from "Cat"')
+		.rejects.toThrow('Discriminator property "petType" for "MyResponseType" missing in "Cat"')
 })
 
 test('oneOf no discriminator (native)', async() => {

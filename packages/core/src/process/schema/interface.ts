@@ -2,7 +2,7 @@ import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, Code
 import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, toUniqueScopedName, usedSchemaName } from './naming'
-import { scopeOf } from './utils'
+import { addToScope, scopeOf } from './utils'
 
 /**
  * Create or return the interface schema for the given object schema
@@ -72,5 +72,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 			aParent.children.push(result)
 		}
 	}
+
+	addToScope(result, scope, state)
 	return result
 }

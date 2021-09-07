@@ -200,7 +200,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			const nativeType = state.generator.toNativeType({
 				type,
 				format,
-				schemaType: CodegenSchemaType.FILE,
+				schemaType,
 				vendorExtensions,
 			})
 

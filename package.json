@@ -13,6 +13,7 @@
     "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpx changeset publish",
     "test": "pnpm test --recursive",
     "test-core": "cd packages/core && pnpm t -- --watch",
+    "version": "pnpm changeset version && pnpm install",
     "watch": "pnpm watch --parallel"
   },
   "repository": {

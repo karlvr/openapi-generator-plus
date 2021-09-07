@@ -10,7 +10,7 @@
     "link": "pnpm --recursive exec pnpm link --global",
     "lint": "pnpm lint --recursive",
     "update": "pnpm outdated --recursive",
-    "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpm publish --recursive",
+    "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpx changeset publish",
     "test": "pnpm test --recursive",
     "test-core": "cd packages/core && pnpm t -- --watch",
     "watch": "pnpm watch --parallel"

@@ -1,7 +1,6 @@
 ---
 "openapi-generator-plus": minor
 "@openapi-generator-plus/core": minor
-"@openapi-generator-plus/indexed-type": minor
 "@openapi-generator-plus/testing": minor
 "@openapi-generator-plus/types": minor
 ---

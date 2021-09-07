@@ -32,8 +32,8 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@openapi-generator-plus/core": "file:../core",
-    "@openapi-generator-plus/types": "file:../types",
+    "@openapi-generator-plus/core": "^0.31.0",
+    "@openapi-generator-plus/types": "0.31.0",
     "ansi-colors": "^4.1.1",
     "getopts": "^2.2.5",
     "glob": "^7.1.6",

@@ -24,7 +24,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@openapi-generator-plus/indexed-type": "file:../indexed-type",
+    "@openapi-generator-plus/indexed-type": "^0.1.6",
     "openapi-types": "^9.1.0"
   }
 }

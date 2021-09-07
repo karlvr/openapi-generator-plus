@@ -63,6 +63,7 @@ function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scop
 		examples: null,
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: false,
 		children: null,
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
@@ -114,6 +115,7 @@ function toCodegenObjectSchemaInterface(schema: OpenAPIX.SchemaObject, naming: S
 		additionalProperties: null,
 		examples: null,
 		discriminator: null,
+		polymorphic: false,
 		discriminatorValues: null,
 		children: null,
 		vendorExtensions,
@@ -166,6 +168,9 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 	}
 		
 	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
+	if (model.discriminator) {
+		model.polymorphic = true
+	}
 	loadDiscriminatorMappings(model, state)
 	return model
 }
@@ -203,6 +208,7 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 		examples: null,
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: false,
 		children: null,
 		interface: null,
 		implements: null,

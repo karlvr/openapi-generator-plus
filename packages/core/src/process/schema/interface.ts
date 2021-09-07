@@ -46,6 +46,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 
 		discriminator: schema.discriminator,
 		discriminatorValues: schema.discriminatorValues,
+		polymorphic: false, /* We are just an interface created for an implementation class, we are not the root of the polymorphic hierarchy */
 		vendorExtensions: schema.vendorExtensions,
 		externalDocs: schema.externalDocs,
 		nativeType,

@@ -42,6 +42,7 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: true,
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
@@ -145,6 +146,7 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		abstract: false,
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: true,
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,

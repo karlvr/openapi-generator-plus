@@ -553,6 +553,9 @@ export interface CodegenScope {
 interface SchemaMixinDiscriminator {
 	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
 	discriminator: CodegenDiscriminator | null
+
+	/** Whether this schema represents a polymorphic hierarchy (whether or not it has a discriminator) */
+	polymorphic: boolean
 }
 
 export type CodegenDiscriminatorSchema = Readonly<CodegenSchema> & SchemaMixinDiscriminator

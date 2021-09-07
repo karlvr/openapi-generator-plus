@@ -41,6 +41,7 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: false,
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
@@ -85,6 +86,9 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 
 	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
+	if (model.discriminator) {
+		model.polymorphic = true
+	}
 	loadDiscriminatorMappings(model, state)
 		
 	return model
@@ -109,6 +113,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		abstract: false,
 		discriminator: null,
 		discriminatorValues: null,
+		polymorphic: false,
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
@@ -145,6 +150,9 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	   properties.
 	 */
 	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
+	if (model.discriminator) {
+		model.polymorphic = true
+	}
 
 	/* Handle the reference schemas, either using inheritance or interface conformance */
 	const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)

@@ -195,12 +195,6 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 
 	const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
 
-	/* Absorb the inline schemas */
-	const inlineSchemas = allOf.filter(s => !isOpenAPIReferenceObject(s))
-	for (const otherSchema of inlineSchemas) {
-		absorbSchema(otherSchema, model, scope, state)
-	}
-
 	/* Create a discriminator, if appropriate, removing the discriminator property from the model's
 	   properties.
 	 */
@@ -210,7 +204,12 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)
 	if (state.generator.supportsInheritance() && (referenceSchemas.length === 1 || state.generator.supportsMultipleInheritance())) {
 		/* Use parents / inheritance */
-		for (const otherSchema of referenceSchemas) {
+		for (const otherSchema of allOf) {
+			if (!isOpenAPIReferenceObject(otherSchema)) {
+				absorbSchema(otherSchema, model, scope, state)
+				continue
+			}
+
 			const parentSchema = toCodegenSchemaUsage(otherSchema, state, {
 				required: true,
 				suggestedName: `${model.name}_parent`,
@@ -238,7 +237,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		}
 	} else {
 		/* Absorb models and use interface conformance */
-		for (const otherSchema of referenceSchemas) {
+		for (const otherSchema of allOf) {
 			/* We must absorb the schema from the others, and then indicate that we conform to them */
 			const otherModel = absorbSchema(otherSchema, model, scope, state)
 			if (!otherModel) {

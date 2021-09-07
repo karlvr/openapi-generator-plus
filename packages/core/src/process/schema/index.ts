@@ -148,9 +148,9 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 			result = toCodegenObjectSchema(schema, naming, $ref, state)
 			break
 		case CodegenSchemaType.INTERFACE:
-			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${schema}`)
+			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${JSON.stringify(schema)}`)
 		case CodegenSchemaType.WRAPPER:
-			throw new Error(`Cannot create a wrapper directly from an OpenAPI schema: ${schema}`)
+			throw new Error(`Cannot create a wrapper directly from an OpenAPI schema: ${JSON.stringify(schema)}`)
 		case CodegenSchemaType.ALLOF:
 			if (!naming) {
 				throw new Error(`no name for ${JSON.stringify(schema)}`)

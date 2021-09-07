@@ -170,7 +170,6 @@ export interface CodegenOperationGroup {
 	name: string
 	/** The base path for operations in this group, relative to the server URLs */
 	path: string
-	description: string | null
 	
 	operations: CodegenOperation[]
 	consumes: CodegenMediaType[] | null // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3

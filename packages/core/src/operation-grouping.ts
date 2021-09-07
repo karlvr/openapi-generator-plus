@@ -24,7 +24,6 @@ function addToGroups(operation: CodegenOperation, groupName: string, groupPath: 
 		group = {
 			name: groupName,
 			path: groupPath,
-			description: null,
 			operations: [],
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3

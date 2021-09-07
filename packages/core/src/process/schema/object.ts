@@ -1,4 +1,4 @@
-import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -173,7 +173,12 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
  * @param state 
  * @returns 
  */
-export function createObjectSchemaUsage(suggestedName: string, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchemaUsage<CodegenObjectSchema> {
+export function createObjectSchemaUsage(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenSchemaUsage<CodegenObjectSchema> {
+	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
+		purpose,
+		schemaType: CodegenSchemaType.OBJECT,
+	})
+	
 	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.OBJECT, state)
 
 	const nativeType = state.generator.toNativeObjectType({

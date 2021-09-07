@@ -44,8 +44,10 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				return `${name}_enum`
 			} else if (options.schemaType === CodegenSchemaType.OBJECT) {
 				return `${name}_model`
-			} else if (options.schemaType === CodegenSchemaType.INTERFACE) {
+			} else if (options.purpose === CodegenSchemaPurpose.EXTRACTED_INTERFACE) {
 				return `i_${name}`
+			} else if (options.purpose === CodegenSchemaPurpose.IMPLEMENTATION) {
+				return `abstract_${name}`
 			} else {
 				return name
 			}

@@ -113,15 +113,21 @@ test('allOf with discriminator (object, single)', async() => {
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
 	expect(parent.implementors).toBeTruthy()
-	expect(parent.implementors!.length).toEqual(3)
+	expect(parent.implementors!.length).toBeGreaterThanOrEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
 
-	expect(child.parents).toBeNull()
+	expect(child.parents).toBeTruthy() /* The abstract implementation created for the parent */
+	expect(child.parents!.length).toEqual(1)
+	expect(child.parents![0].schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(child.parents![0].interface).toBe(parent)
+	expect(parent.implementation).toBeTruthy()
+	expect(parent.implementation).toBe(child.parents![0])
+
 	expect(child.implements).toBeTruthy()
 	expect(child.implements![0]).toBe(parent)
 	
-	expect(child3.parents).toBeNull()
+	expect(child3.parents).toBeTruthy()
 	expect(child3.implements).toBeTruthy()
 	expect(child3.implements![0]).toBe(parent)
 })
@@ -203,14 +209,14 @@ test('allOf with discriminator no properties (object)', async() => {
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
 	expect(parent.implementors).toBeTruthy()
-	expect(parent.implementors!.length).toEqual(3)
+	expect(parent.implementors!.length).toBeGreaterThanOrEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 
-	expect(child.parents).toBeNull()
+	expect(child.parents).toBeTruthy() /* The abstract implementation created for parent */
 	expect(child.implements).toBeTruthy()
 	expect(child.implements![0]).toBe(parent)
 	
-	expect(child3.parents).toBeNull()
+	expect(child3.parents).toBeTruthy()
 	expect(child3.implements).toBeTruthy()
 	expect(child3.implements![0]).toBe(parent)
 })
@@ -240,7 +246,7 @@ test('allOf discriminator multiple refs (object, single)', async() => {
 
 	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 	expect(childWithSingleRef).toBeDefined()
-	expect(childWithSingleRef.parents).toBeNull()
+	expect(childWithSingleRef.parents).toBeTruthy() /* The abstract implementation created for base */
 	expect(childWithSingleRef.implements).not.toBeNull()
 
 	expect(childWithMultipleRefs.discriminator).toBeNull()

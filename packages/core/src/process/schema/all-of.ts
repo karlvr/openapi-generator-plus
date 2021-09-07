@@ -6,7 +6,7 @@ import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
-import { toCodegenInterfaceSchema } from './interface'
+import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbSchema } from './object-absorb'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
@@ -232,17 +232,18 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			} else if (isCodegenInterfaceSchema(parentSchema)) {
 				absorbSchema(otherSchema, model, scope, state)
 
-				if (parentSchema.implementation) {
+				const parentImplementation = toCodegenInterfaceImplementationSchema(parentSchema, state)
+				if (parentImplementation) {
 					if (!model.parents) {
 						model.parents = []
 					}
-					model.parents.push(parentSchema.implementation)
+					model.parents.push(parentImplementation)
 			
 					/* Add child model */
-					if (!parentSchema.implementation.children) {
-						parentSchema.implementation.children = []
+					if (!parentImplementation.children) {
+						parentImplementation.children = []
 					}
-					parentSchema.implementation.children.push(model)
+					parentImplementation.children.push(model)
 				}
 
 				if (!model.implements) {

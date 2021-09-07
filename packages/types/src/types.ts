@@ -758,6 +758,14 @@ export enum CodegenSchemaPurpose {
 	 */
 	RESPONSE = 'RESPONSE',
 	HEADER = 'HEADER',
+	/**
+	 * An interface extracted from an implementation.
+	 */
+	EXTRACTED_INTERFACE = 'EXTRACTED_INTERFACE',
+	/**
+	 * An abstract implementation extracted from an interface
+	 */
+	IMPLEMENTATION = 'IMPLEMENTATION',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {

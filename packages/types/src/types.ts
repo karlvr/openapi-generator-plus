@@ -207,6 +207,7 @@ export interface CodegenOperation {
 	summary: string | null
 	description: string | null
 	tags: string[] | null
+	servers: CodegenServer[] | null
 
 	hasParamExamples: boolean
 	hasQueryParamExamples: boolean

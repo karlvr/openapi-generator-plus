@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirements, CodegenVendorExtensions } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirements, CodegenServer, CodegenVendorExtensions } from '@openapi-generator-plus/types'
 import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -14,12 +14,14 @@ import { applyCodegenContentEncoding, findAllContentMediaTypes, toCodegenContent
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './schema/naming'
 import { toCodegenExternalDocs } from './external-docs'
+import { toCodegenServers } from './servers'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
 	summary?: string
 	description?: string
 	vendorExtensions: CodegenVendorExtensions | null
+	servers: CodegenServer[] | null
 }
 
 export function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, context: CodegenOperationContext, state: InternalCodegenState): CodegenOperation {
@@ -171,6 +173,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 		tags: operation.tags || null,
 		vendorExtensions: mergeCodegenVendorExtensions(context.vendorExtensions, toCodegenVendorExtensions(operation)),
 		externalDocs: toCodegenExternalDocs(operation),
+		servers: toCodegenServers(operation) || context.servers,
 
 		hasParamExamples: parametersHaveExamples(parameters || null),
 		hasQueryParamExamples: parametersHaveExamples(queryParams),

@@ -37,14 +37,14 @@ export function isOpenAPIV3Operation(ob: OpenAPI.Operation, specVersion: Codegen
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
 
-export function isOpenAPIV2Document(ob: OpenAPI.Document): ob is OpenAPIV2.Document {
+export function isOpenAPIV2Document(ob: OpenAPI.Document | unknown): ob is OpenAPIV2.Document {
 	const anyOb = ob as any
-	return (anyOb.swagger !== undefined)
+	return typeof anyOb.swagger === 'string'
 }
 
-export function isOpenAPIV3Document(ob: OpenAPI.Document): ob is OpenAPIV3.Document {
+export function isOpenAPIV3Document(ob: OpenAPI.Document | unknown): ob is OpenAPIV3.Document {
 	const anyOb = ob as any
-	return (anyOb.openapi !== undefined)
+	return typeof anyOb.openapi === 'string'
 }
 
 export function isOpenAPIV2SecurityScheme(ob: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, specVersion: CodegenSpecVersion): ob is OpenAPIV2.SecuritySchemeObject {
@@ -73,4 +73,11 @@ export function isOpenAPIV2PathItemObject(ob: OpenAPIV2.PathItemObject | OpenAPI
 
 export function isOpenAPIV3PathItemObject(ob: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject, specVersion: CodegenSpecVersion): ob is OpenAPIV3.PathItemObject {
 	return specVersion === CodegenSpecVersion.OpenAPIV3
+}
+
+export function isOpenAPIServersContainer(ob: unknown): ob is OpenAPIX.ServersContainer {
+	const servers = (ob as any).servers
+	return typeof servers === 'object' &&
+		Array.isArray(servers) &&
+		(servers.length === 0 || (typeof servers[0] === 'object' && typeof servers[0].url === 'string'))
 }

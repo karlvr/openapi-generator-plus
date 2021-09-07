@@ -4,6 +4,7 @@ import { isOpenAPIV3PathItemObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { CodegenOperationContext, toCodegenOperation } from './operations'
 import { toCodegenParameters } from './parameters'
+import { toCodegenServers } from './servers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenOperations(path: string, pathItem: OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject, state: InternalCodegenState): CodegenOperation[] {
@@ -23,6 +24,7 @@ export function toCodegenOperations(path: string, pathItem: OpenAPIV2.PathItemOb
 		summary: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.summary : undefined,
 		description: isOpenAPIV3PathItemObject(pathItem, state.specVersion) ? pathItem.description : undefined,
 		vendorExtensions: toCodegenVendorExtensions(pathItem),
+		servers: toCodegenServers(pathItem),
 	}
 		
 	createCodegenOperation(path, HttpMethods.GET, pathItem.get, operationContext)

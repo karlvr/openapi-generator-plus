@@ -10,4 +10,8 @@ export declare namespace OpenAPIX {
 		[header: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.HeaderObject
 	}
 	export type Header = OpenAPIV2.HeaderObject | OpenAPIV3.HeaderObject | OpenAPIV3.ReferenceObject
+	export type PathItem = OpenAPIV2.PathItemObject | OpenAPIV3.PathItemObject
+	export interface ServersContainer {
+		servers?: OpenAPIV3.ServerObject[]
+	}
 }

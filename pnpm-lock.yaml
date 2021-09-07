@@ -38,8 +38,8 @@ importers:
 
   packages/cli:
     specifiers:
-      '@openapi-generator-plus/core': file:../core
-      '@openapi-generator-plus/types': file:../types
+      '@openapi-generator-plus/core': ^0.31.1
+      '@openapi-generator-plus/types': ^0.31.1
       ansi-colors: ^4.1.1
       getopts: ^2.2.5
       glob: ^7.1.6
@@ -58,9 +58,9 @@ importers:
 
   packages/core:
     specifiers:
-      '@openapi-generator-plus/indexed-type': file:../indexed-type
+      '@openapi-generator-plus/indexed-type': ^0.1.6
       '@openapi-generator-plus/swagger-parser': ^10.0.6
-      '@openapi-generator-plus/types': file:../types
+      '@openapi-generator-plus/types': ^0.31.1
       lodash: ^4.17.19
     dependencies:
       '@openapi-generator-plus/indexed-type': link:../indexed-type
@@ -74,15 +74,15 @@ importers:
 
   packages/testing:
     specifiers:
-      '@openapi-generator-plus/core': file:../core
-      '@openapi-generator-plus/types': file:../types
+      '@openapi-generator-plus/core': ^0.31.1
+      '@openapi-generator-plus/types': ^0.31.1
     dependencies:
       '@openapi-generator-plus/core': link:../core
       '@openapi-generator-plus/types': link:../types
 
   packages/types:
     specifiers:
-      '@openapi-generator-plus/indexed-type': file:../indexed-type
+      '@openapi-generator-plus/indexed-type': ^0.1.6
       openapi-types: ^9.1.0
     dependencies:
       '@openapi-generator-plus/indexed-type': link:../indexed-type

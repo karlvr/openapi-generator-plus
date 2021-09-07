@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -33,6 +33,10 @@ export function isCodegenInterfaceSchema(schema: CodegenSchema): schema is Codeg
 	return schema.schemaType === CodegenSchemaType.INTERFACE
 }
 
+export function isCodegenObjectLikeSchema(schema: CodegenSchema): schema is CodegenObjectLikeSchemas {
+	return schema.schemaType === CodegenSchemaType.OBJECT || schema.schemaType === CodegenSchemaType.INTERFACE
+}
+
 export function isCodegenNamedSchema(schema: CodegenSchema): schema is CodegenNamedSchema {
 	return !!schema.name && !!schema.scopedName
 }
@@ -62,4 +66,14 @@ export function isCodegenOneOfSchema(schema: CodegenSchema): schema is CodegenOn
 
 export function isCodegenWrapperSchema(schema: CodegenSchema): schema is CodegenWrapperSchema {
 	return schema.schemaType === CodegenSchemaType.WRAPPER
+}
+
+export function isCodegenDiscriminatorSchema(schema: CodegenSchema): schema is CodegenDiscriminatorSchema {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (schema as any).discriminator !== undefined
+}
+
+export function isCodegenDiscriminatableSchema(schema: CodegenSchema): schema is CodegenDiscriminatableSchema {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (schema as any).discriminatorValues !== undefined
 }

@@ -1,4 +1,4 @@
-import { CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenTypeInfo, isCodegenAnyOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import { CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenSchema, CodegenSchemaPurpose, CodegenTypeInfo, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { equalCodegenTypeInfo, extractCodegenTypeInfo, resolveReference, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { removeProperty } from './utils'
+import { findProperty, removeProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
@@ -15,7 +15,7 @@ import { removeProperty } from './utils'
  * @param state 
  * @returns 
  */
-export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema, state: InternalCodegenState): CodegenDiscriminator | null {
+export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema): CodegenDiscriminator | null {
 	if (!schema.discriminator) {
 		return null
 	}
@@ -34,7 +34,7 @@ export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, targ
 
 	let discriminatorType: CodegenTypeInfo | undefined = undefined
 	if (isCodegenObjectSchema(target)) {
-		const discriminatorProperty = removeProperty(target, schemaDiscriminator.propertyName)
+		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
 		if (!discriminatorProperty) {
 			throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${target.name}"`)
 		}
@@ -44,8 +44,14 @@ export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, targ
 		/* For an anyOf or oneOf schemas we have to look in their composes to find the property */
 		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.composes, target)
 	} else if (isCodegenInterfaceSchema(target)) {
-		/* For an interface schema, we need to look in its implementors */
-		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target)
+		/* First check if the interface has the property, which is the case if it's the root of an allOf */
+		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
+		if (discriminatorProperty) {
+			discriminatorType = extractCodegenTypeInfo(discriminatorProperty)
+		} else {
+			/* Or for a oneOf interface, look in its implementors */
+			discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target)
+		}
 	} else {
 		throw new Error(`Unsupported schema type for discriminator: ${target.schemaType}`)
 	}
@@ -57,22 +63,31 @@ export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, targ
 		...discriminatorType,
 	}
 
-	/* Make sure we load any models referenced by the discriminator, as they may not be
-	in our components/schemas that we load automatically, such as when they're in external
-	documents.
-	*/
-	if (result.mappings) {
-		for (const mappingRef of Object.keys(result.mappings)) {
-			toCodegenSchemaUsage({ $ref: mappingRef }, state, {
-				required: false,
-				suggestedName: 'discriminatorMapping',
-				purpose: CodegenSchemaPurpose.MODEL,
-				scope: null,
-			})
-		}
+	return result
+}
+
+/**
+ * Make sure we load any models referenced by the discriminator, as they may not be
+ * in our components/schemas that we load automatically, such as when they're in external
+ * documents.
+ * 
+ * NOTE: this is separated from toCodegenSchemaDiscriminator as we must not load additional schemas
+ *       until the model has its discriminator set, otherwise we will not be able to find and add
+ *       new schemas to the discriminator.
+ */
+export function loadDiscriminatorMappings(schema: CodegenDiscriminatorSchema, state: InternalCodegenState): void {
+	if (!schema.discriminator || !schema.discriminator.mappings) {
+		return
 	}
 
-	return result
+	for (const mappingRef of Object.keys(schema.discriminator.mappings)) {
+		toCodegenSchemaUsage({ $ref: mappingRef }, state, {
+			required: false,
+			suggestedName: `${schema.name}`,
+			purpose: CodegenSchemaPurpose.MODEL,
+			scope: isCodegenScope(schema) ? schema : null,
+		})
+	}
 }
 
 function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorObject): CodegenDiscriminatorMappings | null {
@@ -128,7 +143,7 @@ function findCommonDiscriminatorPropertyType(propertyName: string, schemas: Code
  * @param model the model to find the value for
  * @returns 
  */
-export function findDiscriminatorValue(discriminator: CodegenDiscriminator, model: CodegenObjectSchema, state: InternalCodegenState): string {
+export function findDiscriminatorValue(discriminator: CodegenDiscriminator, model: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
 	const name = model.serializedName || model.name
 	if (!discriminator.mappings) {
 		return name
@@ -145,4 +160,125 @@ export function findDiscriminatorValue(discriminator: CodegenDiscriminator, mode
 	}
 
 	return name
+}
+
+/**
+ * Add a new member to the discriminator in the discriminatorSchema.
+ * @param discriminatorSchema 
+ * @param memberSchema 
+ * @param state 
+ * @returns 
+ */
+export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSchema, memberSchema: CodegenDiscriminatableSchema, state: InternalCodegenState): void {
+	if (!discriminatorSchema.discriminator) {
+		return
+	}
+
+	/* Check if we've already added this memberSchema */
+	if (discriminatorSchema.discriminator.references.find(r => r.model === memberSchema)) {
+		return
+	}
+
+	if (isCodegenObjectLikeSchema(memberSchema)) {
+		const subModelDiscriminatorProperty = findProperty(memberSchema, discriminatorSchema.discriminator.name)
+		if (!subModelDiscriminatorProperty) {
+			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.name}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
+		}
+	}
+	
+	const discriminatorValue = findDiscriminatorValue(discriminatorSchema.discriminator, memberSchema, state)
+	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
+		...discriminatorSchema.discriminator,
+		required: true,
+		nullable: false,
+		readOnly: false,
+		writeOnly: false,
+	})
+	discriminatorSchema.discriminator.references.push({
+		model: memberSchema,
+		name: discriminatorValue,
+		value: discriminatorValueLiteral,
+	})
+	if (!memberSchema.discriminatorValues) {
+		memberSchema.discriminatorValues = []
+	}
+	memberSchema.discriminatorValues.push({
+		model: discriminatorSchema,
+		value: discriminatorValueLiteral,
+	})
+}
+
+/**
+ * Find any discriminators in the parent, and add the target to those discriminators
+ * @param parent 
+ * @param target 
+ * @param state 
+ */
+export function addToAnyDiscriminators(parent: CodegenSchema, target: CodegenDiscriminatableSchema, state: InternalCodegenState): void {
+	const discriminatorSchemas = findDiscriminatorSchemas(parent)
+	for (const aDiscriminatorSchema of discriminatorSchemas) {
+		addToDiscriminator(aDiscriminatorSchema, target, state)
+	}
+}
+
+/**
+ * Find any schemas with discriminators in the given schema and its parents
+ * @param schema 
+ * @returns 
+ */
+function findDiscriminatorSchemas(schema: CodegenSchema): CodegenDiscriminatorSchema[] {
+	const open = [schema]
+	const result: CodegenDiscriminatorSchema[] = []
+	for (const aSchema of open) {
+		if (isCodegenDiscriminatorSchema(aSchema) && aSchema.discriminator) {
+			result.push(aSchema as CodegenDiscriminatorSchema)
+		}
+		if (isCodegenObjectSchema(aSchema)) {
+			if (aSchema.parents) {
+				open.push(...aSchema.parents.filter(s => open.indexOf(s) === -1))
+			}
+			if (aSchema.implements) {
+				open.push(...aSchema.implements.filter(s => open.indexOf(s) === -1))
+			}
+		} else if (isCodegenInterfaceSchema(aSchema)) {
+			if (aSchema.parents) {
+				open.push(...aSchema.parents.filter(s => open.indexOf(s) === -1))
+			}
+		} else if (isCodegenAllOfSchema(aSchema)) {
+			open.push(...aSchema.composes.filter(s => open.indexOf(s) === -1))
+		}
+	}
+	return result
+}
+
+/**
+ * Post-process schemas to remove discriminator properties from objects. We don't remove the discriminator
+ * properties earlier, as we need to keep them while we're reconciling all of the discriminators, and members,
+ * as we try to find the discriminator property.
+ * @param schema 
+ * @returns 
+ */
+export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
+	if (!isCodegenDiscriminatorSchema(schema) || !schema.discriminator) {
+		return
+	}
+
+	const discriminator = schema.discriminator
+
+	/* Sort references so we generate in a consistent order */
+	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
+
+	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
+		removeProperty(schema, discriminator.name)
+	}
+
+	for (const reference of discriminator.references) {
+		if (isCodegenObjectLikeSchema(reference.model)) {
+			removeProperty(reference.model, discriminator.name)
+		}
+	}
+}
+
+function compareDiscriminatorReferences(a: CodegenDiscriminatorReference, b: CodegenDiscriminatorReference): number {
+	return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
 }

@@ -1,4 +1,4 @@
-import { CodegenNamedSchema, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, isCodegenNamedSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -112,7 +112,7 @@ export function uniquePropertiesIncludingInherited(model: CodegenObjectSchema, r
  * @param name the name of the property
  * @returns a CodegenProperty or undefined if not found
  */
-export function removeProperty(schema: CodegenObjectSchema, name: string): CodegenProperty | undefined {
+export function removeProperty(schema: CodegenObjectLikeSchemas, name: string): CodegenProperty | undefined {
 	if (!schema.properties) {
 		return undefined
 	}
@@ -128,4 +128,38 @@ export function removeProperty(schema: CodegenObjectSchema, name: string): Codeg
 	}
 
 	return entry
+}
+
+/**
+ * Looks for the named property in the current schema and any parents etc.
+ * @param schema 
+ * @param name 
+ * @returns 
+ */
+export function findProperty(schema: CodegenObjectLikeSchemas, name: string): CodegenProperty | undefined {
+	const open = [schema]
+	for (const aSchema of open) {
+		if (aSchema.properties) {
+			const property = idx.get(aSchema.properties, name)
+			if (property) {
+				return property
+			}
+		}
+
+		if (isCodegenObjectSchema(schema) && schema.parents) {
+			for (const parent of schema.parents) {
+				if (open.indexOf(parent) === -1) {
+					open.push(parent)
+				}
+			}
+		} else if (isCodegenInterfaceSchema(schema) && schema.parents) {
+			for (const parent of schema.parents) {
+				if (open.indexOf(parent) === -1) {
+					open.push(parent)
+				}
+			}
+		}
+	}
+
+	return undefined
 }

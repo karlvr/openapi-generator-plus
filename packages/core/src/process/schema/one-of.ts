@@ -1,14 +1,14 @@
-import { CodegenDiscriminatorSchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
+import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discriminator'
+import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { createCodegenProperty } from './property'
-import { addToKnownSchemas, extractCodegenSchemaCommon, removeProperty } from './utils'
+import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenOneOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
@@ -80,15 +80,16 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 	if (model.discriminator) {
 		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}
-			handleDiscriminator(model, otherModel, state)
+			addToDiscriminator(model, otherModel, state)
 		}
 	}
+	loadDiscriminatorMappings(model, state)
 
 	// if (schema.discriminator) {
 	// 	if (model.properties) {
@@ -288,15 +289,16 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 	}
 
 	/* Discriminator - must come after the oneOf relationships are established */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 	if (model.discriminator) {
 		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}
-			handleDiscriminator(model, otherModel, state)
+			addToDiscriminator(model, otherModel, state)
 		}
 	}
+	loadDiscriminatorMappings(model, state)
 
 	// if (schema.discriminator) {
 	// 	if (model.properties) {
@@ -410,36 +412,4 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 	// }
 		
 	return model
-}
-
-function handleDiscriminator(model: CodegenDiscriminatorSchema, otherModel: CodegenObjectSchema, state: InternalCodegenState) {
-	if (!model.discriminator) {
-		return
-	}
-
-	const subModelDiscriminatorProperty = removeProperty(otherModel, model.discriminator.name)
-	if (!subModelDiscriminatorProperty) {
-		throw new Error(`Discriminator property "${model.discriminator.name}" for "${model.name}" missing from "${otherModel.name}"`)
-	}
-	
-	const discriminatorValue = findDiscriminatorValue(model.discriminator, otherModel, state)
-	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
-		...model.discriminator,
-		required: true,
-		nullable: false,
-		readOnly: false,
-		writeOnly: false,
-	})
-	model.discriminator.references.push({
-		model: otherModel,
-		name: discriminatorValue,
-		value: discriminatorValueLiteral,
-	})
-	if (!otherModel.discriminatorValues) {
-		otherModel.discriminatorValues = []
-	}
-	otherModel.discriminatorValues.push({
-		model,
-		value: discriminatorValueLiteral,
-	})
 }

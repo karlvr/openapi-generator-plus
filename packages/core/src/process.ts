@@ -10,6 +10,7 @@ import { toCodegenSecurityRequirements, toCodegenSecuritySchemes } from './proce
 import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
 import { toCodegenOperations } from './process/paths'
+import { postProcessSchemaForDiscriminator } from './process/schema/discriminator'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -146,6 +147,8 @@ function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState
 		return false
 	}
 
+	postProcessSchemaForDiscriminator(schema)
+	
 	if (state.generator.postProcessSchema) {
 		const result = state.generator.postProcessSchema(schema)
 		if (result === false) {

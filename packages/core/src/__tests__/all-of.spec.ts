@@ -1,5 +1,5 @@
 import { createTestDocument } from './common'
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaType, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { idx } from '../'
 
 test('allOf simple (native)', async() => {
@@ -101,26 +101,29 @@ test('allOf with discriminator (object, single)', async() => {
 		supportsMultipleInheritance: false,
 	})
 
-	const parent = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
 	const child3 = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 
-	expect(isCodegenObjectSchema(parent)).toBeTruthy()
+	expect(isCodegenInterfaceSchema(parent)).toBeTruthy()
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
 	expect(isCodegenObjectSchema(child3)).toBeTruthy()
 
 	expect(child.name).toEqual('Cat')
 	expect(parent.name).toEqual('Pet')
-	expect(parent.children).not.toBeNull()
-	expect(parent.children!.length).toEqual(3)
+	expect(parent.children).toBeNull()
+	expect(parent.implementors).toBeTruthy()
+	expect(parent.implementors!.length).toEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
 
-	expect(child.parents).not.toBeNull()
-	expect(child.parents![0]).toBe(parent)
+	expect(child.parents).toBeNull()
+	expect(child.implements).toBeTruthy()
+	expect(child.implements![0]).toBe(parent)
 	
-	expect(child3.parents).not.toBeNull()
-	expect(child3.parents![0]).toBe(parent)
+	expect(child3.parents).toBeNull()
+	expect(child3.implements).toBeTruthy()
+	expect(child3.implements![0]).toBe(parent)
 })
 
 test('allOf with discriminator and base properties (object, single)', async() => {
@@ -142,32 +145,31 @@ test('allOf with discriminator (object, no inheritance)', async() => {
 		supportsInheritance: false,
 	})
 
-	const parent = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
 	const child3 = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 
-	expect(isCodegenObjectSchema(parent)).toBeTruthy()
+	expect(isCodegenInterfaceSchema(parent)).toBeTruthy()
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
 	expect(isCodegenObjectSchema(child3)).toBeTruthy()
 
 	expect(child.name).toEqual('Cat')
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
-	expect(parent.interface).toBeTruthy()
 	expect(parent.discriminator).toBeTruthy()
 	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
 
 	expect(child.parents).toBeNull()
 	expect(child.implements).toBeTruthy()
-	expect(child.implements![0]).toBe(parent.interface)
+	expect(child.implements![0]).toBe(parent)
 	
 	expect(child3.parents).toBeNull()
 	expect(child3.implements).toBeTruthy()
-	expect(child3.implements![0]).toBe(parent.interface)
+	expect(child3.implements![0]).toBe(parent)
 
-	expect(parent.interface!.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
-	expect(parent.interface!.discriminator).toBeTruthy()
+	expect(parent.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
+	expect(parent.discriminator).toBeTruthy()
 })
 
 test('allOf with discriminator and base properties (object, no inheritance)', async() => {
@@ -176,13 +178,11 @@ test('allOf with discriminator and base properties (object, no inheritance)', as
 		supportsInheritance: false,
 	})
 
-	const parent = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
+	expect(parent.schemaType).toEqual(CodegenSchemaType.INTERFACE)
 	expect(parent.properties).toBeTruthy()
 	expect(idx.size(parent.properties!)).toEqual(1)
 	expect(idx.allKeys(parent.properties!)[0]).toEqual('colour')
-
-	expect(parent.interface).toBeTruthy()
-	expect(parent.interface!.properties).toBe(parent.properties)
 })
 
 test('allOf with discriminator no properties (object)', async() => {
@@ -191,25 +191,28 @@ test('allOf with discriminator no properties (object)', async() => {
 		supportsInheritance: true,
 	})
 
-	const parent = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
 	const child3 = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
-	expect(isCodegenObjectSchema(parent)).toBeTruthy()
+	expect(isCodegenInterfaceSchema(parent)).toBeTruthy()
 	expect(isCodegenObjectSchema(child3)).toBeTruthy()
 
 	expect(child.name).toEqual('Cat')
 	expect(parent.name).toEqual('Pet')
-	expect(parent.children).not.toBeNull()
-	expect(parent.children!.length).toEqual(3)
+	expect(parent.children).toBeNull()
+	expect(parent.implementors).toBeTruthy()
+	expect(parent.implementors!.length).toEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 
-	expect(child.parents).not.toBeNull()
-	expect(child.parents![0]).toBe(parent)
+	expect(child.parents).toBeNull()
+	expect(child.implements).toBeTruthy()
+	expect(child.implements![0]).toBe(parent)
 	
-	expect(child3.parents).not.toBeNull()
-	expect(child3.parents![0]).toBe(parent)
+	expect(child3.parents).toBeNull()
+	expect(child3.implements).toBeTruthy()
+	expect(child3.implements![0]).toBe(parent)
 })
 
 /**
@@ -224,9 +227,9 @@ test('allOf discriminator multiple refs (object, single)', async() => {
 	})
 	expect(result).toBeDefined()
 
-	const base = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	const base = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 	expect(base).toBeDefined()
-	expect(isCodegenObjectSchema(base)).toBeTruthy()
+	expect(isCodegenInterfaceSchema(base)).toBeTruthy()
 	expect(base.discriminator).not.toBeNull()
 	expect(base.discriminator!.references.length).toEqual(3)
 	
@@ -237,8 +240,8 @@ test('allOf discriminator multiple refs (object, single)', async() => {
 
 	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 	expect(childWithSingleRef).toBeDefined()
-	expect(childWithSingleRef.parents).not.toBeNull()
-	expect(childWithSingleRef.implements).toBeNull()
+	expect(childWithSingleRef.parents).toBeNull()
+	expect(childWithSingleRef.implements).not.toBeNull()
 
 	expect(childWithMultipleRefs.discriminator).toBeNull()
 	expect(childWithMultipleRefs.discriminatorValues).not.toBeNull()

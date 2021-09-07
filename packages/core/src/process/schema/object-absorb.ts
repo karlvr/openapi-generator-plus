@@ -1,4 +1,4 @@
-import { CodegenNamedSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchemaPurpose, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchemaPurpose, CodegenScope, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../../types/patches'
 import { InternalCodegenState } from '../../types'
@@ -28,7 +28,7 @@ function absorbModels(otherModels: CodegenNamedSchemas, target: CodegenObjectSch
 	}
 }
 
-export function absorbModel(otherModel: CodegenObjectSchema, target: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean }): void {
+export function absorbModel(otherModel: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean }): void {
 	if (otherModel.parents) {
 		for (const aParent of otherModel.parents) {
 			absorbModel(aParent, target, options)
@@ -42,7 +42,7 @@ export function absorbModel(otherModel: CodegenObjectSchema, target: CodegenObje
 	}
 }
 
-export function absorbSchema(otherSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenObjectSchema | undefined {
+export function absorbSchema(otherSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenObjectLikeSchemas | undefined {
 	if (!isOpenAPIReferenceObject(otherSchema)) {
 		/*
 			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
@@ -66,8 +66,8 @@ export function absorbSchema(otherSchema: OpenAPIX.SchemaObject, target: Codegen
 		scope,
 	})
 	const otherSchemaModel = otherSchemaUsage.schema
-	if (!isCodegenObjectSchema(otherSchemaModel)) {
-		throw new Error(`Cannot absorb schema as it isn't an object: ${otherSchema}`)
+	if (!isCodegenObjectLikeSchema(otherSchemaModel)) {
+		throw new Error(`Cannot absorb schema as it isn't an object: ${JSON.stringify(otherSchema)}`)
 	}
 
 	/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */

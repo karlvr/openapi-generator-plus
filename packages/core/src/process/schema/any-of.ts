@@ -1,15 +1,15 @@
-import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenDiscriminatorSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discriminator'
+import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbModel } from './object-absorb'
-import { addToKnownSchemas, extractCodegenSchemaCommon, removeProperty } from './utils'
+import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenAnyOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.anyOfStrategy()
@@ -82,15 +82,17 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 	if (model.discriminator) {
 		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
-				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${otherSchema}`)
+				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}
-			handleDiscriminator(model, otherModel, state)
+			addToDiscriminator(model, otherModel, state)
 		}
 	}
+
+	loadDiscriminatorMappings(model, state)
 
 	// for (const subSchema of anyOf) {
 	// 	const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
@@ -220,15 +222,17 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 	if (model.discriminator) {
 		for (const [otherSchema, otherModel] of added) {
 			if (!isCodegenObjectSchema(otherModel)) {
 				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
 			}
-			handleDiscriminator(model, otherModel, state)
+			addToDiscriminator(model, otherModel, state)
 		}
 	}
+	
+	loadDiscriminatorMappings(model, state)
 
 	// for (const subSchema of anyOf) {
 	// 	const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
@@ -257,36 +261,4 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	// }
 		
 	return model
-}
-
-function handleDiscriminator(model: CodegenDiscriminatorSchema, otherModel: CodegenObjectSchema, state: InternalCodegenState) {
-	if (!model.discriminator) {
-		return
-	}
-
-	const subModelDiscriminatorProperty = removeProperty(otherModel, model.discriminator.name)
-	if (!subModelDiscriminatorProperty) {
-		throw new Error(`Discriminator property "${model.discriminator.name}" for "${model.name}" missing from "${otherModel.name}"`)
-	}
-	
-	const discriminatorValue = findDiscriminatorValue(model.discriminator, otherModel, state)
-	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
-		...model.discriminator,
-		required: true,
-		nullable: false,
-		readOnly: false,
-		writeOnly: false,
-	})
-	model.discriminator.references.push({
-		model: otherModel,
-		name: discriminatorValue,
-		value: discriminatorValueLiteral,
-	})
-	if (!otherModel.discriminatorValues) {
-		otherModel.discriminatorValues = []
-	}
-	otherModel.discriminatorValues.push({
-		model,
-		value: discriminatorValueLiteral,
-	})
 }

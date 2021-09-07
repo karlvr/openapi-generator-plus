@@ -1,11 +1,11 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenDiscriminatorSchema, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findDiscriminatorValue, toCodegenSchemaDiscriminator } from './discriminator'
+import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbSchema } from './object-absorb'
@@ -74,15 +74,16 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 			suggestedName: `${model.name}_parent`,
 		}).schema
 
-		if (!isCodegenObjectSchema(otherModel)) {
-			throw new Error(`allOf "${model.name}" references a non-object (${otherModel.schemaType}) schema: ${otherSchema}`)
+		if (!isCodegenObjectLikeSchema(otherModel)) {
+			throw new Error(`allOf "${model.name}" references a non-object (${otherModel.schemaType}) schema: ${JSON.stringify(otherSchema)}`)
 		}
 
 		model.composes.push(otherModel)
-		addDiscriminatorValues(otherModel, model, state)
+		addToAnyDiscriminators(otherModel, model, state)
 	}
 
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
+	loadDiscriminatorMappings(model, state)
 
 	/* We support single parent inheritance, so check if that's possible.
 		   We go for single parent inheritance if our first schema is a reference, and our second is inline.
@@ -198,7 +199,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	/* Create a discriminator, if appropriate, removing the discriminator property from the model's
 	   properties.
 	 */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model, state)
+	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 
 	/* Handle the reference schemas, either using inheritance or interface conformance */
 	const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)
@@ -217,23 +218,48 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 				scope,
 			}).schema
 
-			if (!isCodegenObjectSchema(parentSchema)) {
-				throw new Error(`allOf "${model.name}" references a non-object schema: ${otherSchema}`)
-			}
+			if (isCodegenObjectSchema(parentSchema)) {
+				if (!model.parents) {
+					model.parents = []
+				}
+				model.parents.push(parentSchema)
+		
+				/* Add child model */
+				if (!parentSchema.children) {
+					parentSchema.children = []
+				}
+				parentSchema.children.push(model)
+			} else if (isCodegenInterfaceSchema(parentSchema)) {
+				absorbSchema(otherSchema, model, scope, state)
 
-			if (!model.parents) {
-				model.parents = []
+				if (parentSchema.implementation) {
+					if (!model.parents) {
+						model.parents = []
+					}
+					model.parents.push(parentSchema.implementation)
+			
+					/* Add child model */
+					if (!parentSchema.implementation.children) {
+						parentSchema.implementation.children = []
+					}
+					parentSchema.implementation.children.push(model)
+				}
+
+				if (!model.implements) {
+					model.implements = []
+				}
+				model.implements.push(parentSchema)
+
+				if (!parentSchema.implementors) {
+					parentSchema.implementors = []
+				}
+				parentSchema.implementors.push(model)
+			} else {
+				throw new Error(`allOf "${model.name}" references a non-object-like schema: ${parentSchema.schemaType}`)
 			}
-			model.parents.push(parentSchema)
-	
-			/* Add child model */
-			if (!parentSchema.children) {
-				parentSchema.children = []
-			}
-			parentSchema.children.push(model)
 	
 			/* Add discriminator values */
-			addDiscriminatorValues(parentSchema, model, state)
+			addToAnyDiscriminators(parentSchema, model, state)
 		}
 	} else {
 		/* Absorb models and use interface conformance */
@@ -245,7 +271,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			}
 
 			/* Make sure there's an interface schema to use */
-			const interfaceSchema = toCodegenInterfaceSchema(otherModel, scope, state)
+			const interfaceSchema = isCodegenObjectSchema(otherModel) ? toCodegenInterfaceSchema(otherModel, scope, state) : otherModel
 
 			if (!model.implements) {
 				model.implements = []
@@ -257,9 +283,11 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			}
 			interfaceSchema.implementors.push(model)
 
-			addDiscriminatorValues(otherModel, model, state)
+			addToAnyDiscriminators(otherModel, model, state)
 		}
 	}
+
+	loadDiscriminatorMappings(model, state)
 
 	/* We support single parent inheritance, so check if that's possible.
 		   We go for single parent inheritance if our first schema is a reference, and our second is inline.
@@ -343,49 +371,6 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	// 		value: discriminatorValueLiteral,
 	// 	})
 	// }
-		
+	
 	return model
-}
-
-function addDiscriminatorValues(schema: CodegenObjectSchema, target: CodegenDiscriminatorSchema, state: InternalCodegenState) {
-	const discriminatorSchemas = findDiscriminatorSchemas(schema)
-	for (const aDiscriminatorSchema of discriminatorSchemas) {
-		const discriminatorValue = findDiscriminatorValue(aDiscriminatorSchema.discriminator!, schema, state)
-		const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
-			...aDiscriminatorSchema.discriminator!,
-			required: true,
-			nullable: false,
-			readOnly: false,
-			writeOnly: false,
-		})
-		aDiscriminatorSchema.discriminator!.references.push({
-			model: target,
-			name: discriminatorValue,
-			value: discriminatorValueLiteral,
-		})
-		if (!target.discriminatorValues) {
-			target.discriminatorValues = []
-		}
-		target.discriminatorValues.push({
-			model: aDiscriminatorSchema,
-			value: discriminatorValueLiteral,
-		})
-	}
-}
-
-function findDiscriminatorSchemas(schema: CodegenSchema): CodegenDiscriminatorSchema[] {
-	const open = [schema]
-	const result: CodegenDiscriminatorSchema[] = []
-	for (const aSchema of open) {
-		if ((aSchema as CodegenDiscriminatorSchema).discriminator) {
-			result.push(aSchema as CodegenDiscriminatorSchema)
-		} else if (isCodegenObjectSchema(aSchema)) {
-			if (aSchema.parents) {
-				open.push(...aSchema.parents.filter(s => open.indexOf(s) === -1))
-			}
-		} else if (isCodegenAllOfSchema(aSchema)) {
-			open.push(...aSchema.composes.filter(s => open.indexOf(s) === -1))
-		}
-	}
-	return result
 }

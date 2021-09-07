@@ -547,24 +547,42 @@ export interface CodegenScope {
 }
 
 /**
- * An interface to be extended by schemas that support polymorphism.
+ * An interface to be extended by schemas that can contain a discriminator.
  */
-export interface CodegenDiscriminatorSchema extends CodegenNamedSchema {
+interface SchemaMixinDiscriminator {
 	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
 	discriminator: CodegenDiscriminator | null
+}
+
+export type CodegenDiscriminatorSchema = Readonly<CodegenSchema> & SchemaMixinDiscriminator
+
+/**
+ * An interface to be extended by schemas that can be referenced by a discriminator.
+ */
+interface SchemaMixinDiscriminatorValues {
 
 	/** Information about the values of discriminators for this model */
 	discriminatorValues: CodegenDiscriminatorValue[] | null
+
 }
 
-export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
-	type: 'object'
-	schemaType: CodegenSchemaType.OBJECT
+export type CodegenDiscriminatableSchema = Readonly<CodegenNamedSchema> & SchemaMixinDiscriminatorValues
 
+interface SchemaMixinProperties {
 	properties: CodegenProperties | null
 
 	/** If the object supports additional properties */
 	additionalProperties: CodegenMapSchema | null
+}
+
+/**
+ * A schema that looks like an object; that is, it contains properties.
+ */
+export type CodegenObjectLikeSchemas = CodegenObjectSchema | CodegenInterfaceSchema
+
+export interface CodegenObjectSchema extends CodegenNamedSchema, SchemaMixinProperties, CodegenScope, SchemaMixinDiscriminator, SchemaMixinDiscriminatorValues {
+	type: 'object'
+	schemaType: CodegenSchemaType.OBJECT
 
 	examples: CodegenExamples | null
 
@@ -583,14 +601,9 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, CodegenScope, C
 
 export type CodegenObjectSchemas = IndexedCollectionType<CodegenObjectSchema>
 
-export interface CodegenInterfaceSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
+export interface CodegenInterfaceSchema extends CodegenNamedSchema, SchemaMixinProperties, CodegenScope, SchemaMixinDiscriminator, SchemaMixinDiscriminatorValues {
 	type: 'object'
 	schemaType: CodegenSchemaType.INTERFACE
-
-	properties: CodegenProperties | null
-
-	/** If the object supports additional properties */
-	additionalProperties: CodegenMapSchema | null
 
 	examples: CodegenExamples | null
 
@@ -607,7 +620,7 @@ export interface CodegenInterfaceSchema extends CodegenNamedSchema, CodegenScope
 	implementors: CodegenSchema[] | null
 }
 
-interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenScope, CodegenDiscriminatorSchema {
+interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenScope, SchemaMixinDiscriminator, SchemaMixinDiscriminatorValues {
 	examples: CodegenExamples | null
 
 	composes: CodegenSchema[]
@@ -653,7 +666,7 @@ export interface CodegenWrapperSchema extends CodegenNamedSchema, CodegenScope {
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenDiscriminatorReference {
-	model: CodegenNamedSchema
+	model: CodegenDiscriminatableSchema
 	name: string
 	/** The value literal in the native language */
 	value: string

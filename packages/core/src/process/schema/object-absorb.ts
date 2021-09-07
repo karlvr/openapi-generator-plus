@@ -28,7 +28,7 @@ function absorbModels(otherModels: CodegenNamedSchemas, target: CodegenObjectSch
 	}
 }
 
-export function absorbModel(otherModel: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean }): void {
+export function absorbModel(otherModel: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean } = {}): void {
 	if (otherModel.parents) {
 		for (const aParent of otherModel.parents) {
 			absorbModel(aParent, target, options)

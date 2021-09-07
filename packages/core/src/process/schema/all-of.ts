@@ -8,7 +8,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { absorbSchema } from './object-absorb'
+import { absorbModel, absorbSchema } from './object-absorb'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenAllOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
@@ -172,8 +172,6 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 				}
 				parentSchema.children.push(model)
 			} else if (isCodegenInterfaceSchema(parentSchema)) {
-				absorbSchema(otherSchema, model, scope, state)
-
 				const parentImplementation = toCodegenInterfaceImplementationSchema(parentSchema, state)
 				if (parentImplementation) {
 					if (!model.parents) {
@@ -186,6 +184,9 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 						parentImplementation.children = []
 					}
 					parentImplementation.children.push(model)
+				} else {
+					/* If we can't create an implementation containing all of the parent's properties, we must absorb and have the properties ourselves */
+					absorbModel(parentSchema, model)
 				}
 
 				if (!model.implements) {

@@ -230,6 +230,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 }
 
 // TODO this will be customised by the generator
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean, purpose: CodegenSchemaPurpose, state: InternalCodegenState): boolean {
 	if (
 		schemaType === CodegenSchemaType.OBJECT ||

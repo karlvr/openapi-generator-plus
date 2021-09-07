@@ -114,7 +114,10 @@ test('allOf with discriminator (object, single)', async() => {
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
 	expect(parent.implementors).toBeTruthy()
-	expect(parent.implementors!.length).toBeGreaterThanOrEqual(3)
+	expect(parent.implementors!.length).toEqual(1) /* The implementation of the interface */
+	expect(parent.implementation).toBeTruthy()
+	expect(parent.implementation!.children).toBeTruthy()
+	expect(parent.implementation!.children!.length).toEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.properties).toBeNull() /* As the petType property is removed as it's the discriminator */
 
@@ -123,15 +126,12 @@ test('allOf with discriminator (object, single)', async() => {
 	expect(child.parents![0].schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(child.parents![0].abstract).toBeTruthy()
 	expect(child.parents![0].interface).toBe(parent)
-	expect(parent.implementation).toBeTruthy()
 	expect(parent.implementation).toBe(child.parents![0])
 
-	expect(child.implements).toBeTruthy()
-	expect(child.implements![0]).toBe(parent)
+	expect(child.implements).toBeNull()
 	
 	expect(child3.parents).toBeTruthy()
-	expect(child3.implements).toBeTruthy()
-	expect(child3.implements![0]).toBe(parent)
+	expect(child3.implements).toBeNull()
 })
 
 test('allOf with discriminator and base properties (object, single)', async() => {
@@ -211,16 +211,20 @@ test('allOf with discriminator no properties (object)', async() => {
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
 	expect(parent.implementors).toBeTruthy()
-	expect(parent.implementors!.length).toBeGreaterThanOrEqual(3)
+	expect(parent.implementors!.length).toEqual(1) /* The implementation of the interface */
+	expect(parent.implementation).toBeTruthy()
+	expect(parent.implementation!.children).toBeTruthy()
+	expect(parent.implementation!.children!.length).toEqual(3)
+	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.discriminator!.references.length).toEqual(3)
 
 	expect(child.parents).toBeTruthy() /* The abstract implementation created for parent */
-	expect(child.implements).toBeTruthy()
-	expect(child.implements![0]).toBe(parent)
+	expect(child.implements).toBeNull()
+	expect(child.parents![0]).toBe(parent.implementation)
 	
 	expect(child3.parents).toBeTruthy()
-	expect(child3.implements).toBeTruthy()
-	expect(child3.implements![0]).toBe(parent)
+	expect(child3.parents![0]).toBe(parent.implementation)
+	expect(child3.implements).toBeNull()
 })
 
 /**
@@ -249,7 +253,7 @@ test('allOf discriminator multiple refs (object, single)', async() => {
 	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 	expect(childWithSingleRef).toBeDefined()
 	expect(childWithSingleRef.parents).toBeTruthy() /* The abstract implementation created for base */
-	expect(childWithSingleRef.implements).not.toBeNull()
+	expect(childWithSingleRef.implements).toBeNull()
 
 	expect(childWithMultipleRefs.discriminator).toBeNull()
 	expect(childWithMultipleRefs.discriminatorValues).not.toBeNull()

@@ -187,17 +187,17 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 				} else {
 					/* If we can't create an implementation containing all of the parent's properties, we must absorb and have the properties ourselves */
 					absorbModel(parentSchema, model)
-				}
 
-				if (!model.implements) {
-					model.implements = []
-				}
-				model.implements.push(parentSchema)
+					if (!model.implements) {
+						model.implements = []
+					}
+					model.implements.push(parentSchema)
 
-				if (!parentSchema.implementors) {
-					parentSchema.implementors = []
+					if (!parentSchema.implementors) {
+						parentSchema.implementors = []
+					}
+					parentSchema.implementors.push(model)
 				}
-				parentSchema.implementors.push(model)
 			} else {
 				throw new Error(`allOf "${model.name}" references a non-object-like schema: ${parentSchema.schemaType}`)
 			}

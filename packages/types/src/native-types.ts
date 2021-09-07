@@ -4,31 +4,20 @@ export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => s
 export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string
 
 /**
- * Simple transformer on a native type string.
- * @returns a new native type string, or `null` to remove the native type.
- */
-export type CodegenNativeTypeStringTransformer = (nativeTypeString: string) => string
-
-/**
  * Transform the given native type.
+ * @param nativeType the native type
+ * @param nativeTypeString the string value of the particular property of the nativeType that is requested to be transformed
  * @returns a new native type string, or `null` to remove the native type.
  */
 export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType, nativeTypeString: string) => string
 
-/**
- * A `CodegenNativeType` implementation that wraps and transforms another `CodegenNativeType`.
- * Useful when composing types, and wanting to retain the original `CodegenNativeType` object
- * in case it changes.
- */
-export interface CodegenTransformingNativeTypeConstructor {
-	new(nativeType: CodegenNativeType, transformer: CodegenNativeTypeStringTransformer): CodegenNativeType
-}
-
-export interface CodegenComposingNativeTypeConstructor {
-	new(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeStringComposer): CodegenNativeType
-}
-
 export interface CodegenNativeTypeTransformers {
+	/**
+	 * Implement the default transformer if you don't need to know which CodegenNativeType property is being transformed,
+	 * or if you can just use the nativeTypeString parameter.
+	 * 
+	 * Otherwise implement a specific transformer method.
+	 */
 	default?: CodegenNativeTypeTransformer
 	nativeType?: CodegenNativeTypeTransformer | null
 	serializedType?: CodegenNativeTypeTransformer | null
@@ -42,7 +31,7 @@ export interface CodegenNativeTypeTransformers {
 	componentType?: CodegenNativeTypeTransformers | null
 }
 
-export interface CodegenFullTransformingNativeTypeConstructor {
+export interface CodegenTransformingNativeTypeConstructor {
 	new(nativeType: CodegenNativeType, transformers: CodegenNativeTypeTransformers): CodegenNativeType
 }
 
@@ -55,6 +44,6 @@ export interface CodegenNativeTypeComposers {
 	concreteType?: CodegenNativeTypeComposer
 }
 
-export interface CodegenFullComposingNativeTypeConstructor {
+export interface CodegenComposingNativeTypeConstructor {
 	new(nativeTypes: CodegenNativeType[], composers: CodegenNativeTypeComposers): CodegenNativeType
 }

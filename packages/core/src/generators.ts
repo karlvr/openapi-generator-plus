@@ -1,6 +1,6 @@
 import { CodegenBaseGeneratorConstructor, CodegenGenerator, CodegenGeneratorContext } from '@openapi-generator-plus/types'
 import { stringLiteralValueOptions } from './utils'
-import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl, CodegenFullTransformingNativeTypeImpl, CodegenFullComposingNativeTypeImpl } from './native-type'
+import { CodegenNativeTypeImpl, CodegenTransformingNativeTypeImpl, CodegenComposingNativeTypeImpl } from './native-type'
 import * as allOperationGroupingStrategies from './operation-grouping'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { defaultLog } from './logging'
@@ -34,8 +34,6 @@ export function createGeneratorContext(options?: Partial<CodegenGeneratorContext
 		NativeType: CodegenNativeTypeImpl,
 		TransformingNativeType: CodegenTransformingNativeTypeImpl,
 		ComposingNativeType: CodegenComposingNativeTypeImpl,
-		FullTransformingNativeType: CodegenFullTransformingNativeTypeImpl,
-		FullComposingNativeType: CodegenFullComposingNativeTypeImpl,
 		utils: {
 			stringLiteralValueOptions: () => stringLiteralValueOptions(_generator!),
 			values: idx.values,

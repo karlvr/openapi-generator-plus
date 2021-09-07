@@ -1,6 +1,6 @@
 import { OpenAPI } from 'openapi-types'
 import { IndexedType } from '@openapi-generator-plus/indexed-type'
-import { CodegenNativeTypeStringTransformer, CodegenNativeTypeTransformers } from './native-types'
+import { CodegenNativeTypeTransformers } from './native-types'
 
 export interface CodegenInputDocument {
 	$refs: {
@@ -72,7 +72,7 @@ export interface CodegenGenerator {
 	/**
 	 * Return a transformer to apply to native types when they are used.
 	 */
-	nativeTypeUsageTransformer: (options: CodegenNativeTypeUsageOptions) => CodegenNativeTypeTransformers | CodegenNativeTypeStringTransformer
+	nativeTypeUsageTransformer: (options: CodegenNativeTypeUsageOptions) => CodegenNativeTypeTransformers
 	/**
 	 * Return a default value to use for a property, where we MUST provide a default value. This will
 	 * usuaully be an undefined, null or initial value for primitives.

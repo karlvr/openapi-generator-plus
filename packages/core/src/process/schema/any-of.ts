@@ -140,6 +140,7 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 
 		...extractCodegenSchemaCommon(schema, state),
 
+		abstract: false,
 		discriminator: null,
 		discriminatorValues: null,
 		vendorExtensions,

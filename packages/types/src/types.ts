@@ -584,6 +584,11 @@ export interface CodegenObjectSchema extends CodegenNamedSchema, SchemaMixinProp
 	type: 'object'
 	schemaType: CodegenSchemaType.OBJECT
 
+	/**
+	 * True if this object was created as an abstract implementation to support an interface
+	 */
+	abstract: boolean
+
 	examples: CodegenExamples | null
 
 	/** The interface created for this object schema, so other object schemas can implement it */

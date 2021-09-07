@@ -163,6 +163,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		...extractNaming(naming),
 		...extractCodegenSchemaCommon(schema, state),
 
+		abstract: false,
 		discriminator: null,
 		discriminatorValues: null,
 		vendorExtensions,

@@ -56,6 +56,7 @@ function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scop
 
 		...extractCodegenSchemaCommon(schema, state),
 
+		abstract: false,
 		properties: null,
 		additionalProperties: null,
 		examples: null,
@@ -193,6 +194,7 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 		type: 'object',
 		format: null,
 		schemaType: CodegenSchemaType.OBJECT,
+		abstract: false,
 		properties: null,
 		additionalProperties: null,
 		examples: null,

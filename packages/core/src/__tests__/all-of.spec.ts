@@ -110,6 +110,7 @@ test('allOf with discriminator (object, single)', async() => {
 	expect(isCodegenObjectSchema(child3)).toBeTruthy()
 
 	expect(child.name).toEqual('Cat')
+	expect(child.abstract).toBeFalsy()
 	expect(parent.name).toEqual('Pet')
 	expect(parent.children).toBeNull()
 	expect(parent.implementors).toBeTruthy()
@@ -120,6 +121,7 @@ test('allOf with discriminator (object, single)', async() => {
 	expect(child.parents).toBeTruthy() /* The abstract implementation created for the parent */
 	expect(child.parents!.length).toEqual(1)
 	expect(child.parents![0].schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(child.parents![0].abstract).toBeTruthy()
 	expect(child.parents![0].interface).toBe(parent)
 	expect(parent.implementation).toBeTruthy()
 	expect(parent.implementation).toBe(child.parents![0])

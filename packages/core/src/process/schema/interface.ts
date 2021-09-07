@@ -102,6 +102,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	const scope = scopeOf(interfaceSchema, state)
 	const result = createObjectSchemaUsage(interfaceSchema.name, scope, CodegenSchemaPurpose.IMPLEMENTATION, state).schema
 
+	result.abstract = true
 	result.properties = interfaceSchema.properties
 	result.additionalProperties = interfaceSchema.additionalProperties
 

@@ -1,4 +1,3 @@
-import { CodegenConfig } from '@openapi-generator-plus/types'
 import { CommandLineOptions, CommandLineConfig } from './types'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -12,7 +11,7 @@ async function loadConfig(path: string): Promise<CommandLineConfig> {
 	if (path.endsWith('.yml') || path.endsWith('.yaml')) {
 		return YAML.parse(configContents, {
 			prettyErrors: true,
-		} as any) // TODO the YAML types don't include prettyErrors
+		})
 	} else {
 		return JSON.parse(configContents)
 	}

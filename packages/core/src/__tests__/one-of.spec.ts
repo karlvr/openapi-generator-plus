@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
-import util from 'util'
+// import util from 'util'
 import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 
 test('oneOf simple (native)', async() => {

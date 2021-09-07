@@ -7,6 +7,7 @@
   "scripts": {
     "build": "../../node_modules/.bin/tsc -p tsconfig.prod.json",
     "clean": "../../node_modules/.bin/rimraf dist",
+    "lint": "../../node_modules/.bin/eslint src",
     "watch": "../../node_modules/.bin/tsc --watch"
   },
   "repository": {

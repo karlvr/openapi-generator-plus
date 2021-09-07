@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
-import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
 
 test('anyOf (native)', async() => {
 	const result = await createTestDocument('any-of/any-of.yml', {

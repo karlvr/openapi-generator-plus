@@ -71,7 +71,7 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
 			scope: null,
-			suggestedName: `${model.name}_parent`,
+			suggestedName: `${model.name}_content`,
 		}).schema
 
 		if (!isCodegenObjectLikeSchema(otherModel)) {

@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenContentPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenEncodingStyle } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { idx } from '..'
 import { InternalCodegenState } from '../types'
@@ -125,13 +125,13 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 		const propertyEncodingSpec = encodingSpec[name]
 		const contentType = propertyEncodingSpec.contentType || 'text/plain'
-		const style = propertyEncodingSpec.style || 'form'
+		const style = propertyEncodingSpec.style || CodegenEncodingStyle.FORM
 
-		const propertyEncoding: CodegenPropertyEncoding = {
+		const propertyEncoding: CodegenContentPropertyEncoding = {
 			contentType,
 			headers: supportsHeaders ? toCodegenHeaders(propertyEncodingSpec.headers, state) : null,
 			style,
-			explode: propertyEncodingSpec.explode !== undefined ? propertyEncodingSpec.explode : style === 'form',
+			explode: propertyEncodingSpec.explode !== undefined ? propertyEncodingSpec.explode : style === CodegenEncodingStyle.FORM,
 			allowReserved: propertyEncodingSpec.allowReserved || false,
 			vendorExtensions: toCodegenVendorExtensions(propertyEncodingSpec),
 			property: property,
@@ -236,7 +236,7 @@ function requiresMetadata(encoding: CodegenContentEncoding): boolean {
 	return false
 }
 
-function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenPropertyEncoding): boolean {
+function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
 	if (propertyEncoding.headers) {
 		return true
 	}
@@ -246,7 +246,7 @@ function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEnco
 	return false	
 }
 
-function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenPropertyEncoding): boolean {
+function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
 	if (encoding.mediaType.mimeType === 'multipart/form-data' && propertyEncoding.contentType === 'application/octet-stream') {
 		return true
 	}

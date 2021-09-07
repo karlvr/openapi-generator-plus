@@ -265,7 +265,7 @@ export interface CodegenContentEncoding {
 	/**
 	 * Encoding information for *all* properties in the content.
 	 */
-	properties: CodegenEncodingProperties
+	properties: IndexedCollectionType<CodegenContentPropertyEncoding>
 }
 
 export enum CodegenContentEncodingType {
@@ -273,13 +273,25 @@ export enum CodegenContentEncodingType {
 	WWW_FORM_URLENCODED = 'WWW_FORM_URLENCODED',
 }
 
-export type CodegenEncodingProperties = IndexedCollectionType<CodegenPropertyEncoding>
+/**
+ * Encoding for properties and parameters.
+ * https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#style-values
+ */
+export enum CodegenEncodingStyle {
+	MATRIX = 'matrix',
+	LABEL = 'label',
+	FORM = 'form',
+	SIMPLE = 'simple',
+	SPACE_DELIMITED = 'spaceDelimited',
+	PIPE_DELIMITED = 'pipeDelimited',
+	DEEP_OBJECT = 'deepObject',
+}
 
 /**
  * Extra encoding information for multipart and application/x-www-form-urlencoded request bodies
  * https://swagger.io/specification/#encoding-object
  */
-export interface CodegenPropertyEncoding {
+export interface CodegenContentPropertyEncoding {
 	contentType: string
 	headers: CodegenHeaders | null
 	style: string | null
@@ -809,7 +821,7 @@ export interface CodegenEnumValue {
 	value: string
 }
 
-export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body'
+export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body' | 'cookie'
 
 interface CodegenParameterBase extends CodegenSchemaUsage {
 	name: string
@@ -822,6 +834,7 @@ interface CodegenParameterBase extends CodegenSchemaUsage {
 
 export interface CodegenParameter extends CodegenParameterBase {
 	in: CodegenParameterIn
+	encoding: CodegenParameterEncoding | null
 
 	isQueryParam: boolean
 	isPathParam: boolean
@@ -829,6 +842,14 @@ export interface CodegenParameter extends CodegenParameterBase {
 	isCookieParam: boolean
 	isFormParam: boolean
 }
+
+export interface CodegenParameterEncoding {
+	style: string | null
+	explode: boolean
+	allowReserved: boolean
+	vendorExtensions: CodegenVendorExtensions | null
+}
+
 export interface CodegenRequestBody extends CodegenParameterBase {
 	contents: CodegenContent[]
 	consumes: CodegenMediaType[]

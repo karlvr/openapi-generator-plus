@@ -1,4 +1,4 @@
-import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue } from '@openapi-generator-plus/types'
+import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue, CodegenEncodingStyle, CodegenParameterEncoding, isCodegenArraySchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { OpenAPI } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -61,19 +61,41 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		defaultValue = null
 	}
 
+	const parameterIn = parameter.in as CodegenParameterIn
+	const vendorExtensions = toCodegenVendorExtensions(parameter)
+
+	const style = (parameter.style as CodegenEncodingStyle | undefined) || defaultEncodingStyle(parameterIn)
+
+	let encoding: CodegenParameterEncoding | null = null
+	if (style) {
+		encoding = {
+			style,
+			explode: parameter.explode !== undefined ? parameter.explode : style === CodegenEncodingStyle.FORM,
+			allowReserved: parameter.allowReserved || false,
+			vendorExtensions,
+		}
+
+		if ((encoding.style === CodegenEncodingStyle.SIMPLE || encoding.style === CodegenEncodingStyle.SPACE_DELIMITED || encoding.style === CodegenEncodingStyle.PIPE_DELIMITED) && !isCodegenArraySchema(schemaUse.schema)) {
+			throw new Error(`Encoding style "${encoding.style}" is not appropriate for non-array schema (${schemaUse.schema.schemaType}) in parameter "${parameter.name}"`)
+		} else if (encoding.style === CodegenEncodingStyle.DEEP_OBJECT && !isCodegenObjectSchema(schemaUse.schema)) {
+			throw new Error(`Encoding style "${encoding.style}" is not appropriate for non-object schema (${schemaUse.schema.schemaType}) in parameter "${parameter.name}"`)
+		}
+	}
+
 	const result: CodegenParameter = {
 		name: parameter.name,
 
 		...schemaUse,
 
-		in: parameter.in as CodegenParameterIn,
+		in: parameterIn,
 		description: parameter.description || null,
 		required: parameter.in === 'path' ? true : parameter.required || false,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3
 		examples,
 		defaultValue,
 
-		vendorExtensions: toCodegenVendorExtensions(parameter),
+		vendorExtensions,
+		encoding,
 
 		isQueryParam: parameter.in === 'query',
 		isPathParam: parameter.in === 'path',
@@ -83,4 +105,16 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	}
 
 	return result
+}
+
+function defaultEncodingStyle(parameterIn: CodegenParameterIn): CodegenEncodingStyle | undefined {
+	switch (parameterIn) {
+		case 'query': return CodegenEncodingStyle.FORM
+		case 'path': return CodegenEncodingStyle.SIMPLE
+		case 'header': return CodegenEncodingStyle.SIMPLE
+		case 'cookie': return CodegenEncodingStyle.FORM
+		case 'formData': return CodegenEncodingStyle.FORM
+		case 'body': return undefined
+	}
+	throw new Error(`Unsupported 'in' for parameter: ${parameterIn}`)
 }

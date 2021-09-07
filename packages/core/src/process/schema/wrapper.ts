@@ -24,6 +24,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		description: null,
 		title: null,
 		vendorExtensions: null,
+		externalDocs: null,
 		nullable: false,
 		readOnly: false,
 		writeOnly: false,

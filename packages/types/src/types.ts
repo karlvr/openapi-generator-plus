@@ -201,6 +201,7 @@ export interface CodegenOperation {
 
 	securityRequirements: CodegenSecurityRequirements | null
 	vendorExtensions: CodegenVendorExtensions | null
+	externalDocs: CodegenExternalDocs | null
 	responses: CodegenResponses | null
 	defaultResponse: CodegenResponse | null
 	deprecated: boolean
@@ -448,6 +449,7 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	title: string | null
 
 	vendorExtensions: CodegenVendorExtensions | null
+	externalDocs: CodegenExternalDocs | null
 }
 
 export type CodegenSchemas = IndexedCollectionType<CodegenSchema>

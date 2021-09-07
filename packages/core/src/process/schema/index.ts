@@ -5,6 +5,7 @@ import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-typ
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
+import { toCodegenExternalDocs } from '../external-docs'
 import { extractCodegenSchemaInfo, resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { toCodegenAllOfSchema } from './all-of'
@@ -212,6 +213,7 @@ function toCodegenSchema(schema: OpenAPIX.SchemaObject, $ref: string | undefined
 				component: null,
 
 				vendorExtensions,
+				externalDocs: toCodegenExternalDocs(schema),
 
 				...extractCodegenSchemaCommon(schema, state),
 			}

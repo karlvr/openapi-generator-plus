@@ -1,5 +1,5 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenExternalDocs } from '@openapi-generator-plus/types'
+import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
@@ -11,6 +11,7 @@ import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
 import { toCodegenOperations } from './process/paths'
 import { postProcessSchemaForDiscriminator } from './process/schema/discriminator'
+import { toCodegenExternalDocs } from './process/external-docs'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -216,17 +217,6 @@ function mergeReferencedPathItems(pathItem: OpenAPIV2.PathItemObject | OpenAPIV3
 	}
 }
 
-function toExternalDocs(root: OpenAPI.Document): CodegenExternalDocs | null {
-	if (!root.externalDocs) {
-		return null
-	}
-
-	return {
-		description: root.externalDocs.description || null,
-		url: root.externalDocs.url,
-	}
-}
-
 export function processDocument(state: InternalCodegenState): CodegenDocument {
 	const operations: CodegenOperation[] = []
 
@@ -258,7 +248,7 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
 		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) || null : null,
-		externalDocs: toExternalDocs(root),
+		externalDocs: toCodegenExternalDocs(root),
 	}
 
 	processCodegenDocument(doc, state)

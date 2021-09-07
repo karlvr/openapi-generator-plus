@@ -13,6 +13,7 @@ import { toCodegenResponses } from './responses'
 import { applyCodegenContentEncoding, findAllContentMediaTypes, toCodegenContentArray } from './content'
 import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './schema/naming'
+import { toCodegenExternalDocs } from './external-docs'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
@@ -169,6 +170,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 		description: operation.description || context.description || null,
 		tags: operation.tags || null,
 		vendorExtensions: mergeCodegenVendorExtensions(context.vendorExtensions, toCodegenVendorExtensions(operation)),
+		externalDocs: toCodegenExternalDocs(operation),
 
 		hasParamExamples: parametersHaveExamples(parameters || null),
 		hasQueryParamExamples: parametersHaveExamples(queryParams),

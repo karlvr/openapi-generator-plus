@@ -1,6 +1,7 @@
 import { CodegenSchemaType, CodegenSchemaUsage, CodegenStringSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
+import { toCodegenExternalDocs } from '../external-docs'
 import { extractCodegenSchemaInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
@@ -38,6 +39,7 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 
 		maxLength: schema.maxLength || null,
 		minLength: schema.minLength || null,

@@ -10,6 +10,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenMapSchema } from './map'
 import { loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenProperties } from './property'
+import { toCodegenExternalDocs } from '../external-docs'
 
 export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema {
 	if (!schema.discriminator || !interfaceRequiredForDiscriminator(state)) {
@@ -64,6 +65,7 @@ function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scop
 		discriminatorValues: null,
 		children: null,
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
 		type: 'object',
 		format: schema.format || null,
@@ -115,6 +117,7 @@ function toCodegenObjectSchemaInterface(schema: OpenAPIX.SchemaObject, naming: S
 		discriminatorValues: null,
 		children: null,
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
 		type: 'object',
 		format: schema.format || null,
@@ -207,6 +210,7 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 		description: null,
 		title: null,
 		vendorExtensions: null,
+		externalDocs: null,
 		nullable: false,
 		readOnly: false,
 		writeOnly: false,

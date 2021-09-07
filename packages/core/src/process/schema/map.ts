@@ -5,6 +5,7 @@ import { toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
+import { toCodegenExternalDocs } from '../external-docs'
 
 export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
 	const vendorExtensions = toCodegenVendorExtensions(schema)
@@ -41,6 +42,7 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 
 		...extractCodegenSchemaCommon(schema, state),
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 
 		maxProperties: schema.maxProperties || null,
 		minProperties: schema.minProperties || null,

@@ -4,6 +4,7 @@ import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
+import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
@@ -41,6 +42,7 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		discriminator: null,
 		discriminatorValues: null,
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
 		type: 'allOf',
 		format: null,
@@ -108,6 +110,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		discriminator: null,
 		discriminatorValues: null,
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 		nativeType,
 		type: 'object',
 		format: null,

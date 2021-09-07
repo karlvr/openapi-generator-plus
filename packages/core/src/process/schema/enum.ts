@@ -7,6 +7,7 @@ import { extractCodegenSchemaCommon } from './utils'
 import { toCodegenSchemaType } from './schema-type'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
+import { toCodegenExternalDocs } from '../external-docs'
 
 export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
 	if (!schema.enum) {
@@ -91,6 +92,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		...extractCodegenSchemaCommon(schema, state),
 
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 
 		enumValueNativeType,
 		enumValues,

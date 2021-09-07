@@ -47,6 +47,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 		discriminator: schema.discriminator,
 		discriminatorValues: schema.discriminatorValues,
 		vendorExtensions: schema.vendorExtensions,
+		externalDocs: schema.externalDocs,
 		nativeType,
 		type: 'object',
 		format: null,

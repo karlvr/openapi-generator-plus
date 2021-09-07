@@ -5,6 +5,7 @@ import { toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
+import { toCodegenExternalDocs } from '../external-docs'
 
 export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, state: InternalCodegenState): CodegenArraySchema {
 	if (schema.type !== 'array') {
@@ -45,6 +46,7 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 		...extractCodegenSchemaCommon(schema, state),
 
 		vendorExtensions,
+		externalDocs: toCodegenExternalDocs(schema),
 
 		maxItems: schema.maxItems || null,
 		minItems: schema.minItems || null,

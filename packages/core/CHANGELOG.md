@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.31.3
+
+### Patch Changes
+
+- baee363: Don't implement the interface if we extend its implementation (which itself implements the interface)
+
 ## 0.31.2
 
 ### Patch Changes

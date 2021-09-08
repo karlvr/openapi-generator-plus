@@ -1,5 +1,41 @@
 # @openapi-generator-plus/core
 
+## 0.32.0
+
+### Minor Changes
+
+- 9873f9b: Add support for parameter encoding styles
+- f164605: Remove the defunct description attribute from CodegenOperationGroup
+
+  The description wasn't ever populated, as per the spec, the description on Path Item is
+  intended to be applied to every operation in the path.
+
+  The mapping of path item to operation isn't exact—there could be multiple path items in one
+  of our groups—so it doesn't make sense for us to have documentation at the operation group level.
+
+- 609f283: Add explicit polymorphic property to schema
+
+  So we can tell whether an object structure is intended to be polymorphic when
+  we've converted it from `oneOf` etc to objects.
+
+- d821e84: Add support for externalDocs on operations and schemas
+- 8d91265: Handle boolean values of 'yes' and 'no' correctly
+- c7462dd: Support servers on paths and operations
+
+### Patch Changes
+
+- e48312f: `allOf`: change suggested name for inline models in native mode
+
+  The previous suggested name appended "parent", which didn't make sense, as when we're using a native `allOf` it's not a parent relationship.
+  I chose "content" as it's the _content_ of the `allOf` schema?
+
+  Maybe these anonymous schemas aren't such a good idea, and we should instead allow an `allOf` to have an inline schema, or its own properties.
+  Maybe that's another generator option; allow inline schemas on an `allOf`, or generate a model to contain them.
+
+- d8e932d: Fix an incorrect schema type used for date etc string types
+
+  They were treated as files!
+
 ## 0.31.3
 
 ### Patch Changes

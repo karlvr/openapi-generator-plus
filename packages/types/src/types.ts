@@ -825,6 +825,8 @@ export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'bod
 
 interface CodegenParameterBase extends CodegenSchemaUsage {
 	name: string
+	/** The name of the property in the API spec as it should be used when serialized (e.g. in a request) */
+	serializedName: string
 	
 	description: string | null
 	collectionFormat: string | null

@@ -80,7 +80,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	}
 
 	const result: CodegenParameter = {
-		name: parameter.name,
+		name: state.generator.toIdentifier(parameter.name),
+		serializedName: parameter.name,
 
 		...schemaUse,
 

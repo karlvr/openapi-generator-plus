@@ -35,7 +35,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			scope: null,
 		})
 		return {
-			name,
+			name: state.generator.toIdentifier(name),
+			serializedName: name,
 			description: null,
 	
 			...schemaUse,
@@ -56,7 +57,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 		const examples = toCodegenExamples(header.example, header.examples, undefined, schemaUse, state)
 
 		return {
-			name,
+			name: state.generator.toIdentifier(name),
+			serializedName: name,
 	
 			...schemaUse,
 	

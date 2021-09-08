@@ -62,6 +62,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 			const defaultContent = requestBodyContents[0]
 			bodyParam = {
 				name: toUniqueName('request', undefined, parameters, state),
+				serializedName: 'request', /* This doesn't actually have a serialized name as we created it */
 
 				...extractCodegenSchemaUsage(defaultContent),
 
@@ -106,6 +107,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 					...extractCodegenSchemaUsage(existingBodyParam),
 
 					name: existingBodyParam.name,
+					serializedName: existingBodyParam.serializedName,
 					description: existingBodyParam.description,
 					collectionFormat: existingBodyParam.collectionFormat,
 					vendorExtensions: existingBodyParam.vendorExtensions,
@@ -138,9 +140,9 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 
 	/* Validate path params */
 	if (pathParams) {
-		for (const paramName of idx.allKeys(pathParams)) {
-			if (path.indexOf(`{${paramName}}`) === -1) {
-				state.log(CodegenLogLevel.WARN, `${path} has a path parameter "${paramName}" that is not contained in the path.`)
+		for (const param of idx.allValues(pathParams)) {
+			if (path.indexOf(`{${param.serializedName}}`) === -1) {
+				state.log(CodegenLogLevel.WARN, `${path} has a path parameter "${param.serializedName}" that is not contained in the path.`)
 			}
 		}
 	}

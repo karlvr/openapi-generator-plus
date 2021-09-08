@@ -2,7 +2,7 @@ import { CodegenSchemaType, CodegenSchemaUsage, CodegenStringSchema } from '@ope
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
-import { extractCodegenSchemaInfo } from '../utils'
+import { convertToNumber, extractCodegenSchemaInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
@@ -41,8 +41,8 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 
-		maxLength: schema.maxLength || null,
-		minLength: schema.minLength || null,
+		maxLength: convertToNumber(schema.maxLength),
+		minLength: convertToNumber(schema.minLength),
 		pattern: schema.pattern || null,
 	}
 	return result

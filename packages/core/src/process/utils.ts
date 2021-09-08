@@ -186,9 +186,10 @@ function relativePartOfRef($ref: string): string | null {
  * @returns 
  */
 export function convertToBoolean(value: unknown, defaultValue: boolean): boolean
+export function convertToBoolean(value: unknown, defaultValue: null): boolean | null
 export function convertToBoolean(value: unknown): boolean | undefined
-export function convertToBoolean(value: unknown, defaultValue?: boolean): boolean | undefined {
-	if (typeof value === 'undefined') {
+export function convertToBoolean(value: unknown, defaultValue?: boolean | null): boolean | undefined | null {
+	if (typeof value === 'undefined' || value === null) {
 		return defaultValue
 	}
 	if (typeof value === 'string') {
@@ -204,4 +205,12 @@ export function convertToBoolean(value: unknown, defaultValue?: boolean): boolea
 		return value
 	}
 	throw new Error(`Unexpected boolean value: ${value}`)
+}
+
+export function convertToNumber(value: unknown): number | null {
+	if (typeof value === 'number') {
+		return value
+	} else {
+		return null
+	}
 }

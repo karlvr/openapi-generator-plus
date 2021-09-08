@@ -2,6 +2,7 @@ import { CodegenNumericSchema, CodegenSchemaType } from '@openapi-generator-plus
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
+import { convertToBoolean, convertToNumber } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
@@ -39,11 +40,11 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(schema),
 
-		maximum: schema.maximum || null,
-		exclusiveMaximum: schema.exclusiveMaximum || null,
-		minimum: schema.minimum || null,
-		exclusiveMinimum: schema.exclusiveMinimum || null,
-		multipleOf: schema.multipleOf || null,
+		maximum: convertToNumber(schema.maximum),
+		exclusiveMaximum: convertToBoolean(schema.exclusiveMaximum, null),
+		minimum: convertToNumber(schema.minimum),
+		exclusiveMinimum: convertToBoolean(schema.exclusiveMinimum, null),
+		multipleOf: convertToNumber(schema.multipleOf),
 	}
 	return result
 }

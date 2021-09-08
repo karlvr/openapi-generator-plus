@@ -834,7 +834,7 @@ interface CodegenParameterBase extends CodegenSchemaUsage {
 
 export interface CodegenParameter extends CodegenParameterBase {
 	in: CodegenParameterIn
-	encoding: CodegenParameterEncoding | null
+	encoding: CodegenParameterEncoding
 
 	isQueryParam: boolean
 	isPathParam: boolean

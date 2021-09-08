@@ -1,5 +1,14 @@
 # @openapi-generator-plus/core
 
+## 0.33.0
+
+### Minor Changes
+
+- 880828f: Add serializedName to parameters for consistency with properties and convert parameter names to identifiers
+
+  This is consistent with how properties are treated. Generators will need to update to use `serializedName` instead of
+  `name` for parameters when serializing in requests.
+
 ## 0.32.0
 
 ### Minor Changes

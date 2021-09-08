@@ -5,6 +5,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
+import { resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
@@ -94,6 +95,15 @@ function toCodegenAllOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	return model
 }
 
+enum SchemaApproach {
+	PARENT,
+	ABSORB,
+}
+interface ClassifiedSchema {
+	schema: OpenAPIX.SchemaObject
+	approach: SchemaApproach
+}
+
 function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName, scope } = naming
 
@@ -144,26 +154,19 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	 */
 	model = addToKnownSchemas(schema, model, state)
 
-	const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
-
+	
 	/* Create a discriminator, if appropriate, removing the discriminator property from the model's
-	   properties.
-	 */
+	properties.
+	*/
 	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
 	if (model.discriminator) {
 		model.polymorphic = true
 	}
-
+	
 	/* Handle the reference schemas, either using inheritance or interface conformance */
-	const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)
-	if (state.generator.supportsInheritance() && (referenceSchemas.length === 1 || state.generator.supportsMultipleInheritance())) {
-		/* Use parents / inheritance */
-		for (const otherSchema of allOf) {
-			if (!isOpenAPIReferenceObject(otherSchema)) {
-				absorbSchema(otherSchema, model, scope, state)
-				continue
-			}
-
+	const allOf = schema.allOf as Array<OpenAPIX.SchemaObject>
+	for (const { schema: otherSchema, approach } of classifyAllOfSchemas(allOf, state)) {
+		if (approach === SchemaApproach.PARENT) {
 			const parentSchema = toCodegenSchemaUsage(otherSchema, state, {
 				required: true,
 				suggestedName: `${model.name}_parent`,
@@ -180,7 +183,6 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 				} else {
 					/* If we can't create an implementation containing all of the parent's properties, we must absorb and have the properties ourselves */
 					absorbModel(parentSchema, model)
-
 					addImplementor(parentSchema, model)
 				}
 			} else {
@@ -189,10 +191,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	
 			/* Add discriminator values */
 			addToAnyDiscriminators(parentSchema, model, state)
-		}
-	} else {
-		/* Absorb models and use interface conformance */
-		for (const otherSchema of allOf) {
+		} else {
 			/* We must absorb the schema from the others, and then indicate that we conform to them */
 			const otherModel = absorbSchema(otherSchema, model, scope, state)
 			if (!otherModel) {
@@ -203,7 +202,6 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			const interfaceSchema = isCodegenObjectSchema(otherModel) ? toCodegenInterfaceSchema(otherModel, scope, state) : otherModel
 
 			addImplementor(interfaceSchema, model)
-
 			addToAnyDiscriminators(otherModel, model, state)
 		}
 	}
@@ -211,4 +209,61 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 	loadDiscriminatorMappings(model, state)
 	
 	return model
+}
+
+/**
+ * Classify each of the allOf schemas according to the approach that we should use to model them as object
+ * relationships.
+ * @param allOf the allOf schemas
+ * @param state 
+ * @returns 
+ */
+function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState): ClassifiedSchema[] {
+	if (state.generator.supportsInheritance()) {
+		/* An allOf does not imply hierarchy (https://swagger.io/specification/#composition-and-inheritance-polymorphism)
+		   but we still prefer to use parent/child relationships to reduce the duplication of code.
+		 */
+		const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)
+		if (referenceSchemas.length === 1 || state.generator.supportsMultipleInheritance()) {
+			/* Use parent/child relationships */
+			return allOf.map(schema => ({
+				schema,
+				approach: isOpenAPIReferenceObject(schema) ? SchemaApproach.PARENT : SchemaApproach.ABSORB,
+			}))
+		}
+
+		/* A discriminator _does_ imply hierarchy (https://swagger.io/specification/#composition-and-inheritance-polymorphism)
+		   so if we can't use parent/child relationships above because there are too many possible parents, then we
+		   check if only one of those schemas is a discriminator hierarchy and we choose that as the parent.
+		 */
+		const discriminatorSchemas = referenceSchemas.filter(schema => hasDiscriminator(schema, state))
+		if (discriminatorSchemas.length === 1) {
+			/* Use parent/child relationship with just the discriminator schema */
+			return allOf.map(schema => ({
+				schema,
+				approach: schema === discriminatorSchemas[0] ? SchemaApproach.PARENT : SchemaApproach.ABSORB,
+			}))
+		}
+	}
+
+	/* If we can't find any inheritance possibilties we just absorb all of the schemas */
+	return allOf.map(schema => ({
+		schema,
+		approach: SchemaApproach.ABSORB,
+	}))
+}
+
+function hasDiscriminator(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {
+	schema = resolveReference(schema, state)
+	if (schema.discriminator) {
+		return true
+	}
+	if (schema.allOf) {
+		for (const aSchema of schema.allOf) {
+			if (hasDiscriminator(aSchema, state)) {
+				return true
+			}
+		}
+	}
+	return false
 }

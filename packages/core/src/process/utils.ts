@@ -178,3 +178,30 @@ function relativePartOfRef($ref: string): string | null {
 		return null
 	}
 }
+
+/**
+ * Convert any value to a boolean.
+ * Parsing a schema sometimes results in a 'yes' or a 'no' when a boolean is expected.
+ * @param value any value
+ * @returns 
+ */
+export function convertToBoolean(value: unknown, defaultValue: boolean): boolean
+export function convertToBoolean(value: unknown): boolean | undefined
+export function convertToBoolean(value: unknown, defaultValue?: boolean): boolean | undefined {
+	if (typeof value === 'undefined') {
+		return defaultValue
+	}
+	if (typeof value === 'string') {
+		if (value === 'true' || value === 'yes') {
+			return true
+		} else if (value === 'false' || value === 'no' || !value) {
+			return false
+		} else {
+			throw new Error(`Unexpected boolean string value: ${value}`)
+		}
+	}
+	if (typeof value === 'boolean') {
+		return value
+	}
+	throw new Error(`Unexpected boolean value: ${value}`)
+}

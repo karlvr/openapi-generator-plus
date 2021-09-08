@@ -3,7 +3,7 @@ import { OpenAPI } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
-import { nameFromRef, resolveReference } from './utils'
+import { convertToBoolean, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
@@ -30,7 +30,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let defaultValue: CodegenValue | null
 	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
-			required: parameter.required || false,
+			required: convertToBoolean(parameter.required, false),
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			scope: null,
@@ -51,7 +51,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
 		schemaUse = toCodegenSchemaUsage(parameter.schema || { type: 'string' }, state, {
-			required: parameter.required || false,
+			required: convertToBoolean(parameter.required, false),
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			scope: null,
@@ -68,7 +68,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 
 	const encoding: CodegenParameterEncoding | null = {
 		style,
-		explode: parameter.explode !== undefined ? parameter.explode : style === CodegenEncodingStyle.FORM,
+		explode: convertToBoolean(parameter.explode, style === CodegenEncodingStyle.FORM),
 		allowReserved: parameter.allowReserved || false,
 		vendorExtensions,
 	}
@@ -86,7 +86,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 
 		in: parameterIn,
 		description: parameter.description || null,
-		required: parameter.in === 'path' ? true : parameter.required || false,
+		required: parameter.in === 'path' ? true : convertToBoolean(parameter.required, false),
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3
 		examples,
 		defaultValue,

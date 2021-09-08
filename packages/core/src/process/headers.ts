@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenExamples } from './examples'
 import { toCodegenSchemaUsage } from './schema'
-import { nameFromRef, resolveReference } from './utils'
+import { convertToBoolean, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | null {
@@ -48,7 +48,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 		}
 	} else if (isOpenAPIV3HeaderObject(header, state.specVersion)) {
 		const schemaUse = toCodegenSchemaUsage(header.schema || { type: 'string' }, state, {
-			required: header.required || false, 
+			required: convertToBoolean(header.required, false), 
 			suggestedName: name, 
 			purpose: CodegenSchemaPurpose.HEADER,
 			scope: null,
@@ -61,7 +61,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			...schemaUse,
 	
 			description: header.description || null,
-			required: header.required || false,
+			required: convertToBoolean(header.required, false),
 			collectionFormat: null,
 			examples,
 	

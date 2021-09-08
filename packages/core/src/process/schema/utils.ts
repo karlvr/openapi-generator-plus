@@ -4,6 +4,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { fullyQualifiedName } from './naming'
+import { convertToBoolean } from '../utils'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -15,10 +16,10 @@ export function extractCodegenSchemaCommon(schema: OpenAPIX.SchemaObject, state:
 		description: schema.description || null,
 		title: schema.title || null,
 
-		readOnly: schema.readOnly !== undefined ? !!schema.readOnly : false,
-		nullable: isOpenAPIv3SchemaObject(schema, state.specVersion) ? schema.nullable || false : false,
-		writeOnly: isOpenAPIv3SchemaObject(schema, state.specVersion) ? schema.writeOnly || false : false,
-		deprecated: isOpenAPIv3SchemaObject(schema, state.specVersion) ? schema.deprecated || false : false,
+		readOnly: convertToBoolean(schema, false),
+		nullable: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.nullable, false) : false,
+		writeOnly: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.writeOnly, false) : false,
+		deprecated: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.deprecated, false) : false,
 	}
 }
 

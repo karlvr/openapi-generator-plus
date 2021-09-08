@@ -241,24 +241,91 @@ test('allOf discriminator multiple refs (object, single)', async() => {
 
 	const base = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 	expect(base).toBeDefined()
-	expect(isCodegenInterfaceSchema(base)).toBeTruthy()
+	expect(base.schemaType).toEqual(CodegenSchemaType.INTERFACE)
 	expect(base.discriminator).not.toBeNull()
 	expect(base.discriminator!.references.length).toEqual(3)
+	expect(base.implementation).toBeTruthy()
+	
+	const childWithMultipleRefs = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
+	expect(childWithMultipleRefs).toBeDefined()
+	/* Because one of the allOfs has a discriminator we choose to use it as a parent */
+	expect(childWithMultipleRefs.parents).toBeTruthy()
+	expect(childWithMultipleRefs.parents![0]).toBe(base.implementation)
+	expect(childWithMultipleRefs.implements).not.toBeNull()
+	expect(childWithMultipleRefs.discriminator).toBeNull()
+	expect(childWithMultipleRefs.discriminatorValues).not.toBeNull()
+
+	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
+	expect(childWithSingleRef).toBeDefined()
+	expect(childWithSingleRef.parents).toBeTruthy() /* The abstract implementation created for base */
+	expect(childWithSingleRef.parents![0]).toBe(base.implementation)
+	expect(childWithSingleRef.implements).toBeNull()
+	expect(childWithSingleRef.discriminator).toBeNull()
+	expect(childWithSingleRef.discriminatorValues).not.toBeNull()
+})
+
+test('allOf multiple discriminator multiple refs (object, single)', async() => {
+	const result = await createTestDocument('all-of/all-of-multiple-discriminator-multiple.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+		supportsMultipleInheritance: false,
+	})
+	expect(result).toBeDefined()
+
+	const base = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
+	expect(base).toBeDefined()
+	expect(base.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+	expect(base.discriminator).not.toBeNull()
+	expect(base.discriminator!.references.length).toEqual(3)
+	expect(base.implementation).toBeTruthy()
+	
+	const childWithMultipleRefs = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
+	expect(childWithMultipleRefs).toBeDefined()
+	/* Because _both_ of the allOfs have a discriminator we don't choose either as a parent */
+	expect(childWithMultipleRefs.parents).toBeNull()
+	expect(childWithMultipleRefs.implements).not.toBeNull()
+	expect(childWithMultipleRefs.implements![0]).toBe(base)
+	expect(childWithMultipleRefs.discriminator).toBeNull()
+	expect(childWithMultipleRefs.discriminatorValues).not.toBeNull()
+
+	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
+	expect(childWithSingleRef).toBeDefined()
+	expect(childWithSingleRef.parents).toBeTruthy() /* The abstract implementation created for base */
+	expect(childWithSingleRef.parents![0]).toBe(base.implementation)
+	expect(childWithSingleRef.implements).toBeNull()
+	expect(childWithSingleRef.discriminator).toBeNull()
+	expect(childWithSingleRef.discriminatorValues).not.toBeNull()
+})
+
+test('allOf multiple refs (object, single)', async() => {
+	const result = await createTestDocument('all-of/all-of-multiple.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+		supportsMultipleInheritance: false,
+	})
+	expect(result).toBeDefined()
+
+	const base = idx.get(result.schemas, 'Pet') as CodegenObjectSchema
+	expect(base).toBeDefined()
+	expect(base.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(base.discriminator).toBeNull()
+	expect(base.interface).toBeTruthy()
 	
 	const childWithMultipleRefs = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
 	expect(childWithMultipleRefs).toBeDefined()
 	expect(childWithMultipleRefs.parents).toBeNull()
 	expect(childWithMultipleRefs.implements).not.toBeNull()
+	expect(childWithMultipleRefs.implements![0]).toBe(base.interface)
+	expect(childWithMultipleRefs.discriminator).toBeNull()
+	expect(childWithMultipleRefs.discriminatorValues).toBeNull()
 
 	const childWithSingleRef = idx.get(result.schemas, 'Lizard') as CodegenObjectSchema
 	expect(childWithSingleRef).toBeDefined()
-	expect(childWithSingleRef.parents).toBeTruthy() /* The abstract implementation created for base */
+	expect(childWithSingleRef.parents).toBeTruthy()
+	expect(childWithSingleRef.parents![0]).toBe(base)
 	expect(childWithSingleRef.implements).toBeNull()
-
-	expect(childWithMultipleRefs.discriminator).toBeNull()
-	expect(childWithMultipleRefs.discriminatorValues).not.toBeNull()
 	expect(childWithSingleRef.discriminator).toBeNull()
-	expect(childWithSingleRef.discriminatorValues).not.toBeNull()
+	expect(childWithSingleRef.discriminatorValues).toBeNull()
 })
 
 test('allOf discriminator multiple refs (object, multi)', async() => {

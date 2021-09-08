@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.33.1
+
+### Patch Changes
+
+- 79eca1f: Fix handling of numbers in a spec that might be 0
+
 ## 0.33.0
 
 ### Minor Changes

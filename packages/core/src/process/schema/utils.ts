@@ -16,7 +16,7 @@ export function extractCodegenSchemaCommon(schema: OpenAPIX.SchemaObject, state:
 		description: schema.description || null,
 		title: schema.title || null,
 
-		readOnly: convertToBoolean(schema, false),
+		readOnly: convertToBoolean(schema.readOnly, false),
 		nullable: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.nullable, false) : false,
 		writeOnly: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.writeOnly, false) : false,
 		deprecated: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.deprecated, false) : false,

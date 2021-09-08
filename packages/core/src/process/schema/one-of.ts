@@ -12,21 +12,21 @@ import { createCodegenProperty } from './property'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
-export function toCodegenOneOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
+export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
 	const strategy = state.generator.oneOfStrategy()
 	switch (strategy) {
 		case CodegenOneOfStrategy.NATIVE:
-			return toCodegenOneOfSchemaNative(schema, naming, $ref, state)
+			return toCodegenOneOfSchemaNative(apiSchema, naming, state)
 		case CodegenOneOfStrategy.INTERFACE:
-			return toCodegenOneOfSchemaInterface(schema, naming, $ref, state)
+			return toCodegenOneOfSchemaInterface(apiSchema, naming, state)
 	}
 	throw new Error(`Unsupported oneOf strategy: ${strategy}`)
 }
 
-function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenOneOfSchema {
+function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema {
 	const { scopedName, scope } = naming
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
@@ -35,15 +35,15 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		vendorExtensions,
 	})
 
-	let model: CodegenOneOfSchema = {
+	let result: CodegenOneOfSchema = {
 		...extractNaming(naming),
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		discriminator: null,
 		discriminatorValues: null,
 		polymorphic: true,
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'oneOf',
 		format: null,
@@ -57,50 +57,50 @@ function toCodegenOneOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		implements: null,
 	}
 
-	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated || false
+	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
+		result.deprecated = apiSchema.deprecated || false
 	}
 
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	model = addToKnownSchemas(schema, model, state)
+	result = addToKnownSchemas(apiSchema, result, state)
 
-	const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
-	for (const otherSchema of oneOf) {
-		const otherModel = toCodegenSchemaUsage(otherSchema, state, {
+	for (const oneOfApiSchema of oneOf) {
+		const oneOfSchema = toCodegenSchemaUsage(oneOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
-			scope: state.generator.nativeOneOfCanBeScope() ? model : scope,
-			suggestedName: `${model.name}_option`,
+			scope: state.generator.nativeOneOfCanBeScope() ? result : scope,
+			suggestedName: `${result.name}_option`,
 		}).schema
 
-		model.composes.push(otherModel)
-		added.push([otherSchema, otherModel])
+		result.composes.push(oneOfSchema)
+		added.push([oneOfApiSchema, oneOfSchema])
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
-	if (model.discriminator) {
-		for (const [otherSchema, otherModel] of added) {
-			if (!isCodegenObjectSchema(otherModel)) {
-				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	if (result.discriminator) {
+		for (const [addedApiSchema, addedSchema] of added) {
+			if (!isCodegenObjectSchema(addedSchema)) {
+				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
 			}
-			addToDiscriminator(model, otherModel, state)
+			addToDiscriminator(result, addedSchema, state)
 		}
 	}
-	loadDiscriminatorMappings(model, state)
+	loadDiscriminatorMappings(result, state)
 		
-	return model
+	return result
 }
 
-function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { scopedName } = naming
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
@@ -109,16 +109,16 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 		vendorExtensions,
 	})
 
-	let model: CodegenInterfaceSchema = {
+	let result: CodegenInterfaceSchema = {
 		...extractNaming(naming),
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		discriminator: null,
 		discriminatorValues: null,
 		polymorphic: true,
 
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'object',
 		format: null,
@@ -137,54 +137,54 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 		schemas: null,
 	}
 
-	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated || false
+	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
+		result.deprecated = apiSchema.deprecated || false
 	}
 
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	model = addToKnownSchemas(schema, model, state)
+	result = addToKnownSchemas(apiSchema, result, state)
 
-	const oneOf = schema.oneOf as Array<OpenAPIX.SchemaObject>
+	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
-	for (const otherSchema of oneOf) {
-		const otherModelUsage = toCodegenSchemaUsage(otherSchema, state, {
+	for (const oneOfApiSchema of oneOf) {
+		const oneOfApiSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
-			scope: model,
-			suggestedName: `${model.name}_option`,
+			scope: result,
+			suggestedName: `${result.name}_option`,
 		})
-		let otherModel = otherModelUsage.schema
+		let oneOfSchema = oneOfApiSchemaUsage.schema
 
-		if (!isCodegenObjectSchema(otherModel) && !isCodegenCompositionSchema(otherModel)) {
+		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
-			const wrapperProperty = createCodegenProperty('value', otherModelUsage, state)
-			const wrapper = createWrapperSchemaUsage(`${otherModel.type}_value`, model, wrapperProperty, state).schema
-			otherModel = wrapper
+			const wrapperProperty = createCodegenProperty('value', oneOfApiSchemaUsage, state)
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, wrapperProperty, state).schema
+			oneOfSchema = wrapper
 		}
 
-		if (!isCodegenObjectSchema(otherModel) && !isCodegenCompositionSchema(otherModel) && !isCodegenWrapperSchema(otherModel)) {
-			throw new Error(`Failed to convert oneOf part to object model: ${JSON.stringify(otherSchema)}`)
+		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && !isCodegenWrapperSchema(oneOfSchema)) {
+			throw new Error(`Failed to convert oneOf part to object schema: ${JSON.stringify(oneOfApiSchema)}`)
 		}
 
-		addImplementor(model, otherModel)
-		added.push([otherSchema, otherModel])
+		addImplementor(result, oneOfSchema)
+		added.push([oneOfApiSchema, oneOfSchema])
 	}
 
 	/* Discriminator - must come after the oneOf relationships are established */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
-	if (model.discriminator) {
-		for (const [otherSchema, otherModel] of added) {
-			if (!isCodegenObjectSchema(otherModel)) {
-				throw new Error(`oneOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	if (result.discriminator) {
+		for (const [addedApiSchema, addedSchema] of added) {
+			if (!isCodegenObjectSchema(addedSchema)) {
+				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
 			}
-			addToDiscriminator(model, otherModel, state)
+			addToDiscriminator(result, addedSchema, state)
 		}
 	}
-	loadDiscriminatorMappings(model, state)
+	loadDiscriminatorMappings(result, state)
 		
-	return model
+	return result
 }

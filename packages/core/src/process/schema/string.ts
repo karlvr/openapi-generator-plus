@@ -8,21 +8,21 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
-	if (schema.type !== 'string') {
+export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
+	if (apiSchema.type !== 'string') {
 		throw new Error('Not a string schema')
 	}
 
-	const format: string | undefined = schema.format
-	const schemaType = toCodegenSchemaType(schema.type, format)
+	const format: string | undefined = apiSchema.format
+	const schemaType = toCodegenSchemaType(apiSchema.type, format)
 	if (schemaType !== CodegenSchemaType.STRING && schemaType !== CodegenSchemaType.DATE && schemaType !== CodegenSchemaType.DATETIME && schemaType !== CodegenSchemaType.TIME) {
 		throw new Error(`Unsupported string schema type: ${schemaType}`)
 	}
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeType({
-		type: schema.type,
+		type: apiSchema.type,
 		format,
 		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
@@ -31,19 +31,19 @@ export function toCodegenStringSchema(schema: OpenAPIX.SchemaObject, naming: Sco
 	const result: CodegenStringSchema = {
 		...extractNaming(naming),
 		
-		type: schema.type,
+		type: apiSchema.type,
 		format: format || null,
 		schemaType,
 		nativeType,
 		component: null,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 
-		maxLength: convertToNumber(schema.maxLength),
-		minLength: convertToNumber(schema.minLength),
-		pattern: schema.pattern || null,
+		maxLength: convertToNumber(apiSchema.maxLength),
+		minLength: convertToNumber(apiSchema.minLength),
+		pattern: apiSchema.pattern || null,
 	}
 	return result
 }

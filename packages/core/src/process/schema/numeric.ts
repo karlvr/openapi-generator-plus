@@ -8,21 +8,21 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
-	if (schema.type !== 'number' && schema.type !== 'integer') {
+export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
+	if (apiSchema.type !== 'number' && apiSchema.type !== 'integer') {
 		throw new Error('Not a numeric schema')
 	}
 
-	const schemaType = toCodegenSchemaType(schema.type, schema.format)
+	const schemaType = toCodegenSchemaType(apiSchema.type, apiSchema.format)
 	if (schemaType !== CodegenSchemaType.NUMBER && schemaType !== CodegenSchemaType.INTEGER) {
 		throw new Error(`Unsupported numeric schema type: ${schemaType}`)
 	}
 	
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeType({
-		type: schema.type,
-		format: schema.format,
+		type: apiSchema.type,
+		format: apiSchema.format,
 		schemaType,
 		vendorExtensions,
 	})
@@ -30,21 +30,21 @@ export function toCodegenNumericSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 	const result: CodegenNumericSchema = {
 		...extractNaming(naming),
 		
-		type: schema.type,
-		format: schema.format || null,
+		type: apiSchema.type,
+		format: apiSchema.format || null,
 		schemaType,
 		nativeType,
 		component: null,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 
-		maximum: convertToNumber(schema.maximum),
-		exclusiveMaximum: convertToBoolean(schema.exclusiveMaximum, null),
-		minimum: convertToNumber(schema.minimum),
-		exclusiveMinimum: convertToBoolean(schema.exclusiveMinimum, null),
-		multipleOf: convertToNumber(schema.multipleOf),
+		maximum: convertToNumber(apiSchema.maximum),
+		exclusiveMaximum: convertToBoolean(apiSchema.exclusiveMaximum, null),
+		minimum: convertToNumber(apiSchema.minimum),
+		exclusiveMinimum: convertToBoolean(apiSchema.exclusiveMinimum, null),
+		multipleOf: convertToNumber(apiSchema.multipleOf),
 	}
 	return result
 }

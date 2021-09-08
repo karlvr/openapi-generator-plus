@@ -8,18 +8,18 @@ import { convertToBoolean } from '../utils'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
- * @param schema an OpenAPI schema
+ * @param apiSchema an OpenAPI schema
  * @param state 
  */
-export function extractCodegenSchemaCommon(schema: OpenAPIX.SchemaObject, state: InternalCodegenState): Pick<CodegenSchema, 'description' | 'title' | 'readOnly' | 'nullable' | 'writeOnly' | 'deprecated'> {
+export function extractCodegenSchemaCommon(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): Pick<CodegenSchema, 'description' | 'title' | 'readOnly' | 'nullable' | 'writeOnly' | 'deprecated'> {
 	return {
-		description: schema.description || null,
-		title: schema.title || null,
+		description: apiSchema.description || null,
+		title: apiSchema.title || null,
 
-		readOnly: convertToBoolean(schema.readOnly, false),
-		nullable: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.nullable, false) : false,
-		writeOnly: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.writeOnly, false) : false,
-		deprecated: isOpenAPIv3SchemaObject(schema, state.specVersion) ? convertToBoolean(schema.deprecated, false) : false,
+		readOnly: convertToBoolean(apiSchema.readOnly, false),
+		nullable: isOpenAPIv3SchemaObject(apiSchema, state.specVersion) ? convertToBoolean(apiSchema.nullable, false) : false,
+		writeOnly: isOpenAPIv3SchemaObject(apiSchema, state.specVersion) ? convertToBoolean(apiSchema.writeOnly, false) : false,
+		deprecated: isOpenAPIv3SchemaObject(apiSchema, state.specVersion) ? convertToBoolean(apiSchema.deprecated, false) : false,
 	}
 }
 
@@ -78,30 +78,30 @@ export function scopeOf(schema: CodegenNamedSchema, state: InternalCodegenState)
  * If theres already a known schema for the given schema, the already existing version is returned.
  * This helps to dedupe what we generate.
  */
-export function addToKnownSchemas<T extends CodegenSchema>(schema: OpenAPIX.SchemaObject, generatedSchema: T, state: InternalCodegenState): T {
-	const existing = state.knownSchemas.get(schema)
+export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject, schema: T, state: InternalCodegenState): T {
+	const existing = state.knownSchemas.get(apiSchema)
 	if (existing) {
 		return existing as T
 	} else {
-		state.knownSchemas.set(schema, generatedSchema)
-		return generatedSchema
+		state.knownSchemas.set(apiSchema, schema)
+		return schema
 	}
 }
 
 /**
  * Return all of the unique properties, including inherited properties, for a model, where properties
  * in submodels override any same-named properties in parent models.
- * @param model 
+ * @param schema 
  * @param result 
  */
-export function uniquePropertiesIncludingInherited(model: CodegenObjectSchema, result: CodegenProperties = idx.create()): CodegenProperties {
-	if (model.parents) {
-		for (const aParent of model.parents) {
+export function uniquePropertiesIncludingInherited(schema: CodegenObjectSchema, result: CodegenProperties = idx.create()): CodegenProperties {
+	if (schema.parents) {
+		for (const aParent of schema.parents) {
 			uniquePropertiesIncludingInherited(aParent, result)
 		}
 	}
-	if (model.properties) {
-		idx.merge(result, model.properties)
+	if (schema.properties) {
+		idx.merge(result, schema.properties)
 	}
 
 	return result

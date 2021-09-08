@@ -10,20 +10,20 @@ import { findProperty, removeProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
- * @param schema the schema containing the discriminator
+ * @param apiSchema the schema containing the discriminator
  * @param target the CodegenDiscriminatorSchema where the discriminator will go 
  * @param state 
  * @returns 
  */
-export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema): CodegenDiscriminator | null {
-	if (!schema.discriminator) {
+export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema): CodegenDiscriminator | null {
+	if (!apiSchema.discriminator) {
 		return null
 	}
 
-	let schemaDiscriminator = schema.discriminator as string | OpenAPIV3.DiscriminatorObject
+	let schemaDiscriminator = apiSchema.discriminator as string | OpenAPIV3.DiscriminatorObject
 	if (typeof schemaDiscriminator === 'string') {
 		/* OpenAPIv2 support */
-		const vendorExtensions = toCodegenVendorExtensions(schema)
+		const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 		schemaDiscriminator = {
 			propertyName: schemaDiscriminator,
@@ -72,7 +72,7 @@ export function toCodegenSchemaDiscriminator(schema: OpenAPIX.SchemaObject, targ
  * documents.
  * 
  * NOTE: this is separated from toCodegenSchemaDiscriminator as we must not load additional schemas
- *       until the model has its discriminator set, otherwise we will not be able to find and add
+ *       until the schema has its own discriminator set, otherwise we will not be able to find and add
  *       new schemas to the discriminator.
  */
 export function loadDiscriminatorMappings(schema: CodegenDiscriminatorSchema, state: InternalCodegenState): void {
@@ -138,13 +138,13 @@ function findCommonDiscriminatorPropertyType(propertyName: string, schemas: Code
 }
 
 /**
- * Find the appropriate discriminator value to use for the given model
+ * Find the appropriate discriminator value to use for the given schema
  * @param discriminator the discriminator
- * @param model the model to find the value for
+ * @param schema the discriminatable schema to find the value for
  * @returns 
  */
-export function findDiscriminatorValue(discriminator: CodegenDiscriminator, model: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
-	const name = model.serializedName || model.name
+export function findDiscriminatorValue(discriminator: CodegenDiscriminator, schema: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
+	const name = schema.serializedName || schema.name
 	if (!discriminator.mappings) {
 		return name
 	}
@@ -154,7 +154,7 @@ export function findDiscriminatorValue(discriminator: CodegenDiscriminator, mode
 			$ref,
 		}, state)
 		const found = state.knownSchemas.get(resolvedSchema)
-		if (found === model) {
+		if (found === schema) {
 			return value
 		}
 	}

@@ -3,7 +3,7 @@ import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
 import { createObjectSchemaUsage } from './object'
-import { absorbModel } from './object-absorb'
+import { absorbCodegenSchema } from './object-absorb'
 import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToScope, scopeOf } from './utils'
 
 /**
@@ -120,7 +120,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 			}
 		} else {
 			for (const aParent of interfaceSchema.parents) {
-				absorbModel(aParent, result, {})
+				absorbCodegenSchema(aParent, result, {})
 			}
 		}
 	}

@@ -6,44 +6,44 @@ import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenProperties } from './property'
 import { toCodegenSchemaUsage } from '.'
 
-function absorbProperties(otherProperties: CodegenProperties, model: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
+function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
 	for (const property of idx.allValues(otherProperties)) {
 		const newProperty = { ...property }
 		if (options.makePropertiesOptional) {
 			newProperty.required = false
 		}
-		if (!model.properties) {
-			model.properties = idx.create()
+		if (!schema.properties) {
+			schema.properties = idx.create()
 		}
-		idx.set(model.properties, newProperty.name, newProperty)
+		idx.set(schema.properties, newProperty.name, newProperty)
 	}
 }
 
-function absorbModels(otherModels: CodegenNamedSchemas, target: CodegenObjectSchema) {
-	for (const otherModel of idx.allValues(otherModels)) {
+function absorbCodegenSchemas(schemas: CodegenNamedSchemas, target: CodegenObjectSchema) {
+	for (const schema of idx.allValues(schemas)) {
 		if (!target.schemas) {
 			target.schemas = idx.create()
 		}
-		idx.set(target.schemas, otherModel.name, otherModel)
+		idx.set(target.schemas, schema.name, schema)
 	}
 }
 
-export function absorbModel(otherModel: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedModels?: boolean; makePropertiesOptional?: boolean } = {}): void {
-	if (otherModel.parents) {
-		for (const aParent of otherModel.parents) {
-			absorbModel(aParent, target, options)
+export function absorbCodegenSchema(schema: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedSchemas?: boolean; makePropertiesOptional?: boolean } = {}): void {
+	if (schema.parents) {
+		for (const aParent of schema.parents) {
+			absorbCodegenSchema(aParent, target, options)
 		}
 	}
-	if (otherModel.properties) {
-		absorbProperties(otherModel.properties, target, { makePropertiesOptional: options.makePropertiesOptional })
+	if (schema.properties) {
+		absorbProperties(schema.properties, target, { makePropertiesOptional: options.makePropertiesOptional })
 	}
-	if (options.includeNestedModels && otherModel.schemas) {
-		absorbModels(otherModel.schemas, target)
+	if (options.includeNestedSchemas && schema.schemas) {
+		absorbCodegenSchemas(schema.schemas, target)
 	}
 }
 
-export function absorbSchema(otherSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenObjectLikeSchemas | undefined {
-	if (!isOpenAPIReferenceObject(otherSchema)) {
+export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenObjectLikeSchemas | undefined {
+	if (!isOpenAPIReferenceObject(apiSchema)) {
 		/*
 			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
 			then we do. We absorb the sub-schemas it creates by passing this model as to scope to toCodegenProperties.
@@ -52,25 +52,25 @@ export function absorbSchema(otherSchema: OpenAPIX.SchemaObject, target: Codegen
 			case we fall back to using toCodegenSchemaUsage.
 			*/
 
-		const otherProperties = toCodegenProperties(otherSchema, target, state)
+		const otherProperties = toCodegenProperties(apiSchema, target, state)
 		if (otherProperties) {
 			absorbProperties(otherProperties, target, {})
 			return undefined
 		}
 	}
 
-	const otherSchemaUsage = toCodegenSchemaUsage(otherSchema, state, {
+	const schemaUsage = toCodegenSchemaUsage(apiSchema, state, {
 		required: true,
 		suggestedName: target.name,
 		purpose: CodegenSchemaPurpose.MODEL,
 		scope,
 	})
-	const otherSchemaModel = otherSchemaUsage.schema
-	if (!isCodegenObjectLikeSchema(otherSchemaModel)) {
-		throw new Error(`Cannot absorb schema as it isn't an object: ${JSON.stringify(otherSchema)}`)
+	const schema = schemaUsage.schema
+	if (!isCodegenObjectLikeSchema(schema)) {
+		throw new Error(`Cannot absorb schema as it isn't an object: ${JSON.stringify(apiSchema)}`)
 	}
 
-	/* We only include nested models if the model being observed won't actually exist to contain its nested models itself */
-	absorbModel(otherSchemaModel, target, { includeNestedModels: false })
-	return otherSchemaModel
+	/* We only include nested schemas if the schema being observed won't actually exist to contain its nested schemas itself */
+	absorbCodegenSchema(schema, target, { includeNestedSchemas: false })
+	return schema
 }

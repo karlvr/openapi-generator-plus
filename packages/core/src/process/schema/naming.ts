@@ -13,7 +13,7 @@ export interface ScopedModelInfo {
 	anonymous: boolean
 }
 
-function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
+function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
 	if ($ref) {
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
@@ -21,8 +21,8 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 		suggestedName = nameFromRef($ref, state)
 	}
 
-	if (schema) {
-		const vendorExtensions = toCodegenVendorExtensions(schema)
+	if (apiSchema) {
+		const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 		/* Support vendor extension to override the automatic naming of schemas */
 		if (vendorExtensions && vendorExtensions['x-schema-name']) {
 			suggestedName = vendorExtensions['x-schema-name']
@@ -60,8 +60,8 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 	}
 }
 
-export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, schema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
-	const result = toScopedName($ref, suggestedName, scope, schema, schemaType, state)
+export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
+	const result = toScopedName($ref, suggestedName, scope, apiSchema, schemaType, state)
 
 	const reservedName = $ref ? state.reservedSchemaNames[$ref] : undefined
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {

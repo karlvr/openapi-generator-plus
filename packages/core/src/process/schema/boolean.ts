@@ -6,16 +6,16 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenBooleanSchema {
-	if (schema.type !== 'boolean') {
+export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenBooleanSchema {
+	if (apiSchema.type !== 'boolean') {
 		throw new Error('Not a boolean schema')
 	}
 
-	const format: string | undefined = schema.format
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const format: string | undefined = apiSchema.format
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeType({
-		type: schema.type,
+		type: apiSchema.type,
 		format,
 		schemaType: CodegenSchemaType.BOOLEAN,
 		vendorExtensions,
@@ -24,15 +24,15 @@ export function toCodegenBooleanSchema(schema: OpenAPIX.SchemaObject, naming: Sc
 	const result: CodegenBooleanSchema = {
 		...extractNaming(naming),
 
-		type: schema.type,
+		type: apiSchema.type,
 		format: format || null,
 		schemaType: CodegenSchemaType.BOOLEAN,
 		nativeType,
 		component: null,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 	}
 	return result
 }

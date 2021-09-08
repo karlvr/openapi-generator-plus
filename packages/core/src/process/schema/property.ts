@@ -8,19 +8,19 @@ import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenSchemaUsage } from '.'
 import { OpenAPIV3_1 } from 'openapi-types'
 
-export function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
-	if (typeof schema.properties !== 'object') {
+export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
+	if (typeof apiSchema.properties !== 'object') {
 		return undefined
 	}
 
-	const requiredPropertyNames = typeof schema.required === 'object' ? [...schema.required as string[]] : []
+	const requiredPropertyNames = typeof apiSchema.required === 'object' ? [...apiSchema.required as string[]] : []
 
 	const properties: CodegenProperties = idx.create()
-	for (const propertyName in schema.properties) {
+	for (const propertyName in apiSchema.properties) {
 		const requiredIndex = requiredPropertyNames.indexOf(propertyName)
 		const required = requiredIndex !== -1
 
-		const propertySchema = schema.properties[propertyName]
+		const propertySchema = apiSchema.properties[propertyName]
 		const property = toCodegenProperty(propertyName, propertySchema, required, scope, state)
 		addCodegenProperty(properties, property, state)
 
@@ -30,7 +30,7 @@ export function toCodegenProperties(schema: OpenAPIX.SchemaObject, scope: Codege
 	}
 
 	if (requiredPropertyNames.length > 0) {
-		state.log(CodegenLogLevel.WARN, `Required properties [${requiredPropertyNames.join(', ')}] missing from properties: ${JSON.stringify(schema)}`)
+		state.log(CodegenLogLevel.WARN, `Required properties [${requiredPropertyNames.join(', ')}] missing from properties: ${JSON.stringify(apiSchema)}`)
 	}
 
 	return idx.undefinedIfEmpty(properties)
@@ -55,11 +55,11 @@ export function addCodegenProperty(properties: CodegenProperties, property: Code
 	return property
 }
 
-function toCodegenProperty(name: string, schema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
+function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
 	/* We allow preserving the original description if the usage is by reference */
-	const description = isOpenAPIReferenceObject(schema) ? (schema as OpenAPIV3_1.ReferenceObject).description : undefined
+	const description = isOpenAPIReferenceObject(apiSchema) ? (apiSchema as OpenAPIV3_1.ReferenceObject).description : undefined
 
-	const schemaUsage = toCodegenSchemaUsage(schema, state, {
+	const schemaUsage = toCodegenSchemaUsage(apiSchema, state, {
 		required, 
 		suggestedName: name,
 		purpose: CodegenSchemaPurpose.PROPERTY,

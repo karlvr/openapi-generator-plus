@@ -9,42 +9,42 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { absorbModel } from './object-absorb'
+import { absorbCodegenSchema } from './object-absorb'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
-export function toCodegenAnyOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
+export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.anyOfStrategy()
 	switch (strategy) {
 		case CodegenAnyOfStrategy.NATIVE:
-			return toCodegenAnyOfSchemaNative(schema, naming, $ref, state)
+			return toCodegenAnyOfSchemaNative(apiSchema, naming, state)
 		case CodegenAnyOfStrategy.OBJECT:
-			return toCodegenAnyOfSchemaObject(schema, naming, $ref, state)
+			return toCodegenAnyOfSchemaObject(apiSchema, naming, state)
 	}
 	throw new Error(`Unsupported anyOf strategy: ${strategy}`)
 }
 
-function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema {
+function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema {
 	const { scopedName, scope } = naming
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		type: schema.type as string,
+		type: apiSchema.type as string,
 		schemaType: CodegenSchemaType.ANYOF,
 		scopedName,
 		vendorExtensions,
 	})
 
-	let model: CodegenAnyOfSchema = {
+	let result: CodegenAnyOfSchema = {
 		...extractNaming(naming),
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		discriminator: null,
 		discriminatorValues: null,
 		polymorphic: true,
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'anyOf',
 		format: null,
@@ -58,71 +58,71 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 		implements: null,
 	}
 
-	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated || false
+	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
+		result.deprecated = apiSchema.deprecated || false
 	}
 
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	model = addToKnownSchemas(schema, model, state)
+	result = addToKnownSchemas(apiSchema, result, state)
 
 	/* We bundle all of the properties together into this model and turn the subModels into interfaces */
-	const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
-	for (const otherSchema of anyOf) {
-		const otherModel = toCodegenSchemaUsage(otherSchema, state, {
+	for (const anyOfApiSchema of anyOf) {
+		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
 			scope,
-			suggestedName: `${model.name}_option`,
+			suggestedName: `${result.name}_option`,
 		}).schema
 
-		model.composes.push(otherModel)
-		added.push([otherSchema, otherModel])
+		result.composes.push(anyOfSchema)
+		added.push([anyOfApiSchema, anyOfSchema])
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
-	if (model.discriminator) {
-		for (const [otherSchema, otherModel] of added) {
-			if (!isCodegenObjectSchema(otherModel)) {
-				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	if (result.discriminator) {
+		for (const [addedApiSchema, addedSchema] of added) {
+			if (!isCodegenObjectSchema(addedSchema)) {
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
 			}
-			addToDiscriminator(model, otherModel, state)
+			addToDiscriminator(result, addedSchema, state)
 		}
 	}
 
-	loadDiscriminatorMappings(model, state)
+	loadDiscriminatorMappings(result, state)
 		
-	return model
+	return result
 }
 
-function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName, scope } = naming
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		type: schema.type as string,
+		type: apiSchema.type as string,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
 	})
 
-	let model: CodegenObjectSchema = {
+	let result: CodegenObjectSchema = {
 		...extractNaming(naming),
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		abstract: false,
 		discriminator: null,
 		discriminatorValues: null,
 		polymorphic: true,
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'object',
 		format: null,
@@ -140,55 +140,55 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		schemas: null,
 	}
 
-	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated || false
+	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
+		result.deprecated = apiSchema.deprecated || false
 	}
 
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	model = addToKnownSchemas(schema, model, state)
+	result = addToKnownSchemas(apiSchema, result, state)
 
-	const anyOf = schema.anyOf as Array<OpenAPIX.SchemaObject>
+	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 
 	/* Absorb models and use interface conformance */
-	for (const otherSchema of anyOf) {
+	for (const anyOfApiSchema of anyOf) {
 		/* We must absorb the schema from the others, and then indicate that we conform to them */
-		const subModel = toCodegenSchemaUsage(otherSchema, state, {
+		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
 			required: true,
-			suggestedName: `${model.name}_submodel`,
+			suggestedName: `${result.name}_submodel`,
 			purpose: CodegenSchemaPurpose.MODEL,
-			scope: model,
+			scope: result,
 		}).schema
-		if (!isCodegenObjectSchema(subModel)) {
+		if (!isCodegenObjectSchema(anyOfSchema)) {
 			// TODO
-			throw new Error(`Non-object schema not yet supported in anyOf: ${JSON.stringify(otherSchema)}`)
+			throw new Error(`Non-object schema not yet supported in anyOf: ${JSON.stringify(anyOfApiSchema)}`)
 		}
 
-		absorbModel(subModel, model, { includeNestedModels: false, makePropertiesOptional: true })
+		absorbCodegenSchema(anyOfSchema, result, { includeNestedSchemas: false, makePropertiesOptional: true })
 
 		/* Make sure there's an interface schema to use */
-		const interfaceSchema = toCodegenInterfaceSchema(subModel, scope, state)
+		const interfaceSchema = toCodegenInterfaceSchema(anyOfSchema, scope, state)
 
-		addImplementor(interfaceSchema, model)
-		added.push([otherSchema, interfaceSchema])
+		addImplementor(interfaceSchema, result)
+		added.push([anyOfApiSchema, interfaceSchema])
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
-	if (model.discriminator) {
-		for (const [otherSchema, otherModel] of added) {
-			if (!isCodegenObjectSchema(otherModel)) {
-				throw new Error(`anyOf "${model.name}" with discriminator references a non-object schema: ${JSON.stringify(otherSchema)}`)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	if (result.discriminator) {
+		for (const [addedApiSchema, addedSchema] of added) {
+			if (!isCodegenObjectSchema(addedSchema)) {
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
 			}
-			addToDiscriminator(model, otherModel, state)
+			addToDiscriminator(result, addedSchema, state)
 		}
 	}
 	
-	loadDiscriminatorMappings(model, state)
+	loadDiscriminatorMappings(result, state)
 		
-	return model
+	return result
 }

@@ -7,15 +7,15 @@ import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 
-export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 	
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
 		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
 	})
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.additionalProperties, state, {
+	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.additionalProperties, state, {
 		required: true,
 		suggestedName: suggestedValueModelName,
 		purpose: CodegenSchemaPurpose.MAP_VALUE,
@@ -23,8 +23,8 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 	})
 
 	const nativeType = state.generator.toNativeMapType({
-		type: schema.type as string,
-		format: schema.format,
+		type: apiSchema.type as string,
+		format: apiSchema.format,
 		schemaType: CodegenSchemaType.MAP,
 		keyNativeType,
 		componentNativeType: componentSchemaUsage.nativeType,
@@ -35,17 +35,17 @@ export function toCodegenMapSchema(schema: OpenAPIX.SchemaObject, naming: Scoped
 		...extractNaming(naming),
 		
 		type: 'object',
-		format: schema.format || null,
+		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.MAP,
 		component: componentSchemaUsage,
 		nativeType,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 
-		maxProperties: schema.maxProperties || null,
-		minProperties: schema.minProperties || null,
+		maxProperties: apiSchema.maxProperties || null,
+		minProperties: apiSchema.minProperties || null,
 	}
 	return result
 }

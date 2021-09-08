@@ -9,15 +9,15 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 
-export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
-	if (!schema.enum) {
+export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
+	if (!apiSchema.enum) {
 		throw new Error('Not an enum schema')
 	}
-	if (typeof schema.type !== 'string') {
-		throw new Error(`Invalid schema type for enum schema: ${schema.type}: ${JSON.stringify(schema)}`)
+	if (typeof apiSchema.type !== 'string') {
+		throw new Error(`Invalid schema type for enum schema: ${apiSchema.type}: ${JSON.stringify(apiSchema)}`)
 	}
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	if (!naming) {
 		// TODO what does an enum look like if it doesn't have a name? can enums be inline in some languages?
@@ -29,20 +29,20 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 	
 	const nativeType = state.generator.toNativeObjectType({
-		type: schema.type,
-		format: schema.format,
+		type: apiSchema.type,
+		format: apiSchema.format,
 		schemaType: CodegenSchemaType.ENUM,
 		scopedName: naming.scopedName,
 		vendorExtensions,
 	})
 
-	const enumValueType = schema.type
-	const enumValueFormat = schema.format
+	const enumValueType = apiSchema.type
+	const enumValueFormat = apiSchema.format
 	const enumValuePropertyType = toCodegenSchemaType(enumValueType, enumValueFormat)
 
 	const enumValueNativeType = state.generator.toNativeType({
 		type: enumValueType,
-		format: schema.format,
+		format: apiSchema.format,
 		schemaType: enumValuePropertyType,
 		vendorExtensions,
 	})
@@ -60,7 +60,7 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 	
 	const existingEnumValueNames = new Set<string>()
-	const enumValues: CodegenEnumValues = idx.create(schema.enum.map(name => {
+	const enumValues: CodegenEnumValues = idx.create(apiSchema.enum.map(name => {
 		const originalEnumMemberName = state.generator.toEnumMemberName(`${name}`)
 		let uniqueName = originalEnumMemberName
 		let iterations = 1
@@ -83,16 +83,16 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 	const result: CodegenEnumSchema = {
 		...extractNaming(naming),
 
-		type: schema.type,
-		format: schema.format || null,
+		type: apiSchema.type,
+		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.ENUM,
 		component: null,
 		nativeType,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 
 		enumValueNativeType,
 		enumValues,
@@ -100,6 +100,6 @@ export function toCodegenEnumSchema(schema: OpenAPIX.SchemaObject, naming: Scope
 		examples: null,
 	}
 
-	result.examples = toCodegenExamples(schema.example, undefined, undefined, result, state)
+	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 	return result
 }

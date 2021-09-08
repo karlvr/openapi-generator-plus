@@ -8,30 +8,30 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { convertToBoolean, convertToNumber } from '../utils'
 
-export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, state: InternalCodegenState): CodegenArraySchema {
-	if (schema.type !== 'array') {
+export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, state: InternalCodegenState): CodegenArraySchema {
+	if (apiSchema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
 
-	if (!schema.items) {
+	if (!apiSchema.items) {
 		throw new Error('items missing for schema type "array"')
 	}
 
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchemaUsage = toCodegenSchemaUsage(schema.items, state, {
+	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.items, state, {
 		required: true,
 		suggestedName: suggestedItemModelName,
 		purpose: CodegenSchemaPurpose.ARRAY_ITEM,
 		scope: suggestedItemModelScope,
 	})
 	const nativeType = state.generator.toNativeArrayType({
-		type: schema.type,
-		format: schema.format,
+		type: apiSchema.type,
+		format: apiSchema.format,
 		schemaType: CodegenSchemaType.ARRAY,
 		componentNativeType: componentSchemaUsage.nativeType,
-		uniqueItems: schema.uniqueItems,
+		uniqueItems: apiSchema.uniqueItems,
 		vendorExtensions,
 	})
 
@@ -39,19 +39,19 @@ export function toCodegenArraySchema(schema: OpenAPIX.SchemaObject, naming: Scop
 		...extractNaming(naming),
 		
 		type: 'array',
-		format: schema.format || null,
+		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.ARRAY,
 		component: componentSchemaUsage,
 		nativeType,
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 
-		maxItems: convertToNumber(schema.maxItems),
-		minItems: convertToNumber(schema.minItems),
-		uniqueItems: convertToBoolean(schema.uniqueItems, null),
+		maxItems: convertToNumber(apiSchema.maxItems),
+		minItems: convertToNumber(apiSchema.minItems),
+		uniqueItems: convertToBoolean(apiSchema.uniqueItems, null),
 	}
 	return result
 }

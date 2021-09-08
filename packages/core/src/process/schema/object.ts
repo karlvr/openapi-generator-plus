@@ -12,11 +12,11 @@ import { loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discr
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 
-export function toCodegenObjectSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema {
-	if (!schema.discriminator || !interfaceRequiredForDiscriminator(state)) {
-		return toCodegenObjectSchemaObject(schema, naming, $ref, state)
+export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema {
+	if (!apiSchema.discriminator || !interfaceRequiredForDiscriminator(state)) {
+		return toCodegenObjectSchemaObject(apiSchema, naming, state)
 	} else {
-		return toCodegenObjectSchemaInterface(schema, naming, $ref, state)
+		return toCodegenObjectSchemaInterface(apiSchema, naming, state)
 	}
 }
 
@@ -39,23 +39,23 @@ function interfaceRequiredForDiscriminator(state: InternalCodegenState) {
 	return state.generator.allOfStrategy() === CodegenAllOfStrategy.OBJECT && !(state.generator.supportsInheritance() && state.generator.supportsMultipleInheritance())
 }
 
-function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName } = naming
 	
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		type: schema.type as string,
-		format: schema.format,
+		type: apiSchema.type as string,
+		format: apiSchema.format,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
 	})
 
-	let model: CodegenObjectSchema = {
+	let result: CodegenObjectSchema = {
 		...extractNaming(naming),
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		abstract: false,
 		properties: null,
@@ -66,10 +66,10 @@ function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scop
 		polymorphic: false,
 		children: null,
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'object',
-		format: schema.format || null,
+		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.OBJECT,
 		interface: null,
 		implements: null,
@@ -79,37 +79,37 @@ function toCodegenObjectSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scop
 		deprecated: false,
 	}
 
-	model = handleObjectCommon(schema, naming, model, state)
+	result = handleObjectCommon(apiSchema, naming, result, state)
 	// TODO we previous had an issue where a member of a discriminator didn't discover the discriminator
 	// because of order-of-operations between populating model.discriminator and the member being created
 	// and looking for it. If that happens again, this is one approach to work around it.
-	// if (model.discriminator && model.children) {
-	// 	for (const aSchema of model.children) {
+	// if (result.discriminator && result.children) {
+	// 	for (const aSchema of result.children) {
 	// 		if (isCodegenDiscriminatableSchema(aSchema)) {
-	// 			addToDiscriminator(model, aSchema, state)
+	// 			addToDiscriminator(result, aSchema, state)
 	// 		}
 	// 	}
 	// }
-	return model
+	return result
 }
 
-function toCodegenObjectSchemaInterface(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { scopedName } = naming
 	
-	const vendorExtensions = toCodegenVendorExtensions(schema)
+	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		type: schema.type as string,
-		format: schema.format,
+		type: apiSchema.type as string,
+		format: apiSchema.format,
 		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName,
 		vendorExtensions,
 	})
 
-	let model: CodegenInterfaceSchema = {
+	let result: CodegenInterfaceSchema = {
 		...extractNaming(naming),
 
-		...extractCodegenSchemaCommon(schema, state),
+		...extractCodegenSchemaCommon(apiSchema, state),
 
 		properties: null,
 		additionalProperties: null,
@@ -119,10 +119,10 @@ function toCodegenObjectSchemaInterface(schema: OpenAPIX.SchemaObject, naming: S
 		discriminatorValues: null,
 		children: null,
 		vendorExtensions,
-		externalDocs: toCodegenExternalDocs(schema),
+		externalDocs: toCodegenExternalDocs(apiSchema),
 		nativeType,
 		type: 'object',
-		format: schema.format || null,
+		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.INTERFACE,
 		implementation: null,
 		implementors: null,
@@ -132,47 +132,47 @@ function toCodegenObjectSchemaInterface(schema: OpenAPIX.SchemaObject, naming: S
 		deprecated: false,
 	}
 
-	model = handleObjectCommon(schema, naming, model, state)
+	result = handleObjectCommon(apiSchema, naming, result, state)
 	// TODO we previous had an issue where a member of a discriminator didn't discover the discriminator
 	// because of order-of-operations between populating model.discriminator and the member being created
 	// and looking for it. If that happens again, this is one approach to work around it.
-	// if (model.discriminator && model.implementors) {
-	// 	for (const aSchema of model.implementors) {
+	// if (result.discriminator && result.implementors) {
+	// 	for (const aSchema of result.implementors) {
 	// 		if (isCodegenDiscriminatableSchema(aSchema)) {
-	// 			addToDiscriminator(model, aSchema, state)
+	// 			addToDiscriminator(result, aSchema, state)
 	// 		}
 	// 	}
 	// }
 
-	return model
+	return result
 }
 
-function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSchema>(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, model: T, state: InternalCodegenState) {
-	model.examples = toCodegenExamples(schema.example, undefined, undefined, model, state)
+function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSchema>(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, schema: T, state: InternalCodegenState) {
+	schema.examples = toCodegenExamples(apiSchema.example, undefined, undefined, schema, state)
 
-	if (isOpenAPIv3SchemaObject(schema, state.specVersion)) {
-		model.deprecated = schema.deprecated || false
+	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
+		schema.deprecated = apiSchema.deprecated || false
 	}
 
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	model = addToKnownSchemas(schema, model, state)
+	schema = addToKnownSchemas(apiSchema, schema, state)
 
-	model.properties = toCodegenProperties(schema, model, state) || null
+	schema.properties = toCodegenProperties(apiSchema, schema, state) || null
 
-	if (schema.additionalProperties) {
+	if (apiSchema.additionalProperties) {
 		/* This schema also has additional properties */
-		const mapSchema = toCodegenMapSchema(schema, naming, 'value', model, state)
-		model.additionalProperties = mapSchema
+		const mapSchema = toCodegenMapSchema(apiSchema, naming, 'value', schema, state)
+		schema.additionalProperties = mapSchema
 	}
 		
-	model.discriminator = toCodegenSchemaDiscriminator(schema, model)
-	if (model.discriminator) {
-		model.polymorphic = true
+	schema.discriminator = toCodegenSchemaDiscriminator(apiSchema, schema)
+	if (schema.discriminator) {
+		schema.polymorphic = true
 	}
-	loadDiscriminatorMappings(model, state)
-	return model
+	loadDiscriminatorMappings(schema, state)
+	return schema
 }
 
 /**

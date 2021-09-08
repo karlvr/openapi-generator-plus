@@ -27,20 +27,20 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 	}
 }
 
-export function toCodegenSchemaTypeFromSchema(schema: OpenAPIX.SchemaObject): CodegenSchemaType {
-	if (schema.allOf) {
+export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObject): CodegenSchemaType {
+	if (apiSchema.allOf) {
 		return CodegenSchemaType.ALLOF
-	} else if (schema.anyOf) {
+	} else if (apiSchema.anyOf) {
 		return CodegenSchemaType.ANYOF
-	} else if (schema.oneOf) {
+	} else if (apiSchema.oneOf) {
 		return CodegenSchemaType.ONEOF
-	} else if (schema.enum) {
+	} else if (apiSchema.enum) {
 		return CodegenSchemaType.ENUM
-	} else if (schema.type === 'object' && schema.additionalProperties && (!schema.properties || Object.keys(schema.properties).length === 0)) {
+	} else if (apiSchema.type === 'object' && apiSchema.additionalProperties && (!apiSchema.properties || Object.keys(apiSchema.properties).length === 0)) {
 		return CodegenSchemaType.MAP
-	} else if (typeof schema.type === 'string') {
-		return toCodegenSchemaType(schema.type, schema.format)
+	} else if (typeof apiSchema.type === 'string') {
+		return toCodegenSchemaType(apiSchema.type, apiSchema.format)
 	} else {
-		throw new Error(`Invalid schema type "${schema.type}": ${JSON.stringify(schema)}`)
+		throw new Error(`Invalid schema type "${apiSchema.type}": ${JSON.stringify(apiSchema)}`)
 	}
 }

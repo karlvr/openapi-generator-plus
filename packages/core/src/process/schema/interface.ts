@@ -4,7 +4,7 @@ import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
 import { createObjectSchemaUsage } from './object'
 import { absorbModel } from './object-absorb'
-import { addToScope, scopeOf } from './utils'
+import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToScope, scopeOf } from './utils'
 
 /**
  * Create or return an interface schema for the given object schema
@@ -64,22 +64,16 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 		children: null,
 		implementation: schema,
 		implementors: null,
-		parents,
+		parents: null,
 		schemas: null,
 	}
 	schema.interface = result
 
-	if (!schema.implements) {
-		schema.implements = []
-	}
-	schema.implements.push(result)
+	addImplementor(result, schema)
 
 	if (parents) {
 		for (const aParent of parents) {
-			if (!aParent.children) {
-				aParent.children = []
-			}
-			aParent.children.push(result)
+			addChildInterfaceSchema(aParent, result)
 		}
 	}
 
@@ -108,14 +102,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	result.properties = interfaceSchema.properties
 	result.additionalProperties = interfaceSchema.additionalProperties
 
-	if (!result.implements) {
-		result.implements = []
-	}
-	result.implements.push(interfaceSchema)
-	if (!interfaceSchema.implementors) {
-		interfaceSchema.implementors = []
-	}
-	interfaceSchema.implementors.push(result)
+	addImplementor(interfaceSchema, result)
 
 	interfaceSchema.implementation = result
 	result.interface = interfaceSchema
@@ -126,10 +113,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 			for (const aParent of interfaceSchema.parents) {
 				const aParentImplementation = toCodegenInterfaceImplementationSchema(aParent, state)
 				if (aParentImplementation) {
-					if (!result.parents) {
-						result.parents = []
-					}
-					result.parents.push(aParentImplementation)
+					addChildObjectSchema(aParentImplementation, result)
 				} else {
 					throw new Error(`Cannot create implementation for "${fullyQualifiedName(aParent.scopedName)}`)
 				}

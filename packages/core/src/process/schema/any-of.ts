@@ -10,7 +10,7 @@ import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscrimin
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbModel } from './object-absorb'
-import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenAnyOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.anyOfStrategy()
@@ -199,15 +199,7 @@ function toCodegenAnyOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 		/* Make sure there's an interface schema to use */
 		const interfaceSchema = toCodegenInterfaceSchema(subModel, scope, state)
 
-		if (!model.implements) {
-			model.implements = []
-		}
-		model.implements.push(interfaceSchema)
-
-		if (!interfaceSchema.implementors) {
-			interfaceSchema.implementors = []
-		}
-		interfaceSchema.implementors.push(model)
+		addImplementor(interfaceSchema, model)
 		added.push([otherSchema, interfaceSchema])
 	}
 

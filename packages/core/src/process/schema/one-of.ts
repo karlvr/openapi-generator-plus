@@ -9,7 +9,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { createCodegenProperty } from './property'
-import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenOneOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
@@ -170,16 +170,7 @@ function toCodegenOneOfSchemaInterface(schema: OpenAPIX.SchemaObject, naming: Sc
 			throw new Error(`Failed to convert oneOf part to object model: ${JSON.stringify(otherSchema)}`)
 		}
 
-		if (!model.implementors) {
-			model.implementors = []
-		}
-		model.implementors.push(otherModel)
-
-		if (!otherModel.implements) {
-			otherModel.implements = []
-		}
-		otherModel.implements.push(model)
-
+		addImplementor(model, otherModel)
 		added.push([otherSchema, otherModel])
 	}
 

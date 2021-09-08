@@ -10,7 +10,7 @@ import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscr
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbModel, absorbSchema } from './object-absorb'
-import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenAllOfSchema(schema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, $ref: string | undefined, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.allOfStrategy()
@@ -172,42 +172,16 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			}).schema
 
 			if (isCodegenObjectSchema(parentSchema)) {
-				if (!model.parents) {
-					model.parents = []
-				}
-				model.parents.push(parentSchema)
-		
-				/* Add child model */
-				if (!parentSchema.children) {
-					parentSchema.children = []
-				}
-				parentSchema.children.push(model)
+				addChildObjectSchema(parentSchema, model)
 			} else if (isCodegenInterfaceSchema(parentSchema)) {
 				const parentImplementation = toCodegenInterfaceImplementationSchema(parentSchema, state)
 				if (parentImplementation) {
-					if (!model.parents) {
-						model.parents = []
-					}
-					model.parents.push(parentImplementation)
-			
-					/* Add child model */
-					if (!parentImplementation.children) {
-						parentImplementation.children = []
-					}
-					parentImplementation.children.push(model)
+					addChildObjectSchema(parentImplementation, model)
 				} else {
 					/* If we can't create an implementation containing all of the parent's properties, we must absorb and have the properties ourselves */
 					absorbModel(parentSchema, model)
 
-					if (!model.implements) {
-						model.implements = []
-					}
-					model.implements.push(parentSchema)
-
-					if (!parentSchema.implementors) {
-						parentSchema.implementors = []
-					}
-					parentSchema.implementors.push(model)
+					addImplementor(parentSchema, model)
 				}
 			} else {
 				throw new Error(`allOf "${model.name}" references a non-object-like schema: ${parentSchema.schemaType}`)
@@ -228,15 +202,7 @@ function toCodegenAllOfSchemaObject(schema: OpenAPIX.SchemaObject, naming: Scope
 			/* Make sure there's an interface schema to use */
 			const interfaceSchema = isCodegenObjectSchema(otherModel) ? toCodegenInterfaceSchema(otherModel, scope, state) : otherModel
 
-			if (!model.implements) {
-				model.implements = []
-			}
-			model.implements.push(interfaceSchema)
-
-			if (!interfaceSchema.implementors) {
-				interfaceSchema.implementors = []
-			}
-			interfaceSchema.implementors.push(model)
+			addImplementor(interfaceSchema, model)
 
 			addToAnyDiscriminators(otherModel, model, state)
 		}

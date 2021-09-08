@@ -1,4 +1,4 @@
-import { CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -170,4 +170,40 @@ export function findProperty(schema: CodegenObjectLikeSchemas, name: string): Co
 	}
 
 	return undefined
+}
+
+export function addChildObjectSchema(parent: CodegenObjectSchema, child: CodegenObjectSchema): void {
+	if (!parent.children) {
+		parent.children = []
+	}
+	parent.children.push(child)
+
+	if (!child.parents) {
+		child.parents = []
+	}
+	child.parents.push(parent)
+}
+
+export function addChildInterfaceSchema(parent: CodegenInterfaceSchema, child: CodegenInterfaceSchema): void {
+	if (!parent.children) {
+		parent.children = []
+	}
+	parent.children.push(child)
+
+	if (!child.parents) {
+		child.parents = []
+	}
+	child.parents.push(parent)
+}
+
+export function addImplementor(parent: CodegenInterfaceSchema, child: CodegenObjectSchema | CodegenAllOfSchema | CodegenAnyOfSchema | CodegenOneOfSchema | CodegenWrapperSchema): void {
+	if (!parent.implementors) {
+		parent.implementors = []
+	}
+	parent.implementors.push(child)
+
+	if (!child.implements) {
+		child.implements = []
+	}
+	child.implements.push(parent)
 }

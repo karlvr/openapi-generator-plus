@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/testing",
-  "version": "0.31.3",
+  "version": "0.31.4",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@openapi-generator-plus/core": "^0.33.0",
+    "@openapi-generator-plus/core": "^0.34.0",
     "@openapi-generator-plus/types": "^0.33.0"
   },
   "publishConfig": {

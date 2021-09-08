@@ -11,7 +11,7 @@
     "lint": "pnpm lint --recursive",
     "update": "pnpm outdated --recursive",
     "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpx changeset publish && pnpm install",
-    "release:version": "pnpm changeset version",
+    "release:version": "pnpm changeset version && pnpm install",
     "test": "pnpm test --recursive",
     "test-core": "cd packages/core && pnpm t -- --watch",
     "watch": "pnpm watch --parallel"

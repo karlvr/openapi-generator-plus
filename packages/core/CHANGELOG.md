@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 0.34.0
+
+### Minor Changes
+
+- 7c0d70c: allOf to object algorithm will create an inheritance hierarchy with a member that has a discriminator if possible
+
+### Patch Changes
+
+- 7a7b42c: Refactor by creating methods to manage parent/child, implementors/implements
+
+  This also uncovered one missing side of those relationships in toCodegenInterfaceImplementationSchema
+
+- b465b1c: Refactor: tidy parameter naming to better differentiate between api spec schemas and our own schemas
+
 ## 0.33.1
 
 ### Patch Changes

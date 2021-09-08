@@ -96,32 +96,6 @@ function toCodegenAnyOfSchemaNative(schema: OpenAPIX.SchemaObject, naming: Scope
 	}
 
 	loadDiscriminatorMappings(model, state)
-
-	// for (const subSchema of anyOf) {
-	// 	const subSchemaUsage = toCodegenSchemaUsage(subSchema, state, {
-	// 		required: true,
-	// 		suggestedName: 'submodel',
-	// 		purpose: CodegenSchemaPurpose.MODEL,
-	// 		scope: model,
-	// 	})
-	// 	const subModel = subSchemaUsage.schema
-	// 	if (!isCodegenObjectSchema(subModel)) {
-	// 		// TODO
-	// 		throw new Error(`Non-model schema not yet supported in anyOf: ${subSchema}`)
-	// 	}
-
-	// 	absorbModel(subModel, { includeNestedModels: false, makePropertiesOptional: true })
-	// 	subModel.isInterface = true // TODO if a submodel is also required to be concrete, perhaps we should create separate interface and concrete implementations of the same model
-
-	// 	if (!model.implements) {
-	// 		model.implements = idx.create()
-	// 	}
-	// 	idx.set(model.implements, subModel.name, subModel)
-	// 	if (!subModel.implementors) {
-	// 		subModel.implementors = idx.create()
-	// 	}
-	// 	idx.set(subModel.implementors, model.name, model)
-	// }
 		
 	return model
 }

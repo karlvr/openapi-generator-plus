@@ -50,9 +50,9 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 		return
 	}
 
-	console.log(c.bold.yellow('Cleaning:'), cleanPathPatterns.join(' '))
-
 	const outputPath = config.outputPath
+	console.log(c.bold.yellow('Cleaning:'), cleanPathPatterns.map(p => path.join(outputPath, p)).join(' '))
+
 	const paths: string[] = []
 	for (const pattern of cleanPathPatterns) {
 		paths.push(...await glob(pattern, {

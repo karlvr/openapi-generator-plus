@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.34.1
+
+### Patch Changes
+
+- 20fabe0: Add null parents and children to CodegenWrapper to make it easier in templates that are handling object-like things
+
 ## 0.34.0
 
 ### Minor Changes

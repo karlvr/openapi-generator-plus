@@ -1,5 +1,14 @@
 # openapi-generator-plus
 
+## 0.34.1
+
+### Patch Changes
+
+- b167fa7: Improve output of cleaning paths by joining with the output path
+- Updated dependencies [20fabe0]
+  - @openapi-generator-plus/core@0.34.1
+  - @openapi-generator-plus/types@0.33.1
+
 ## 0.34.0
 
 ### Minor Changes

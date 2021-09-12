@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 0.33.1
+
+### Patch Changes
+
+- 20fabe0: Add null parents and children to CodegenWrapper to make it easier in templates that are handling object-like things
+
 ## 0.33.0
 
 ### Minor Changes

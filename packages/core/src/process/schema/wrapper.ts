@@ -32,6 +32,8 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		nativeType,
 		component: null,
 		schemas: null,
+		parents: null,
+		children: null,
 	}
 
 	addToScope(schema, scope, state)

@@ -680,6 +680,10 @@ export interface CodegenWrapperSchema extends CodegenNamedSchema, CodegenScope {
 
 	/** The interface schemas that this schema complies with */
 	implements: CodegenInterfaceSchema[] | null
+
+	parents: null
+	children: null
+	
 }
 
 /**

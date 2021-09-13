@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.35.0
+
+### Minor Changes
+
+- a44b8d4: Add vendor extensions to properties
+
 ## 0.34.1
 
 ### Patch Changes

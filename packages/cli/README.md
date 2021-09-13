@@ -126,13 +126,13 @@ of the group by:
 
 OpenAPI Generator+ supports the following vendor extensions:
 
-|Extension|Description|
-|---------|-----------|
-|x-group|Override the operation group name.|
-|x-no-client|Don't generate this operation or schema when generating client code.|
-|x-no-server|Don't generate this operation or schema when generating server code.|
-|x-schema-name|Override the name of the generated code for a schema.|
-|x-discriminator-mapping|Specify discriminator mappings in OpenAPI v2|
+|Extension|Context|Description|
+|---------|-------|-----------|
+|x-group|Operation|Override the operation group name.|
+|x-no-client|Operation, Schema|Don't output when generating client code.|
+|x-no-server|Operation, Schema|Don't output when generating server code.|
+|x-schema-name|Schema|Override the name of the generated code for a schema.|
+|x-discriminator-mapping|Schema, oneOf, anyOf|Specify discriminator mappings in OpenAPI v2|
 
 ## Building
 

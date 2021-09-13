@@ -7,6 +7,7 @@ import { toUniqueName } from './naming'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenSchemaUsage } from '.'
 import { OpenAPIV3_1 } from 'openapi-types'
+import { toCodegenVendorExtensions } from '../vendor-extensions'
 
 export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
 	if (typeof apiSchema.properties !== 'object') {
@@ -71,6 +72,7 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		serializedName: name,
 		description: description || schemaUsage.schema.description || null,
 		initialValue: schemaUsage.defaultValue || state.generator.initialValue(schemaUsage) || null,
+		vendorExtensions: toCodegenVendorExtensions(apiSchema),
 	}
 }
 
@@ -81,6 +83,7 @@ export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUs
 		description: null,
 		...extractCodegenSchemaUsage(schemaUsage),
 		initialValue: null,
+		vendorExtensions: null,
 	}
 	return property
 }

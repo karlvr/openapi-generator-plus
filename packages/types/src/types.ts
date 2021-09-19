@@ -700,7 +700,7 @@ export interface CodegenDiscriminatorReference {
 	value: string
 }
 
-export interface CodegenDiscriminator extends CodegenTypeInfo {
+export interface CodegenDiscriminator extends CodegenSchemaUsage {
 	name: string
 	mappings: CodegenDiscriminatorMappings | null
 	references: CodegenDiscriminatorReference[]

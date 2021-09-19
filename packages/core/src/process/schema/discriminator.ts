@@ -1,10 +1,10 @@
-import { CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenSchema, CodegenSchemaPurpose, CodegenTypeInfo, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { equalCodegenTypeInfo, extractCodegenTypeInfo, resolveReference, typeInfoToString } from '../utils'
+import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { findProperty, removeProperty } from './utils'
 
@@ -32,14 +32,14 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 		}
 	}
 
-	let discriminatorType: CodegenTypeInfo | undefined = undefined
+	let discriminatorType: CodegenSchemaUsage | undefined = undefined
 	if (isCodegenObjectSchema(target)) {
 		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
 		if (!discriminatorProperty) {
 			throw new Error(`Discriminator property "${schemaDiscriminator.propertyName}" missing from "${target.name}"`)
 		}
 
-		discriminatorType = extractCodegenTypeInfo(discriminatorProperty)
+		discriminatorType = extractCodegenSchemaUsage(discriminatorProperty)
 	} else if (isCodegenAnyOfSchema(target) || isCodegenOneOfSchema(target)) {
 		/* For an anyOf or oneOf schemas we have to look in their composes to find the property */
 		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.composes, target)
@@ -47,7 +47,7 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 		/* First check if the interface has the property, which is the case if it's the root of an allOf */
 		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
 		if (discriminatorProperty) {
-			discriminatorType = extractCodegenTypeInfo(discriminatorProperty)
+			discriminatorType = extractCodegenSchemaUsage(discriminatorProperty)
 		} else {
 			/* Or for a oneOf interface, look in its implementors */
 			discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target)
@@ -110,14 +110,14 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
  * @param container the container of the discriminator property
  * @returns 
  */
-function findCommonDiscriminatorPropertyType(propertyName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenTypeInfo {
-	let result: CodegenTypeInfo | undefined = undefined
+function findCommonDiscriminatorPropertyType(propertyName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenSchemaUsage {
+	let result: CodegenSchemaUsage | undefined = undefined
 	for (const schema of schemas) {
 		if (isCodegenObjectSchema(schema)) {
 			if (schema.properties) {
 				const property = idx.get(schema.properties, propertyName)
 				if (property) {
-					const propertyType = extractCodegenTypeInfo(property)
+					const propertyType = extractCodegenSchemaUsage(property)
 					if (result === undefined) {
 						result = propertyType
 					} else if (!equalCodegenTypeInfo(result, propertyType)) {

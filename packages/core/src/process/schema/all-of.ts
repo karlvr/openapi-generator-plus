@@ -74,8 +74,8 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		const allOfSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.MODEL,
 			required: false,
-			scope: null,
-			suggestedName: `${result.name}_content`,
+			scope: result,
+			suggestedName: 'content',
 		}).schema
 
 		if (!isCodegenObjectLikeSchema(allOfSchema)) {

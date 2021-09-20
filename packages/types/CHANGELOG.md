@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 0.35.0
+
+### Minor Changes
+
+- 1e6716d: Change CodegenDiscriminator to include schema usage info
+
 ## 0.34.0
 
 ### Minor Changes

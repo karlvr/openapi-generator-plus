@@ -1,5 +1,12 @@
 # @openapi-generator-plus/core
 
+## 0.36.0
+
+### Minor Changes
+
+- 1e6716d: Change CodegenDiscriminator to include schema usage info
+- 80f85ae: Create native allOf's inline models as nested schemas rather than global schemas
+
 ## 0.35.0
 
 ### Minor Changes

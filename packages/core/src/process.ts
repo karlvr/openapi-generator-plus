@@ -143,6 +143,9 @@ function processCodegenSchemas(models: CodegenSchemas, state: InternalCodegenSta
 			const subModels = entry[1].schemas
 			if (subModels) {
 				processCodegenSchemas(subModels, state)
+				if (idx.isEmpty(subModels)) {
+					entry[1].schemas = null
+				}
 			}
 		}
 	}

@@ -1,5 +1,12 @@
 # @openapi-generator-plus/types
 
+## 0.36.0
+
+### Minor Changes
+
+- 8cb54fc: Add CodegenGeneratorHelper to allow generators to augment the CodegenDocument
+- e4b2f87: Change CodegenSchemaPurpose.MODEL to CodegenSchemaPurpose.GENERAL
+
 ## 0.35.0
 
 ### Minor Changes

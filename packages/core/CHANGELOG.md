@@ -1,5 +1,13 @@
 # @openapi-generator-plus/core
 
+## 0.37.0
+
+### Minor Changes
+
+- 8d801d7: If all subschemas are removed during post-processing, ensure we null the subschemas so generators treat the situation correctly
+- 8cb54fc: Add CodegenGeneratorHelper to allow generators to augment the CodegenDocument
+- e4b2f87: Change CodegenSchemaPurpose.MODEL to CodegenSchemaPurpose.GENERAL
+
 ## 0.36.0
 
 ### Minor Changes

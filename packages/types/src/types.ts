@@ -766,9 +766,9 @@ export enum CodegenSchemaPurpose {
 	 */
 	MAP_VALUE = 'MAP_VALUE',
 	/**
-	 * The schema is being used as an object model.
+	 * The schema is being used for no specific pupose other than being a schema.
 	 */
-	MODEL = 'MODEL',
+	GENERAL = 'GENERAL',
 	/**
 	 * The schema is being used as a parameter.
 	 */

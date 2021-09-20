@@ -145,14 +145,14 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 	content.encoding = encoding
 
 	if (requiresMetadata(content.encoding)) {
-		const newSchemaUsage = createObjectSchemaUsage(content.mediaType.mimeType, content.schema, CodegenSchemaPurpose.MODEL, state)
+		const newSchemaUsage = createObjectSchemaUsage(content.mediaType.mimeType, content.schema, CodegenSchemaPurpose.GENERAL, state)
 		newSchemaUsage.schema.properties = idx.create(allProperties)
 
 		for (const name of idx.allKeys(newSchemaUsage.schema.properties)) {
 			const propertyEncoding = idx.get(encoding.properties, name)!
 			if (propertyRequiresMetadata(encoding, propertyEncoding)) {
 				const property = allProperties[name]
-				const newPropertySchemaUsage = createObjectSchemaUsage(`${name}_part`, newSchemaUsage.schema, CodegenSchemaPurpose.MODEL, state)
+				const newPropertySchemaUsage = createObjectSchemaUsage(`${name}_part`, newSchemaUsage.schema, CodegenSchemaPurpose.GENERAL, state)
 
 				/* Duplicate the property so we don't change the original */
 				const newProperty: CodegenProperty = {

@@ -39,7 +39,7 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 		toCodegenSchemaUsage(reference, state, {
 			required: true, 
 			suggestedName: schemaName,
-			purpose: CodegenSchemaPurpose.MODEL,
+			purpose: CodegenSchemaPurpose.GENERAL,
 			scope: null,
 		})
 	}

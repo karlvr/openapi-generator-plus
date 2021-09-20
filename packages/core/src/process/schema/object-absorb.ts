@@ -62,7 +62,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 	const schemaUsage = toCodegenSchemaUsage(apiSchema, state, {
 		required: true,
 		suggestedName: target.name,
-		purpose: CodegenSchemaPurpose.MODEL,
+		purpose: CodegenSchemaPurpose.GENERAL,
 		scope,
 	})
 	const schema = schemaUsage.schema

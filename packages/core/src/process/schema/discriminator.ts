@@ -84,7 +84,7 @@ export function loadDiscriminatorMappings(schema: CodegenDiscriminatorSchema, st
 		toCodegenSchemaUsage({ $ref: mappingRef }, state, {
 			required: false,
 			suggestedName: `${schema.name}`,
-			purpose: CodegenSchemaPurpose.MODEL,
+			purpose: CodegenSchemaPurpose.GENERAL,
 			scope: isCodegenScope(schema) ? schema : null,
 		})
 	}

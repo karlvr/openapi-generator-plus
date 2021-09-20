@@ -72,7 +72,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const oneOfApiSchema of oneOf) {
 		const oneOfSchema = toCodegenSchemaUsage(oneOfApiSchema, state, {
-			purpose: CodegenSchemaPurpose.MODEL,
+			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: state.generator.nativeOneOfCanBeScope() ? result : scope,
 			suggestedName: `${result.name}_option`,
@@ -152,7 +152,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const oneOfApiSchema of oneOf) {
 		const oneOfApiSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
-			purpose: CodegenSchemaPurpose.MODEL,
+			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: result,
 			suggestedName: `${result.name}_option`,

@@ -93,12 +93,12 @@ export interface CodegenGenerator {
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.
 	 */
-	postProcessSchema?: (model: CodegenSchema) => boolean | void
+	postProcessSchema?: (model: CodegenSchema, helper: CodegenGeneratorHelper) => boolean | void
 
 	/**
 	 * Apply any post-processing to the given document.
 	 */
-	postProcessDocument?: (doc: CodegenDocument) => void
+	postProcessDocument?: (doc: CodegenDocument, helper: CodegenGeneratorHelper) => void
 
 	/** Create the root context for the templates */
 	templateRootContext: () => Record<string, unknown>
@@ -113,6 +113,17 @@ export interface CodegenGenerator {
 	 * haven't been modified after exporting.
 	 */
 	cleanPathPatterns: () => string[] | undefined
+}
+
+/**
+ * Services provided to the CodegenGenerator module to enable the generator to customise the document.
+ */
+export interface CodegenGeneratorHelper {
+	addToScope(schema: CodegenSchema, scope: CodegenScope | null): void
+	createObjectSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenObjectSchema
+	createOneOfSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenOneOfSchema
+	findSchema(name: string, scope: CodegenScope | null): CodegenSchema | undefined
+	scopeOf(schema: CodegenNamedSchema): CodegenScope | null
 }
 
 /**

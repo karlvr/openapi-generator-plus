@@ -272,3 +272,13 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenSt
 		}
 	}
 }
+
+export function createSchemaUsage<T extends CodegenSchema>(schema: T): CodegenSchemaUsage<T> {
+	return {
+		...extractCodegenSchemaInfo(schema),
+		required: false,
+		schema,
+		examples: null,
+		defaultValue: null,
+	}
+}

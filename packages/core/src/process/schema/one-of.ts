@@ -1,4 +1,4 @@
-import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
+import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -7,7 +7,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
-import { extractNaming, ScopedModelInfo } from './naming'
+import { extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
 import { createCodegenProperty } from './property'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
@@ -186,5 +186,49 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	}
 	loadDiscriminatorMappings(result, state)
 		
+	return result
+}
+
+export function createOneOfSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenOneOfSchema {
+	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
+		purpose,
+		schemaType: CodegenSchemaType.OBJECT,
+	})
+	
+	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.OBJECT, state)
+
+	const nativeType = state.generator.toNativeObjectType({
+		type: 'object',
+		schemaType: CodegenSchemaType.ONEOF,
+		scopedName: naming.scopedName,
+		vendorExtensions: null,
+	})
+	
+	const result: CodegenOneOfSchema = {
+		...extractNaming(naming),
+
+		description: null,
+		title: null,
+
+		discriminator: null,
+		discriminatorValues: null,
+		polymorphic: true,
+		vendorExtensions: null,
+		externalDocs: null,
+		nativeType,
+		type: 'oneOf',
+		format: null,
+		schemaType: CodegenSchemaType.ONEOF,
+		component: null,
+		deprecated: false,
+		examples: null,
+		schemas: null,
+		nullable: false,
+		readOnly: false,
+		writeOnly: false,
+
+		composes: [],
+		implements: null,
+	}
 	return result
 }

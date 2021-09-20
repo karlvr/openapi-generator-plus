@@ -1,8 +1,7 @@
-import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenSchemaInfo } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo, toUniqueScopedName, usedSchemaName } from './naming'
 import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
@@ -176,13 +175,13 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 }
 
 /**
- * Create a new schema usage of an object type with the given name, in the given scope, and add it to that scope.
+ * Create a new schema of an object type with the given name, in the given scope, and add it to that scope.
  * @param suggestedName the suggested name to use, but a unique name will be chosen in that scope
  * @param scope the scope in which to create the object, or `null` to create in the global scope 
  * @param state 
  * @returns 
  */
-export function createObjectSchemaUsage(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenSchemaUsage<CodegenObjectSchema> {
+export function createObjectSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema {
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
@@ -228,12 +227,5 @@ export function createObjectSchemaUsage(suggestedName: string, scope: CodegenSco
 
 	addToScope(schema, scope, state)
 	usedSchemaName(naming.scopedName, state)
-
-	return {
-		...extractCodegenSchemaInfo(schema),
-		required: false,
-		schema,
-		examples: null,
-		defaultValue: null,
-	}
+	return schema
 }

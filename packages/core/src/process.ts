@@ -1,5 +1,5 @@
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenGeneratorHelper } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'
 import { InternalCodegenState } from './types'
@@ -12,6 +12,9 @@ import { toCodegenInfo } from './process/info'
 import { toCodegenOperations } from './process/paths'
 import { postProcessSchemaForDiscriminator } from './process/schema/discriminator'
 import { toCodegenExternalDocs } from './process/external-docs'
+import { createObjectSchema } from './process/schema/object'
+import { createOneOfSchema } from './process/schema/one-of'
+import { addToScope, scopeOf } from './process/schema/utils'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -77,6 +80,16 @@ function findDuplicateNamesLowerCase(operations: CodegenOperation[]): string[] {
 	return problemNames
 }
 
+function createGeneratorHelper(state: InternalCodegenState): CodegenGeneratorHelper {
+	return {
+		addToScope: (schema, scope) => addToScope(schema, scope, state),
+		createObjectSchema: (suggestedName, scope, purpose) => createObjectSchema(suggestedName, scope, purpose, state),
+		createOneOfSchema: (suggestedName, scope, purpose) => createOneOfSchema(suggestedName, scope, purpose, state),
+		findSchema: (name, scope) => scope !== null ? scope.schemas != null ? idx.get(scope.schemas, name) : undefined : idx.get(state.schemas, name),
+		scopeOf: (schema) => scopeOf(schema, state),
+	}
+}
+
 function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenState) {
 	/* Process groups */
 	for (let i = 0; i < doc.groups.length; i++) {
@@ -98,7 +111,7 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	doc.schemas = idx.sortValues(doc.schemas, (a, b) => a.name.localeCompare(b.name))
 
 	if (state.generator.postProcessDocument) {
-		state.generator.postProcessDocument(doc)
+		state.generator.postProcessDocument(doc, createGeneratorHelper(state))
 	}
 }
 
@@ -151,7 +164,7 @@ function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState
 	postProcessSchemaForDiscriminator(schema)
 	
 	if (state.generator.postProcessSchema) {
-		const result = state.generator.postProcessSchema(schema)
+		const result = state.generator.postProcessSchema(schema, createGeneratorHelper(state))
 		if (result === false) {
 			return false
 		}

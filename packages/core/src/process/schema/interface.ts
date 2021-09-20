@@ -2,7 +2,7 @@ import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, Code
 import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
-import { createObjectSchemaUsage } from './object'
+import { createObjectSchema } from './object'
 import { absorbCodegenSchema } from './object-absorb'
 import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToScope, scopeOf } from './utils'
 
@@ -96,7 +96,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	}
 
 	const scope = scopeOf(interfaceSchema, state)
-	const result = createObjectSchemaUsage(interfaceSchema.name, scope, CodegenSchemaPurpose.IMPLEMENTATION, state).schema
+	const result = createObjectSchema(interfaceSchema.name, scope, CodegenSchemaPurpose.IMPLEMENTATION, state)
 
 	result.abstract = true
 	result.properties = interfaceSchema.properties

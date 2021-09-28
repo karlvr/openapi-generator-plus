@@ -73,7 +73,7 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 
 export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
 	if (operation.vendorExtensions && operation.vendorExtensions['x-group']) {
-		return addToGroups(operation, operation.vendorExtensions['x-group'], '', groups, state)
+		return addToGroups(operation, String(operation.vendorExtensions['x-group']), '', groups, state)
 	} else if (operation.tags && operation.tags.length) {
 		return addToGroupsByTag(operation, groups, state)
 	} else {

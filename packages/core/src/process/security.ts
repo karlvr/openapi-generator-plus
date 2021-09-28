@@ -143,7 +143,8 @@ const DEFAULT_SECURITY_SCHEME: Omit<CodegenSecurityScheme, 'name' | 'type' | 've
 }
 
 function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeObject | OpenAPIV3.SecuritySchemeObject, state: InternalCodegenState): CodegenSecurityScheme {
-	switch (scheme.type) {
+	const type = scheme.type
+	switch (type) {
 		case 'basic':
 			return {
 				...DEFAULT_SECURITY_SCHEME,
@@ -167,17 +168,17 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 				vendorExtensions: toCodegenVendorExtensions(scheme),
 			}
 		case 'apiKey': {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const apiKeyIn: string | undefined = (scheme as any).in // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
+			const apiKeyIn: string | undefined = scheme.in
+			if (apiKeyIn !== 'header' && apiKeyIn !== 'query' && apiKeyIn !== 'cookie') {
+				throw new Error(`Unsupported API key security "in" value "${apiKeyIn}`)
+			}
 			return {
 				...DEFAULT_SECURITY_SCHEME,
 				type: scheme.type,
 				description: scheme.description || null,
 				name,
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				paramName: (scheme as any).name, // FIXME once openapi-types releases https://github.com/kogosoftwarellc/open-api/commit/1121e63df3aa7bd3dc456825106a668505db0624
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				in: apiKeyIn as any,
+				paramName: scheme.name,
+				in: apiKeyIn,
 				isApiKey: true,
 				isInHeader: apiKeyIn === 'header',
 				isInQuery: apiKeyIn === 'query',
@@ -222,8 +223,7 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 				vendorExtensions: toCodegenVendorExtensions(scheme),
 			}
 		default:
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			throw new Error(`Unsupported security scheme type: ${(scheme as any).type}`)
+			throw new Error(`Unsupported security scheme type: ${type}`)
 	}
 }
 

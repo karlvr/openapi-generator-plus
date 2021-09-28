@@ -178,9 +178,9 @@ function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState
 function hasNoGenerationRule(ob: CodegenOperation | CodegenSchema, state: InternalCodegenState): boolean {
 	const generatorType = state.generator.generatorType()
 	if (generatorType === CodegenGeneratorType.SERVER) {
-		return (ob.vendorExtensions && ob.vendorExtensions['x-no-server'])
+		return !!(ob.vendorExtensions && ob.vendorExtensions['x-no-server'])
 	} else if (generatorType === CodegenGeneratorType.CLIENT) {
-		return (ob.vendorExtensions && ob.vendorExtensions['x-no-client'])
+		return !!(ob.vendorExtensions && ob.vendorExtensions['x-no-client'])
 	} else {
 		return false
 	}

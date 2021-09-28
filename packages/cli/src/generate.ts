@@ -51,6 +51,9 @@ async function clean(notModifiedSince: number, config: CodegenConfig, generatorC
 	}
 
 	const outputPath = config.outputPath
+	if (typeof outputPath !== 'string') {
+		throw new Error('outputPath must be a string value')
+	}
 	console.log(c.bold.yellow('Cleaning:'), cleanPathPatterns.map(p => path.join(outputPath, p)).join(' '))
 
 	const paths: string[] = []

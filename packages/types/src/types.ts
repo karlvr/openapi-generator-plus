@@ -141,8 +141,7 @@ export interface CodegenGeneratorHelper {
  * The options from a config file.
  */
 export interface CodegenConfig {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[name: string]: any
+	[name: string]: unknown
 
 	/** The path to the config file, if any */
 	configPath?: string
@@ -351,8 +350,7 @@ export interface CodegenExample extends CodegenTypeInfo {
 	summary: string | null
 	description: string | null
 	/** The raw example value, may be a string or any other JSON/YAML type */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	value: any
+	value: unknown
 	/** The example as a literal in the native language */
 	valueLiteral: string
 	/** The example value formatted as a string literal by the generator */
@@ -570,8 +568,7 @@ export interface CodegenEnumSchema extends CodegenSchema {
  */
 export interface CodegenValue {
 	/** The value in its raw JavaScript format */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	value: any | null
+	value: unknown | null
 	/** The value formatted as a literal in the native language */
 	literalValue: string
 }
@@ -898,15 +895,14 @@ export interface CodegenParameterEncoding {
 export interface CodegenRequestBody extends CodegenParameterBase {
 	schema: CodegenSchema | null
 	nativeType: CodegenNativeType | null
-	
+
 	contents: CodegenContent[]
 	consumes: CodegenMediaType[]
 	defaultContent: CodegenContent
 }
 
 export interface CodegenVendorExtensions {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	[name: string]: any
+	[name: string]: unknown
 }
 
 /** The list of security requirement options. One of which must be satisfied, unless `optional` is `true`. */

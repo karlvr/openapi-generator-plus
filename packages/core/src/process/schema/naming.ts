@@ -25,7 +25,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 		const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 		/* Support vendor extension to override the automatic naming of schemas */
 		if (vendorExtensions && vendorExtensions['x-schema-name']) {
-			suggestedName = vendorExtensions['x-schema-name']
+			suggestedName = String(vendorExtensions['x-schema-name'])
 		}
 	}
 

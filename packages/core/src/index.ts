@@ -52,7 +52,6 @@ export async function bundleCodegenInput(inputPath: string): Promise<OpenAPI.Doc
  * @param state 
  */
 export function createCodegenDocument(input: CodegenInput, state: CodegenState): CodegenDocument {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const internalState: InternalCodegenState = {
 		...state,
 		...input,
@@ -64,6 +63,5 @@ export function createCodegenDocument(input: CodegenInput, state: CodegenState):
 		log: state.log || defaultLog,
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return processDocument(internalState as any as InternalCodegenState)
+	return processDocument(internalState)
 }

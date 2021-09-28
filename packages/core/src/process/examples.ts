@@ -13,8 +13,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function exampleValue(value: any, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
+function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
 	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : state.generator.toLiteral(null, { required: true, ...schema })
 	return {
 		value,
@@ -25,8 +24,7 @@ function exampleValue(value: any, mediaType: string | undefined, schema: Codegen
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-function toCodegenExample(example: any, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExample {
+function toCodegenExample(example: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExample {
 	return {
 		name: null,
 		summary: null,
@@ -37,8 +35,7 @@ function toCodegenExample(example: any, mediaType: string | undefined, schema: C
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
+export function toCodegenExamples(example: unknown | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
 	if (example) {
 		return idx.create([
 			['default', toCodegenExample(example, mediaType, schema, state)],
@@ -79,8 +76,7 @@ export function toCodegenExamples(example: any | undefined, examples: OpenAPIV2.
 	return idx.nullIfEmpty(result)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toCodegenExampleValueString(value: any, mediaType: string | undefined, state: InternalCodegenState) {
+function toCodegenExampleValueString(value: unknown, mediaType: string | undefined, state: InternalCodegenState) {
 	if (typeof value === 'string') {
 		return state.generator.toLiteral(value, stringLiteralValueOptions(state.generator))
 	} else {
@@ -90,8 +86,7 @@ function toCodegenExampleValueString(value: any, mediaType: string | undefined, 
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toCodegenExampleValuePretty(value: any) {
+function toCodegenExampleValuePretty(value: unknown) {
 	if (typeof value === 'string') {
 		return value
 	} else if (value === undefined) {

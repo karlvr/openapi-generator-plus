@@ -1,4 +1,4 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel, CodegenAllOfStrategy, CodegenOneOfStrategy, CodegenAnyOfStrategy } from '@openapi-generator-plus/types'
+import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel, CodegenAllOfStrategy, CodegenOneOfStrategy, CodegenAnyOfStrategy, CodegenConfig } from '@openapi-generator-plus/types'
 import { addToGroupsByPath } from '../operation-grouping'
 import { constructGenerator, createCodegenState, createCodegenDocument, createCodegenInput } from '..'
 import path from 'path'
@@ -126,7 +126,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 
 export function createTestGenerator(config?: TestCodegenConfig): CodegenGenerator {
 	
-	return constructGenerator(config || {}, createGeneratorContext(), testGeneratorConstructor)
+	return constructGenerator(config as CodegenConfig || {}, createGeneratorContext(), testGeneratorConstructor)
 }
 
 export async function createTestDocument(inputPath: string, config?: TestCodegenConfig): Promise<CodegenDocument> {

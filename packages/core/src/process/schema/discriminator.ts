@@ -28,7 +28,7 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 		schemaDiscriminator = {
 			propertyName: schemaDiscriminator,
 			/* Note that we support a vendor extension here to allow mappings in OpenAPI v2 specs */
-			mapping: vendorExtensions && vendorExtensions['x-discriminator-mapping'],
+			mapping: vendorExtensions ? vendorExtensions['x-discriminator-mapping'] as Record<string, string> : undefined,
 		}
 	}
 

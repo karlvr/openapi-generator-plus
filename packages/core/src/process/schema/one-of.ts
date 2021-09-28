@@ -71,13 +71,21 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const oneOfApiSchema of oneOf) {
-		const oneOfSchema = toCodegenSchemaUsage(oneOfApiSchema, state, {
+		const oneOfSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => type,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
-		}).schema
+		})
+		let oneOfSchema = oneOfSchemaUsage.schema
+
+		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
+			/* Create a wrapper around this primitive type */
+			const wrapperProperty = createCodegenProperty('value', oneOfSchemaUsage, state)
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, wrapperProperty, state).schema
+			oneOfSchema = wrapper
+		}
 
 		result.composes.push(oneOfSchema)
 		added.push([oneOfApiSchema, oneOfSchema])
@@ -152,17 +160,17 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const oneOfApiSchema of oneOf) {
-		const oneOfApiSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
+		const oneOfSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: result,
 			suggestedName: `${result.name}_option`,
 		})
-		let oneOfSchema = oneOfApiSchemaUsage.schema
+		let oneOfSchema = oneOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
-			const wrapperProperty = createCodegenProperty('value', oneOfApiSchemaUsage, state)
+			const wrapperProperty = createCodegenProperty('value', oneOfSchemaUsage, state)
 			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, wrapperProperty, state).schema
 			oneOfSchema = wrapper
 		}

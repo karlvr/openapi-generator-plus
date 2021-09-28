@@ -109,6 +109,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		supportsInheritance: () => generatorOptions.config.supportsInheritance || false,
 		nativeCompositionCanBeScope: () => true,
 		nativeComposedSchemaRequiresName: () => true,
+		nativeComposedSchemaRequiresObjectLikeOrWrapper: () => false,
 		exportTemplates: async() => {
 			// NOOP
 		},

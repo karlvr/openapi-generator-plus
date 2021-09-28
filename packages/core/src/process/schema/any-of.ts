@@ -1,4 +1,4 @@
-import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -10,7 +10,9 @@ import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscrimin
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema } from './object-absorb'
+import { createCodegenProperty } from './property'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.anyOfStrategy()
@@ -73,13 +75,21 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const anyOfApiSchema of anyOf) {
-		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
+		const anyOfSchemaUsage = toCodegenSchemaUsage(anyOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => type,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
-		}).schema
+		})
+		let anyOfSchema = anyOfSchemaUsage.schema
+
+		if (!isCodegenObjectSchema(anyOfSchema) && !isCodegenCompositionSchema(anyOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
+			/* Create a wrapper around this primitive type */
+			const wrapperProperty = createCodegenProperty('value', anyOfSchemaUsage, state)
+			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value`, result, wrapperProperty, state).schema
+			anyOfSchema = wrapper
+		}
 
 		result.composes.push(anyOfSchema)
 		added.push([anyOfApiSchema, anyOfSchema])
@@ -107,7 +117,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
-		type: apiSchema.type as string,
+		type: 'object',
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
@@ -115,7 +125,6 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 	let result: CodegenObjectSchema = {
 		...extractNaming(naming),
-
 		...extractCodegenSchemaCommon(apiSchema, state),
 
 		abstract: false,

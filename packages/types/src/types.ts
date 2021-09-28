@@ -96,6 +96,10 @@ export interface CodegenGenerator {
 	 * When a schema is used in a native CodegenCompositionSchema, does it require a name?
 	 */
 	nativeComposedSchemaRequiresName: () => boolean
+	/**
+	 * When a schema is used in a native CodegenCompositionSchema, do we need to wrap it if it's not an objectlike type
+	 */
+	nativeComposedSchemaRequiresObjectLikeOrWrapper: () => boolean
 
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.

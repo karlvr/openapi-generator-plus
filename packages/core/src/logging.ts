@@ -6,7 +6,7 @@ export function defaultLog(level: CodegenLogLevel, message: string): void {
 			console.log(`[INFO] ${message}`)
 			return
 		case CodegenLogLevel.WARN:
-			console.warn(`[WARN] ${message}`)
+			console.log(`[WARN] ${message}`)
 			return
 	}
 

@@ -76,7 +76,7 @@ test('allOf with discriminator (native)', async() => {
 	expect(child.discriminator).toBeNull()
 	expect(child.discriminatorValues).not.toBeNull()
 	expect(child.discriminatorValues!.length).toEqual(1)
-	expect(child.discriminatorValues![0].model).toBe(parent)
+	expect(child.discriminatorValues![0].schema).toBe(parent)
 
 	expect(parent.name).toEqual('Pet')
 	expect(parent.discriminator!.references.length).toEqual(3)
@@ -371,4 +371,14 @@ test('property conflict resolved', async() => {
 	const property = idx.get(child!.properties!, 'childName')
 	expect(property).toBeDefined()
 	expect(property!.schemaType).toEqual(CodegenSchemaType.INTEGER)
+})
+
+/**
+ * This test also tests serializedName on discriminators
+ */
+test('allOf discriminator with mapping', async() => {
+	const result = await createTestDocument('all-of/all-of-discriminator-mapping.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+	})
+	expect(result).toBeTruthy()
 })

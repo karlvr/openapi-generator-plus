@@ -166,7 +166,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 		schema.additionalProperties = mapSchema
 	}
 		
-	schema.discriminator = toCodegenSchemaDiscriminator(apiSchema, schema)
+	schema.discriminator = toCodegenSchemaDiscriminator(apiSchema, schema, state)
 	if (schema.discriminator) {
 		schema.polymorphic = true
 	}

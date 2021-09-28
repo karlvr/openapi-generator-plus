@@ -28,7 +28,12 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 	return {
 		generatorType: () => CodegenGeneratorType.SERVER,
 		toClassName: (name) => `${name}_class`,
-		toIdentifier: (name) => camelCase(`${name.replace(/[^a-zA-Z0-9_]/g, '_')}`),
+		toIdentifier: (name) => {
+			if (name === 'type') {
+				name = 'aType' /* Test reserved words */
+			}
+			return camelCase(`${name.replace(/[^a-zA-Z0-9_]/g, '_')}`)
+		},
 		toConstantName: (name) => `${name}_constant`,
 		toEnumMemberName: (name) => `${name.replace('-', '')}_enum_member`,
 		toOperationName: (path, method) => `${method} ${path} operation`,

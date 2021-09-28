@@ -87,7 +87,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		addToAnyDiscriminators(allOfSchema, result, state)
 	}
 
-	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		result.polymorphic = true
 	}
@@ -159,7 +159,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Create a discriminator, if appropriate, removing the discriminator property from the schema's
 	properties.
 	*/
-	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		result.polymorphic = true
 	}

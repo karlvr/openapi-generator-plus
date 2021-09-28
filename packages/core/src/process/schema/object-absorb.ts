@@ -15,7 +15,7 @@ function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObj
 		if (!schema.properties) {
 			schema.properties = idx.create()
 		}
-		idx.set(schema.properties, newProperty.name, newProperty)
+		idx.set(schema.properties, newProperty.serializedName, newProperty)
 	}
 }
 

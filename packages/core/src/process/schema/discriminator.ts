@@ -15,7 +15,7 @@ import { findProperty, removeProperty } from './utils'
  * @param state 
  * @returns 
  */
-export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema): CodegenDiscriminator | null {
+export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, target: CodegenDiscriminatorSchema, state: InternalCodegenState): CodegenDiscriminator | null {
 	if (!apiSchema.discriminator) {
 		return null
 	}
@@ -57,7 +57,8 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 	}
 
 	const result: CodegenDiscriminator = {
-		name: schemaDiscriminator.propertyName,
+		name: state.generator.toIdentifier(schemaDiscriminator.propertyName),
+		serializedName: schemaDiscriminator.propertyName,
 		mappings: toCodegenDiscriminatorMappings(schemaDiscriminator),
 		references: [],
 		...discriminatorType,
@@ -105,34 +106,34 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 
 /**
  * Find the common discriminator property type for a named discimrinator property across a collection of schemas.
- * @param propertyName the name of the property
+ * @param serializedName the serialized name of the property
  * @param schemas the schemas to look for the property in
  * @param container the container of the discriminator property
  * @returns 
  */
-function findCommonDiscriminatorPropertyType(propertyName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenSchemaUsage {
+function findCommonDiscriminatorPropertyType(serializedName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenSchemaUsage {
 	let result: CodegenSchemaUsage | undefined = undefined
 	for (const schema of schemas) {
 		if (isCodegenObjectSchema(schema)) {
 			if (schema.properties) {
-				const property = idx.get(schema.properties, propertyName)
+				const property = idx.get(schema.properties, serializedName)
 				if (property) {
 					const propertyType = extractCodegenSchemaUsage(property)
 					if (result === undefined) {
 						result = propertyType
 					} else if (!equalCodegenTypeInfo(result, propertyType)) {
-						throw new Error(`Found mismatching type for discriminator property "${propertyName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
+						throw new Error(`Found mismatching type for discriminator property "${serializedName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
 					}
 				} else {
-					throw new Error(`Discriminator property "${propertyName}" for "${container.name}" missing in "${schema.name}"`)
+					throw new Error(`Discriminator property "${serializedName}" for "${container.name}" missing in "${schema.name}"`)
 				}
 			}
 		} else {
-			throw new Error(`Found unexpected schema type (${schema.schemaType}) when looking for discriminator property "${propertyName}" for "${container.name}"`)
+			throw new Error(`Found unexpected schema type (${schema.schemaType}) when looking for discriminator property "${serializedName}" for "${container.name}"`)
 		}
 	}
 	if (!result) {
-		throw new Error(`Discriminator property "${propertyName}" missing from all schemas for "${container.name}"`)
+		throw new Error(`Discriminator property "${serializedName}" missing from all schemas for "${container.name}"`)
 	}
 	return result
 }
@@ -175,14 +176,14 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 	}
 
 	/* Check if we've already added this memberSchema */
-	if (discriminatorSchema.discriminator.references.find(r => r.model === memberSchema)) {
+	if (discriminatorSchema.discriminator.references.find(r => r.schema === memberSchema)) {
 		return
 	}
 
 	if (isCodegenObjectLikeSchema(memberSchema)) {
-		const subModelDiscriminatorProperty = findProperty(memberSchema, discriminatorSchema.discriminator.name)
+		const subModelDiscriminatorProperty = findProperty(memberSchema, discriminatorSchema.discriminator.serializedName)
 		if (!subModelDiscriminatorProperty) {
-			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.name}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
+			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.serializedName}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
 		}
 	}
 	
@@ -195,16 +196,17 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 		writeOnly: false,
 	})
 	discriminatorSchema.discriminator.references.push({
-		model: memberSchema,
-		name: discriminatorValue,
-		value: discriminatorValueLiteral,
+		schema: memberSchema,
+		value: discriminatorValue,
+		literalValue: discriminatorValueLiteral,
 	})
 	if (!memberSchema.discriminatorValues) {
 		memberSchema.discriminatorValues = []
 	}
 	memberSchema.discriminatorValues.push({
-		model: discriminatorSchema,
-		value: discriminatorValueLiteral,
+		schema: discriminatorSchema,
+		value: discriminatorValue,
+		literalValue: discriminatorValueLiteral,
 	})
 }
 
@@ -269,16 +271,16 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
 
 	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
-		removeProperty(schema, discriminator.name)
+		removeProperty(schema, discriminator.serializedName)
 	}
 
 	for (const reference of discriminator.references) {
-		if (isCodegenObjectLikeSchema(reference.model)) {
-			removeProperty(reference.model, discriminator.name)
+		if (isCodegenObjectLikeSchema(reference.schema)) {
+			removeProperty(reference.schema, discriminator.serializedName)
 		}
 	}
 }
 
 function compareDiscriminatorReferences(a: CodegenDiscriminatorReference, b: CodegenDiscriminatorReference): number {
-	return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+	return a.value.toLowerCase().localeCompare(b.value.toLowerCase())
 }

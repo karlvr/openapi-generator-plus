@@ -711,28 +711,33 @@ export interface CodegenWrapperSchema extends CodegenNamedSchema, CodegenScope {
 }
 
 /**
- * The set of properties for an object. The keys are the property names from the spec.
+ * The set of properties for an object. The keys are the property serialized names from the spec.
  */
 export type CodegenProperties = IndexedCollectionType<CodegenProperty>
 
 export interface CodegenDiscriminatorReference {
-	model: CodegenDiscriminatableSchema
-	name: string
-	/** The value literal in the native language */
+	schema: CodegenDiscriminatableSchema
+	/** The value of the discriminator property */
 	value: string
+	/** The value literal in the native language */
+	literalValue: string
 }
 
 export interface CodegenDiscriminator extends CodegenSchemaUsage {
+	/** The name of the discriminator property */
 	name: string
+	/** The name of the discriminator property as it appears on the wire */
+	serializedName: string
 	mappings: CodegenDiscriminatorMappings | null
 	references: CodegenDiscriminatorReference[]
 }
 
 export interface CodegenDiscriminatorValue {
-	/** The model containing the discriminator */
-	model: CodegenDiscriminatorSchema
-	/** The value literal in the native language */
+	/** The schema containing the discriminator */
+	schema: CodegenDiscriminatorSchema
 	value: string
+	/** The value literal in the native language */
+	literalValue: string
 }
 
 export interface CodegenDiscriminatorMappings {

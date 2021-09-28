@@ -110,20 +110,20 @@ export function uniquePropertiesIncludingInherited(schema: CodegenObjectSchema, 
 /**
  * Finds and removes the named property from the given set of properties.
  * @param properties the properties to look in
- * @param name the name of the property
+ * @param serializedName the serialized name of the property
  * @returns a CodegenProperty or undefined if not found
  */
-export function removeProperty(schema: CodegenObjectLikeSchemas, name: string): CodegenProperty | undefined {
+export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
 	if (!schema.properties) {
 		return undefined
 	}
 
-	const entry = idx.get(schema.properties, name)
+	const entry = idx.get(schema.properties, serializedName)
 	if (!entry) {
 		return undefined
 	}
 
-	idx.remove(schema.properties, name)
+	idx.remove(schema.properties, serializedName)
 	if (idx.isEmpty(schema.properties)) {
 		/* Check for schemas that share these properties */
 		if (isCodegenObjectSchema(schema) && schema.interface && schema.interface.properties === schema.properties) {
@@ -141,14 +141,14 @@ export function removeProperty(schema: CodegenObjectLikeSchemas, name: string): 
 /**
  * Looks for the named property in the current schema and any parents etc.
  * @param schema 
- * @param name 
+ * @param serializedName 
  * @returns 
  */
-export function findProperty(schema: CodegenObjectLikeSchemas, name: string): CodegenProperty | undefined {
+export function findProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
 	const open = [schema]
 	for (const aSchema of open) {
 		if (aSchema.properties) {
-			const property = idx.get(aSchema.properties, name)
+			const property = idx.get(aSchema.properties, serializedName)
 			if (property) {
 				return property
 			}

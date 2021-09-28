@@ -94,7 +94,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {
@@ -186,7 +186,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 
 	/* Process discriminator after adding composes so they can be used */
-	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result)
+	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {

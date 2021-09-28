@@ -76,6 +76,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			required: false,
 			scope: result,
 			suggestedName: (type) => type,
+			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema
 
 		if (!isCodegenObjectLikeSchema(allOfSchema)) {

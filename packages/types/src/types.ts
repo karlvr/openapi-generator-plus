@@ -89,6 +89,10 @@ export interface CodegenGenerator {
 	supportsInheritance: () => boolean
 	supportsMultipleInheritance: () => boolean
 	nativeOneOfCanBeScope: () => boolean
+	/**
+	 * When a schema is used in a native CodegenCompositionSchema, does it require a name?
+	 */
+	nativeComposedSchemaRequiresName: () => boolean
 
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.

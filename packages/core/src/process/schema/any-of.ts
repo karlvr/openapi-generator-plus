@@ -78,6 +78,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			required: false,
 			scope,
 			suggestedName: (type) => type,
+			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema
 
 		result.composes.push(anyOfSchema)

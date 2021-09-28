@@ -7,7 +7,7 @@ test('array model', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 
-	expect(op1.returnType).toBeNull()
+	expect(op1.returnNativeType).toBeNull()
 	expect(idx.size(op1.queryParams!)).toEqual(1)
 	
 	const queryParams = idx.allValues(op1.queryParams!)
@@ -22,7 +22,7 @@ test('map model', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 
-	expect(op1.returnType).toBeNull()
+	expect(op1.returnNativeType).toBeNull()
 	expect(idx.size(op1.queryParams!)).toEqual(1)
 
 	const queryParams = idx.allValues(op1.queryParams!)

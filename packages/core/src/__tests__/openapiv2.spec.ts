@@ -26,7 +26,6 @@ test('parse groups', async() => {
 	expect(op1.parameters).not.toBeNull()
 	expect(idx.size(op1.parameters!)).toEqual(1)
 
-	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
 
 	const group2 = result.groups[1]
@@ -36,7 +35,6 @@ test('parse groups', async() => {
 	const op2 = group2.operations[0]
 	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'GET')) /* Uses default name */
 	expect(idx.size(op2.parameters!)).toEqual(1)
-	expect(op2.returnType).toBeNull()
 	expect(op2.returnNativeType).toBeNull()
 })
 

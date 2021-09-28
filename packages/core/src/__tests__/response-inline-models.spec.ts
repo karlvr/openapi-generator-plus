@@ -7,7 +7,6 @@ test('inline response model', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 
-	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('getTest1_200_response_model')
 
 	expect(idx.size(result.schemas)).toEqual(1)

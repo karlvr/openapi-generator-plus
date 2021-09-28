@@ -44,13 +44,11 @@ test('parse operation response', async() => {
 	const group1 = result.groups[0]
 	const op1 = group1.operations[0]
 	expect(op1.name).toEqual('getTest1')
-	expect(op1.returnType).toEqual('object')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
 	expect(op1.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
-	expect(op2.returnType).toEqual('object')
 	expect(op2.returnNativeType?.toString()).toEqual('Test2Response')
 	expect(op2.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
 })
@@ -74,7 +72,6 @@ test('parse groups', async() => {
 	const op2 = group2.operations[0]
 	expect(op2.name).toEqual(state.generator.toOperationName('/test2', 'POST')) /* Uses default name */
 	// expect(op2.allParams!.length).toEqual(1)
-	// expect(op2.returnType).not.not.toBeNull()
 	// expect(op2.returnNativeType).not.not.toBeNull()
 })
 

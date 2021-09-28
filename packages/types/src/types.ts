@@ -206,7 +206,6 @@ export interface CodegenOperation {
 	/** The full operation path, relative to the server URLs */
 	fullPath: string
 
-	returnType: string | null
 	returnNativeType: CodegenNativeType | null
 	consumes: CodegenMediaType[] | null
 	produces: CodegenMediaType[] | null

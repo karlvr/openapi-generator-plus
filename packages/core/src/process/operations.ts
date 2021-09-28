@@ -162,7 +162,6 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 		httpMethod: method,
 		path: fullPath, /* Path will later be made relative to a CodegenOperationGroup */
 		fullPath,
-		returnType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.schema && defaultResponse.defaultContent.schema.type || null,
 		returnNativeType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.nativeType || null,
 		consumes: consumes || null,
 		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : null,

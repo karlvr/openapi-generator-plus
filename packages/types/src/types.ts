@@ -88,7 +88,10 @@ export interface CodegenGenerator {
 	// TODO it feels like these could go into a Features object or something
 	supportsInheritance: () => boolean
 	supportsMultipleInheritance: () => boolean
-	nativeOneOfCanBeScope: () => boolean
+	/**
+	 * When inline schemas are found in a native CodegenCompositionSchema, can they be nested inside the native schema?
+	 */
+	nativeCompositionCanBeScope: () => boolean
 	/**
 	 * When a schema is used in a native CodegenCompositionSchema, does it require a name?
 	 */

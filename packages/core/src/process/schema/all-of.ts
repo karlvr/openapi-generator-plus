@@ -25,7 +25,7 @@ export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 }
 
 function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema {
-	const { scopedName } = naming
+	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
@@ -74,7 +74,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		const allOfSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
-			scope: result,
+			scope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => type,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema

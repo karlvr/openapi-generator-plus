@@ -74,7 +74,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		const oneOfSchema = toCodegenSchemaUsage(oneOfApiSchema, state, {
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
-			scope: state.generator.nativeOneOfCanBeScope() ? result : scope,
+			scope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => type,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema

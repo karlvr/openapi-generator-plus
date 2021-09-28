@@ -107,7 +107,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		oneOfStrategy: () => generatorOptions.config.oneOfStrategy || CodegenOneOfStrategy.NATIVE,
 		supportsMultipleInheritance: () => generatorOptions.config.supportsMultipleInheritance || false,
 		supportsInheritance: () => generatorOptions.config.supportsInheritance || false,
-		nativeOneOfCanBeScope: () => true,
+		nativeCompositionCanBeScope: () => true,
 		nativeComposedSchemaRequiresName: () => true,
 		exportTemplates: async() => {
 			// NOOP

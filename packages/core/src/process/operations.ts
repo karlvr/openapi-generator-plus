@@ -24,8 +24,8 @@ export interface CodegenOperationContext {
 	servers: CodegenServer[] | null
 }
 
-export function toCodegenOperation(path: string, method: string, operation: OpenAPI.Operation, context: CodegenOperationContext, state: InternalCodegenState): CodegenOperation {
-	const name = toCodegenOperationName(path, method, operation, state)
+export function toCodegenOperation(fullPath: string, method: string, operation: OpenAPI.Operation, context: CodegenOperationContext, state: InternalCodegenState): CodegenOperation {
+	const name = toCodegenOperationName(fullPath, method, operation, state)
 	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
 
@@ -51,12 +51,12 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 			/* See toCodegenParameter for rationale about scopeNames */
 			const requestBodyContents = toCodegenContentArray(requestBody.content, requestBody.required || false, requestBodyContextName, CodegenSchemaPurpose.REQUEST_BODY, null, state)
 			if (!requestBodyContents.length) {
-				throw new Error(`Request body contents is empty: ${path}`)
+				throw new Error(`Request body contents is empty: ${fullPath}`)
 			}
 
 			consumes = findAllContentMediaTypes(requestBodyContents)
 			if (!consumes) {
-				throw new Error(`No contents for request body: ${path}`)
+				throw new Error(`No contents for request body: ${fullPath}`)
 			}
 
 			const defaultContent = requestBodyContents[0]
@@ -84,7 +84,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 			const bodyParamEntry = idx.findEntry(parameters, p => p.in === 'body')
 			if (bodyParamEntry) {
 				if (!consumes) {
-					throw new Error(`Consumes not specified for operation with body parameter: ${path}`)
+					throw new Error(`Consumes not specified for operation with body parameter: ${fullPath}`)
 				}
 
 				const existingBodyParam = bodyParamEntry[1]
@@ -100,7 +100,7 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 				})
 
 				if (!contents.length) {
-					throw new Error(`Request body contents is empty: ${path}`)
+					throw new Error(`Request body contents is empty: ${fullPath}`)
 				}
 
 				bodyParam = {
@@ -141,8 +141,8 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 	/* Validate path params */
 	if (pathParams) {
 		for (const param of idx.allValues(pathParams)) {
-			if (path.indexOf(`{${param.serializedName}}`) === -1) {
-				state.log(CodegenLogLevel.WARN, `${path} has a path parameter "${param.serializedName}" that is not contained in the path.`)
+			if (fullPath.indexOf(`{${param.serializedName}}`) === -1) {
+				state.log(CodegenLogLevel.WARN, `${fullPath} has a path parameter "${param.serializedName}" that is not contained in the path.`)
 			}
 		}
 	}
@@ -150,8 +150,8 @@ export function toCodegenOperation(path: string, method: string, operation: Open
 	const op: CodegenOperation = {
 		name,
 		httpMethod: method,
-		path, /* Path will later be made relative to a CodegenOperationGroup */
-		fullPath: path,
+		path: fullPath, /* Path will later be made relative to a CodegenOperationGroup */
+		fullPath,
 		returnType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.type || null,
 		returnNativeType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.nativeType || null,
 		consumes: consumes || null,

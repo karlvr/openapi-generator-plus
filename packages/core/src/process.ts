@@ -54,7 +54,7 @@ function uniqueifyOperationNames(groups: CodegenOperationGroups, state: Internal
 			while (newDuplicateNames.length > 0) {
 				const iterations: number[] = [0].fill(1, 0, newDuplicateNames.length)
 				for (const op of group.operations) {
-					const index = duplicateNames.indexOf(op.name.toLowerCase())
+					const index = newDuplicateNames.indexOf(op.name.toLowerCase())
 					if (index !== -1) {
 						const iteration = iterations[index]++
 						op.name = `${op.name}${iteration}`

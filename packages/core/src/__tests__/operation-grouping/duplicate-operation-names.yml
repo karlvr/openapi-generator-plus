@@ -1,0 +1,16 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Operations that take a few goes to make unique
+paths:
+  /test/nested:
+    get:
+      responses:
+        200:
+          description: OK
+  /test/nested/{id}:
+    get:
+      responses:
+        200:
+          description: OK

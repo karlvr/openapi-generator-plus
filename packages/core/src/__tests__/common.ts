@@ -36,7 +36,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		},
 		toConstantName: (name) => `${name}_constant`,
 		toEnumMemberName: (name) => `${name.replace('-', '')}_enum_member`,
-		toOperationName: (path, method) => `${method} ${path} operation`,
+		toOperationName: (path, method) => `${method} ${path.replace(/\{[^}]*\}/g, '').replace(/\/$/, '')} operation`,
 		toOperationGroupName: (name) => `${name} api`,
 		toSchemaName: (name) => {
 			return name

@@ -43,3 +43,13 @@ test('duplicate operation ids', async() => {
 	expect(group1.operations[1].name).toBe('GET /b operation')
 	expect(group1.operations[2].name).toBe('uniqueOperation')
 })
+
+test('duplicate operation names', async() => {
+	const result = await createTestDocument('operation-grouping/duplicate-operation-names.yml', {
+		operationGroupingStrategy: addToGroupsByTagOrPath,
+	})
+	expect(result.groups.length).toEqual(1)
+	expect(result.groups[0].operations.length).toEqual(2)
+	expect(result.groups[0].operations[0].name).toEqual('GET /nested operation1')
+	expect(result.groups[0].operations[1].name).toEqual('GET /nested operation2')
+})

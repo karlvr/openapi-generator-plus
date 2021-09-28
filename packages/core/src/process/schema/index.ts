@@ -1,6 +1,5 @@
 import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenTransformingNativeTypeImpl } from '../../native-type'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -20,6 +19,7 @@ import { toCodegenObjectSchema } from './object'
 import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
+import { transformNativeTypeForUsage } from './usage'
 import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
@@ -95,8 +95,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	}
 
 	/* Apply the schema usage to the native type */
-	const usageTransformer = state.generator.nativeTypeUsageTransformer(result)
-	result.nativeType = new CodegenTransformingNativeTypeImpl(result.nativeType, usageTransformer)
+	result.nativeType = transformNativeTypeForUsage(result, state)
 
 	result.examples = apiSchema.example ? toCodegenExamples(apiSchema.example, undefined, undefined, result, state) : null
 	result.defaultValue = toDefaultValue(apiSchema.default, result, state)
@@ -273,15 +272,5 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenSt
 				apiSchema.enum = undefined
 			}
 		}
-	}
-}
-
-export function createSchemaUsage<T extends CodegenSchema>(schema: T): CodegenSchemaUsage<T> {
-	return {
-		...extractCodegenSchemaInfo(schema),
-		required: false,
-		schema,
-		examples: null,
-		defaultValue: null,
 	}
 }

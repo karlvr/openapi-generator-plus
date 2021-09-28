@@ -2,10 +2,11 @@ import { CodegenSchemaType, CodegenSchemaUsage, CodegenStringSchema } from '@ope
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
-import { convertToNumber, extractCodegenSchemaInfo } from '../utils'
+import { convertToNumber } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
+import { createSchemaUsage, CreateSchemaUsageOptions } from './usage'
 import { extractCodegenSchemaCommon } from './utils'
 
 export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
@@ -52,21 +53,10 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
  * Create a new schema usage of a string type.
  * @param state 
  */
-export function createStringSchemaUsage(state: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema>
-export function createStringSchemaUsage(format: string, state: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema>
-export function createStringSchemaUsage(formatOrState: string | InternalCodegenState, possiblyState?: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema> {
-	const format = typeof formatOrState === 'string' ? formatOrState : undefined
-	const state: InternalCodegenState = typeof formatOrState === 'string' ? possiblyState! : formatOrState
-
+export function createStringSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, state: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema> {
 	const schema = toCodegenStringSchema({
 		type: 'string',
 		format,
 	}, null, state)
-	return {
-		schema,
-		...extractCodegenSchemaInfo(schema),
-		required: false,
-		examples: null,
-		defaultValue: null,
-	}
+	return createSchemaUsage(schema, options, state)
 }

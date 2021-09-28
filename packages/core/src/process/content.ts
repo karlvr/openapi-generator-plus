@@ -5,11 +5,12 @@ import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
 import { toCodegenHeaders } from './headers'
 import { isMultipart, toCodegenMediaType } from './media-types'
-import { createSchemaUsage, toCodegenSchemaUsage } from './schema'
+import { toCodegenSchemaUsage } from './schema'
 import { toUniqueName } from './schema/naming'
 import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
+import { createSchemaUsage } from './schema/usage'
 import { addToScope, uniquePropertiesIncludingInherited } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
@@ -166,7 +167,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			if (propertyRequiresMetadata(encoding, propertyEncoding)) {
 				const property = allProperties[name]
 				const newPropertySchema = createObjectSchema(`${name}_part`, newSchema, CodegenSchemaPurpose.GENERAL, state)
-				const newPropertySchemaUsage = createSchemaUsage(newPropertySchema)
+				const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {}, state)
 
 				/* Duplicate the property so we don't change the original */
 				const newProperty: CodegenProperty = {
@@ -199,7 +200,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				/* Filename property */
 				if (propertyRequiresFilenameMetadata(encoding, propertyEncoding)) {
-					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(state), state)
+					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {}, state), state)
 					addCodegenProperty(newPropertySchema.properties, filenameProperty, state)
 					propertyEncoding.filenameProperty = filenameProperty
 				}
@@ -233,7 +234,16 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 		}
 
 		/* Use the new schema in our content */
-		Object.assign(content, createSchemaUsage(newSchema))
+		Object.assign(content, createSchemaUsage(
+			newSchema,
+			{
+				required: false,
+				nullable: false,
+				readOnly: false,
+				writeOnly: false,
+			},
+			state
+		))
 	}
 }
 

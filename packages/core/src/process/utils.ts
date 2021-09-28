@@ -1,7 +1,7 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import { CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo } from '@openapi-generator-plus/types'
+import { CodegenLogLevel, CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo, CodegenValue } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 
 /**
@@ -212,5 +212,31 @@ export function convertToNumber(value: unknown): number | null {
 		return value
 	} else {
 		return null
+	}
+}
+
+/**
+ * Process a default value from the API schema into our default value type.
+ * @param value 
+ * @param schemaUsage 
+ * @param state 
+ * @returns 
+ */
+export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenValue | null {
+	if (value === undefined) {
+		return null
+	}
+
+	const literalValue = state.generator.toLiteral(value, {
+		...schemaUsage,
+	})
+	if (literalValue === null) {
+		state.log(CodegenLogLevel.WARN, `Cannot format literal for default value "${value}"`)
+		return null
+	}
+
+	return {
+		value,
+		literalValue,
 	}
 }

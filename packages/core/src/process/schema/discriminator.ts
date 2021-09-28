@@ -195,6 +195,9 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 		readOnly: false,
 		writeOnly: false,
 	})
+	if (!discriminatorValueLiteral) {
+		throw new Error(`Discriminator value "${discriminatorValue}" cannot be converted to literal for property "${discriminatorSchema.discriminator.serializedName}" in "${memberSchema.name}"`)
+	}
 	discriminatorSchema.discriminator.references.push({
 		schema: memberSchema,
 		value: discriminatorValue,

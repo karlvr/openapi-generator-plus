@@ -1,4 +1,4 @@
-import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
@@ -60,7 +60,8 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	
 	const existingEnumValueNames = new Set<string>()
-	const enumValues: CodegenEnumValues = idx.create(apiSchema.enum.map(name => {
+	const enumValues: CodegenEnumValues = idx.create()
+	apiSchema.enum.forEach(name => {
 		const originalEnumMemberName = state.generator.toEnumMemberName(`${name}`)
 		let uniqueName = originalEnumMemberName
 		let iterations = 1
@@ -70,15 +71,22 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		}
 		existingEnumValueNames.add(uniqueName)
 
-		return ([
+		const literalValue = state.generator.toLiteral(`${name}`, enumValueLiteralOptions)
+		if (!literalValue) {
+			state.log(CodegenLogLevel.WARN, `Cannot format literal for enum value "${name}" in ${JSON.stringify(apiSchema)}`)
+			return
+		}
+
+		idx.set(
+			enumValues,
 			`${name}`,
 			{
 				name: uniqueName,
-				literalValue: state.generator.toLiteral(`${name}`, enumValueLiteralOptions),
+				literalValue,
 				value: `${name}`,
 			},
-		])
-	}))
+		)
+	})
 
 	const result: CodegenEnumSchema = {
 		...extractNaming(naming),

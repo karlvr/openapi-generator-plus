@@ -62,9 +62,8 @@ export interface CodegenGenerator {
 	 */
 	toIteratedSchemaName: (name: string, parentNames: string[] | undefined, iteration: number) => string
 
-	/** Format a value as a literal in the language */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	toLiteral: (value: any, options: CodegenLiteralValueOptions) => string
+	/** Format a value as a literal in the language. May return `null` if a literal cannot be formatted */
+	toLiteral: (value: unknown, options: CodegenLiteralValueOptions) => string | null
 	toNativeType: (options: CodegenNativeTypeOptions) => CodegenNativeType
 	toNativeObjectType: (options: CodegenNativeObjectTypeOptions) => CodegenNativeType
 	toNativeArrayType: (options: CodegenNativeArrayTypeOptions) => CodegenNativeType
@@ -74,10 +73,12 @@ export interface CodegenGenerator {
 	 */
 	nativeTypeUsageTransformer: (options: CodegenNativeTypeUsageOptions) => CodegenNativeTypeTransformers
 	/**
-	 * Return a default value to use for a property, where we MUST provide a default value. This will
-	 * usuaully be an undefined, null or initial value for primitives.
+	 * Return a default value that can be used for a property if possible. This will
+	 * usuaully be an `undefined`, `null` or initial value for primitives. Some generators will
+	 * be unable to provide a default value in some cases, in which case they return `null`.
+	 * @return a CodegenValue or `null` only if it is not possible to create a default value
 	 */
-	defaultValue: (options: CodegenDefaultValueOptions) => CodegenValue
+	defaultValue: (options: CodegenDefaultValueOptions) => CodegenValue | null
 	/** Return the initial value to use for a property, or `null` if it shouldn't have an initial value */
 	initialValue: (options: CodegenInitialValueOptions) => CodegenValue | null
 

@@ -1,4 +1,4 @@
-import { CodegenExample, CodegenExamples, CodegenSchemaUsage, CodegenSchemaType, CodegenTypeInfo, CodegenSchema } from '@openapi-generator-plus/types'
+import { CodegenExample, CodegenExamples, CodegenSchemaUsage, CodegenSchemaType, CodegenTypeInfo, CodegenSchema, CodegenLogLevel } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -13,33 +13,47 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
 }
 
-function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> {
+function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> | null {
 	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : state.generator.toLiteral(null, { required: true, ...schema })
+	const valueString = toCodegenExampleValueString(value, mediaType, state)
+	if (valueLiteral === null || valueString === null) {
+		state.log(CodegenLogLevel.WARN, `Cannot format literal for example ${JSON.stringify(value)} in ${JSON.stringify(schema)}`)
+		return null
+	}
 	return {
 		value,
 		valueLiteral,
-		valueString: toCodegenExampleValueString(value, mediaType, state),
+		valueString,
 		valuePretty: toCodegenExampleValuePretty(value),
 		...extractCodegenTypeInfo(schema),
 	}
 }
 
-function toCodegenExample(example: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExample {
+function toCodegenExample(example: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExample | null {
+	const value = exampleValue(example, mediaType, schema, state)
+	if (value === null) {
+		return null
+	}
 	return {
 		name: null,
 		summary: null,
 		description: null,
-		...exampleValue(example, mediaType, schema, state),
+		...value,
 		mediaType: mediaType ? toCodegenMediaType(mediaType) : null,
 		...extractCodegenTypeInfo(schema),
 	}
 }
 
-export function toCodegenExamples(example: unknown | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
-	if (example) {
-		return idx.create([
-			['default', toCodegenExample(example, mediaType, schema, state)],
-		])
+export function toCodegenExamples(apiExample: unknown | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
+	if (apiExample) {
+		const example = toCodegenExample(apiExample, mediaType, schema, state)
+		if (example !== null) {
+			return idx.create([
+				['default', example],
+			])
+		} else {
+			return null
+		}
 	}
 
 	if (!examples) {
@@ -48,26 +62,32 @@ export function toCodegenExamples(example: unknown | undefined, examples: OpenAP
 
 	const result: CodegenExamples = idx.create()
 	for (const mediaTypeOrName in examples) {
-		const example = examples[mediaTypeOrName]
-		if (isOpenAPIV2ExampleObject(example, state.specVersion)) {
-			idx.set(result, mediaTypeOrName, {
-				name: null,
-				summary: null,
-				description: null,
-				mediaType: toCodegenMediaType(mediaTypeOrName),
-				...exampleValue(example, mediaTypeOrName, schema, state),
-				...extractCodegenTypeInfo(schema),
-			})
-		} else if (isOpenAPIV3ExampleObject(example, state.specVersion)) {
-			const value = example.value || example.externalValue // TODO handle externalValue
-			idx.set(result, mediaTypeOrName, {
-				name: mediaTypeOrName,
-				mediaType: mediaType ? toCodegenMediaType(mediaType) : null,
-				description: example.description || null,
-				summary: example.summary || null,
-				...exampleValue(value, mediaType, schema, state),
-				...extractCodegenTypeInfo(schema),
-			})
+		const apiExample = examples[mediaTypeOrName]
+		if (isOpenAPIV2ExampleObject(apiExample, state.specVersion)) {
+			const example = exampleValue(apiExample, mediaTypeOrName, schema, state)
+			if (example !== null) {
+				idx.set(result, mediaTypeOrName, {
+					name: null,
+					summary: null,
+					description: null,
+					mediaType: toCodegenMediaType(mediaTypeOrName),
+					...example,
+					...extractCodegenTypeInfo(schema),
+				})
+			}
+		} else if (isOpenAPIV3ExampleObject(apiExample, state.specVersion)) {
+			const value = apiExample.value || apiExample.externalValue // TODO handle externalValue
+			const example = exampleValue(value, mediaType, schema, state)
+			if (example) {
+				idx.set(result, mediaTypeOrName, {
+					name: mediaTypeOrName,
+					mediaType: mediaType ? toCodegenMediaType(mediaType) : null,
+					description: apiExample.description || null,
+					summary: apiExample.summary || null,
+					...example,
+					...extractCodegenTypeInfo(schema),
+				})
+			}
 		} else {
 			throw new Error(`Unsupported spec version: ${state.specVersion}`)
 		}

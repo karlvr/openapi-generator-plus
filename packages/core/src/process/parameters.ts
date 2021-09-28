@@ -3,7 +3,7 @@ import { OpenAPI } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
-import { convertToBoolean, nameFromRef, resolveReference } from './utils'
+import { convertToBoolean, nameFromRef, resolveReference, toDefaultValue } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
@@ -36,10 +36,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			scope: null,
 		})
 		examples = null
-		defaultValue = parameter.default !== undefined ? {
-			value: parameter.default,
-			literalValue: state.generator.toLiteral(parameter.default, schemaUse),
-		} : null
+		defaultValue = toDefaultValue(parameter.default, schemaUse, state)
 	} else {
 		/* We pass [] as scopeNames so we create any nested models at the root of the models package,
 		 * as we reference all models relative to the models package, but a parameter is in an

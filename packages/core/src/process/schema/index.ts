@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
-import { extractCodegenSchemaInfo, resolveReference } from '../utils'
+import { extractCodegenSchemaInfo, resolveReference, toDefaultValue } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { toCodegenAllOfSchema } from './all-of'
 import { toCodegenAnyOfSchema } from './any-of'
@@ -99,12 +99,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	result.nativeType = new CodegenTransformingNativeTypeImpl(result.nativeType, usageTransformer)
 
 	result.examples = apiSchema.example ? toCodegenExamples(apiSchema.example, undefined, undefined, result, state) : null
-	result.defaultValue = apiSchema.default !== undefined ? {
-		value: apiSchema.default,
-		literalValue: state.generator.toLiteral(apiSchema.default, {
-			...result,
-		}),
-	} : null
+	result.defaultValue = toDefaultValue(apiSchema.default, result, state)
 
 	return result
 }

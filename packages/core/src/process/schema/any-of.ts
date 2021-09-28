@@ -10,7 +10,6 @@ import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscrimin
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema } from './object-absorb'
-import { createCodegenProperty } from './property'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
@@ -86,8 +85,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		if (!isCodegenObjectSchema(anyOfSchema) && !isCodegenCompositionSchema(anyOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapperProperty = createCodegenProperty('value', anyOfSchemaUsage, state)
-			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value`, result, wrapperProperty, state).schema
+			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value`, result, anyOfSchemaUsage, state).schema
 			anyOfSchema = wrapper
 		}
 

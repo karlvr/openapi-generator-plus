@@ -1,11 +1,16 @@
-import { CodegenProperty, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, CodegenWrapperSchema } from '@openapi-generator-plus/types'
+import { CodegenSchemaType, CodegenSchemaUsage, CodegenScope, CodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
-import { extractCodegenSchemaInfo } from '../utils'
+import { extractCodegenSchemaUsage } from '../utils'
 import { extractNaming, toUniqueScopedName, usedSchemaName } from './naming'
+import { createCodegenProperty } from './property'
 import { addToScope } from './utils'
 
-export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, property: CodegenProperty, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
+export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, wrap: CodegenSchemaUsage, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
 	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.WRAPPER, state)
+
+	const property = createCodegenProperty('value', wrap, state)
+	property.required = true
+	property.nullable = false
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
@@ -40,10 +45,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 	usedSchemaName(naming.scopedName, state)
 
 	return {
-		...extractCodegenSchemaInfo(schema),
-		required: false,
+		...extractCodegenSchemaUsage(wrap),
 		schema,
-		examples: null,
-		defaultValue: null,
 	}
 }

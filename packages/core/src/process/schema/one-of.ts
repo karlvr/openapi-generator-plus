@@ -8,7 +8,6 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
-import { createCodegenProperty } from './property'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
@@ -82,8 +81,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapperProperty = createCodegenProperty('value', oneOfSchemaUsage, state)
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, wrapperProperty, state).schema
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, oneOfSchemaUsage, state).schema
 			oneOfSchema = wrapper
 		}
 
@@ -170,8 +168,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
-			const wrapperProperty = createCodegenProperty('value', oneOfSchemaUsage, state)
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, wrapperProperty, state).schema
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, oneOfSchemaUsage, state).schema
 			oneOfSchema = wrapper
 		}
 

@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 0.38.0
+
+### Minor Changes
+
+- 280aa4e: Schemas used in a native allOf, oneOf or allOf can now be required to have a name by the generator.
+
+  As we sometimes want to have a name to refer to the composed schemas.
+
+- f04e527: Improve suggested names on composed schemas
+- 6bfe5cd: Wrapper value properties should be required
+- 5d07122: Refactor discriminator type to expose an identifier name and serializedName, and tidy other property naming
+- 170bbea: Allow generator to choose whether native compositions wrap non-objectlike members
+- 60df9fd: Rename nativeOneOfCanBeScope to nativeCompositionCanBeScope and apply to all native compositions
+
 ## 0.37.0
 
 ### Minor Changes

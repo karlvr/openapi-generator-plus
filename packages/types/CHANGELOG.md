@@ -1,5 +1,13 @@
 # @openapi-generator-plus/types
 
+## 0.38.0
+
+### Minor Changes
+
+- 5d07122: Refactor discriminator type to expose an identifier name and serializedName, and tidy other property naming
+- 170bbea: Allow generator to choose whether native compositions wrap non-objectlike members
+- 60df9fd: Rename nativeOneOfCanBeScope to nativeCompositionCanBeScope and apply to all native compositions
+
 ## 0.36.0
 
 ### Minor Changes

@@ -1,5 +1,20 @@
 # @openapi-generator-plus/types
 
+## 0.39.0
+
+### Minor Changes
+
+- e1af31e: Remove defunct CodegenOperation.returnType
+- 32bde64: Allow toLiteral and toDefaultValue to return `null` to signal that a literal or a default value cannot be created for the given type
+
+  For example in Swift sometimes it isn't possible to assign something a default value without making an actual object with actual values.
+
+- f5c140e: Remove CodegenSchemaUsage from CodegenContent and CodegenRequestBody as both may not have a schema
+
+### Patch Changes
+
+- 0b04c82: Change usages of `any` to `unknown` where possible
+
 ## 0.38.0
 
 ### Minor Changes

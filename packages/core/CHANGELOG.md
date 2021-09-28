@@ -1,5 +1,23 @@
 # @openapi-generator-plus/core
 
+## 0.39.0
+
+### Minor Changes
+
+- e1af31e: Remove defunct CodegenOperation.returnType
+- 32bde64: Allow toLiteral and toDefaultValue to return `null` to signal that a literal or a default value cannot be created for the given type
+
+  For example in Swift sometimes it isn't possible to assign something a default value without making an actual object with actual values.
+
+- f5c140e: Remove CodegenSchemaUsage from CodegenContent and CodegenRequestBody as both may not have a schema
+- 5ccf71c: Don't use console.warn for generator warnings as it outputs a stack trace in our tests
+
+### Patch Changes
+
+- 2c4c175: Fix missing transform of native type when creating a custom schema usage such as when generating artificial schema and properties
+- 0b04c82: Change usages of `any` to `unknown` where possible
+- 4499766: Fix infinite loop when resolving duplicate operation names
+
 ## 0.38.0
 
 ### Minor Changes

@@ -1,5 +1,20 @@
 # openapi-generator-plus
 
+## 0.39.0
+
+### Patch Changes
+
+- 0b04c82: Change usages of `any` to `unknown` where possible
+- Updated dependencies [2c4c175]
+- Updated dependencies [0b04c82]
+- Updated dependencies [e1af31e]
+- Updated dependencies [32bde64]
+- Updated dependencies [4499766]
+- Updated dependencies [f5c140e]
+- Updated dependencies [5ccf71c]
+  - @openapi-generator-plus/core@0.39.0
+  - @openapi-generator-plus/types@0.39.0
+
 ## 0.38.0
 
 ### Patch Changes

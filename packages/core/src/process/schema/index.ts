@@ -56,7 +56,7 @@ function refForSchemaName(schemaName: string, state: InternalCodegenState): stri
 
 export interface SchemaUsageOptions {
 	required: boolean
-	suggestedName: string
+	suggestedName: string | ((type: CodegenSchemaType) => string)
 	purpose: CodegenSchemaPurpose
 	scope: CodegenScope | null
 }
@@ -67,7 +67,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	apiSchema = resolveReference(apiSchema, state)
 	fixApiSchema(apiSchema, state)
 
-	const schemaObject = toCodegenSchema(apiSchema, $ref, options.suggestedName, options.purpose, options.scope, state)
+	const schemaObject = toCodegenSchema(apiSchema, $ref, options, state)
 	const result: CodegenSchemaUsage = {
 		...extractCodegenSchemaInfo(schemaObject),
 		required: options.required,
@@ -108,7 +108,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	return result
 }
 
-function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, suggestedName: string, purpose: CodegenSchemaPurpose, suggestedScope: CodegenScope | null, state: InternalCodegenState): CodegenSchema {
+function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, options: SchemaUsageOptions, state: InternalCodegenState): CodegenSchema {
 	/* Check if we've already generated this schema, and return it */
 	const existing = state.knownSchemas.get(apiSchema)
 	if (existing) {
@@ -117,6 +117,13 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 
 	const schemaType = toCodegenSchemaTypeFromApiSchema(apiSchema)
 
+	const { purpose, scope: suggestedScope } = options
+	let { suggestedName } = options
+
+	if (typeof suggestedName === 'function') {
+		suggestedName = suggestedName(schemaType)
+	}
+	
 	/* Use purpose to refine the suggested name */
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,

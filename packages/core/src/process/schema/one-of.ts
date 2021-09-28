@@ -75,7 +75,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: state.generator.nativeOneOfCanBeScope() ? result : scope,
-			suggestedName: `${result.name}_option`,
+			suggestedName: (type) => type,
 		}).schema
 
 		result.composes.push(oneOfSchema)

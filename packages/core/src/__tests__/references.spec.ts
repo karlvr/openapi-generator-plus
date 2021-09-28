@@ -7,7 +7,7 @@ test('response reference names nested models', async() => {
 	expect(op.responses).not.toBeNull()
 	expect(op.responses![200]).toBeDefined()
 	expect(op.responses![200].defaultContent).not.toBeNull()
-	expect(op.responses![200].defaultContent!.nativeType.nativeType).toEqual('MyResponse_model')
+	expect(op.responses![200].defaultContent!.nativeType!.nativeType).toEqual('MyResponse_model')
 })
 
 test('external references', async() => {

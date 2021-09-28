@@ -1,0 +1,15 @@
+---
+# An example where some things don't have explicit schemas
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      requestBody:
+        content:
+          application/json: {}
+      responses:
+        200:
+          description: OK

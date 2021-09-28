@@ -130,7 +130,7 @@ export function nameFromRef($ref: string, state: InternalCodegenState): string {
 				const operation = operations.find(op => op.httpMethod === components[2].toUpperCase())
 				if (operation && operation.responses) {
 					const response = operation.responses[components[4]]
-					if (response && response.defaultContent) {
+					if (response && response.defaultContent && response.defaultContent.nativeType) {
 						return response.defaultContent.nativeType.nativeType
 					}
 				}
@@ -144,7 +144,7 @@ export function nameFromRef($ref: string, state: InternalCodegenState): string {
 					const response = operation.responses[components[4]]
 					if (response && response.contents) {
 						const content = response.contents.find(co => co.mediaType.mediaType === unescape(components[6]))
-						if (content) {
+						if (content && content.nativeType) {
 							return content.nativeType.nativeType
 						}
 					}

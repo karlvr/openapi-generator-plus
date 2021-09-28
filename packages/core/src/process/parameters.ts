@@ -83,11 +83,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		name: state.generator.toIdentifier(parameter.name),
 		serializedName: parameter.name,
 
-		...schemaUse,
-
 		in: parameterIn,
 		description: parameter.description || null,
 		required: parameter.in === 'path' ? true : convertToBoolean(parameter.required, false),
+		schema: schemaUse.schema,
+		nativeType: schemaUse.nativeType,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3
 		examples,
 		defaultValue,

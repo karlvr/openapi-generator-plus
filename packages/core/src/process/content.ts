@@ -11,7 +11,7 @@ import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
 import { addToScope, uniquePropertiesIncludingInherited } from './schema/utils'
-import { convertToBoolean } from './utils'
+import { convertToBoolean, extractCodegenSchemaInfo } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
@@ -27,7 +27,14 @@ export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.Medi
 
 function toCodegenContent(mediaType: string, mediaTypeContent: OpenAPIV3.MediaTypeObject, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent {
 	if (!mediaTypeContent.schema) {
-		throw new Error('Media type content without a schema')
+		return {
+			mediaType: toCodegenMediaType(mediaType),
+			encoding: null,
+			required,
+			schema: null,
+			nativeType: null,
+			examples: null,
+		}
 	}
 	const schemaUse = toCodegenSchemaUsage(mediaTypeContent.schema, state, {
 		required,
@@ -41,7 +48,9 @@ function toCodegenContent(mediaType: string, mediaTypeContent: OpenAPIV3.MediaTy
 	const item: CodegenContent = {
 		mediaType: toCodegenMediaType(mediaType),
 		encoding: null,
-		...schemaUse,
+		required,
+		schema: schemaUse.schema,
+		nativeType: schemaUse.nativeType,
 		examples,
 	}
 	applyCodegenContentEncoding(item, mediaTypeContent.encoding, state)
@@ -79,6 +88,10 @@ function contentEncodingType(mediaType: CodegenMediaType): CodegenContentEncodin
  * @returns 
  */
 export function applyCodegenContentEncoding(content: CodegenContent, encodingSpec: { [name: string]: OpenAPIV3.EncodingObject } | undefined, state: InternalCodegenState): void {
+	if (!content.schema) {
+		throw new Error('Cannot apply content encoding to content without a schema')
+	}
+
 	const type = contentEncodingType(content.mediaType)
 	if (!type) {
 		if (encodingSpec) {
@@ -195,11 +208,18 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				if (propertyEncoding.headers) {
 					propertyEncoding.headerProperties = idx.create()
 					for (const [headerName, header] of idx.iterable(propertyEncoding.headers)) {
-						let headerProperty = createCodegenProperty(headerName, header, state)
+						const headerUsage: CodegenSchemaUsage = {
+							...extractCodegenSchemaInfo(header.schema),
+							schema: header.schema,
+							defaultValue: header.defaultValue,
+							examples: header.examples,
+							required: header.required,
+						}
+						let headerProperty = createCodegenProperty(headerName, headerUsage, state)
 
 						let uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchema.properties, state)
 						if (uniquePropertyName !== headerProperty.name) {
-							headerProperty = createCodegenProperty(`${headerName}_header`, header, state)
+							headerProperty = createCodegenProperty(`${headerName}_header`, headerUsage, state)
 							uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchema.properties, state)
 						}
 						headerProperty.name = uniquePropertyName

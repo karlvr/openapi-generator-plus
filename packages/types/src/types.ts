@@ -265,11 +265,16 @@ export type CodegenHeaders = IndexedCollectionType<CodegenHeader>
 
 export interface CodegenHeader extends CodegenParameterBase {
 	name: string
+	schema: CodegenSchema
 }
-
-export interface CodegenContent extends CodegenSchemaUsage {
+	
+export interface CodegenContent {
 	mediaType: CodegenMediaType
 	encoding: CodegenContentEncoding | null
+	required: boolean
+	schema: CodegenSchema | null
+	nativeType: CodegenNativeType | null
+	examples: CodegenExamples | null
 }
 
 /**
@@ -856,18 +861,24 @@ export interface CodegenEnumValue {
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body' | 'cookie'
 
-interface CodegenParameterBase extends CodegenSchemaUsage {
+interface CodegenParameterBase {
 	name: string
 	/** The name of the property in the API spec as it should be used when serialized (e.g. in a request) */
 	serializedName: string
 	
 	description: string | null
+	required: boolean
 	collectionFormat: string | null
+	examples: CodegenExamples | null
+	defaultValue: CodegenValue | null
 
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenParameter extends CodegenParameterBase {
+	schema: CodegenSchema
+	nativeType: CodegenNativeType
+
 	in: CodegenParameterIn
 	encoding: CodegenParameterEncoding
 
@@ -886,6 +897,9 @@ export interface CodegenParameterEncoding {
 }
 
 export interface CodegenRequestBody extends CodegenParameterBase {
+	schema: CodegenSchema | null
+	nativeType: CodegenNativeType | null
+	
 	contents: CodegenContent[]
 	consumes: CodegenMediaType[]
 	defaultContent: CodegenContent

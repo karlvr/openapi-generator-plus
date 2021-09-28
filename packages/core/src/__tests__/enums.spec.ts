@@ -8,7 +8,7 @@ test('non-unique enum values', async() => {
 	const op = result.groups[0].operations[0]
 	expect(op).toBeDefined()
 	expect(op.queryParams!['param1']).toBeDefined()
-	expect(op.queryParams!['param1'].schemaType).toEqual(CodegenSchemaType.ENUM)
+	expect(op.queryParams!['param1'].schema!.schemaType).toEqual(CodegenSchemaType.ENUM)
 	const schema: CodegenEnumSchema = op.queryParams!['param1'].schema as CodegenEnumSchema
 	expect(schema).toBeDefined()
 	expect(schema.enumValues).not.toBeNull()

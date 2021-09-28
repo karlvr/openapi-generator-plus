@@ -3,7 +3,7 @@ import { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'
-import { extractCodegenSchemaUsage, nameFromRef, resolveReference } from './utils'
+import { nameFromRef, resolveReference } from './utils'
 import { mergeCodegenVendorExtensions, toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import _ from 'lodash'
@@ -64,7 +64,11 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 				name: toUniqueName('request', undefined, parameters, state),
 				serializedName: 'request', /* This doesn't actually have a serialized name as we created it */
 
-				...extractCodegenSchemaUsage(defaultContent),
+				required: defaultContent.required,
+				schema: defaultContent.schema,
+				nativeType: defaultContent.nativeType,
+				examples: defaultContent.examples,
+				defaultValue: null,
 
 				description: requestBody.description || null,
 				collectionFormat: null,
@@ -89,11 +93,13 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 
 				const existingBodyParam = bodyParamEntry[1]
 				const contents = consumes.map(mediaType => {
-					const schemaUse = extractCodegenSchemaUsage(existingBodyParam)
 					const result: CodegenContent = {
 						mediaType,
 						encoding: null,
-						...schemaUse,
+						examples: null,
+						required: existingBodyParam.required,
+						schema: existingBodyParam.schema,
+						nativeType: existingBodyParam.nativeType,
 					}
 					applyCodegenContentEncoding(result, undefined, state)
 					return result
@@ -104,8 +110,6 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 				}
 
 				bodyParam = {
-					...extractCodegenSchemaUsage(existingBodyParam),
-
 					name: existingBodyParam.name,
 					serializedName: existingBodyParam.serializedName,
 					description: existingBodyParam.description,
@@ -115,6 +119,12 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 					contents,
 					defaultContent: contents[0],
 					consumes,
+
+					schema: existingBodyParam.schema,
+					nativeType: existingBodyParam.nativeType,
+					defaultValue: existingBodyParam.defaultValue,
+					examples: existingBodyParam.examples,
+					required: existingBodyParam.required,
 				}
 				idx.remove(parameters, bodyParamEntry[0])
 			}
@@ -152,7 +162,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 		httpMethod: method,
 		path: fullPath, /* Path will later be made relative to a CodegenOperationGroup */
 		fullPath,
-		returnType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.type || null,
+		returnType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.schema && defaultResponse.defaultContent.schema.type || null,
 		returnNativeType: defaultResponse && defaultResponse.defaultContent && defaultResponse.defaultContent.nativeType || null,
 		consumes: consumes || null,
 		produces: responses ? toUniqueMediaTypes(idx.allValues(responses).reduce((collected, response) => response.produces ? [...collected, ...response.produces] : collected, [] as CodegenMediaType[])) : null,

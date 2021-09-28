@@ -12,7 +12,7 @@ test('response reference is named appropriately', async() => {
 	expect(op1.responses).not.toBeNull()
 	expect(op1.responses![200]).toBeDefined()
 	expect(op1.responses![200].defaultContent).not.toBeNull()
-	expect(op1.responses![200].defaultContent!.nativeType.nativeType).toEqual(op2.responses![200].defaultContent!.nativeType.nativeType)
+	expect(op1.responses![200].defaultContent!.nativeType!.nativeType).toEqual(op2.responses![200].defaultContent!.nativeType!.nativeType)
 })
 
 test('external object schema is named appropriately', async() => {
@@ -23,7 +23,7 @@ test('external object schema is named appropriately', async() => {
 	expect(op1.responses).not.toBeNull()
 	expect(op1.responses![200]).toBeDefined()
 	expect(op1.responses![200].defaultContent).not.toBeNull()
-	expect(op1.responses![200].defaultContent!.nativeType.nativeType).toEqual('MyExternalSchema') // TODO why doesn't end in _model?
+	expect(op1.responses![200].defaultContent!.nativeType!.nativeType).toEqual('MyExternalSchema') // TODO why doesn't end in _model?
 })
 
 test('external response is named appropriately', async() => {
@@ -34,7 +34,7 @@ test('external response is named appropriately', async() => {
 	expect(op1.responses).not.toBeNull()
 	expect(op1.responses![200]).toBeDefined()
 	expect(op1.responses![200].defaultContent).not.toBeNull()
-	expect(op1.responses![200].defaultContent!.nativeType.nativeType).toEqual('MyResponse_model')
+	expect(op1.responses![200].defaultContent!.nativeType!.nativeType).toEqual('MyResponse_model')
 })
 
 test('external nested response is named appropriately', async() => {
@@ -45,7 +45,7 @@ test('external nested response is named appropriately', async() => {
 	expect(op1.responses).not.toBeNull()
 	expect(op1.responses![200]).toBeDefined()
 	expect(op1.responses![200].defaultContent).not.toBeNull()
-	expect(op1.responses![200].defaultContent!.nativeType.nativeType).toEqual('GET /test-part operation_200_response_model')
+	expect(op1.responses![200].defaultContent!.nativeType!.nativeType).toEqual('GET /test-part operation_200_response_model')
 })
 
 test('external nested response schema is named appropriately', async() => {
@@ -56,7 +56,7 @@ test('external nested response schema is named appropriately', async() => {
 	expect(op1.responses).not.toBeNull()
 	expect(op1.responses![200]).toBeDefined()
 	expect(op1.responses![200].defaultContent).not.toBeNull()
-	expect(op1.responses![200].defaultContent!.nativeType.nativeType).toEqual('GET /test-part operation_200_response_model')
+	expect(op1.responses![200].defaultContent!.nativeType!.nativeType).toEqual('GET /test-part operation_200_response_model')
 })
 
 test('external object schema with reference works', async() => {
@@ -71,7 +71,7 @@ test('external object schema with reference works', async() => {
 	
 	const content = response.defaultContent
 	expect(content).not.toBeNull()
-	expect(content!.nativeType.nativeType).toEqual('MyExternalSchemaWithReference') // TODO why doesn't end in _model?
+	expect(content!.nativeType!.nativeType).toEqual('MyExternalSchemaWithReference') // TODO why doesn't end in _model?
 	const objectSchema = content!.schema as CodegenObjectSchema
 	expect(objectSchema).toBeTruthy()
 

@@ -25,15 +25,15 @@ test('uuid', async() => {
 	/* Note that there doesn't seem to be a way to _use_ schemas like this actually */
 })
 
-test('missing schema', async() => {
-	const result = await createTestDocument('odd-models/missing-schema.yml')
+test('missing parameter schema', async() => {
+	const result = await createTestDocument('odd-models/missing-parameter-schema.yml')
 	const op = result.groups[0].operations[0]
 	expect(op).toBeDefined()
 	expect(op.queryParams!['param1']).toBeDefined()
-	expect(op.queryParams!['param1'].schemaType).toEqual(CodegenSchemaType.STRING)
+	expect(op.queryParams!['param1'].schema!.schemaType).toEqual(CodegenSchemaType.STRING)
 	expect(op.responses![200]).toBeDefined()
 	expect(op.responses![200].headers!['ResponseHeader']).toBeDefined()
-	expect(op.responses![200].headers!['ResponseHeader'].schemaType).toEqual(CodegenSchemaType.STRING)
+	expect(op.responses![200].headers!['ResponseHeader'].schema!.schemaType).toEqual(CodegenSchemaType.STRING)
 })
 
 test('property names not legal identifiers', async() => {
@@ -78,4 +78,23 @@ test('property names not legal identifiers non-unique', async() => {
 	expect(property2).toBeDefined()
 	expect(property2!.name).toEqual(actualPropertyName2)
 	expect(property2!.serializedName).toEqual('a-hyphenated-Property')
+})
+
+test('missing response content schema', async() => {
+	const result = await createTestDocument('odd-models/missing-response-content-schema.yml')
+
+	const op = result.groups[0].operations[0]
+	const content = op.defaultResponse!.defaultContent!
+	expect(content).toBeTruthy()
+	expect(content.schema).toBeNull()
+})
+
+test('missing request body schema', async() => {
+	const result = await createTestDocument('odd-models/missing-request-body-schema.yml')
+
+	const op = result.groups[0].operations[0]
+	expect(op.requestBody).toBeTruthy()
+	expect(op.requestBody!.schema).toBeNull()
+	const content = op.defaultResponse!.defaultContent!
+	expect(content).toBeNull()
 })

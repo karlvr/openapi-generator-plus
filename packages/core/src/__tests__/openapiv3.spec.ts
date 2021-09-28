@@ -34,7 +34,7 @@ test('parse operation body params', async() => {
 	const op2 = group2.operations[0]
 	expect(op2.parameters).toBeNull()
 	expect(op2.requestBody).not.toBeNull()
-	expect(op2.requestBody!.type).toEqual('object')
+	expect(op2.requestBody!.schema!.type).toEqual('object')
 	expect(op2.requestBody!.nativeType?.toString()).toEqual('Test2Request')
 })
 

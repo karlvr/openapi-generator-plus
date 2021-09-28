@@ -13,7 +13,7 @@ test('inline response model', async() => {
 
 	const param1 = params[0]
 	expect(param1.name).toEqual('arg1')
-	expect(param1.nativeType.toString()).toEqual('getTest1_arg1_enum')
+	expect(param1.nativeType!.toString()).toEqual('getTest1_arg1_enum')
 
 	expect(idx.size(result.schemas)).toEqual(1)
 

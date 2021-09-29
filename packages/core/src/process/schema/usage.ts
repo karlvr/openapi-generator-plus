@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 
 export interface CreateSchemaUsageOptions {
-	required?: boolean
+	required: boolean
 	nullable?: boolean
 	readOnly?: boolean
 	writeOnly?: boolean
@@ -13,7 +13,6 @@ export interface CreateSchemaUsageOptions {
 export function createSchemaUsage<T extends CodegenSchema>(schema: T, options: CreateSchemaUsageOptions, state: InternalCodegenState): CodegenSchemaUsage<T> {
 	const result: CodegenSchemaUsage<T> = {
 		...extractCodegenSchemaInfo(schema),
-		required: false,
 		...options,
 		schema,
 		examples: null,

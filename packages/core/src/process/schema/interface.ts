@@ -81,20 +81,34 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 	return result
 }
 
+interface InterfaceImplementationOptions {
+	/**
+	 * `true` if the implementation could be an abstract implementation
+	 */
+	allowAbstract: boolean
+}
+
 /**
  * Create or return the implementation schema for the given interface schema.
  * @param schema 
+ * @param suggestedAbstract `true` if the implementation could be an abstract implementation
  * @returns a CodegenObjectSchema, or undefined if an implementation cannot be created
  */
-export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenInterfaceSchema, state: InternalCodegenState): CodegenObjectSchema | undefined {
+export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenInterfaceSchema, options: InterfaceImplementationOptions, state: InternalCodegenState): CodegenObjectSchema | undefined {
+	const { allowAbstract } = options
+
 	if (interfaceSchema.implementation) {
+		if (!allowAbstract && interfaceSchema.implementation.abstract) {
+			// We could try to change it to not abstract and correct its name
+			throw new Error(`Existing interface implementation "${interfaceSchema.implementation.name}" for "${interfaceSchema.name}" is abstract`)
+		}
 		return interfaceSchema.implementation
 	}
 
 	const scope = scopeOf(interfaceSchema, state)
-	const result = createObjectSchema(interfaceSchema.name, scope, CodegenSchemaPurpose.IMPLEMENTATION, state)
+	const result = createObjectSchema(interfaceSchema.name, scope, allowAbstract ? CodegenSchemaPurpose.ABSTRACT_IMPLEMENTATION : CodegenSchemaPurpose.IMPLEMENTATION, state)
 
-	result.abstract = true
+	result.abstract = allowAbstract
 	result.properties = interfaceSchema.properties
 	result.additionalProperties = interfaceSchema.additionalProperties
 
@@ -107,7 +121,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	if (interfaceSchema.parents) {
 		if (state.generator.supportsInheritance() && (interfaceSchema.parents.length === 1 || state.generator.supportsMultipleInheritance())) {
 			for (const aParent of interfaceSchema.parents) {
-				const aParentImplementation = toCodegenInterfaceImplementationSchema(aParent, state)
+				const aParentImplementation = toCodegenInterfaceImplementationSchema(aParent, { allowAbstract: true }, state)
 				if (aParentImplementation) {
 					addChildObjectSchema(aParentImplementation, result)
 				} else {

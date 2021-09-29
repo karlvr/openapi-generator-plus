@@ -178,7 +178,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			if (isCodegenObjectSchema(parentSchema)) {
 				addChildObjectSchema(parentSchema, result)
 			} else if (isCodegenInterfaceSchema(parentSchema)) {
-				const parentImplementation = toCodegenInterfaceImplementationSchema(parentSchema, state)
+				const parentImplementation = toCodegenInterfaceImplementationSchema(parentSchema, { allowAbstract: true }, state)
 				if (parentImplementation) {
 					addChildObjectSchema(parentImplementation, result)
 				} else {

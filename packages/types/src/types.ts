@@ -822,6 +822,10 @@ export enum CodegenSchemaPurpose {
 	/**
 	 * An abstract implementation extracted from an interface
 	 */
+	ABSTRACT_IMPLEMENTATION = 'ABSTRACT_IMPLEMENTATION',
+	/**
+	 * A non-abstract implementation extracted from an interface
+	 */
 	IMPLEMENTATION = 'IMPLEMENTATION',
 }
 

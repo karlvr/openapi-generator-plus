@@ -71,7 +71,7 @@ export interface CodegenGenerator {
 	/**
 	 * Return a transformer to apply to native types when they are used.
 	 */
-	nativeTypeUsageTransformer: (options: CodegenNativeTypeUsageOptions) => CodegenNativeTypeTransformers
+	nativeTypeUsageTransformer: (usage: CodegenSchemaUsage) => CodegenNativeTypeTransformers
 	/**
 	 * Return a default value that can be used for a property if possible. This will
 	 * usuaully be an `undefined`, `null` or initial value for primitives. Some generators will

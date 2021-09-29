@@ -166,47 +166,47 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 		for (const name of idx.allKeys(newSchema.properties)) {
 			const propertyEncoding = idx.get(encoding.properties, name)!
 			if (propertyRequiresMetadata(encoding, propertyEncoding)) {
-				const property = allProperties[name]
-				const newPropertySchema = createObjectSchema(`${name}_part`, newSchema, CodegenSchemaPurpose.GENERAL, state)
+				const originalProperty = allProperties[name]
+				const partSchema = createObjectSchema(`${name}_part`, newSchema, CodegenSchemaPurpose.GENERAL, state)
 
 				/* Duplicate the property so we don't change the original */
-				const newProperty: CodegenProperty = {
-					...property,
+				const partProperty: CodegenProperty = {
+					...originalProperty,
 				}
-				if (property.schema.schemaType === CodegenSchemaType.ARRAY) {
-					const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {
+				if (originalProperty.schema.schemaType === CodegenSchemaType.ARRAY) {
+					const partComponentSchemaUsage = createSchemaUsage(partSchema, {
 						required: true,
-						nullable: property.schema.component!.nullable,
+						nullable: originalProperty.schema.component!.nullable,
 						readOnly: false,
 						writeOnly: false,
 					}, state)
-					newProperty.schema = createArraySchema(newPropertySchemaUsage, state)
-					newProperty.nativeType = transformNativeTypeForUsage(newProperty, state)
+					partProperty.schema = createArraySchema(partComponentSchemaUsage, state)
+					partProperty.nativeType = transformNativeTypeForUsage(partProperty, state)
 				} else {
-					const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {
-						required: property.required,
-						nullable: property.nullable,
-						readOnly: property.readOnly,
-						writeOnly: property.writeOnly,
+					const partSchemaUsage = createSchemaUsage(partSchema, {
+						required: originalProperty.required,
+						nullable: originalProperty.nullable,
+						readOnly: originalProperty.readOnly,
+						writeOnly: originalProperty.writeOnly,
 					}, state)
-					Object.assign(newProperty, newPropertySchemaUsage)
+					Object.assign(partProperty, partSchemaUsage)
 				}
-				idx.set(newSchema.properties, name, newProperty)
-				addToScope(newPropertySchema, newSchema, state)
+				idx.set(newSchema.properties, name, partProperty)
+				addToScope(partSchema, newSchema, state)
 
-				propertyEncoding.property = newProperty
+				propertyEncoding.property = partProperty
 
-				newPropertySchema.properties = idx.create()
+				partSchema.properties = idx.create()
 
 				/* Value property contains the actual value */
 				const valueProperty = createCodegenProperty('value', {
-					...(property.schema.component ? property.schema.component : property),
+					...(originalProperty.schema.component ? originalProperty.schema.component : originalProperty),
 					required: true, /* As if there's no value, our container shouldn't be created */
 					nullable: false,
 					readOnly: false,
 					writeOnly: false,
 				}, state)
-				addCodegenProperty(newPropertySchema.properties, valueProperty, state)
+				addCodegenProperty(partSchema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
 
 				/* Filename property */
@@ -214,7 +214,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {
 						required: false,
 					}, state), state)
-					addCodegenProperty(newPropertySchema.properties, filenameProperty, state)
+					addCodegenProperty(partSchema.properties, filenameProperty, state)
 					propertyEncoding.filenameProperty = filenameProperty
 				}
 
@@ -232,15 +232,15 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 						headerUsage.nativeType = transformNativeTypeForUsage(headerUsage, state)
 						let headerProperty = createCodegenProperty(headerName, headerUsage, state)
 
-						let uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchema.properties, state)
+						let uniquePropertyName = toUniqueName(headerProperty.name, undefined, partSchema.properties, state)
 						if (uniquePropertyName !== headerProperty.name) {
 							headerProperty = createCodegenProperty(`${headerName}_header`, headerUsage, state)
-							uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchema.properties, state)
+							uniquePropertyName = toUniqueName(headerProperty.name, undefined, partSchema.properties, state)
 						}
 						headerProperty.name = uniquePropertyName
 						headerProperty.serializedName = uniquePropertyName /* We don't use the serialized name, but it impacts the key it gets put in in properties */
 
-						addCodegenProperty(newPropertySchema.properties, headerProperty, state)
+						addCodegenProperty(partSchema.properties, headerProperty, state)
 						idx.set(propertyEncoding.headerProperties, headerName, headerProperty)
 					}
 				}

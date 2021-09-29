@@ -25,5 +25,5 @@ export function createSchemaUsage<T extends CodegenSchema>(schema: T, options: C
 
 export function transformNativeTypeForUsage(usage: CodegenSchemaUsage, state: InternalCodegenState): CodegenNativeType {
 	const usageTransformer = state.generator.nativeTypeUsageTransformer(usage)
-	return new CodegenTransformingNativeTypeImpl(usage.nativeType, usageTransformer)
+	return new CodegenTransformingNativeTypeImpl(usage.schema.nativeType, usageTransformer)
 }

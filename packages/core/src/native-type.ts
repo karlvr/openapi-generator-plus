@@ -99,13 +99,9 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 	}
 
 	public get componentType(): CodegenNativeType | null {
-		if (!this.wrapped.componentType) {
-			return null
-		}
-
 		const transformers = this.transformers.componentType !== undefined ? this.transformers.componentType : this.transformers
 		if (transformers) {
-			return new CodegenTransformingNativeTypeImpl(this.wrapped.componentType, transformers)
+			return new CodegenTransformingNativeTypeImpl(this.wrapped.componentType || this.wrapped, transformers)
 		} else {
 			return this.wrapped.componentType
 		}

@@ -370,7 +370,7 @@ test('property conflict resolved', async() => {
 
 	const property = idx.get(child!.properties!, 'childName')
 	expect(property).toBeDefined()
-	expect(property!.schemaType).toEqual(CodegenSchemaType.INTEGER)
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.INTEGER)
 })
 
 /**

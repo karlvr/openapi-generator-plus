@@ -1,4 +1,4 @@
-import { CodegenExample, CodegenExamples, CodegenSchemaUsage, CodegenSchemaType, CodegenTypeInfo, CodegenSchema, CodegenLogLevel } from '@openapi-generator-plus/types'
+import { CodegenExample, CodegenExamples, CodegenSchemaType, CodegenTypeInfo, CodegenSchema, CodegenLogLevel, CodegenSchemaUsage, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -13,7 +13,7 @@ function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
 	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
 }
 
-function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> | null {
+function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> | null {
 	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : state.generator.toLiteral(null, { required: true, ...schema })
 	const valueString = toCodegenExampleValueString(value, mediaType, state)
 	if (valueLiteral === null || valueString === null) {
@@ -29,7 +29,7 @@ function exampleValue(value: unknown, mediaType: string | undefined, schema: Cod
 	}
 }
 
-function toCodegenExample(example: unknown, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExample | null {
+function toCodegenExample(example: unknown, mediaType: string | undefined, schema: CodegenSchema, state: InternalCodegenState): CodegenExample | null {
 	const value = exampleValue(example, mediaType, schema, state)
 	if (value === null) {
 		return null
@@ -45,6 +45,10 @@ function toCodegenExample(example: unknown, mediaType: string | undefined, schem
 }
 
 export function toCodegenExamples(apiExample: unknown | undefined, examples: OpenAPIV2.ExampleObject | OpenAPIV3Examples | undefined, mediaType: string | undefined, schema: CodegenSchema | CodegenSchemaUsage, state: InternalCodegenState): CodegenExamples | null {
+	if (isCodegenSchemaUsage(schema)) {
+		schema = schema.schema
+	}
+	
 	if (apiExample) {
 		const example = toCodegenExample(apiExample, mediaType, schema, state)
 		if (example !== null) {

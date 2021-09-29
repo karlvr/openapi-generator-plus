@@ -16,7 +16,7 @@ test('naming of inline items', async() => {
 	const model1Properties = idx.allValues(model1.properties!)
 
 	const property = model1Properties![0]
-	expect(property.schemaType).toEqual(CodegenSchemaType.ARRAY)
-	expect(property.component).not.toBeNull()
-	expect((property.component!.schema as unknown as CodegenObjectSchema).name).toEqual('message_enum')
+	expect(property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
+	expect(property.schema.component).not.toBeNull()
+	expect((property.schema.component!.schema as unknown as CodegenObjectSchema).name).toEqual('message_enum')
 })

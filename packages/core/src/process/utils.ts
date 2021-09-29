@@ -1,7 +1,7 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import { CodegenLogLevel, CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo, CodegenValue } from '@openapi-generator-plus/types'
+import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo, CodegenValue, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 
 /**
@@ -25,36 +25,46 @@ export function resolveReference<T>(ob: T | OpenAPIV3_1.ReferenceObject | OpenAP
 /**
  * Extract _just_ the CodegenTypeInfo properties from the source.
  */
-export function extractCodegenTypeInfo(source: CodegenTypeInfo): CodegenTypeInfo {
+export function extractCodegenTypeInfo(source: CodegenTypeInfo | CodegenSchemaUsage): CodegenTypeInfo {
+	if (isCodegenSchemaUsage(source)) {
+		source = source.schema
+	}
+
 	return {
 		type: source.type,
 		format: source.format,
 		schemaType: source.schemaType,
 
-		nativeType: source.nativeType,
 		component: source.component,
 	}
 }
 
-export function equalCodegenTypeInfo(a: CodegenTypeInfo, b: CodegenTypeInfo): boolean {
+export function equalCodegenTypeInfo(a: CodegenTypeInfo | CodegenSchemaUsage, b: CodegenTypeInfo | CodegenSchemaUsage): boolean {
+	if (isCodegenSchemaUsage(a)) {
+		a = a.schema
+	}
+	if (isCodegenSchemaUsage(b)) {
+		b = b.schema
+	}
 	return (
 		a.type === b.type &&
 		a.format === b.format &&
 		a.schemaType === b.schemaType &&
-		a.nativeType.equals(b.nativeType) &&
 		(a.component === b.component || (
 			!!a.component && !!b.component && a.component.nativeType.equals(b.component.nativeType)
 		))
 	)
 }
 
-export function typeInfoToString(a: CodegenTypeInfo): string {
+export function typeInfoToString(a: CodegenTypeInfo | CodegenSchemaUsage): string {
+	if (isCodegenSchemaUsage(a)) {
+		a = a.schema
+	}
 	let result = `${a.type} (`
 	if (a.format) {
 		result += `format = ${a.format}, `
 	}
 	result += `schemaType = ${a.schemaType}`
-	result += `, nativeType = ${a.nativeType}`
 	if (a.component) {
 		result += `, component = ${a.component.nativeType}`
 	}
@@ -67,8 +77,7 @@ export function typeInfoToString(a: CodegenTypeInfo): string {
  */
 export function extractCodegenSchemaInfo(source: CodegenSchemaInfo): CodegenSchemaInfo {
 	return {
-		...extractCodegenTypeInfo(source),
-
+		nativeType: source.nativeType,
 		nullable: source.nullable,
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,
@@ -228,6 +237,7 @@ export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, 
 	}
 
 	const literalValue = state.generator.toLiteral(value, {
+		...extractCodegenTypeInfo(schemaUsage.schema),
 		...schemaUsage,
 	})
 	if (literalValue === null) {
@@ -239,4 +249,19 @@ export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, 
 		value,
 		literalValue,
 	}
+}
+
+export function toCodegenDefaultValueOptions(usage: CodegenSchemaUsage): CodegenDefaultValueOptions {
+	return {
+		...extractCodegenTypeInfo(usage.schema),
+		...usage,
+	}
+}
+
+export function toCodegenLiteralValueOptions(usage: CodegenSchemaUsage): CodegenLiteralValueOptions {
+	return toCodegenDefaultValueOptions(usage)
+}
+
+export function toCodegenInitialValueOptions(usage: CodegenSchemaUsage): CodegenInitialValueOptions {
+	return toCodegenDefaultValueOptions(usage)
 }

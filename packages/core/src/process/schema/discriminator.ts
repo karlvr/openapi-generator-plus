@@ -4,7 +4,7 @@ import { toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, typeInfoToString } from '../utils'
+import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, toCodegenDefaultValueOptions, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { findProperty, removeProperty } from './utils'
 
@@ -188,13 +188,13 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 	}
 	
 	const discriminatorValue = findDiscriminatorValue(discriminatorSchema.discriminator, memberSchema, state)
-	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, {
+	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, toCodegenDefaultValueOptions({
 		...discriminatorSchema.discriminator,
 		required: true,
 		nullable: false,
 		readOnly: false,
 		writeOnly: false,
-	})
+	}))
 	if (!discriminatorValueLiteral) {
 		throw new Error(`Discriminator value "${discriminatorValue}" cannot be converted to literal for property "${discriminatorSchema.discriminator.serializedName}" in "${memberSchema.name}"`)
 	}

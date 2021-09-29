@@ -173,8 +173,8 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				const newProperty: CodegenProperty = {
 					...property,
 				}
-				if (property.type === 'array') {
-					newProperty.component = newPropertySchemaUsage
+				if (property.schema.schemaType === CodegenSchemaType.ARRAY) {
+					newProperty.schema.component = newPropertySchemaUsage
 					newProperty.nativeType = state.generator.toNativeArrayType({
 						type: 'array',
 						schemaType: CodegenSchemaType.ARRAY,
@@ -192,7 +192,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				/* Value property contains the actual value */
 				const valueProperty = createCodegenProperty('value', {
-					...(property.component ? property.component : property),
+					...(property.schema.component ? property.schema.component : property),
 					required: true, /* As if there's no value, our container shouldn't be created */
 				}, state)
 				addCodegenProperty(newPropertySchema.properties, valueProperty, state)
@@ -289,13 +289,13 @@ function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, prop
  * Returns the default content type to use for a multipart part witht he given schema, using defaults
  * described in https://swagger.io/specification/#encoding-object
  */
-function defaultContentType(schema: CodegenSchemaUsage): string {
-	if (schema.type === 'string' && schema.format === 'binary') {
+function defaultContentType(usage: CodegenSchemaUsage): string {
+	if (usage.schema.schemaType === CodegenSchemaType.STRING && usage.schema.format === 'binary') {
 		return 'application/octet-stream'
-	} else if (schema.type === 'object') {
+	} else if (usage.schema.schemaType === CodegenSchemaType.OBJECT) {
 		return 'application/json'
-	} else if (schema.type === 'array' && schema.component) {
-		return defaultContentType(schema.component)
+	} else if (usage.schema.schemaType === CodegenSchemaType.ARRAY && usage.schema.component) {
+		return defaultContentType(usage.schema.component)
 	}
 	return 'text/plain'
 }

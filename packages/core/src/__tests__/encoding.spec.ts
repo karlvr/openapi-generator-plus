@@ -18,8 +18,8 @@ test('multipart/form-data basic', async() => {
 	expect(infoProperty).toBeDefined()
 	expect(fileProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
-	expect(fileProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(fileProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -46,8 +46,8 @@ test('multipart/form-data basic', async() => {
 	const fileFilenameProperty = idx.get(filePropertySchema.properties!, 'filename')
 	expect(fileValueProperty).toBeDefined()
 	expect(fileFilenameProperty).toBeDefined()
-	expect(fileValueProperty!.type).toEqual('string')
-	expect(fileValueProperty!.format).toEqual('binary')
+	expect(fileValueProperty!.schema.type).toEqual('string')
+	expect(fileValueProperty!.schema.format).toEqual('binary')
 })
 
 test('multipart/form-data basic not identifier safe', async() => {
@@ -66,8 +66,8 @@ test('multipart/form-data basic not identifier safe', async() => {
 	expect(infoProperty).toBeDefined()
 	expect(fileProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
-	expect(fileProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(fileProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -99,7 +99,7 @@ test('multipart/form-data no metadata', async() => {
 	const infoProperty = idx.get(schema.properties!, 'info')!
 	expect(infoProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -129,7 +129,7 @@ test('multipart/form-data headers', async() => {
 	const infoProperty = idx.get(schema.properties!, 'info')!
 	expect(infoProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -169,8 +169,8 @@ test('multipart/form-data conflicts', async() => {
 	expect(infoProperty).toBeDefined()
 	expect(fileProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
-	expect(fileProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(fileProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -220,7 +220,7 @@ test('multipart/form-data conflicts in identifiers', async() => {
 	const infoProperty = idx.get(schema.properties!, 'info')!
 	expect(infoProperty).toBeDefined()
 
-	expect(infoProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()

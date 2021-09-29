@@ -433,9 +433,7 @@ export interface CodegenTypeInfo {
 	type: string
 	format: string | null
 	schemaType: CodegenSchemaType
-
-	/** Type in native language */
-	nativeType: CodegenNativeType
+	
 	// TODO we should have a CodegenNativeArrayType implementation of CodegenNativeType that has componentType, and same for map
 	// and then rename componentType in CodegenNativeType to be less confusing
 
@@ -444,7 +442,10 @@ export interface CodegenTypeInfo {
 }
 
 
-export interface CodegenSchemaInfo extends CodegenTypeInfo {
+export interface CodegenSchemaInfo {
+	/** Type in native language */
+	nativeType: CodegenNativeType
+	
 	nullable: boolean
 	readOnly: boolean
 	writeOnly: boolean
@@ -474,7 +475,7 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
-export interface CodegenSchema extends CodegenSchemaInfo {
+export interface CodegenSchema extends CodegenSchemaInfo, CodegenTypeInfo {
 	/* The name of the schema */
 	name: string | null
 	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */

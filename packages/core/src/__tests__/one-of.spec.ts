@@ -195,5 +195,5 @@ test('oneOf arrays (object)', async() => {
 	expect(oneOfCoordinates.nativeType.nativeType).toEqual('Polygon.coordinates.array_value')
 
 	expect(oneOfCoordinates.property.nativeType.nativeType).toEqual('array array array number')
-	expect(oneOfCoordinates.property.schemaType).toEqual(CodegenSchemaType.ARRAY)
+	expect(oneOfCoordinates.property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
 })

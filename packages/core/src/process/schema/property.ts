@@ -1,7 +1,7 @@
 import { CodegenLogLevel, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenSchemaUsage } from '../utils'
+import { extractCodegenSchemaUsage, toCodegenInitialValueOptions } from '../utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './naming'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
@@ -71,7 +71,7 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		name: state.generator.toIdentifier(name),
 		serializedName: name,
 		description: description || schemaUsage.schema.description || null,
-		initialValue: schemaUsage.defaultValue || state.generator.initialValue(schemaUsage) || null,
+		initialValue: schemaUsage.defaultValue || state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)) || null,
 		vendorExtensions: toCodegenVendorExtensions(apiSchema),
 	}
 }

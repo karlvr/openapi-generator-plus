@@ -83,7 +83,7 @@ export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUs
 		serializedName: name,
 		description: null,
 		...extractCodegenSchemaUsage(schemaUsage),
-		initialValue: null,
+		initialValue: state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)) || null,
 		vendorExtensions: null,
 	}
 	property.nativeType = transformNativeTypeForUsage(property, state)

@@ -11,7 +11,7 @@ import { toUniqueName } from './schema/naming'
 import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
-import { createSchemaUsage } from './schema/usage'
+import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope, uniquePropertiesIncludingInherited } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
@@ -168,16 +168,27 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			if (propertyRequiresMetadata(encoding, propertyEncoding)) {
 				const property = allProperties[name]
 				const newPropertySchema = createObjectSchema(`${name}_part`, newSchema, CodegenSchemaPurpose.GENERAL, state)
-				const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {}, state)
 
 				/* Duplicate the property so we don't change the original */
 				const newProperty: CodegenProperty = {
 					...property,
 				}
 				if (property.schema.schemaType === CodegenSchemaType.ARRAY) {
+					const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {
+						required: true,
+						nullable: property.schema.component!.nullable,
+						readOnly: false,
+						writeOnly: false,
+					}, state)
 					newProperty.schema = createArraySchema(newPropertySchemaUsage, state)
-					newProperty.nativeType = newProperty.schema.nativeType
+					newProperty.nativeType = transformNativeTypeForUsage(newProperty, state)
 				} else {
+					const newPropertySchemaUsage = createSchemaUsage(newPropertySchema, {
+						required: property.required,
+						nullable: property.nullable,
+						readOnly: property.readOnly,
+						writeOnly: property.writeOnly,
+					}, state)
 					Object.assign(newProperty, newPropertySchemaUsage)
 				}
 				idx.set(newSchema.properties, name, newProperty)
@@ -191,13 +202,18 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				const valueProperty = createCodegenProperty('value', {
 					...(property.schema.component ? property.schema.component : property),
 					required: true, /* As if there's no value, our container shouldn't be created */
+					nullable: false,
+					readOnly: false,
+					writeOnly: false,
 				}, state)
 				addCodegenProperty(newPropertySchema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
 
 				/* Filename property */
-				if (propertyRequiresFilenameMetadata(encoding, propertyEncoding)) {
-					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {}, state), state)
+				if (propertySupportsFilenameMetadata(encoding, propertyEncoding)) {
+					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {
+						required: false,
+					}, state), state)
 					addCodegenProperty(newPropertySchema.properties, filenameProperty, state)
 					propertyEncoding.filenameProperty = filenameProperty
 				}
@@ -213,6 +229,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 							examples: header.examples,
 							required: header.required,
 						}
+						headerUsage.nativeType = transformNativeTypeForUsage(headerUsage, state)
 						let headerProperty = createCodegenProperty(headerName, headerUsage, state)
 
 						let uniquePropertyName = toUniqueName(headerProperty.name, undefined, newPropertySchema.properties, state)
@@ -269,13 +286,13 @@ function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEnco
 	if (propertyEncoding.headers) {
 		return true
 	}
-	if (propertyRequiresFilenameMetadata(encoding, propertyEncoding)) {
+	if (propertySupportsFilenameMetadata(encoding, propertyEncoding)) {
 		return true
 	}
 	return false	
 }
 
-function propertyRequiresFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
+function propertySupportsFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
 	if (encoding.mediaType.mimeType === 'multipart/form-data' && propertyEncoding.contentType === 'application/octet-stream') {
 		return true
 	}

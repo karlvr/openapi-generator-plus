@@ -1,4 +1,4 @@
-import { CodegenArraySchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenArraySchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
@@ -55,3 +55,46 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 	}
 	return result
 }
+
+/**
+ * Create a new schema of an array type with the given name, in the given scope, and add it to that scope.
+ * @param scope the scope in which to create the object, or `null` to create in the global scope 
+ * @param state 
+ * @returns 
+ */
+export function createArraySchema(component: CodegenSchemaUsage, state: InternalCodegenState): CodegenArraySchema {
+	const nativeType = state.generator.toNativeArrayType({
+		type: 'array',
+		schemaType: CodegenSchemaType.ARRAY,
+		vendorExtensions: null,
+		componentNativeType: component.nativeType,
+	})
+
+	const schema: CodegenArraySchema = {
+		name: null,
+		serializedName: null,
+		scopedName: null,
+		anonymous: false,
+
+		type: 'array',
+		format: null,
+		schemaType: CodegenSchemaType.ARRAY,
+		description: null,
+		title: null,
+		vendorExtensions: null,
+		externalDocs: null,
+		nullable: false,
+		readOnly: false,
+		writeOnly: false,
+		deprecated: false,
+		nativeType,
+		component,
+
+		maxItems: null,
+		minItems: null,
+		uniqueItems: null,
+	}
+
+	return schema
+}
+

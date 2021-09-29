@@ -6,6 +6,7 @@ import { toCodegenExamples } from './examples'
 import { toCodegenHeaders } from './headers'
 import { isMultipart, toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
+import { createArraySchema } from './schema/array'
 import { toUniqueName } from './schema/naming'
 import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
@@ -174,12 +175,8 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 					...property,
 				}
 				if (property.schema.schemaType === CodegenSchemaType.ARRAY) {
-					newProperty.schema.component = newPropertySchemaUsage
-					newProperty.nativeType = state.generator.toNativeArrayType({
-						type: 'array',
-						schemaType: CodegenSchemaType.ARRAY,
-						componentNativeType: newPropertySchemaUsage.nativeType,
-					})
+					newProperty.schema = createArraySchema(newPropertySchemaUsage, state)
+					newProperty.nativeType = newProperty.schema.nativeType
 				} else {
 					Object.assign(newProperty, newPropertySchemaUsage)
 				}

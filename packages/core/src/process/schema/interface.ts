@@ -91,10 +91,6 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 		return interfaceSchema.implementation
 	}
 
-	if (!state.generator.supportsInheritance()) {
-		return undefined
-	}
-
 	const scope = scopeOf(interfaceSchema, state)
 	const result = createObjectSchema(interfaceSchema.name, scope, CodegenSchemaPurpose.IMPLEMENTATION, state)
 
@@ -109,7 +105,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 
 	/* Create and extend implementations from interface parents */
 	if (interfaceSchema.parents) {
-		if (interfaceSchema.parents.length === 1 || state.generator.supportsMultipleInheritance()) {
+		if (state.generator.supportsInheritance() && (interfaceSchema.parents.length === 1 || state.generator.supportsMultipleInheritance())) {
 			for (const aParent of interfaceSchema.parents) {
 				const aParentImplementation = toCodegenInterfaceImplementationSchema(aParent, state)
 				if (aParentImplementation) {

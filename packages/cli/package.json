@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "0.39.0",
+  "version": "0.40.0",
   "description": "OpenAPI code generator written in Node",
   "keywords": [
     "openapi",
@@ -32,8 +32,8 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@openapi-generator-plus/core": "^0.39.0",
-    "@openapi-generator-plus/types": "^0.39.0",
+    "@openapi-generator-plus/core": "^0.40.0",
+    "@openapi-generator-plus/types": "^0.40.0",
     "ansi-colors": "^4.1.1",
     "getopts": "^2.2.5",
     "glob": "^7.1.6",

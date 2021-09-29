@@ -1,5 +1,23 @@
 # @openapi-generator-plus/core
 
+## 0.40.0
+
+### Minor Changes
+
+- 1155800: Decouple CodegenSchemaUsage from CodegenTypeInfo
+
+  This removes duplicated properties about a schema from CodegenSchemaUsage, but means that all generators need
+  to reference schema info that isn't customised with usage through the `schema` property.
+
+- 79f4729: Improve generated schema names in compositions
+
+  Previously improved in f04e527 and improved again here
+
+- 4ba6fdd: Remove CodegenTypeInfo and merge into CodegenSchema
+
+  After decoupling it from CodegenSchemaUsage it was no longer relevant, and it represented the proliferation
+  of type information that was the original problem.
+
 ## 0.39.0
 
 ### Minor Changes

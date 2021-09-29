@@ -1,5 +1,21 @@
 # @openapi-generator-plus/types
 
+## 0.40.0
+
+### Minor Changes
+
+- a85452c: Change nativeTypeUsageTransformer to take a CodegenSchemaUsage as that's what we are trying to transform
+- 1155800: Decouple CodegenSchemaUsage from CodegenTypeInfo
+
+  This removes duplicated properties about a schema from CodegenSchemaUsage, but means that all generators need
+  to reference schema info that isn't customised with usage through the `schema` property.
+
+- 58cb081: Require component for Array and Map schemas
+- 4ba6fdd: Remove CodegenTypeInfo and merge into CodegenSchema
+
+  After decoupling it from CodegenSchemaUsage it was no longer relevant, and it represented the proliferation
+  of type information that was the original problem.
+
 ## 0.39.0
 
 ### Minor Changes

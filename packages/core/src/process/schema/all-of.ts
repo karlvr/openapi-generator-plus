@@ -75,7 +75,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			scope: state.generator.nativeCompositionCanBeScope() ? result : scope,
-			suggestedName: (type) => type,
+			suggestedName: 'content',
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema
 

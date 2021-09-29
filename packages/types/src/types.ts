@@ -539,6 +539,8 @@ export interface CodegenStringSchema extends CodegenSchema {
 export interface CodegenArraySchema extends CodegenSchema {
 	type: 'array'
 	schemaType: CodegenSchemaType.ARRAY
+	
+	component: CodegenSchemaUsage
 
 	maxItems: number | null
 	minItems: number | null
@@ -548,6 +550,8 @@ export interface CodegenArraySchema extends CodegenSchema {
 export interface CodegenMapSchema extends CodegenSchema {
 	type: 'object'
 	schemaType: CodegenSchemaType.MAP
+
+	component: CodegenSchemaUsage
 	
 	maxProperties: number | null
 	minProperties: number | null

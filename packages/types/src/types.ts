@@ -345,7 +345,7 @@ export interface CodegenContentPropertyEncoding {
 
 export type CodegenExamples = IndexedCollectionType<CodegenExample>
 
-export interface CodegenExample extends CodegenTypeInfo {
+export interface CodegenExample {
 	name: string | null
 	mediaType: CodegenMediaType | null
 	summary: string | null
@@ -428,20 +428,6 @@ export enum CodegenSchemaType {
 	FILE = 'FILE',
 }
 
-export interface CodegenTypeInfo {
-	/** OpenAPI type */
-	type: string
-	format: string | null
-	schemaType: CodegenSchemaType
-	
-	// TODO we should have a CodegenNativeArrayType implementation of CodegenNativeType that has componentType, and same for map
-	// and then rename componentType in CodegenNativeType to be less confusing
-
-	/** Component schema usage for array and map properties */
-	component: CodegenSchemaUsage | null
-}
-
-
 export interface CodegenSchemaInfo {
 	/** Type in native language */
 	nativeType: CodegenNativeType
@@ -475,7 +461,7 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
-export interface CodegenSchema extends CodegenSchemaInfo, CodegenTypeInfo {
+export interface CodegenSchema extends CodegenSchemaInfo {
 	/* The name of the schema */
 	name: string | null
 	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
@@ -487,6 +473,15 @@ export interface CodegenSchema extends CodegenSchemaInfo, CodegenTypeInfo {
 
 	description: string | null
 	title: string | null
+
+	/** OpenAPI type */
+	type: string
+	format: string | null
+
+	schemaType: CodegenSchemaType
+	
+	/** Component schema usage for array and map properties */
+	component: CodegenSchemaUsage | null
 
 	vendorExtensions: CodegenVendorExtensions | null
 	externalDocs: CodegenExternalDocs | null
@@ -760,7 +755,7 @@ export interface CodegenSchemaNameSuggestionOptions {
 	schemaType: CodegenSchemaType
 }
 
-interface CodegenTypeOptions {
+export interface CodegenTypeOptions {
 	type: string
 	format?: string | null
 	schemaType: CodegenSchemaType

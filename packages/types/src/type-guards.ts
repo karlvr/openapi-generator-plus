@@ -1,5 +1,4 @@
-import { CodegenSchemaUsage, CodegenTypeInfo } from '.'
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -92,29 +91,6 @@ export function isCodegenSchemaUsage(ob: unknown): ob is CodegenSchemaUsage {
 	}
 	if (typeof anyOb.required !== 'boolean' || typeof anyOb.nullable !== 'boolean' || typeof anyOb.readOnly !== 'boolean'
 		|| typeof anyOb.writeOnly !== 'boolean' || typeof anyOb.deprecated !== 'boolean') {
-		return false
-	}
-	return true
-}
-
-export function isCodegenTypeInfo(ob: unknown): ob is CodegenTypeInfo {
-	if (typeof ob !== 'object') {
-		return false
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const anyOb = ob as any
-	
-	if (typeof anyOb.type !== 'string') {
-		return false
-	}
-	if (anyOb.format !== null && typeof anyOb.format !== 'string') {
-		return false
-	}
-	if (typeof anyOb.schemaType !== 'string') {
-		return false
-	}
-	if (anyOb.component !== null && typeof anyOb.component !== 'object') {
 		return false
 	}
 	return true

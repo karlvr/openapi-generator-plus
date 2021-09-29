@@ -1,7 +1,7 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaInfo, CodegenSchemaUsage, CodegenTypeInfo, CodegenValue, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
+import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenTypeOptions, CodegenSchema, CodegenSchemaInfo, CodegenSchemaUsage, CodegenValue, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 
 /**
@@ -25,7 +25,7 @@ export function resolveReference<T>(ob: T | OpenAPIV3_1.ReferenceObject | OpenAP
 /**
  * Extract _just_ the CodegenTypeInfo properties from the source.
  */
-export function extractCodegenTypeInfo(source: CodegenTypeInfo | CodegenSchemaUsage): CodegenTypeInfo {
+function extractCodegenTypeOptions(source: CodegenSchema | CodegenSchemaUsage): CodegenTypeOptions {
 	if (isCodegenSchemaUsage(source)) {
 		source = source.schema
 	}
@@ -34,12 +34,10 @@ export function extractCodegenTypeInfo(source: CodegenTypeInfo | CodegenSchemaUs
 		type: source.type,
 		format: source.format,
 		schemaType: source.schemaType,
-
-		component: source.component,
 	}
 }
 
-export function equalCodegenTypeInfo(a: CodegenTypeInfo | CodegenSchemaUsage, b: CodegenTypeInfo | CodegenSchemaUsage): boolean {
+export function equalCodegenTypeInfo(a: CodegenSchema | CodegenSchemaUsage, b: CodegenSchema | CodegenSchemaUsage): boolean {
 	if (isCodegenSchemaUsage(a)) {
 		a = a.schema
 	}
@@ -56,7 +54,7 @@ export function equalCodegenTypeInfo(a: CodegenTypeInfo | CodegenSchemaUsage, b:
 	)
 }
 
-export function typeInfoToString(a: CodegenTypeInfo | CodegenSchemaUsage): string {
+export function typeInfoToString(a: CodegenSchema | CodegenSchemaUsage): string {
 	if (isCodegenSchemaUsage(a)) {
 		a = a.schema
 	}
@@ -236,10 +234,7 @@ export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, 
 		return null
 	}
 
-	const literalValue = state.generator.toLiteral(value, {
-		...extractCodegenTypeInfo(schemaUsage.schema),
-		...schemaUsage,
-	})
+	const literalValue = state.generator.toLiteral(value, toCodegenLiteralValueOptions(schemaUsage))
 	if (literalValue === null) {
 		state.log(CodegenLogLevel.WARN, `Cannot format literal for default value "${value}"`)
 		return null
@@ -253,8 +248,9 @@ export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, 
 
 export function toCodegenDefaultValueOptions(usage: CodegenSchemaUsage): CodegenDefaultValueOptions {
 	return {
-		...extractCodegenTypeInfo(usage.schema),
+		...extractCodegenTypeOptions(usage.schema),
 		...usage,
+		component: usage.schema.component,
 	}
 }
 

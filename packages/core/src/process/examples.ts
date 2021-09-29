@@ -1,15 +1,14 @@
-import { CodegenExample, CodegenExamples, CodegenSchemaType, CodegenTypeInfo, CodegenSchema, CodegenLogLevel, CodegenSchemaUsage, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
+import { CodegenExample, CodegenExamples, CodegenSchemaType, CodegenSchema, CodegenLogLevel, CodegenSchemaUsage, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from '../openapi-type-guards'
 import { toCodegenMediaType } from './media-types'
-import { extractCodegenTypeInfo } from './utils'
 import { stringLiteralValueOptions } from '../utils'
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
-function canFormatExampleValueAsLiteral(schema: CodegenTypeInfo) {
+function canFormatExampleValueAsLiteral(schema: CodegenSchema) {
 	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
 }
 
@@ -25,7 +24,6 @@ function exampleValue(value: unknown, mediaType: string | undefined, schema: Cod
 		valueLiteral,
 		valueString,
 		valuePretty: toCodegenExampleValuePretty(value),
-		...extractCodegenTypeInfo(schema),
 	}
 }
 
@@ -40,7 +38,6 @@ function toCodegenExample(example: unknown, mediaType: string | undefined, schem
 		description: null,
 		...value,
 		mediaType: mediaType ? toCodegenMediaType(mediaType) : null,
-		...extractCodegenTypeInfo(schema),
 	}
 }
 
@@ -76,7 +73,6 @@ export function toCodegenExamples(apiExample: unknown | undefined, examples: Ope
 					description: null,
 					mediaType: toCodegenMediaType(mediaTypeOrName),
 					...example,
-					...extractCodegenTypeInfo(schema),
 				})
 			}
 		} else if (isOpenAPIV3ExampleObject(apiExample, state.specVersion)) {
@@ -89,7 +85,6 @@ export function toCodegenExamples(apiExample: unknown | undefined, examples: Ope
 					description: apiExample.description || null,
 					summary: apiExample.summary || null,
 					...example,
-					...extractCodegenTypeInfo(schema),
 				})
 			}
 		} else {

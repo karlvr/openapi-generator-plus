@@ -28,7 +28,7 @@ export enum CodegenGeneratorType {
 }
 
 /**
- * The interface implemented by language-specific generator modules.
+ * The interface implemented by language-specific generator templates.
  */
 export interface CodegenGenerator {
 	generatorType: () => CodegenGeneratorType

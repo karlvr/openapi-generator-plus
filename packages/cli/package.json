@@ -1,7 +1,7 @@
 {
   "name": "openapi-generator-plus",
   "version": "0.41.1",
-  "description": "OpenAPI code generator written in Node",
+  "description": "Modular OpenAPI code generator written in TypeScript and Node.js",
   "keywords": [
     "openapi",
     "swagger",

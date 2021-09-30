@@ -25,7 +25,7 @@ function warn(message: string): void {
 }
 
 function help() {
-	console.log(`usage: ${path.basename(process.argv[1])} [-g <generator module or keywords>] [<dest dir>]`)
+	console.log(`usage: ${path.basename(process.argv[1])} [-g <generator template or keywords>] [<dest dir>]`)
 }
 
 function instructions() {
@@ -283,20 +283,20 @@ async function findCliVersion() {
 
 async function findCandidates(name?: string) {
 	if (!name) {
-		info('Searching for generator modules...')
+		info('Searching for generator templates...')
 		const found = await search('openapi-generator-plus-generator')
 		const generators = found.filter(keywordFilter('openapi-generator-plus-generator'))
 
-		info(`Found ${generators.length} generator modules`)
+		info(`Found ${generators.length} generator templates`)
 		return generators
 	} else {
-		info(`Searching for generator modules: ${name}`)
+		info(`Searching for generator templates: ${name}`)
 		const found = await search(`openapi-generator-plus-generator ${name}`)
 		const generators = found.filter(keywordFilter('openapi-generator-plus-generator'))
 		if (generators.length === 0) {
-			die(`Could not find any generator modules on npmjs.com matching "${name}"`)
+			die(`Could not find any generator templates on npmjs.com matching "${name}"`)
 		}
-		info(`Found ${found.length} matching generator modules`)
+		info(`Found ${found.length} matching generator templates`)
 		return generators
 	}
 }
@@ -314,7 +314,7 @@ async function filterByType(generators: Result[]): Promise<{ filterType?: string
 		{
 			type: 'list',
 			name: 'type',
-			message: 'What type of generator module are you looking for?',
+			message: 'What type of generator template are you looking for?',
 			choices: availableTypes,
 		},
 	])).type
@@ -334,15 +334,15 @@ async function chooseGenerator(generators: Result[], filterType?: string): Promi
 			type: 'list',
 			pageSize: 20,
 			name: 'generator',
-			message: `Choose a ${filterType ? `${filterType} ` : ''}generator module to use to generate your API SDK`,
+			message: `Choose a ${filterType ? `${filterType} ` : ''}generator template to use to generate your API SDK`,
 			choices: [
-				new inquirer.Separator(`Official Generator Modules (${officialModules.length})`),
+				new inquirer.Separator(`Official Generator Templates (${officialModules.length})`),
 				...officialModules.map(m => ({
 					name: displayResult(m),
 					value: m,
 					short: m.description,
 				})),
-				new inquirer.Separator(`Third Party Generator Modules (${thirdPartyModules.length})`),
+				new inquirer.Separator(`Third Party Generator Templates (${thirdPartyModules.length})`),
 				...thirdPartyModules.map(m => ({
 					name: displayResult(m),
 					value: m,
@@ -382,7 +382,7 @@ function findAvailableTypes(generators: Result[]) {
 function displayResult(r: Result) {
 	const name = r.name.replace(/^@openapi-generator-plus\//, '')
 	if (r.description) {
-		const description = r.description.replace(/^An OpenAPI Generator.* module for an? /, '')
+		const description = r.description.replace(/^An OpenAPI Generator.* (module|template) for an? /, '')
 		return `${pad(name, 50)}    ${description}`
 	} else {
 		return name

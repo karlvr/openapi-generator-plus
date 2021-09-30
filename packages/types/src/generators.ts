@@ -4,7 +4,7 @@ import { CodegenTransformingNativeTypeConstructor, CodegenComposingNativeTypeCon
 export type CodegenBaseGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => Pick<CodegenGenerator, 'toEnumMemberName' | 'toIteratedSchemaName'>
 
 /**
- * The options given to a generator module function when it is constructed.
+ * The options given to a generator template function when it is constructed.
  */
 export interface CodegenGeneratorContext {
 	/**

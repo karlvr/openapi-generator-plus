@@ -142,7 +142,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	try {
 		generatorConstructor = await loadGeneratorConstructor(config.generator)
 	} catch (error) {
-		console.error(`Failed to load generator module: ${config.generator}`, error)
+		console.error(`Failed to load generator template: ${config.generator}`, error)
 		process.exit(1)
 	}
 

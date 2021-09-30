@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/karlvr/openapi-generator-plus/issues"
   },
-  "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
+  "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/core#readme",
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "^0.1.6",
     "@openapi-generator-plus/swagger-parser": "^10.0.6",

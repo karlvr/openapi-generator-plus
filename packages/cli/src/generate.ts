@@ -150,8 +150,13 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	let result: boolean
 	try {
 		result = await generate(config, generatorConstructor)
-	} catch (error) {
-		console.error(c.bold.red('Failed to generate:'), error)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} catch (error: any) {
+		if (error.message) {
+			console.error(c.bold.red('Failed to generate:'), error.message)
+		} else {
+			console.error(c.bold.red('Failed to generate:'), error)
+		}
 		process.exit(1)
 	}
 

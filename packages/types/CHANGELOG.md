@@ -1,5 +1,15 @@
 # @openapi-generator-plus/types
 
+## 0.41.0
+
+### Minor Changes
+
+- f1ca172: Add interfaceCanBeNested() to generator to support Swift, which can't nest protocols
+- 25a26cd: Add CodegenHierarchySchema for generators that require special handling of discriminator hierarchies
+- eeb0f80: Always create a concrete implementation when we turn an object from the specification into an interface
+- a9101dc: Remove defunct FILE type and replace with BINARY type that recognises type string format binary
+- 8e27626: Add properties back to CodegenParameterBase so it looks like CodegenSchemaUsage to templates, and add support for deprecated
+
 ## 0.40.0
 
 ### Minor Changes

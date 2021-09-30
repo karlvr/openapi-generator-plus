@@ -1,5 +1,25 @@
 # openapi-generator-plus
 
+## 0.41.0
+
+### Patch Changes
+
+- Updated dependencies [f1ca172]
+- Updated dependencies [d4a0d98]
+- Updated dependencies [25a26cd]
+- Updated dependencies [14c54ae]
+- Updated dependencies [5c9b32d]
+- Updated dependencies [51b10a5]
+- Updated dependencies [eeb0f80]
+- Updated dependencies [1f5efef]
+- Updated dependencies [68b1c65]
+- Updated dependencies [1969730]
+- Updated dependencies [8ce82be]
+- Updated dependencies [a9101dc]
+- Updated dependencies [8e27626]
+  - @openapi-generator-plus/core@0.41.0
+  - @openapi-generator-plus/types@0.41.0
+
 ## 0.40.0
 
 ### Patch Changes

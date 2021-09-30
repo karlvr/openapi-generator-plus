@@ -1,5 +1,26 @@
 # @openapi-generator-plus/core
 
+## 0.41.0
+
+### Minor Changes
+
+- f1ca172: Add interfaceCanBeNested() to generator to support Swift, which can't nest protocols
+- 25a26cd: Add CodegenHierarchySchema for generators that require special handling of discriminator hierarchies
+- 14c54ae: Artificially created properties now get an appropriate initial value
+- eeb0f80: Always create a concrete implementation when we turn an object from the specification into an interface
+- 68b1c65: Add debugStringify to improve logging of objects
+- 1969730: Fix initial value on artificially created part properties for multipart forms
+- a9101dc: Remove defunct FILE type and replace with BINARY type that recognises type string format binary
+- 8e27626: Add properties back to CodegenParameterBase so it looks like CodegenSchemaUsage to templates, and add support for deprecated
+
+### Patch Changes
+
+- d4a0d98: Support references in examples
+- 5c9b32d: Fix transformNativeTypeForUsage to transform the nativeType from the schema not the schema usage, to avoid double-transformation
+- 51b10a5: Fix transforming of component types
+- 1f5efef: Fix creation of interface implementations when inheritance isn't supported
+- 8ce82be: Fix forced required on path parameters
+
 ## 0.40.0
 
 ### Minor Changes

@@ -340,13 +340,13 @@ async function chooseGenerator(generators: Result[], filterType?: string): Promi
 				...officialModules.map(m => ({
 					name: displayResult(m),
 					value: m,
-					short: m.description,
+					short: m.name,
 				})),
 				new inquirer.Separator(`Third Party Generator Templates (${thirdPartyModules.length})`),
 				...thirdPartyModules.map(m => ({
 					name: displayResult(m),
 					value: m,
-					short: m.description,
+					short: m.name,
 				})),
 			],
 		},

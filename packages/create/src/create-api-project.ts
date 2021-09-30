@@ -284,7 +284,7 @@ async function findCliVersion() {
 async function findCandidates(name?: string) {
 	if (!name) {
 		info('Searching for generator templates...')
-		const found = await search('openapi-generator-plus-generator')
+		const found = await search('keywords:openapi-generator-plus-generator')
 		const generators = found.filter(keywordFilter('openapi-generator-plus-generator'))
 
 		info(`Found ${generators.length} generator templates`)

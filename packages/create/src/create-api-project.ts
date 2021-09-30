@@ -96,6 +96,10 @@ async function run(): Promise<void> {
 		die(`package.json already exists at ${packageJsonPath}`)
 		// TODO ask if you'd like to add to it
 	}
+
+	const packageManager = await choosePackageManager(opts.packageManager)
+	info(`Selected package manager: ${packageManager}`)
+
 	info('Searching for the latest version of OpenAPI Generator Plus...')
 	const cliPackage = await findCliVersion()
 	if (!cliPackage) {
@@ -144,8 +148,6 @@ generator: "${generator.name}"
 		await fs.writeFile(configPath, configText)
 		info(`Created API generator config: ${configPath}`)
 	}
-
-	const packageManager = await choosePackageManager(opts.packageManager)
 
 	const readmePath = path.join(dest, 'README.md')
 	if (await exists(readmePath)) {

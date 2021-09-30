@@ -25,7 +25,7 @@ function warn(message: string): void {
 }
 
 function help() {
-	console.log(`usage: ${path.basename(process.argv[1])} [-g <generator template or keywords>] [<dest dir>]`)
+	console.log(`usage: ${path.basename(process.argv[1])} [-g <generator template or keywords>] [-p <package manager>] [<dest dir>]`)
 }
 
 function instructions() {

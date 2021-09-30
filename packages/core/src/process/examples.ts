@@ -6,6 +6,7 @@ import { isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from '../openapi-t
 import { toCodegenMediaType } from './media-types'
 import { stringLiteralValueOptions } from '../utils'
 import { debugStringify } from '../stringify'
+import { resolveReference } from './utils'
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
@@ -64,7 +65,7 @@ export function toCodegenExamples(apiExample: unknown | undefined, examples: Ope
 
 	const result: CodegenExamples = idx.create()
 	for (const mediaTypeOrName in examples) {
-		const apiExample = examples[mediaTypeOrName]
+		const apiExample = resolveReference(examples[mediaTypeOrName], state)
 		if (isOpenAPIV2ExampleObject(apiExample, state.specVersion)) {
 			const example = exampleValue(apiExample, mediaTypeOrName, schema, state)
 			if (example !== null) {

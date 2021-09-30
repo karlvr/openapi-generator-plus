@@ -28,6 +28,10 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let schemaUse: CodegenSchemaUsage | undefined
 	let examples: CodegenExamples | null
 	let defaultValue: CodegenValue | null
+
+	const parameterIn = parameter.in as CodegenParameterIn
+	const required = parameterIn === 'path' ? true : convertToBoolean(parameter.required, false)
+
 	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
 			required: convertToBoolean(parameter.required, false),
@@ -48,7 +52,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		 * mean that we need to provide more info to toNativeType so it can put in full package names?
 		 */
 		schemaUse = toCodegenSchemaUsage(parameter.schema || { type: 'string' }, state, {
-			required: convertToBoolean(parameter.required, false),
+			required,
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			scope: null,
@@ -58,7 +62,6 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		defaultValue = null
 	}
 
-	const parameterIn = parameter.in as CodegenParameterIn
 	const vendorExtensions = toCodegenVendorExtensions(parameter)
 
 	const style = (parameter.style as CodegenEncodingStyle | undefined) || defaultEncodingStyle(parameterIn)
@@ -82,7 +85,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 
 		in: parameterIn,
 		description: parameter.description || null,
-		required: parameter.in === 'path' ? true : convertToBoolean(parameter.required, false),
+		required,
 		schema: schemaUse.schema,
 		nativeType: schemaUse.nativeType,
 		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3

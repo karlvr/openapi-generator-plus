@@ -1,5 +1,12 @@
 # create-openapi-generator-plus
 
+## 0.1.0
+
+### Minor Changes
+
+- 677a744: Report selected package manager earlier
+- b29b4e3: Check if package.json already exists first
+
 ## 0.0.6
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 0.0.3
+
+### Patch Changes
+
+- e032c88: Fix npm-init
+
 ## 0.0.2
 
 ### Patch Changes

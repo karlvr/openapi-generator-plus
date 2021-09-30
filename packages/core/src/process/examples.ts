@@ -9,7 +9,7 @@ import { stringLiteralValueOptions } from '../utils'
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
 function canFormatExampleValueAsLiteral(schema: CodegenSchema) {
-	return schema.schemaType !== CodegenSchemaType.OBJECT && schema.schemaType !== CodegenSchemaType.FILE
+	return schema.schemaType !== CodegenSchemaType.OBJECT
 }
 
 function exampleValue(value: unknown, mediaType: string | undefined, schema: CodegenSchema, state: InternalCodegenState): Pick<CodegenExample, 'value' | 'valueLiteral' | 'valueString' | 'valuePretty'> | null {

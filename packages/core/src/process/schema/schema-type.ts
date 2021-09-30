@@ -18,10 +18,12 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 		return CodegenSchemaType.DATE
 	} else if (type === 'string' && format === 'time') {
 		return CodegenSchemaType.TIME
+	} else if (type === 'string' && format === 'binary') {
+		return CodegenSchemaType.BINARY
 	} else if (type === 'string') {
 		return CodegenSchemaType.STRING
 	} else if (type === 'file') {
-		return CodegenSchemaType.FILE
+		return CodegenSchemaType.BINARY
 	} else {
 		throw new Error(`Unsupported schema type: ${type}`)
 	}

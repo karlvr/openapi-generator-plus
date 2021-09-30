@@ -427,7 +427,7 @@ export enum CodegenSchemaType {
 	DATETIME = 'DATETIME',
 	DATE = 'DATE',
 	TIME = 'TIME',
-	FILE = 'FILE',
+	BINARY = 'BINARY',
 }
 
 export interface CodegenSchemaInfo {

@@ -380,10 +380,12 @@ function findAvailableTypes(generators: Result[]) {
 }
 
 function displayResult(r: Result) {
-	const name = r.name.replace(/^@openapi-generator-plus\//, '')
+	const name = r.name
+		.replace(/^@openapi-generator-plus\//, '')
+		.replace(/-generator$/, '')
 	if (r.description) {
 		const description = r.description.replace(/^An OpenAPI Generator.* (module|template) for an? /, '')
-		return `${pad(name, 50)}    ${description}`
+		return `${pad(name, 40)}    ${description}`
 	} else {
 		return name
 	}

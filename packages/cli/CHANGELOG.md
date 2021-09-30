@@ -1,5 +1,11 @@
 # openapi-generator-plus
 
+## 0.41.1
+
+### Patch Changes
+
+- 42b19d0: Improve error messages when the spec isn't found
+
 ## 0.41.0
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenHierarchySchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
@@ -11,7 +11,7 @@ import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToSco
  * @param schema 
  * @returns 
  */
-export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenInterfaceSchema {
+export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHierarchySchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenInterfaceSchema {
 	if (schema.interface) {
 		return schema.interface
 	}
@@ -62,14 +62,16 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema, scope: Cod
 		properties: schema.properties,
 		examples: null,
 		children: null,
-		implementation: schema,
+		implementation: isCodegenObjectSchema(schema) ? schema : null,
 		implementors: null,
 		parents: null,
 		schemas: null,
 	}
 	schema.interface = result
 
-	addImplementor(result, schema)
+	if (isCodegenObjectSchema(schema)) {
+		addImplementor(result, schema)
+	}
 
 	if (parents) {
 		for (const aParent of parents) {

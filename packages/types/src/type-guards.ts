@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage, CodegenHierarchySchema } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -34,7 +34,7 @@ export function isCodegenInterfaceSchema(schema: CodegenSchema): schema is Codeg
 }
 
 export function isCodegenObjectLikeSchema(schema: CodegenSchema): schema is CodegenObjectLikeSchemas {
-	return schema.schemaType === CodegenSchemaType.OBJECT || schema.schemaType === CodegenSchemaType.INTERFACE
+	return schema.schemaType === CodegenSchemaType.OBJECT || schema.schemaType === CodegenSchemaType.INTERFACE || schema.schemaType === CodegenSchemaType.HIERARCHY
 }
 
 export function isCodegenNamedSchema(schema: CodegenSchema): schema is CodegenNamedSchema {
@@ -62,6 +62,10 @@ export function isCodegenAnyOfSchema(schema: CodegenSchema): schema is CodegenAn
 
 export function isCodegenOneOfSchema(schema: CodegenSchema): schema is CodegenOneOfSchema {
 	return schema.schemaType === CodegenSchemaType.ONEOF
+}
+
+export function isCodegenHierarchySchema(schema: CodegenSchema): schema is CodegenHierarchySchema {
+	return schema.schemaType === CodegenSchemaType.HIERARCHY
 }
 
 export function isCodegenWrapperSchema(schema: CodegenSchema): schema is CodegenWrapperSchema {

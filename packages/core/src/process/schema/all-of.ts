@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -19,6 +19,7 @@ export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		case CodegenAllOfStrategy.NATIVE:
 			return toCodegenAllOfSchemaNative(apiSchema, naming, state)
 		case CodegenAllOfStrategy.OBJECT:
+		case CodegenAllOfStrategy.HIERARCHY:
 			return toCodegenAllOfSchemaObject(apiSchema, naming, state)
 	}
 	throw new Error(`Unsupported allOf strategy: ${strategy}`)
@@ -79,7 +80,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema
 
-		if (!isCodegenObjectLikeSchema(allOfSchema)) {
+		if (!isCodegenObjectSchema(allOfSchema) && !isCodegenInterfaceSchema(allOfSchema)) {
 			throw new Error(`allOf "${result.name}" references a non-object (${allOfSchema.schemaType}) schema: ${JSON.stringify(allOfApiSchema)}`)
 		}
 
@@ -200,10 +201,15 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			}
 
 			/* Make sure there's an interface schema to use */
-			const interfaceSchema = isCodegenObjectSchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
+			const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
 
 			addImplementor(interfaceSchema, result)
 			addToAnyDiscriminators(allOfSchema, result, state)
+
+			if (isCodegenHierarchySchema(allOfSchema)) {
+				/* Hierarchy schemas discover their members when we find them including the hierarchy in an allOf here */
+				allOfSchema.composes.push(result)
+			}
 		}
 	}
 

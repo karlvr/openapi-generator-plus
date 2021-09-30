@@ -1,4 +1,4 @@
-import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -11,32 +11,26 @@ import { loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discr
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenInterfaceImplementationSchema } from './interface'
+import { toCodegenHierarchySchema } from './hierarchy'
 
-export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema {
-	if (!apiSchema.discriminator || !interfaceRequiredForDiscriminator(state)) {
-		return toCodegenObjectSchemaObject(apiSchema, naming, state)
-	} else {
+export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema | CodegenHierarchySchema {
+	if (apiSchema.discriminator && state.generator.allOfStrategy() === CodegenAllOfStrategy.HIERARCHY) {
+		return toCodegenHierarchySchema(apiSchema, naming, state)
+	} else if (apiSchema.discriminator && state.generator.allOfStrategy() === CodegenAllOfStrategy.OBJECT && !(state.generator.supportsInheritance() && state.generator.supportsMultipleInheritance())) {
+		/* 
+		If we use the OBJECT allOf strategy, then we need to consider whether we need to turn objects into interfaces if
+		they contain a discriminator.
+
+		If we support multiple inheritance, then we don't need an interface as we can have the object containing the discriminator
+		as a parent of any members, thus establishing compatibility.
+
+		If we don't support multiple inheritance (or any form of inheritance) then the schema containing the discriminator needs to
+		be an interface so any members can be compatible with it.
+		*/
 		return toCodegenObjectSchemaInterface(apiSchema, naming, state)
+	} else {
+		return toCodegenObjectSchemaObject(apiSchema, naming, state)
 	}
-}
-
-/**
- * Determine whether we need to turn an object schema into an interface if it contains a discriminator.
- * @param state 
- * @returns 
- */
-function interfaceRequiredForDiscriminator(state: InternalCodegenState) {
-	/* 
-	   If we use the OBJECT allOf strategy, then we need to consider whether we need to turn objects into interfaces if
-	   they contain a discriminator.
-
-	   If we support multiple inheritance, then we don't need an interface as we can have the object containing the discriminator
-	   as a parent of any members, thus establishing compatibility.
-
-	   If we don't support multiple inheritance (or any form of inheritance) then the schema containing the discriminator needs to
-	   be an interface so any members can be compatible with it.
-	 */
-	return state.generator.allOfStrategy() === CodegenAllOfStrategy.OBJECT && !(state.generator.supportsInheritance() && state.generator.supportsMultipleInheritance())
 }
 
 function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {

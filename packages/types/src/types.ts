@@ -415,6 +415,7 @@ export enum CodegenSchemaType {
 	ALLOF = 'ALLOF',
 	ANYOF = 'ANYOF',
 	ONEOF = 'ONEOF',
+	HIERARCHY = 'HIERARCHY',
 	MAP = 'MAP',
 	ARRAY = 'ARRAY',
 	BOOLEAN = 'BOOLEAN',
@@ -621,7 +622,7 @@ interface SchemaMixinProperties {
 /**
  * A schema that looks like an object; that is, it contains properties.
  */
-export type CodegenObjectLikeSchemas = CodegenObjectSchema | CodegenInterfaceSchema
+export type CodegenObjectLikeSchemas = CodegenObjectSchema | CodegenInterfaceSchema | CodegenHierarchySchema
 
 export interface CodegenObjectSchema extends CodegenNamedSchema, SchemaMixinProperties, CodegenScope, SchemaMixinDiscriminator, SchemaMixinDiscriminatorValues {
 	type: 'object'
@@ -690,6 +691,18 @@ export interface CodegenAnyOfSchema extends CodegenCompositionSchema {
 export interface CodegenOneOfSchema extends CodegenCompositionSchema {
 	type: 'oneOf' // TODO do we want to introduce new types? can this be null?
 	schemaType: CodegenSchemaType.ONEOF
+}
+
+export interface CodegenHierarchySchema extends CodegenCompositionSchema, SchemaMixinProperties {
+	type: 'hierarchy'
+	schemaType: CodegenSchemaType.HIERARCHY
+
+	/** The interface created for this object schema, so other object schemas can implement it */
+	interface: CodegenInterfaceSchema | null
+
+	parents: null
+
+	polymorphic: true
 }
 
 /**
@@ -1018,6 +1031,8 @@ export enum CodegenAllOfStrategy {
 	NATIVE = 'NATIVE',
 	/** Convert the allOf structure to object schemas with relationships */
 	OBJECT = 'OBJECT',
+	/** Convert the allOf structure to object schemas with a hierarchy schema at its root */
+	HIERARCHY = 'HIERARCHY',
 }
 
 export enum CodegenAnyOfStrategy {

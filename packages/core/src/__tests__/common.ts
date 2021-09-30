@@ -115,6 +115,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		nativeCompositionCanBeScope: () => true,
 		nativeComposedSchemaRequiresName: () => true,
 		nativeComposedSchemaRequiresObjectLikeOrWrapper: () => false,
+		interfaceCanBeNested: () => true,
 		exportTemplates: async() => {
 			// NOOP
 		},

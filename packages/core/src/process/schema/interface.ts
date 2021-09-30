@@ -16,6 +16,10 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 		return schema.interface
 	}
 
+	if (!state.generator.interfaceCanBeNested()) {
+		scope = null
+	}
+
 	/* Create interfaces for parents */
 	let parents: CodegenInterfaceSchema[] | null = null
 	if (schema.parents) {

@@ -70,6 +70,11 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 				examples: defaultContent.examples,
 				defaultValue: null,
 
+				nullable: false,
+				readOnly: false,
+				writeOnly: false,
+				deprecated: false,
+
 				description: requestBody.description || null,
 				collectionFormat: null,
 				
@@ -115,6 +120,11 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 					description: existingBodyParam.description,
 					collectionFormat: existingBodyParam.collectionFormat,
 					vendorExtensions: existingBodyParam.vendorExtensions,
+
+					nullable: existingBodyParam.nullable,
+					readOnly: existingBodyParam.readOnly,
+					writeOnly: existingBodyParam.writeOnly,
+					deprecated: existingBodyParam.deprecated,
 
 					contents,
 					defaultContent: contents[0],

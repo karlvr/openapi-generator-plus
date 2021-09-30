@@ -89,6 +89,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		examples,
 		defaultValue,
 
+		nullable: false,
+		readOnly: false,
+		writeOnly: false,
+		deprecated: convertToBoolean(parameter.deprecated, false),
+
 		vendorExtensions,
 		encoding,
 

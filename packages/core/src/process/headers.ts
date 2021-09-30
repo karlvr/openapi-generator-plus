@@ -42,6 +42,11 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			...schemaUse,
 	
 			required: false,
+			nullable: false,
+			readOnly: false,
+			writeOnly: false,
+			deprecated: false,
+
 			collectionFormat: header.collectionFormat || null,
 	
 			vendorExtensions: toCodegenVendorExtensions(header),
@@ -66,6 +71,11 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			required: convertToBoolean(header.required, false),
 			collectionFormat: null,
 			examples,
+
+			nullable: false,
+			readOnly: false,
+			writeOnly: false,
+			deprecated: convertToBoolean(header.deprecated, false),
 	
 			vendorExtensions: toCodegenVendorExtensions(header),
 		}

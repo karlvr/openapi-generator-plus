@@ -873,6 +873,12 @@ interface CodegenParameterBase {
 	examples: CodegenExamples | null
 	defaultValue: CodegenValue | null
 
+	/* Add properties from CodegenSchemaUsage so templates can treat parameters like properties */
+	nullable: false
+	readOnly: false
+	writeOnly: false
+	deprecated: boolean
+
 	vendorExtensions: CodegenVendorExtensions | null
 }
 

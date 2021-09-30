@@ -10,7 +10,7 @@
     "typescript"
   ],
   "bin": {
-    "create-api-project": "./dist/create-api-project.js"
+    "create-openapi-generator-plus": "./dist/create-api-project.js"
   },
   "scripts": {
     "build": "../../node_modules/.bin/tsc -p tsconfig.prod.json",

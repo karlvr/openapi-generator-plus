@@ -12,10 +12,43 @@ npm init openapi-generator-plus
 
 You will prompted to choose a generator template from those [available on npmjs.com](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator).
 
+![Image of choosing a generator type](./packages/create/etc/img/choose-template-type.png)
+![Image of choosing a generator template](./packages/create/etc/img/choose-template.png)
+
 The script will create a `package.json` and `config.yml`, install OpenAPI Generator Plus
 and the generator template, and setup a build script.
 
+![Image of complete installation](./packages/create/etc/img/complete.png)
+
 Edit the `config.yml` to point to your API specification, and where you'd like to output the generated API.
+
+![Image of editing config](./packages/create/etc/img/config.png)
+
+Then generate your API.
+
+```shell
+npm run build
+```
+
+Re-run that command any time your API specification changes, or you update OpenAPI Generator Plus.
+
+See [create-openapi-generator-plus](https://github.com/karlvr/openapi-generator-plus/tree/master/packages/create)
+for more options.
+
+## Updating
+
+New versions of OpenAPI Generator Plus and generator templates are released from time to time. Updating to
+the latest version is the same as updating dependencies in any Node.js project.
+
+We recommend updating using [`npm-check-updates`](https://www.npmjs.com/package/npm-check-updates) by running
+these commands in the generator project directory:
+
+```shell
+npx npm-check-updates -u
+npm install
+```
+
+Then regenerate:
 
 ```shell
 npm run build
@@ -29,7 +62,7 @@ You can specify basic options on the command-line:
 npx openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator template name or path>] [<path or url to api spec>]
 ```
 
-You can also use a config file, which can also contain more advanced options to control the generated output:
+You can also use a config file, which contains more advanced options to control the generated output:
 
 ```shell
 npx openapi-generator-plus -c <config file>
@@ -89,23 +122,10 @@ in the footsteps of
 [swagger-codegen](https://github.com/swagger-api/swagger-codegen) and
 [openapi-generator](https://github.com/OpenAPITools/openapi-generator).
 
-OG+ is written in TypeScript and uses Node.js. OG+ aims to provide a strong core to transform API specifications for code generation,
+OpenAPI Generator Plus is written in TypeScript and uses Node.js. It aims to provide a strong core to transform API specifications for code generation,
 and to rely on separate code generation modules for the final code generation step. This separation enables the templates and
-minimal code required for each new language to be developed, packaged and published independently, making customisation more powerful
-and easily accessible.
-
-## Templates
-
-OG+ has an incompatible object model and approach to other Swagger / OpenAPI code generators so templates
-must be rewritten or modified in order to be used with OGN. This is usually not a complicated process as the
-properties available to templates are well-defined by TypeScript interfaces.
-
-### Handlebars
-
-OG+ uses [Handlebars](https://handlebarsjs.com) for templating. Handlebars builds on the functionality of the
-[mustache](https://mustache.github.io) templates used in [swagger-codegen](https://github.com/swagger-api/swagger-codegen)
-making templates more powerful and easy to customise. Handlebars also supports custom helpers to put more
-capability into templates, such as case transformations.
+minimal code required for each new language to be developed, packaged and published _independently_, making customisation more powerful
+and easily accessible for the community to use and to be involved.
 
 ## Operation grouping
 

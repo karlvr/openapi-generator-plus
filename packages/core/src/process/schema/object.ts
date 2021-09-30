@@ -144,10 +144,12 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 	// 	}
 	// }
 
-	/* As this schema was in the original specification, we should make a concrete implementation of it
-	   in case some code expects to use it.
-	 */
-	toCodegenInterfaceImplementationSchema(result, { allowAbstract: false }, state)
+	if (!result.discriminator) {
+		/* As this schema was in the original specification, we should make a concrete implementation of it
+		   in case some code expects to use it.
+		 */
+		toCodegenInterfaceImplementationSchema(result, { allowAbstract: false }, state)
+	}
 
 	return result
 }

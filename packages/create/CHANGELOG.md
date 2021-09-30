@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 0.0.5
+
+### Patch Changes
+
+- d064a97: Fix search for generators to use keywords
+
 ## 0.0.4
 
 ### Patch Changes

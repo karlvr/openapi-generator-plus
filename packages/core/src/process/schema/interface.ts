@@ -86,6 +86,7 @@ interface InterfaceImplementationOptions {
 	 * `true` if the implementation could be an abstract implementation
 	 */
 	allowAbstract: boolean
+	suggestedName?: string
 }
 
 /**
@@ -106,7 +107,8 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	}
 
 	const scope = scopeOf(interfaceSchema, state)
-	const result = createObjectSchema(interfaceSchema.name, scope, allowAbstract ? CodegenSchemaPurpose.ABSTRACT_IMPLEMENTATION : CodegenSchemaPurpose.IMPLEMENTATION, state)
+	const suggestedName = options.suggestedName || interfaceSchema.name
+	const result = createObjectSchema(suggestedName, scope, allowAbstract ? CodegenSchemaPurpose.ABSTRACT_IMPLEMENTATION : CodegenSchemaPurpose.IMPLEMENTATION, state)
 
 	result.abstract = allowAbstract
 	result.properties = interfaceSchema.properties

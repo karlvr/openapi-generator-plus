@@ -1,5 +1,6 @@
 import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
+import { debugStringify } from '../../stringify'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -98,7 +99,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}
@@ -173,7 +174,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		}).schema
 		if (!isCodegenObjectSchema(anyOfSchema)) {
 			// TODO
-			throw new Error(`Non-object schema not yet supported in anyOf: ${JSON.stringify(anyOfApiSchema)}`)
+			throw new Error(`Non-object schema not yet supported in anyOf: ${debugStringify(anyOfApiSchema)}`)
 		}
 
 		absorbCodegenSchema(anyOfSchema, result, { includeNestedSchemas: false, makePropertiesOptional: true })
@@ -190,7 +191,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}

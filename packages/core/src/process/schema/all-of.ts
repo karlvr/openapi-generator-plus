@@ -1,5 +1,6 @@
 import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
+import { debugStringify } from '../../stringify'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -81,7 +82,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		}).schema
 
 		if (!isCodegenObjectSchema(allOfSchema) && !isCodegenInterfaceSchema(allOfSchema)) {
-			throw new Error(`allOf "${result.name}" references a non-object (${allOfSchema.schemaType}) schema: ${JSON.stringify(allOfApiSchema)}`)
+			throw new Error(`allOf "${result.name}" references a non-object (${allOfSchema.schemaType}) schema: ${debugStringify(allOfApiSchema)}`)
 		}
 
 		result.composes.push(allOfSchema)

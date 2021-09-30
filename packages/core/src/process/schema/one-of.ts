@@ -1,5 +1,6 @@
 import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenCompositionSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
+import { debugStringify } from '../../stringify'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -94,7 +95,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
+				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}
@@ -173,7 +174,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		}
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && !isCodegenWrapperSchema(oneOfSchema)) {
-			throw new Error(`Failed to convert oneOf part to object schema: ${JSON.stringify(oneOfApiSchema)}`)
+			throw new Error(`Failed to convert oneOf part to object schema: ${debugStringify(oneOfApiSchema)}`)
 		}
 
 		addImplementor(result, oneOfSchema)
@@ -185,7 +186,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
 			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${JSON.stringify(addedApiSchema)}`)
+				throw new Error(`oneOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}

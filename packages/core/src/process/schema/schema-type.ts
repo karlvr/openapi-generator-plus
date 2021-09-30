@@ -1,4 +1,5 @@
 import { CodegenSchemaType } from '@openapi-generator-plus/types'
+import { debugStringify } from '../../stringify'
 import { OpenAPIX } from '../../types/patches'
 
 export function toCodegenSchemaType(type: string, format: string | undefined): CodegenSchemaType {
@@ -43,6 +44,6 @@ export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObjec
 	} else if (typeof apiSchema.type === 'string') {
 		return toCodegenSchemaType(apiSchema.type, apiSchema.format)
 	} else {
-		throw new Error(`Invalid schema type "${apiSchema.type}": ${JSON.stringify(apiSchema)}`)
+		throw new Error(`Invalid schema type "${apiSchema.type}": ${debugStringify(apiSchema)}`)
 	}
 }

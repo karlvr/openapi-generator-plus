@@ -11,6 +11,7 @@ import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
+import { debugStringify } from '../stringify'
 
 export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses
@@ -92,7 +93,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 			contents = toCodegenContentArray(response.content, true, responseContextName, CodegenSchemaPurpose.RESPONSE, null, state)
 		}
 	} else {
-		throw new Error(`Unsupported response: ${JSON.stringify(response)}`)
+		throw new Error(`Unsupported response: ${debugStringify(response)}`)
 	}
 
 	const produces = findAllContentMediaTypes(contents)

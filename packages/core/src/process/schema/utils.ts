@@ -5,6 +5,7 @@ import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { fullyQualifiedName } from './naming'
 import { convertToBoolean } from '../utils'
+import { debugStringify } from '../../stringify'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -25,7 +26,7 @@ export function extractCodegenSchemaCommon(apiSchema: OpenAPIX.SchemaObject, sta
 
 export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, state: InternalCodegenState): void {
 	if (!isCodegenNamedSchema(schema)) {
-		throw new Error(`Cannot add schema without a name to a scope: ${JSON.stringify(schema)}`)
+		throw new Error(`Cannot add schema without a name to a scope: ${debugStringify(schema)}`)
 	}
 
 	if (scope) {

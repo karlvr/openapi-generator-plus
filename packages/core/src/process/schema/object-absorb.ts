@@ -5,6 +5,7 @@ import { InternalCodegenState } from '../../types'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenProperties } from './property'
 import { toCodegenSchemaUsage } from '.'
+import { debugStringify } from '../../stringify'
 
 function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
 	for (const property of idx.allValues(otherProperties)) {
@@ -67,7 +68,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 	})
 	const schema = schemaUsage.schema
 	if (!isCodegenObjectLikeSchema(schema)) {
-		throw new Error(`Cannot absorb schema as it isn't an object: ${JSON.stringify(apiSchema)}`)
+		throw new Error(`Cannot absorb schema as it isn't an object: ${debugStringify(apiSchema)}`)
 	}
 
 	/* We only include nested schemas if the schema being observed won't actually exist to contain its nested schemas itself */

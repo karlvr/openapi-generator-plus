@@ -2,6 +2,7 @@ import { OpenAPI } from 'openapi-types'
 import { CodegenLiteralValueOptions, CodegenSchemaType, CodegenGenerator } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 import { CodegenSpecVersion } from './types'
+import { debugStringify } from './stringify'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 	if (isOpenAPIV2Document(root)) {
@@ -21,7 +22,7 @@ export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 			throw new Error(`Unsupported OpenAPI specification version: ${root.openapi}`)
 		}
 	} else {
-		throw new Error(`API specification document not recognised as Swagger or OpenAPI: ${JSON.stringify(root)}`)
+		throw new Error(`API specification document not recognised as Swagger or OpenAPI: ${debugStringify(root)}`)
 	}
 }
 

@@ -8,13 +8,14 @@ import { toCodegenSchemaType } from './schema-type'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
+import { debugStringify } from '../../stringify'
 
 export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
 	if (!apiSchema.enum) {
 		throw new Error('Not an enum schema')
 	}
 	if (typeof apiSchema.type !== 'string') {
-		throw new Error(`Invalid schema type for enum schema: ${apiSchema.type}: ${JSON.stringify(apiSchema)}`)
+		throw new Error(`Invalid schema type for enum schema: ${apiSchema.type}: ${debugStringify(apiSchema)}`)
 	}
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -73,7 +74,7 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		const literalValue = state.generator.toLiteral(`${name}`, enumValueLiteralOptions)
 		if (!literalValue) {
-			state.log(CodegenLogLevel.WARN, `Cannot format literal for enum value "${name}" in ${JSON.stringify(apiSchema)}`)
+			state.log(CodegenLogLevel.WARN, `Cannot format literal for enum value "${name}" in ${debugStringify(apiSchema)}`)
 			return
 		}
 

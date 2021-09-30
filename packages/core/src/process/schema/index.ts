@@ -1,5 +1,6 @@
 import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import { debugStringify } from '../../stringify'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -144,31 +145,31 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		case CodegenSchemaType.OBJECT:
 			if (!naming) {
 				// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
-				throw new Error(`no name for ${JSON.stringify(apiSchema)}`)
+				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
 			result = toCodegenObjectSchema(apiSchema, naming, state)
 			break
 		case CodegenSchemaType.INTERFACE:
-			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${JSON.stringify(apiSchema)}`)
+			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${debugStringify(apiSchema)}`)
 		case CodegenSchemaType.WRAPPER:
-			throw new Error(`Cannot create a wrapper directly from an OpenAPI schema: ${JSON.stringify(apiSchema)}`)
+			throw new Error(`Cannot create a wrapper directly from an OpenAPI schema: ${debugStringify(apiSchema)}`)
 		case CodegenSchemaType.HIERARCHY:
-			throw new Error(`Cannot create a hierarchy directly from an OpenAPI schema: ${JSON.stringify(apiSchema)}`)
+			throw new Error(`Cannot create a hierarchy directly from an OpenAPI schema: ${debugStringify(apiSchema)}`)
 		case CodegenSchemaType.ALLOF:
 			if (!naming) {
-				throw new Error(`no name for ${JSON.stringify(apiSchema)}`)
+				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
 			result = toCodegenAllOfSchema(apiSchema, naming, state)
 			break
 		case CodegenSchemaType.ANYOF:
 			if (!naming) {
-				throw new Error(`no name for ${JSON.stringify(apiSchema)}`)
+				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
 			result = toCodegenAnyOfSchema(apiSchema, naming, state)
 			break
 		case CodegenSchemaType.ONEOF:
 			if (!naming) {
-				throw new Error(`no name for ${JSON.stringify(apiSchema)}`)
+				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
 			result = toCodegenOneOfSchema(apiSchema, naming, state)
 			break
@@ -193,7 +194,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		case CodegenSchemaType.TIME:
 		case CodegenSchemaType.BINARY: {
 			if (typeof apiSchema.type !== 'string') {
-				throw new Error(`Unsupported schema type "${apiSchema.type}" for property in ${JSON.stringify(apiSchema)}`)
+				throw new Error(`Unsupported schema type "${apiSchema.type}" for property in ${debugStringify(apiSchema)}`)
 			}
 
 			/* Generic unsupported schema support */

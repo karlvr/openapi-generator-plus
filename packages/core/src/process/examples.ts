@@ -5,6 +5,7 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from '../openapi-type-guards'
 import { toCodegenMediaType } from './media-types'
 import { stringLiteralValueOptions } from '../utils'
+import { debugStringify } from '../stringify'
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }
 
@@ -16,7 +17,7 @@ function exampleValue(value: unknown, mediaType: string | undefined, schema: Cod
 	const valueLiteral = canFormatExampleValueAsLiteral(schema) ? state.generator.toLiteral(value, { required: true, ...schema }) : state.generator.toLiteral(null, { required: true, ...schema })
 	const valueString = toCodegenExampleValueString(value, mediaType, state)
 	if (valueLiteral === null || valueString === null) {
-		state.log(CodegenLogLevel.WARN, `Cannot format literal for example ${JSON.stringify(value)} in ${JSON.stringify(schema)}`)
+		state.log(CodegenLogLevel.WARN, `Cannot format literal for example ${debugStringify(value)} in ${debugStringify(schema)}`)
 		return null
 	}
 	return {

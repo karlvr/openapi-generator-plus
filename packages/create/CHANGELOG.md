@@ -1,5 +1,12 @@
 # create-openapi-generator-plus
 
+## 0.0.6
+
+### Patch Changes
+
+- 82b706c: Add -p option to help
+- 6ad27d7: Shorten and simplify presented generator template names
+
 ## 0.0.5
 
 ### Patch Changes

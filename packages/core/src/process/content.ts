@@ -305,7 +305,7 @@ function propertySupportsFilenameMetadata(encoding: CodegenContentEncoding, prop
  * described in https://swagger.io/specification/#encoding-object
  */
 function defaultContentType(usage: CodegenSchemaUsage): string {
-	if (usage.schema.schemaType === CodegenSchemaType.STRING && usage.schema.format === 'binary') {
+	if (usage.schema.schemaType === CodegenSchemaType.BINARY) {
 		return 'application/octet-stream'
 	} else if (usage.schema.schemaType === CodegenSchemaType.OBJECT) {
 		return 'application/json'

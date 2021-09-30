@@ -1,0 +1,44 @@
+{
+  "name": "create-openapi-generator-plus",
+  "version": "0.0.0",
+  "description": "An API generation package initialization template for OpenAPI Generator Plus",
+  "keywords": [
+    "openapi",
+    "swagger",
+    "open api",
+    "generator",
+    "typescript"
+  ],
+  "bin": {
+    "create-api-project": "./dist/create-api-project.js"
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc -p tsconfig.prod.json",
+    "clean": "../../node_modules/.bin/rimraf dist",
+    "lint": "../../node_modules/.bin/eslint src",
+    "watch": "../../node_modules/.bin/tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karlvr/openapi-generator-plus.git"
+  },
+  "author": "Karl von Randow",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/karlvr/openapi-generator-plus/issues"
+  },
+  "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/create#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "getopts": "^2.2.5",
+    "inquirer": "^8.1.5",
+    "libnpmsearch": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^8.1.3",
+    "@types/libnpmsearch": "^2.0.2"
+  }
+}

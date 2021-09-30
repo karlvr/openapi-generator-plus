@@ -91,6 +91,11 @@ async function run(): Promise<void> {
 		usage()
 	}
 
+	const packageJsonPath = path.join(dest, 'package.json')
+	if (await exists(packageJsonPath)) {
+		die(`package.json already exists at ${packageJsonPath}`)
+		// TODO ask if you'd like to add to it
+	}
 	info('Searching for the latest version of OpenAPI Generator Plus...')
 	const cliPackage = await findCliVersion()
 	if (!cliPackage) {
@@ -114,13 +119,6 @@ async function run(): Promise<void> {
 		},
 	}
 
-	const packageJsonPath = path.join(dest, 'package.json')
-
-	if (await exists(packageJsonPath)) {
-		die(`package.json already exists at ${packageJsonPath}`)
-		// TODO ask if you'd like to add to it
-	}
-	
 	await fs.mkdir(dest, { recursive: true })
 	await fs.writeFile(packageJsonPath, JSON.stringify(pkg, undefined, 4) + '\n')
 	info(`Created ${packageJsonPath}`)

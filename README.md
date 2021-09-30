@@ -10,9 +10,14 @@ To create a new project to generate an API client or server in the current worki
 npm init openapi-generator-plus
 ```
 
-You will prompted to choose a generator template from those [available on npmjs.com](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator).
+The script searches for the latest generator templates [available on npmjs.com](https://www.npmjs.com/search?q=keywords:openapi-generator-plus-generator).
+
+You must first choose the type of API library you want to generate:
 
 ![Image of choosing a generator type](./packages/create/etc/img/choose-template-type.png)
+
+You will then be prompted to choose from a list of appropriate generator templates:
+
 ![Image of choosing a generator template](./packages/create/etc/img/choose-template.png)
 
 The script will create a `package.json` and `config.yml`, install OpenAPI Generator Plus

@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 0.41.2
+
+### Patch Changes
+
+- 7dc4d1c: Standardise terminology from generator module to generator template
+
 ## 0.41.0
 
 ### Minor Changes

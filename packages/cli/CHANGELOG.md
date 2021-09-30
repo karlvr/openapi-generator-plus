@@ -1,5 +1,14 @@
 # openapi-generator-plus
 
+## 0.41.2
+
+### Patch Changes
+
+- 7dc4d1c: Standardise terminology from generator module to generator template
+- Updated dependencies [7dc4d1c]
+  - @openapi-generator-plus/core@0.41.2
+  - @openapi-generator-plus/types@0.41.2
+
 ## 0.41.1
 
 ### Patch Changes

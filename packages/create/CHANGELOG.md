@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 0.0.4
+
+### Patch Changes
+
+- 7dc4d1c: Standardise terminology from generator module to generator template
+
 ## 0.0.3
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-import { promises as fs, existsSync as exists } from 'fs'
+import { PathLike, promises as fs } from 'fs'
 import process from 'process'
 import c from 'ansi-colors'
 import getopts from 'getopts'
@@ -97,6 +97,8 @@ async function run(): Promise<void> {
 		// TODO ask if you'd like to add to it
 	}
 
+	await checkDestination(dest)
+
 	const packageManager = await choosePackageManager(opts.packageManager)
 	info(`Selected package manager: ${packageManager}`)
 
@@ -163,6 +165,35 @@ generator: "${generator.name}"
 	})
 
 	instructions()
+}
+
+async function checkDestination(dest: string): Promise<void> {
+	try {
+		const stat = await fs.stat(dest)
+		if (!stat.isDirectory()) {
+			die(`${dest} already exists and is not a directory`)
+		}
+
+		const absoluteDest = path.resolve(dest)
+
+		const files = await fs.readdir(dest)
+		if (files.length > 0) {
+			warn(`${absoluteDest} already exists and is not empty`)
+			const confirm = (await inquirer.prompt([
+				{
+					type: 'confirm',
+					message: 'Are you sure you want to create the project in this directory?',
+					name: 'confirm',
+				},
+			])).confirm
+			if (!confirm) {
+				process.exit(1)
+			}
+		}
+	} catch (error) {
+		/* It's fine if it doesn't exist */
+		return
+	}
 }
 
 async function createReadme(packageManager: PackageManager, generator: Result) {
@@ -409,6 +440,15 @@ function officialFilter(r: Result) {
 
 function thirdPartyFilter(r: Result) {
 	return r.scope !== 'openapi-generator-plus'
+}
+
+async function exists(path: PathLike): Promise<boolean> {
+	try {
+		await fs.stat(path)
+		return true
+	} catch {
+		return false
+	}
 }
 
 run()

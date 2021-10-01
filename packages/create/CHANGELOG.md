@@ -1,5 +1,12 @@
 # create-openapi-generator-plus
 
+## 0.1.1
+
+### Patch Changes
+
+- efdf6df: Change the reported generator template name after selection to the official name
+- bb32767: Check and warn if the destination is not empty before creating the project
+
 ## 0.1.0
 
 ### Minor Changes

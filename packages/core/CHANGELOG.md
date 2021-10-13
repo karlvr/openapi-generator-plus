@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.41.3
+
+### Patch Changes
+
+- 38e33c3: Fix native allOf to support an allOf that references another allOf
+
 ## 0.41.2
 
 ### Patch Changes

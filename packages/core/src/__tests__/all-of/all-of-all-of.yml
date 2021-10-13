@@ -1,0 +1,30 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: allOf containing another allOf
+paths: {}
+components:
+  schemas:
+    Parent:
+      properties:
+        name:
+          type: string
+    Child:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - $ref: '#/components/schemas/GrandChild'
+    GrandChild:
+      allOf:
+        - $ref: '#/components/schemas/GrandChildPart1'
+        - $ref: '#/components/schemas/GrandChildPart2'
+    GrandChildPart1:
+      type: object
+      properties:
+        name:
+          type: string
+    GrandChildPart2:
+      type: object
+      properties:
+        age:
+          type: integer

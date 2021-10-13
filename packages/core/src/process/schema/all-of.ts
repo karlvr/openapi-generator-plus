@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenCompositionSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '../../stringify'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -81,7 +81,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		}).schema
 
-		if (!isCodegenObjectSchema(allOfSchema) && !isCodegenInterfaceSchema(allOfSchema)) {
+		if (!isCodegenObjectSchema(allOfSchema) && !isCodegenInterfaceSchema(allOfSchema) && !isCodegenAllOfSchema(allOfSchema)) {
 			throw new Error(`allOf "${result.name}" references a non-object (${allOfSchema.schemaType}) schema: ${debugStringify(allOfApiSchema)}`)
 		}
 

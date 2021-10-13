@@ -382,3 +382,35 @@ test('allOf discriminator with mapping', async() => {
 	})
 	expect(result).toBeTruthy()
 })
+
+test('allOf allOf native', async() => {
+	const result = await createTestDocument('all-of/all-of-all-of.yml', {
+		allOfStrategy: CodegenAllOfStrategy.NATIVE,
+	})
+	expect(result).toBeTruthy()
+})
+
+test('allOf allOf object', async() => {
+	const result = await createTestDocument('all-of/all-of-all-of.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+	})
+
+	const child = idx.get(result.schemas, 'Child') as CodegenObjectSchema
+	expect(child.schemaType).toBe(CodegenSchemaType.OBJECT)
+	expect(child.parents).toBeNull()
+	expect(child.implements).toBeTruthy()
+	expect(child.implements?.length).toEqual(2)
+	expect(child.implements![0].name).toEqual('i_Parent')
+	expect(child.implements![1].name).toEqual('i_GrandChild')
+
+	const grandChild = child.implements![1]
+	expect(grandChild.implementation).toBeTruthy()
+
+	const grandChildImpl = grandChild.implementation as CodegenObjectSchema
+	expect(grandChildImpl.schemaType).toBe(CodegenSchemaType.OBJECT)
+	expect(grandChildImpl.name).toEqual('GrandChild')
+
+	expect(grandChildImpl.interface).toBe(grandChild)
+	expect(grandChildImpl.implements).toBeTruthy()
+	expect(grandChildImpl.implements?.length).toEqual(3)
+})

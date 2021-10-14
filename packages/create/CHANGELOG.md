@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 0.2.0
+
+### Minor Changes
+
+- 6f7839d: Change npm script from build to generate
+
 ## 0.1.1
 
 ### Patch Changes

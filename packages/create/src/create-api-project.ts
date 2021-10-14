@@ -117,7 +117,7 @@ async function run(): Promise<void> {
 		version: '1.0.0',
 		private: true,
 		scripts: {
-			build: 'openapi-generator-plus -c config.yml',
+			generate: 'openapi-generator-plus -c config.yml',
 		},
 		devDependencies: {
 			'openapi-generator-plus': `^${cliPackage.version}`,
@@ -247,9 +247,9 @@ function formatLink(text: string, link?: string) {
 
 function buildCommand(packageManager: PackageManager) {
 	switch (packageManager) {
-		case 'npm': return 'npm run build'
-		case 'yarn': return 'yarn build'
-		case 'pnpm': return 'pnpm build'
+		case 'npm': return 'npm run generate'
+		case 'yarn': return 'yarn generate'
+		case 'pnpm': return 'pnpm generate'
 	}
 	throw new Error(`Unexpected package manager: ${packageManager}`)
 }

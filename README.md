@@ -32,7 +32,7 @@ Edit the `config.yml` to point to your API specification, and where you'd like t
 Then generate your API.
 
 ```shell
-npm run build
+npm run generate
 ```
 
 Re-run that command any time your API specification changes, or you update OpenAPI Generator Plus.
@@ -56,7 +56,7 @@ npm install
 Then regenerate:
 
 ```shell
-npm run build
+npm run generate
 ```
 
 ## Using

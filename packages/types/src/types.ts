@@ -885,6 +885,8 @@ interface CodegenParameterBase {
 	required: boolean
 	collectionFormat: string | null
 	examples: CodegenExamples | null
+
+	/** The value that a server will use if the parameter is not provided. */
 	defaultValue: CodegenValue | null
 
 	/* Add properties from CodegenSchemaUsage so templates can treat parameters like properties */

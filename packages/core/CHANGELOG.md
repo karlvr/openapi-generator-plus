@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 0.41.4
+
+### Patch Changes
+
+- 1291c63: Fix finding discriminators in allOf hierarchies
+
 ## 0.41.3
 
 ### Patch Changes

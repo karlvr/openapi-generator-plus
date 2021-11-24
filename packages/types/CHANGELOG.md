@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 0.41.5
+
+### Patch Changes
+
+- 951d0af: Update dependencies
+
 ## 0.41.2
 
 ### Patch Changes

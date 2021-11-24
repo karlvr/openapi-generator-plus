@@ -24,7 +24,7 @@
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "^0.1.6",
     "@openapi-generator-plus/swagger-parser": "^10.0.6",
-    "lodash": "^4.17.19"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@openapi-generator-plus/types": "^0.41.2"

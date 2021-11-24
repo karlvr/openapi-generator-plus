@@ -32,14 +32,14 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@openapi-generator-plus/core": "^0.41.2",
+    "@openapi-generator-plus/core": "^0.41.4",
     "@openapi-generator-plus/types": "^0.41.2",
     "ansi-colors": "^4.1.1",
-    "getopts": "^2.2.5",
-    "glob": "^7.1.6",
-    "glob-promise": "^4.2.0",
-    "node-watch": "^0.7.1",
-    "yaml": "^1.10.0"
+    "getopts": "^2.3.0",
+    "glob": "^7.2.0",
+    "glob-promise": "^4.2.2",
+    "node-watch": "^0.7.2",
+    "yaml": "^1.10.2"
   },
   "publishConfig": {
     "access": "public"

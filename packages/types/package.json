@@ -25,6 +25,6 @@
   },
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "^0.1.6",
-    "openapi-types": "^9.1.0"
+    "openapi-types": "^9.3.1"
   }
 }

@@ -1,7 +1,7 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
 // import util from 'util'
-import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 
 test('oneOf simple (native)', async() => {
 	const result = await createTestDocument('one-of/one-of-simple.yml', {
@@ -196,4 +196,46 @@ test('oneOf arrays (object)', async() => {
 
 	expect(oneOfCoordinates.property.nativeType.nativeType).toEqual('array array array number')
 	expect(oneOfCoordinates.property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
+})
+
+test('oneOf discriminator with separate allOf (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-separate-all-of.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+	})
+
+	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenOneOfSchema
+
+	expect(isCodegenAllOfSchema(child)).toBeTruthy()
+	expect(isCodegenOneOfSchema(parent)).toBeTruthy()
+
+	expect(child.name).toEqual('Cat')
+	expect(child.implements).toBeNull()
+	expect(child.discriminatorValues).toBeTruthy()
+	expect(child.discriminatorValues!.length).toEqual(1)
+
+	expect(parent.name).toEqual('Pet')
+	expect(parent.discriminator!.name).toEqual('petType')
+	expect(parent.discriminator!.references.length).toEqual(3)
+	expect(parent.composes).toBeTruthy()
+	expect(parent.composes!.indexOf(child)).not.toEqual(-1)
+})
+
+test('oneOf discriminator with separate allOf (object)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-separate-all-of.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+	})
+
+	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
+	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
+
+	expect(isCodegenAllOfSchema(child)).toBeTruthy()
+	expect(isCodegenInterfaceSchema(parent)).toBeTruthy()
+
+	expect(child.name).toEqual('Cat')
+	expect(child.implements!.length).toBe(1)
+	expect(parent.name).toEqual('Pet')
+	expect(parent.discriminator!.name).toEqual('petType')
+	expect(parent.discriminator!.references.length).toEqual(3)
+	expect(parent.children).toBeNull()
 })

@@ -1,4 +1,4 @@
-import { CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -104,6 +104,44 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 	return schemaMappings
 }
 
+function findDiscriminatorPropertyInObjectSchema(serializedName: string, schema: CodegenObjectSchema): CodegenProperty | undefined {
+	if (schema.properties) {
+		const property = idx.get(schema.properties, serializedName)
+		if (property) {
+			return property
+		}
+	}
+	if (schema.parents) {
+		for (const parent of schema.parents) {
+			const property = findDiscriminatorPropertyInObjectSchema(serializedName, parent)
+			if (property !== undefined) {
+				return property
+			}
+		}
+	}
+
+	return undefined
+}
+
+function findDiscriminatorPropertyInAllOfSchema(serializedName: string, schema: CodegenAllOfSchema): CodegenProperty | undefined {
+	const n = schema.composes.length
+	for (let i = n - 1; i >= 0; i--) {
+		const composedSchema = schema.composes[i]
+		if (isCodegenObjectSchema(composedSchema)) {
+			const property = findDiscriminatorPropertyInObjectSchema(serializedName, composedSchema)
+			if (property !== undefined) {
+				return property
+			}
+		} else if (isCodegenAllOfSchema(composedSchema)) {
+			const property = findDiscriminatorPropertyInAllOfSchema(serializedName, composedSchema)
+			if (property !== undefined) {
+				return property
+			}
+		}
+	}
+	return undefined
+}
+
 /**
  * Find the common discriminator property type for a named discimrinator property across a collection of schemas.
  * @param serializedName the serialized name of the property
@@ -114,22 +152,23 @@ function toCodegenDiscriminatorMappings(discriminator: OpenAPIV3.DiscriminatorOb
 function findCommonDiscriminatorPropertyType(serializedName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenSchemaUsage {
 	let result: CodegenSchemaUsage | undefined = undefined
 	for (const schema of schemas) {
+		let property: CodegenProperty | undefined
 		if (isCodegenObjectSchema(schema)) {
-			if (schema.properties) {
-				const property = idx.get(schema.properties, serializedName)
-				if (property) {
-					const propertyType = extractCodegenSchemaUsage(property)
-					if (result === undefined) {
-						result = propertyType
-					} else if (!equalCodegenTypeInfo(result, propertyType)) {
-						throw new Error(`Found mismatching type for discriminator property "${serializedName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
-					}
-				} else {
-					throw new Error(`Discriminator property "${serializedName}" for "${container.name}" missing in "${schema.name}"`)
-				}
-			}
+			property = findDiscriminatorPropertyInObjectSchema(serializedName, schema)
+		} else if (isCodegenAllOfSchema(schema)) {
+			property = findDiscriminatorPropertyInAllOfSchema(serializedName, schema)
 		} else {
 			throw new Error(`Found unexpected schema type (${schema.schemaType}) when looking for discriminator property "${serializedName}" for "${container.name}"`)
+		}
+
+		if (property === undefined) {
+			throw new Error(`Discriminator property "${serializedName}" for "${container.name}" missing in "${schema.name}"`)
+		}
+		const propertyType = extractCodegenSchemaUsage(property)
+		if (result === undefined) {
+			result = propertyType
+		} else if (!equalCodegenTypeInfo(result, propertyType)) {
+			throw new Error(`Found mismatching type for discriminator property "${serializedName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
 		}
 	}
 	if (!result) {

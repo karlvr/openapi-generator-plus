@@ -1,0 +1,40 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Pet:
+      oneOf:
+        - $ref: '#/components/schemas/Cat'
+        - $ref: '#/components/schemas/Dog'
+        - $ref: '#/components/schemas/Lizard'
+      discriminator:
+        propertyName: petType
+    AbstractAnimal:
+      properties:
+        petType:
+          type: string
+    Cat:
+      allOf:
+        - $ref: '#/components/schemas/AbstractAnimal'
+        - type: object
+          properties:
+            name:
+              type: string
+    Dog:
+      allOf:
+        - $ref: '#/components/schemas/AbstractAnimal'
+        - type: object
+          properties:
+            bark:
+              type: string
+    Lizard:
+      allOf:
+        - $ref: '#/components/schemas/AbstractAnimal'
+        - type: object
+          properties:
+            lovesRocks:
+              type: boolean

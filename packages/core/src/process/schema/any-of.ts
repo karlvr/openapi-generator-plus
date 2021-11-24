@@ -1,4 +1,4 @@
-import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '../../stringify'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -98,8 +98,8 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
-			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
+			if (!isCodegenDiscriminatableSchema(addedSchema)) {
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-discriminatable schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}
@@ -190,8 +190,8 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	if (result.discriminator) {
 		for (const [addedApiSchema, addedSchema] of added) {
-			if (!isCodegenObjectSchema(addedSchema)) {
-				throw new Error(`anyOf "${result.name}" with discriminator references a non-object schema: ${debugStringify(addedApiSchema)}`)
+			if (!isCodegenDiscriminatableSchema(addedSchema)) {
+				throw new Error(`anyOf "${result.name}" with discriminator references a non-discriminatable schema: ${debugStringify(addedApiSchema)}`)
 			}
 			addToDiscriminator(result, addedSchema, state)
 		}

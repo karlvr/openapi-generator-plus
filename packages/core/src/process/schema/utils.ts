@@ -91,12 +91,33 @@ export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.S
 }
 
 /**
+ * Determine whether it's safe to remove the given property from the given schema.
+ * @param schema 
+ * @param serializedName 
+ * @returns 
+ */
+function safeToRemoveProperty(schema: CodegenObjectLikeSchemas, serializedName: string): boolean {
+	if (isCodegenObjectSchema(schema)) {
+		if (schema.implements !== null) {
+			const interfaceProperties = uniquePropertiesIncludingInheritedForParents(schema.implements)
+			return !idx.has(interfaceProperties, serializedName)
+		}
+	}
+
+	return false
+}
+
+/**
  * Finds and removes the named property from the given set of properties.
  * @param properties the properties to look in
  * @param serializedName the serialized name of the property
  * @returns a CodegenProperty or undefined if not found
  */
 export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
+	if (!safeToRemoveProperty(schema, serializedName)) {
+		return undefined
+	}
+
 	if (!schema.properties) {
 		return undefined
 	}

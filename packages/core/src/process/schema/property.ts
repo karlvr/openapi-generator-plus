@@ -75,6 +75,7 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		description: description || schemaUsage.schema.description || null,
 		initialValue: schemaUsage.defaultValue || state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)) || null,
 		vendorExtensions: toCodegenVendorExtensions(apiSchema),
+		discriminators: null,
 	}
 }
 
@@ -86,6 +87,7 @@ export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUs
 		...extractCodegenSchemaUsage(schemaUsage),
 		initialValue: state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)) || null,
 		vendorExtensions: null,
+		discriminators: null,
 	}
 	property.nativeType = transformNativeTypeForUsage(property, state)
 	return property

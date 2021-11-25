@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, toCodegenDefaultValueOptions, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findProperty, removeProperty } from './utils'
+import { findProperty, interfaceForProperty, removeProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
@@ -220,10 +220,15 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 	}
 
 	if (isCodegenObjectLikeSchema(memberSchema)) {
-		const subModelDiscriminatorProperty = findProperty(memberSchema, discriminatorSchema.discriminator.serializedName)
-		if (!subModelDiscriminatorProperty) {
+		const property = findProperty(memberSchema, discriminatorSchema.discriminator.serializedName)
+		if (!property) {
 			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.serializedName}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
 		}
+
+		if (!property.discriminators) {
+			property.discriminators = []
+		}
+		property.discriminators.push(discriminatorSchema.discriminator)
 	}
 	
 	const discriminatorValue = discriminatorValueForSchema(discriminatorSchema.discriminator, memberSchema, state)
@@ -313,12 +318,18 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
 
 	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
-		removeProperty(schema, discriminator.serializedName)
+		/* Check that the discriminator property isn't required for interface comformance */
+		if (!interfaceForProperty(schema, discriminator.serializedName)) {
+			removeProperty(schema, discriminator.serializedName)
+		}
 	}
 
 	for (const reference of discriminator.references) {
 		if (isCodegenObjectLikeSchema(reference.schema)) {
-			removeProperty(reference.schema, discriminator.serializedName)
+			/* Check that the discriminator property isn't required for interface comformance */
+			if (!interfaceForProperty(reference.schema, discriminator.serializedName)) {
+				removeProperty(reference.schema, discriminator.serializedName)
+			}
 		}
 	}
 }

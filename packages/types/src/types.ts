@@ -460,6 +460,12 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	/** The initial value that the property should have. This is either the defaultValue, if there is one, or a default default from the generator. */
 	initialValue: CodegenValue | null
 
+	/** The discriminators that this property is used by, if this property is used by a discriminator.
+	 * We usually remove properties used for discriminators, but sometimes they are left for
+	 * interface comformance.
+	 */
+	discriminators: CodegenDiscriminator[] | null
+
 	vendorExtensions: CodegenVendorExtensions | null
 }
 

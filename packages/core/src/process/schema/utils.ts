@@ -91,20 +91,24 @@ export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.S
 }
 
 /**
- * Determine whether it's safe to remove the given property from the given schema.
+ * Returns the interface, if any, that the property in the given schema implements in one of the interfaces the schema implements.
  * @param schema 
  * @param serializedName 
  * @returns 
  */
-function safeToRemoveProperty(schema: CodegenObjectLikeSchemas, serializedName: string): boolean {
+export function interfaceForProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenInterfaceSchema | undefined {
 	if (isCodegenObjectSchema(schema)) {
 		if (schema.implements !== null) {
-			const interfaceProperties = uniquePropertiesIncludingInheritedForParents(schema.implements)
-			return !idx.has(interfaceProperties, serializedName)
+			for (const anInterface of schema.implements) {
+				const [property, propertySchema] = findPropertyAndSchema(anInterface, serializedName)
+				if (property) {
+					return propertySchema as CodegenInterfaceSchema
+				}
+			}
 		}
 	}
 
-	return false
+	return undefined
 }
 
 /**
@@ -114,10 +118,6 @@ function safeToRemoveProperty(schema: CodegenObjectLikeSchemas, serializedName: 
  * @returns a CodegenProperty or undefined if not found
  */
 export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
-	if (!safeToRemoveProperty(schema, serializedName)) {
-		return undefined
-	}
-
 	if (!schema.properties) {
 		return undefined
 	}
@@ -142,19 +142,24 @@ export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName:
 	return entry
 }
 
+export function findProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
+	const [property] = findPropertyAndSchema(schema, serializedName)
+	return property
+}
+
 /**
  * Looks for the named property in the current schema and any parents etc.
  * @param schema 
  * @param serializedName 
  * @returns 
  */
-export function findProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
+export function findPropertyAndSchema(schema: CodegenObjectLikeSchemas, serializedName: string): [CodegenProperty, CodegenSchema] | [undefined, undefined] {
 	const open = [schema]
 	for (const aSchema of open) {
 		if (aSchema.properties) {
 			const property = idx.get(aSchema.properties, serializedName)
 			if (property) {
-				return property
+				return [property, aSchema]
 			}
 		}
 
@@ -173,7 +178,7 @@ export function findProperty(schema: CodegenObjectLikeSchemas, serializedName: s
 		}
 	}
 
-	return undefined
+	return [undefined, undefined]
 }
 
 export function addChildObjectSchema(parent: CodegenObjectSchema, child: CodegenObjectSchema): void {

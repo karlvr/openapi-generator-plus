@@ -304,3 +304,99 @@ test('oneOf primitives with nullable', async() => {
 	expect(customIntegerNullable.property).toBeDefined()
 	expect(customIntegerNullable.property.nullable).toBeTruthy()
 })
+
+test('oneOf allOf (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-all-of.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+		allOfStrategy: CodegenAllOfStrategy.NATIVE,
+	})
+	expect(result).toBeDefined()
+
+	const propertyInfo = result.schemas['PropertyInfo'] as CodegenOneOfSchema
+	expect(propertyInfo).toBeDefined()
+	expect(isCodegenOneOfSchema(propertyInfo)).toBeTruthy()
+	expect(propertyInfo.schemas).toBeNull() /* As our schemas are refs */
+	
+	expect(propertyInfo.composes).not.toBeNull()
+	const integerProperty = propertyInfo.composes![0] as CodegenNumericSchema
+	expect(integerProperty.schemaType).toEqual(CodegenSchemaType.ALLOF)
+	expect(integerProperty.name).toEqual('IntegerProperty')
+})
+
+test('oneOf allOf (object)', async() => {
+	const result = await createTestDocument('one-of/one-of-all-of.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: false,
+	})
+	expect(result).toBeDefined()
+
+	const propertyInfo = result.schemas['PropertyInfo'] as CodegenInterfaceSchema
+	expect(propertyInfo).toBeDefined()
+	expect(isCodegenInterfaceSchema(propertyInfo)).toBeTruthy()
+	expect(propertyInfo.schemas).toBeNull() /* As our schemas are refs */
+
+	expect(propertyInfo.implementors).not.toBeNull()
+	const integerProperty = propertyInfo.implementors![0] as CodegenObjectSchema
+	expect(integerProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(integerProperty.name).toEqual('IntegerProperty')
+	expect(integerProperty.implements).toBeTruthy()
+	expect(integerProperty.implements?.length).toEqual(2)
+	expect(integerProperty.properties).toBeTruthy()
+	expect(idx.size(integerProperty.properties!)).toEqual(2)
+	expect(idx.has(integerProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+
+	const integerTypeProperty = idx.get(integerProperty.properties!, 'type')
+	expect(integerTypeProperty).toBeTruthy()
+	expect(integerTypeProperty?.discriminators).toBeTruthy()
+
+	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
+	expect(objectProperty.name).toEqual('ObjectProperty')
+	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(objectProperty.implements).toBeTruthy()
+	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+
+	const objectTypeProperty = idx.get(objectProperty.properties!, 'type')
+	expect(objectTypeProperty).toBeTruthy()
+	expect(objectTypeProperty?.discriminators).toBeTruthy()
+})
+
+test('oneOf allOf (object with inheritance)', async() => {
+	const result = await createTestDocument('one-of/one-of-all-of.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	expect(result).toBeDefined()
+
+	const propertyInfo = result.schemas['PropertyInfo'] as CodegenInterfaceSchema
+	expect(propertyInfo).toBeDefined()
+	expect(isCodegenInterfaceSchema(propertyInfo)).toBeTruthy()
+	expect(propertyInfo.schemas).toBeNull() /* As our schemas are refs */
+
+	expect(propertyInfo.implementors).not.toBeNull()
+
+	const integerProperty = propertyInfo.implementors![0] as CodegenObjectSchema
+	expect(integerProperty.name).toEqual('IntegerProperty')
+	expect(integerProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(integerProperty.implements).toBeTruthy()
+	expect(integerProperty.implements?.length).toEqual(1)
+	expect(integerProperty.parents).toBeTruthy()
+	expect(integerProperty.parents!.length).toEqual(1)
+	expect(integerProperty.properties).toBeTruthy()
+	expect(idx.size(integerProperty.properties!)).toEqual(1)
+	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* Doesn't have discriminator property as it doesn't need it for interface conformance */
+
+	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
+	expect(objectProperty.name).toEqual('ObjectProperty')
+	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(objectProperty.implements).toBeTruthy()
+	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+
+	const objectTypeProperty = idx.get(objectProperty.properties!, 'type')
+	expect(objectTypeProperty).toBeTruthy()
+	expect(objectTypeProperty?.discriminators).toBeTruthy()
+})
+

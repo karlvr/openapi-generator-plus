@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: oneOf allOf
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    PropertyInfo:
+      oneOf:
+        - $ref: '#/components/schemas/IntegerProperty'
+        - $ref: '#/components/schemas/StringProperty'
+        - $ref: '#/components/schemas/ObjectProperty'
+      discriminator:
+        propertyName: type
+        mapping:
+          int: '#/components/schemas/IntegerProperty'
+          string: '#/components/schemas/StringProperty'
+    AbstractProperty:
+      type: object
+      properties:
+        type:
+          type: string
+    IntegerProperty:
+      allOf:
+        - $ref: '#/components/schemas/AbstractProperty'
+        - type: object
+          properties:
+            value:
+              type: integer
+    StringProperty:
+      allOf:
+        - $ref: '#/components/schemas/AbstractProperty'
+        - type: object
+          properties:
+            value:
+              type: string
+    ObjectProperty:
+      allOf:
+        - $ref: '#/components/schemas/AbstractProperty'
+        - $ref: '#/components/schemas/ObjectValue'
+    ObjectValue:
+      type: object
+      required:
+        - id
+      nullable: true
+      properties:
+        id:
+          type: string

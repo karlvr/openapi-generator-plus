@@ -41,7 +41,7 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 			required: true, 
 			suggestedName: schemaName,
 			purpose: CodegenSchemaPurpose.GENERAL,
-			scope: null,
+			suggestedScope: null,
 		})
 	}
 }
@@ -60,7 +60,7 @@ export interface SchemaUsageOptions {
 	suggestedName: string | ((type: CodegenSchemaType) => string)
 	nameRequired?: boolean
 	purpose: CodegenSchemaPurpose
-	scope: CodegenScope | null
+	suggestedScope: CodegenScope | null
 }
 
 export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
@@ -113,7 +113,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 
 	const schemaType = toCodegenSchemaTypeFromApiSchema(apiSchema)
 
-	const { purpose, scope: suggestedScope } = options
+	const { purpose, suggestedScope } = options
 	let { suggestedName } = options
 
 	if (typeof suggestedName === 'function') {

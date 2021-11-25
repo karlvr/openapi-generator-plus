@@ -67,7 +67,7 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 				required: true,
 				suggestedName: responseContextName,
 				purpose: CodegenSchemaPurpose.RESPONSE,
-				scope: null,
+				suggestedScope: null,
 			})
 			const examples = toCodegenExamples(undefined, response.examples, undefined, schemaUse, state)
 

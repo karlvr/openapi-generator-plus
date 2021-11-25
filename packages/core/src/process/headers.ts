@@ -32,7 +32,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			required: false, 
 			suggestedName: headerContextName, 
 			purpose: CodegenSchemaPurpose.HEADER, 
-			scope: null,
+			suggestedScope: null,
 		})
 		return {
 			name: state.generator.toIdentifier(name),
@@ -57,7 +57,7 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			required: convertToBoolean(header.required, false), 
 			suggestedName: name, 
 			purpose: CodegenSchemaPurpose.HEADER,
-			scope: null,
+			suggestedScope: null,
 		})
 		const examples = toCodegenExamples(header.example, header.examples, undefined, schemaUse, state)
 

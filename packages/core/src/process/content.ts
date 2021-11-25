@@ -42,7 +42,7 @@ function toCodegenContent(mediaType: string, mediaTypeContent: OpenAPIV3.MediaTy
 		required,
 		suggestedName: suggestedSchemaName,
 		purpose,
-		scope,
+		suggestedScope: scope,
 	})
 
 	const examples: CodegenExamples | null = toCodegenExamples(mediaTypeContent.example, mediaTypeContent.examples, mediaType, schemaUse, state)

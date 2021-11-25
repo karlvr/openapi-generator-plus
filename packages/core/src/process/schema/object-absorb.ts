@@ -64,7 +64,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 		required: true,
 		suggestedName: target.name,
 		purpose: CodegenSchemaPurpose.GENERAL,
-		scope,
+		suggestedScope: scope,
 	})
 	const schema = schemaUsage.schema
 	if (!isCodegenObjectLikeSchema(schema)) {

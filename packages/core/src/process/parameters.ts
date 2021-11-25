@@ -37,7 +37,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			required: convertToBoolean(parameter.required, false),
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
-			scope: null,
+			suggestedScope: null,
 		})
 		examples = null
 		defaultValue = toDefaultValue(parameter.default, schemaUse, state)
@@ -55,7 +55,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			required,
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
-			scope: null,
+			suggestedScope: null,
 		})
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)

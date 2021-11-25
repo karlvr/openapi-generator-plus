@@ -19,7 +19,7 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		required: true,
 		suggestedName: suggestedValueModelName,
 		purpose: CodegenSchemaPurpose.MAP_VALUE,
-		scope: suggestedValueModelScope,
+		suggestedScope: suggestedValueModelScope,
 	})
 
 	const nativeType = state.generator.toNativeMapType({

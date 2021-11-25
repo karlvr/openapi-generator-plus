@@ -24,7 +24,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		required: true,
 		suggestedName: suggestedItemModelName,
 		purpose: CodegenSchemaPurpose.ARRAY_ITEM,
-		scope: suggestedItemModelScope,
+		suggestedScope: suggestedItemModelScope,
 	})
 	const nativeType = state.generator.toNativeArrayType({
 		type: apiSchema.type,

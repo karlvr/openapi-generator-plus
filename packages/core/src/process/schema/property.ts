@@ -66,7 +66,7 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		required, 
 		suggestedName: name,
 		purpose: CodegenSchemaPurpose.PROPERTY,
-		scope,
+		suggestedScope: scope,
 	})
 	return {
 		...schemaUsage,

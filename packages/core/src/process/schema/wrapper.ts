@@ -10,7 +10,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 
 	const property = createCodegenProperty('value', wrap, state)
 	property.required = true
-	property.nullable = false
+	property.nullable = wrap.nullable
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',

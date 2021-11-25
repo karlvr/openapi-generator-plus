@@ -1,7 +1,7 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
 // import util from 'util'
-import { CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 
 test('oneOf simple (native)', async() => {
 	const result = await createTestDocument('one-of/one-of-simple.yml', {
@@ -224,16 +224,27 @@ test('oneOf discriminator with separate allOf (native)', async() => {
 test('oneOf discriminator with separate allOf (object)', async() => {
 	const result = await createTestDocument('one-of/one-of-discriminator-separate-all-of.yml', {
 		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
 	})
 
 	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
 	const parent = idx.get(result.schemas, 'Pet') as CodegenInterfaceSchema
 
-	expect(isCodegenAllOfSchema(child)).toBeTruthy()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
 	expect(isCodegenInterfaceSchema(parent)).toBeTruthy()
 
 	expect(child.name).toEqual('Cat')
-	expect(child.implements!.length).toBe(1)
+	expect(child.implements!.length).toBe(2)
+
+	const abstractAnimal = child.implements![0]
+	expect(abstractAnimal.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+	expect(abstractAnimal.name).toEqual('i_AbstractAnimal')
+	expect(abstractAnimal.properties).toBeTruthy()
+	expect(idx.has(abstractAnimal.properties!, 'petType')).toBeTruthy()
+
+	expect(child.properties).toBeTruthy()
+	expect(idx.has(child.properties!, 'petType')).toBeTruthy() /* The child must have it as it implements AbstractAnimal, which specifies it */
+
 	expect(parent.name).toEqual('Pet')
 	expect(parent.discriminator!.name).toEqual('petType')
 	expect(parent.discriminator!.references.length).toEqual(3)

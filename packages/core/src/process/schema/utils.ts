@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperties, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -6,6 +6,7 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import { fullyQualifiedName } from './naming'
 import { convertToBoolean } from '../utils'
 import { debugStringify } from '../../stringify'
+import { uniquePropertiesIncludingInheritedForParents } from '../../utils/objects'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -87,25 +88,6 @@ export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.S
 		state.knownSchemas.set(apiSchema, schema)
 		return schema
 	}
-}
-
-/**
- * Return all of the unique properties, including inherited properties, for a model, where properties
- * in submodels override any same-named properties in parent models.
- * @param schema 
- * @param result 
- */
-export function uniquePropertiesIncludingInherited(schema: CodegenObjectSchema, result: CodegenProperties = idx.create()): CodegenProperties {
-	if (schema.parents) {
-		for (const aParent of schema.parents) {
-			uniquePropertiesIncludingInherited(aParent, result)
-		}
-	}
-	if (schema.properties) {
-		idx.merge(result, schema.properties)
-	}
-
-	return result
 }
 
 /**

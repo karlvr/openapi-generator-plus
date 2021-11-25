@@ -10,6 +10,7 @@ export { createGeneratorContext } from './generators'
 
 export * as idx from '@openapi-generator-plus/indexed-type'
 export * from './stringify'
+export * from './utils/index'
 
 /**
  * Construct a CodegenGenerator from the given constructor.

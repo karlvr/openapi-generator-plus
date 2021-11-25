@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "apply-updates": "pnpx -y npm-check-updates && pnpm --recursive exec pnpx -y npm-check-updates",
+    "apply-updates": "pnpx -y npm-check-updates -u && pnpm --recursive exec pnpx -y npm-check-updates -u",
     "build": "pnpm build --recursive",
     "check-updates": "pnpx -y npm-check-updates && pnpm --recursive exec pnpx -y npm-check-updates",
     "clean": "pnpm clean --recursive",

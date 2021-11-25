@@ -178,12 +178,12 @@ function findCommonDiscriminatorPropertyType(serializedName: string, schemas: Co
 }
 
 /**
- * Find the appropriate discriminator value to use for the given schema
+ * Return the appropriate discriminator value to use for the given schema
  * @param discriminator the discriminator
  * @param schema the discriminatable schema to find the value for
  * @returns 
  */
-export function findDiscriminatorValue(discriminator: CodegenDiscriminator, schema: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
+function discriminatorValueForSchema(discriminator: CodegenDiscriminator, schema: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
 	const name = schema.serializedName || schema.name
 	if (!discriminator.mappings) {
 		return name
@@ -226,7 +226,7 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 		}
 	}
 	
-	const discriminatorValue = findDiscriminatorValue(discriminatorSchema.discriminator, memberSchema, state)
+	const discriminatorValue = discriminatorValueForSchema(discriminatorSchema.discriminator, memberSchema, state)
 	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, toCodegenDefaultValueOptions({
 		...discriminatorSchema.discriminator,
 		required: true,

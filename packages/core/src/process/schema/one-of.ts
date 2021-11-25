@@ -1,7 +1,7 @@
 import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '../../stringify'
-import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
+import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
@@ -163,13 +163,19 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			suggestedScope: result,
-			suggestedName: `${result.name}_option`,
+			suggestedName: type => `${type}_value`,
+			nameRequired: true, /* We require a name as we'll wrap any non-object schemas below */
 		})
 		let oneOfSchema = oneOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, oneOfSchemaUsage, state).schema
+			const wrapper = createWrapperSchemaUsage(
+				oneOfSchema.name!, 
+				isOpenAPIReferenceObject(oneOfApiSchema) ? null : result, 
+				oneOfSchemaUsage, 
+				state
+			).schema
 			oneOfSchema = wrapper
 		}
 

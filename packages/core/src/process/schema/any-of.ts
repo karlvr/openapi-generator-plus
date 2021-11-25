@@ -79,14 +79,14 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			suggestedScope: state.generator.nativeCompositionCanBeScope() ? result : scope,
-			suggestedName: (type) => type.toLowerCase(),
+			suggestedName: (type) => `${type.toLowerCase()}_value`,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		})
 		let anyOfSchema = anyOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(anyOfSchema) && !isCodegenCompositionSchema(anyOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value`, result, anyOfSchemaUsage, state).schema
+			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value`, result, anyOfSchemaUsage, anyOfApiSchema, state).schema
 			anyOfSchema = wrapper
 		}
 

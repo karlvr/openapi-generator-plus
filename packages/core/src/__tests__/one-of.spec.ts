@@ -1,7 +1,7 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
 // import util from 'util'
-import { CodegenInterfaceSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import { CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 
 test('oneOf simple (native)', async() => {
 	const result = await createTestDocument('one-of/one-of-simple.yml', {
@@ -238,4 +238,58 @@ test('oneOf discriminator with separate allOf (object)', async() => {
 	expect(parent.discriminator!.name).toEqual('petType')
 	expect(parent.discriminator!.references.length).toEqual(3)
 	expect(parent.children).toBeNull()
+})
+
+test('oneOf primitives (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-primitives.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+	})
+	expect(result).toBeDefined()
+
+	const oneOf = result.schemas['OneOf'] as CodegenOneOfSchema
+	expect(oneOf).toBeDefined()
+	expect(isCodegenOneOfSchema(oneOf)).toBeTruthy()
+	expect(oneOf.schemas).toBeNull() /* As our schemas are refs, even though they're primitive */
+	
+	expect(oneOf.composes).not.toBeNull()
+	const customInteger = oneOf.composes![0] as CodegenNumericSchema
+	expect(customInteger.schemaType).toEqual(CodegenSchemaType.INTEGER)
+	expect(customInteger.name).toBeNull() /* An integer schema doesn't need a name */
+})
+
+test('oneOf primitives (object)', async() => {
+	const result = await createTestDocument('one-of/one-of-primitives.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+	})
+	expect(result).toBeDefined()
+
+	const oneOf = result.schemas['OneOf'] as CodegenInterfaceSchema
+	expect(oneOf).toBeDefined()
+	expect(isCodegenInterfaceSchema(oneOf)).toBeTruthy()
+	expect(oneOf.schemas).toBeNull() /* As our schemas are refs, even though they're primitive */
+
+	expect(oneOf.implementors).not.toBeNull()
+	const customInteger = oneOf.implementors![0] as CodegenWrapperSchema
+	expect(customInteger.schemaType).toEqual(CodegenSchemaType.WRAPPER)
+	expect(customInteger.name).toEqual('CustomInteger') /* Wrapper schemas can have names, and we want it to have the name we gave it in the spec */
+	expect(customInteger.property).toBeDefined()
+	expect(customInteger.property.schema.schemaType).toBe(CodegenSchemaType.INTEGER)
+	expect(customInteger.property.nullable).toBeFalsy()
+})
+
+test('oneOf primitives with nullable', async() => {
+	const result = await createTestDocument('one-of/one-of-primitives.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+	})
+	expect(result).toBeDefined()
+
+	const oneOf = result.schemas['OneOf'] as CodegenInterfaceSchema
+	expect(isCodegenInterfaceSchema(oneOf)).toBeTruthy()
+
+	expect(oneOf.implementors).not.toBeNull()
+	const customIntegerNullable = oneOf.implementors![2] as CodegenWrapperSchema
+	expect(customIntegerNullable.schemaType).toEqual(CodegenSchemaType.WRAPPER)
+	expect(customIntegerNullable.name).toEqual('CustomIntegerNullable') /* Wrapper schemas can have names, and we want it to have the name we gave it in the spec */
+	expect(customIntegerNullable.property).toBeDefined()
+	expect(customIntegerNullable.property.nullable).toBeTruthy()
 })

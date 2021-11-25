@@ -75,14 +75,14 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			suggestedScope: state.generator.nativeCompositionCanBeScope() ? result : scope,
-			suggestedName: (type) => type.toLowerCase(),
+			suggestedName: (type) => `${type.toLowerCase()}_value`,
 			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		})
 		let oneOfSchema = oneOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.type}_value`, result, oneOfSchemaUsage, state).schema
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.schemaType.toLowerCase()}_value`, result, oneOfSchemaUsage, oneOfApiSchema, state).schema
 			oneOfSchema = wrapper
 		}
 
@@ -163,17 +163,17 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 			purpose: CodegenSchemaPurpose.GENERAL,
 			required: false,
 			suggestedScope: result,
-			suggestedName: type => `${type}_value`,
-			nameRequired: true, /* We require a name as we'll wrap any non-object schemas below */
+			suggestedName: type => `${type.toLowerCase()}_value`,
 		})
 		let oneOfSchema = oneOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
 			const wrapper = createWrapperSchemaUsage(
-				oneOfSchema.name!, 
+				oneOfSchema.name || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
 				isOpenAPIReferenceObject(oneOfApiSchema) ? null : result, 
-				oneOfSchemaUsage, 
+				oneOfSchemaUsage,
+				oneOfApiSchema,
 				state
 			).schema
 			oneOfSchema = wrapper

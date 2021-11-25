@@ -1,12 +1,15 @@
 import { CodegenSchemaType, CodegenSchemaUsage, CodegenScope, CodegenWrapperSchema } from '@openapi-generator-plus/types'
+import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
+import { OpenAPIX } from '../../types/patches'
 import { extractCodegenSchemaUsage } from '../utils'
 import { extractNaming, toUniqueScopedName, usedSchemaName } from './naming'
 import { createCodegenProperty } from './property'
 import { addToScope } from './utils'
 
-export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, wrap: CodegenSchemaUsage, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
-	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.WRAPPER, state)
+export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
+	const $ref = isOpenAPIReferenceObject(wrapApi) ? wrapApi.$ref : undefined
+	const naming = toUniqueScopedName($ref, suggestedName, scope, wrapApi, CodegenSchemaType.WRAPPER, state)
 
 	const property = createCodegenProperty('value', wrap, state)
 	property.required = true

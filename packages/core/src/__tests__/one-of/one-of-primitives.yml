@@ -1,0 +1,20 @@
+---
+openapi: 3.0.3
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    CustomInteger:
+      type: integer
+    CustomIntegerNullable:
+      type: integer
+      nullable: true
+    CustomString:
+      type: string
+    OneOf:
+      oneOf:
+        - $ref: '#/components/schemas/CustomInteger'
+        - $ref: '#/components/schemas/CustomString'
+        - $ref: '#/components/schemas/CustomIntegerNullable'

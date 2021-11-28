@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, toCodegenDefaultValueOptions, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findProperty, interfaceForProperty, removeProperty } from './utils'
+import { findKnownSchema, findProperty, interfaceForProperty, removeProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
@@ -193,7 +193,7 @@ function discriminatorValueForSchema(discriminator: CodegenDiscriminator, schema
 		const resolvedSchema = resolveReference({
 			$ref,
 		}, state)
-		const found = state.knownSchemas.get(resolvedSchema)
+		const found = findKnownSchema(resolvedSchema, $ref, state)
 		if (found === schema) {
 			return value
 		}

@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenSchemaType } from '../../../types/dist'
+import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema } from '@openapi-generator-plus/types'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -97,4 +97,31 @@ test('missing request body schema', async() => {
 	expect(op.requestBody!.schema).toBeNull()
 	const content = op.defaultResponse!.defaultContent!
 	expect(content).toBeNull()
+})
+
+test('double reference', async() => {
+	const result = await createTestDocument('odd-models/double-reference.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		supportsInheritance: true,
+		supportsMultipleInheritance: true,
+	})
+
+	expect(result).toBeDefined()
+
+	const colour = idx.get(result.schemas, 'colour') as CodegenObjectSchema
+	expect(colour.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(colour.nullable).toBeFalsy()
+
+	const colourValue = idx.get(result.schemas, 'ColourValue') as CodegenObjectSchema
+	expect(colourValue.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(colourValue.nullable).toBeTruthy()
+
+	const colourCollectionValue = idx.get(result.schemas, 'ColourCollectionValue') as CodegenWrapperSchema
+	expect(colourCollectionValue.schemaType).toEqual(CodegenSchemaType.WRAPPER)
+	expect(colourCollectionValue.property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
+	expect(colourCollectionValue.property.schema.component).toBeTruthy()
+	expect(colourCollectionValue.property.schema.component?.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(colourCollectionValue.property.schema.component?.schema.name).toEqual('ColourValue')
+	console.log(colourCollectionValue.property.schema.component?.schema)
+	expect(colourCollectionValue.property.schema.component?.schema).toBe(colourValue) /* Ensure that we've correctly re-used the same schema for ColourValue */
 })

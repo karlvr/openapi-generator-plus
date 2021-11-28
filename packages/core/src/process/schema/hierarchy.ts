@@ -59,7 +59,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	result.properties = toCodegenProperties(apiSchema, result, state) || null
 

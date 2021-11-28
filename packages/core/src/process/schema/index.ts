@@ -21,7 +21,7 @@ import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
-import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
+import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
@@ -106,7 +106,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 
 function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, options: SchemaUsageOptions, state: InternalCodegenState): CodegenSchema {
 	/* Check if we've already generated this schema, and return it */
-	const existing = state.knownSchemas.get(apiSchema)
+	const existing = findKnownSchema(apiSchema, $ref, state)
 	if (existing) {
 		return existing
 	}
@@ -132,7 +132,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	}
 
 	/* Due to the recursive nature of nameFromRef, we might have actually generated a schema for us now! */
-	const existingNow = state.knownSchemas.get(apiSchema)
+	const existingNow = findKnownSchema(apiSchema, $ref, state)
 	if (existingNow) {
 		return existingNow
 	}
@@ -226,7 +226,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		}
 	}
 
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	if (naming) {
 		addToScope(result, naming.scope, state)

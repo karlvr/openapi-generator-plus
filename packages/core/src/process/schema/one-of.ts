@@ -66,7 +66,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
@@ -154,7 +154,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []

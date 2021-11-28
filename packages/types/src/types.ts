@@ -5,6 +5,7 @@ import { CodegenNativeTypeTransformers } from './native-types'
 export interface CodegenInputDocument {
 	$refs: {
 		get: <T>(name: string) => T
+		paths: () => string[]
 	}
 	root: OpenAPI.Document
 }

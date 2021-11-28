@@ -3,10 +3,11 @@ import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { fullyQualifiedName } from './naming'
+import { fullyQualifiedName, ScopedModelInfo } from './naming'
 import { convertToBoolean } from '../utils'
 import { debugStringify } from '../../stringify'
 import { uniquePropertiesIncludingInheritedForParents } from '../../utils/objects'
+import path from 'path'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -75,17 +76,73 @@ export function scopeOf(schema: CodegenNamedSchema, state: InternalCodegenState)
 	}
 }
 
+function normaliseRef($ref: string, state: InternalCodegenState): string
+function normaliseRef($ref: undefined, state: InternalCodegenState): undefined
+
+/**
+ * Normalise a $ref so that the path to external files is canonical, so we can use them to lookup known schemas.
+ * @param $ref 
+ * @param state 
+ * @returns 
+ */
+function normaliseRef($ref: string | undefined, state: InternalCodegenState): string | undefined {
+	if ($ref === undefined) {
+		return undefined
+	}
+
+	if ($ref.startsWith('#')) {
+		const base = state.$refs.paths()[0]
+		return `${base}${$ref}`
+	} else if (!$ref.startsWith('/')) {
+		const base = state.$refs.paths()[0]
+		const result = path.resolve(path.dirname(base), $ref)
+		return result
+	} else {
+		return $ref
+	}
+}
+
+export function findKnownSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, state: InternalCodegenState): CodegenSchema | undefined {
+	const known = state.knownSchemas.get(apiSchema)
+	if (known) {
+		return known
+	}
+
+	if ($ref) {
+		const known = state.knownSchemasByRef.get(normaliseRef($ref, state))
+		if (known) {
+			return known
+		}
+	}
+	
+	return undefined
+}
+
 /**
  * Add the result to the knownSchemas to avoid generating again, and returns the canonical schema.
  * If theres already a known schema for the given schema, the already existing version is returned.
  * This helps to dedupe what we generate.
  */
-export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject, schema: T, state: InternalCodegenState): T {
+export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject, schema: T, naming: ScopedModelInfo | null, state: InternalCodegenState): T {
 	const existing = state.knownSchemas.get(apiSchema)
+	if (!existing) {
+		state.knownSchemas.set(apiSchema, schema)
+	}
+
+	let existingByRef: CodegenSchema | undefined
+	if (naming?.$ref) {
+		const normalisedRef = normaliseRef(naming.$ref, state)
+		existingByRef = naming?.$ref ? state.knownSchemasByRef.get(normalisedRef) : undefined
+		if (!existingByRef) {
+			state.knownSchemasByRef.set(normalisedRef, schema)
+		}
+	}
+
 	if (existing) {
 		return existing as T
+	} else if (existingByRef) {
+		return existingByRef as T
 	} else {
-		state.knownSchemas.set(apiSchema, schema)
 		return schema
 	}
 }

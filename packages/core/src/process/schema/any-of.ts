@@ -69,7 +69,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
@@ -158,7 +158,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []

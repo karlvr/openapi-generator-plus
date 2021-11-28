@@ -59,6 +59,7 @@ export function createCodegenDocument(input: CodegenInput, state: CodegenState):
 		...input,
 		usedFullyQualifiedSchemaNames: {},
 		knownSchemas: new Map(),
+		knownSchemasByRef: new Map(),
 		reservedSchemaNames: {},
 		schemas: idx.create(),
 		specVersion: toSpecVersion(input.root),

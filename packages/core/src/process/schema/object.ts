@@ -158,7 +158,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	schema = addToKnownSchemas(apiSchema, schema, state)
+	schema = addToKnownSchemas(apiSchema, schema, naming, state)
 
 	schema.properties = toCodegenProperties(apiSchema, schema, state) || null
 

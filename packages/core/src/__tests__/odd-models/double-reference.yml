@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Double reference
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    colour:
+      type: object
+      required:
+        - red
+        - green
+        - blue
+        - alpha
+      properties:
+        red:
+          type: integer
+        green:
+          type: integer
+        blue:
+          type: integer
+        alpha:
+          type: integer
+    ColourValue:
+      nullable: true
+      $ref: '#/components/schemas/colour'
+    ColourCollectionValue:
+      type: array
+      items:
+        $ref: '#/components/schemas/ColourValue'
+    Response:
+      oneOf:
+        - $ref: '#/components/schemas/ColourValue'
+        - $ref: '#/components/schemas/ColourCollectionValue'

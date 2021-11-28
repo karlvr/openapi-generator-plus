@@ -12,6 +12,7 @@ export interface InternalCodegenState extends CodegenState, CodegenInputDocument
 	usedFullyQualifiedSchemaNames: { [name: string]: boolean | undefined }
 	/** A hash of OpenAPI schemas to generated schemas, populated as we generate schemas to avoid generating the same schema twice */
 	knownSchemas: Map<OpenAPIX.SchemaObject, CodegenSchema>
+	knownSchemasByRef: Map<string, CodegenSchema>
 	/** A hash of $ref to fully qualified model name, representing reserved schema names */
 	reservedSchemaNames: { [$ref: string]: string | undefined }
 	/** The map of top-level named schemas */

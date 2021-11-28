@@ -11,6 +11,7 @@ export interface ScopedModelInfo {
 	serializedName: string | null
 	scope: CodegenScope | null
 	anonymous: boolean
+	$ref: string | undefined
 }
 
 function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
@@ -48,6 +49,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			serializedName,
 			scope,
 			anonymous: serializedName === null,
+			$ref,
 		}
 	} else {
 		return {
@@ -56,6 +58,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			serializedName,
 			scope: null,
 			anonymous: serializedName === null,
+			$ref,
 		}
 	}
 }

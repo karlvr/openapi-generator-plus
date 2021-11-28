@@ -69,7 +69,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 
 	const allOf = apiSchema.allOf as Array<OpenAPIX.SchemaObject>
 	for (const allOfApiSchema of allOf) {
@@ -155,8 +155,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, state)
-
+	result = addToKnownSchemas(apiSchema, result, naming, state)
 	
 	/* Create a discriminator, if appropriate, removing the discriminator property from the schema's
 	properties.

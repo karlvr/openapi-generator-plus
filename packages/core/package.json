@@ -9,6 +9,7 @@
     "clean": "../../node_modules/.bin/rimraf dist",
     "lint": "../../node_modules/.bin/eslint src",
     "test": "../../node_modules/.bin/jest",
+    "test-debug": "node --inspect-brk ../../node_modules/jest/bin/jest.js --runInBand",
     "watch": "../../node_modules/.bin/tsc --watch"
   },
   "repository": {

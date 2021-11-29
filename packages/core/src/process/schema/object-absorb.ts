@@ -1,4 +1,4 @@
-import { CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchemaPurpose, CodegenScope, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
+import { CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenScope, isCodegenMapSchema, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../../types/patches'
 import { InternalCodegenState } from '../../types'
@@ -43,7 +43,7 @@ export function absorbCodegenSchema(schema: CodegenObjectLikeSchemas, target: Co
 	}
 }
 
-export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenObjectLikeSchemas | undefined {
+export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: CodegenObjectSchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenSchema | undefined {
 	if (!isOpenAPIReferenceObject(apiSchema)) {
 		/*
 			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
@@ -67,11 +67,17 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 		suggestedScope: scope,
 	})
 	const schema = schemaUsage.schema
-	if (!isCodegenObjectLikeSchema(schema)) {
-		throw new Error(`Cannot absorb schema as it isn't an object: ${debugStringify(apiSchema)}`)
+	if (isCodegenMapSchema(schema)) {
+		if (target.additionalProperties) {
+			throw new Error(`Cannot absorb schema as the target already has additionalProperties: ${debugStringify(schema)}`)
+		}
+		target.additionalProperties = schema
+	} else if (isCodegenObjectLikeSchema(schema)) {
+		/* We only include nested schemas if the schema being observed won't actually exist to contain its nested schemas itself */
+		absorbCodegenSchema(schema, target, { includeNestedSchemas: false })
+	} else {
+		throw new Error(`Cannot absorb schema as it isn't an object: ${debugStringify(schema)}`)
 	}
-
-	/* We only include nested schemas if the schema being observed won't actually exist to contain its nested schemas itself */
-	absorbCodegenSchema(schema, target, { includeNestedSchemas: false })
+	
 	return schema
 }

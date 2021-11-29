@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenCompositionSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenCompositionSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '../../stringify'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -203,7 +203,9 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			/* Make sure there's an interface schema to use */
 			const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
 
-			addImplementor(interfaceSchema, result)
+			if (isCodegenInterfaceSchema(interfaceSchema)) {
+				addImplementor(interfaceSchema, result)
+			}
 			addToAnyDiscriminators(allOfSchema, result, state)
 
 			if (isCodegenHierarchySchema(allOfSchema)) {

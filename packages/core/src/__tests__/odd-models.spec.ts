@@ -122,6 +122,5 @@ test('double reference', async() => {
 	expect(colourCollectionValue.property.schema.component).toBeTruthy()
 	expect(colourCollectionValue.property.schema.component?.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(colourCollectionValue.property.schema.component?.schema.name).toEqual('ColourValue')
-	console.log(colourCollectionValue.property.schema.component?.schema)
 	expect(colourCollectionValue.property.schema.component?.schema).toBe(colourValue) /* Ensure that we've correctly re-used the same schema for ColourValue */
 })

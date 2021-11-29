@@ -6,6 +6,7 @@ import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenProperties } from './property'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '../../stringify'
+import { toCodegenMapSchema } from './map'
 
 function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
 	for (const property of idx.allValues(otherProperties)) {
@@ -38,6 +39,12 @@ export function absorbCodegenSchema(schema: CodegenObjectLikeSchemas, target: Co
 	if (schema.properties) {
 		absorbProperties(schema.properties, target, { makePropertiesOptional: options.makePropertiesOptional })
 	}
+	if (schema.additionalProperties) {
+		if (target.additionalProperties) {
+			throw new Error(`Cannot absorb schema as the target already has additionalProperties: ${debugStringify(schema)}`)
+		}
+		target.additionalProperties = schema.additionalProperties
+	}
 	if (options.includeNestedSchemas && schema.schemas) {
 		absorbCodegenSchemas(schema.schemas, target)
 	}
@@ -53,9 +60,24 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 			case we fall back to using toCodegenSchemaUsage.
 			*/
 
+		let absorbed = false
 		const otherProperties = toCodegenProperties(apiSchema, target, state)
 		if (otherProperties) {
 			absorbProperties(otherProperties, target, {})
+			absorbed = true
+		}
+		if (apiSchema.additionalProperties) {
+			if (target.additionalProperties) {
+				throw new Error(`Cannot absorb schema as the target already has additionalProperties: ${debugStringify(apiSchema)}`)
+			}
+
+			const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
+			target.additionalProperties = mapSchema
+			absorbed = true
+		}
+
+		if (absorbed) {
+			/* We return undefined as we left nothing that needs to be handled */
 			return undefined
 		}
 	}

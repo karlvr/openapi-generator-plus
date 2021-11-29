@@ -1,0 +1,21 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: allOf with a map and properties
+paths: {}
+components:
+  schemas:
+    Parent:
+      properties:
+        name:
+          type: string
+    Child:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          additionalProperties:
+            type: string
+          properties:
+            own:
+              type: number

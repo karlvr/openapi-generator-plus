@@ -3,7 +3,16 @@ openapi: '3.0.3'
 info:
   version: 1.0.1
   title: allOf with a map
-paths: {}
+paths:
+  /standalone:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Standalone'
 components:
   schemas:
     Parent:
@@ -14,11 +23,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/Parent'
         - type: object
-          # As this object has addditionalProperties and no properties, we determine it to be a map
+          # As this object has additionalProperties and no properties, we determine it to be a map
           additionalProperties:
             type: string
     Standalone:
       type: object
-      # As this object has addditionalProperties and no properties, we determine it to be a map
+      # As this object has additionalProperties and no properties, we determine it to be a map
       additionalProperties:
         type: string

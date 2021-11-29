@@ -220,14 +220,14 @@ export function findPropertyAndSchema(schema: CodegenObjectLikeSchemas, serializ
 			}
 		}
 
-		if (isCodegenObjectSchema(schema) && schema.parents) {
-			for (const parent of schema.parents) {
+		if (isCodegenObjectSchema(aSchema) && aSchema.parents) {
+			for (const parent of aSchema.parents) {
 				if (open.indexOf(parent) === -1) {
 					open.push(parent)
 				}
 			}
-		} else if (isCodegenInterfaceSchema(schema) && schema.parents) {
-			for (const parent of schema.parents) {
+		} else if (isCodegenInterfaceSchema(aSchema) && aSchema.parents) {
+			for (const parent of aSchema.parents) {
 				if (open.indexOf(parent) === -1) {
 					open.push(parent)
 				}

@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 0.42.0
+
+### Minor Changes
+
+- 4f00292: Improve reuse of schemas to correct issue where duplicate schemas could be generated with the same name
+
 ## 0.41.5
 
 ### Patch Changes

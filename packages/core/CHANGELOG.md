@@ -1,5 +1,21 @@
 # @openapi-generator-plus/core
 
+## 0.42.0
+
+### Minor Changes
+
+- 1ca4910: Fix reserved schemas when there are multiple documents referenced in a spec
+- 4f00292: Improve reuse of schemas to correct issue where duplicate schemas could be generated with the same name
+- 3b72edb: Support an allOf member that contains additionalProperties, whether inline or not
+- f2fbd04: Support an allOf member that is determined to be a Map because it is an object with additionalProperties and no properties
+- 6872a0c: Make `uniquePropertiesIncludingInherited` function usable by generators, and add `uniquePropertiesIncludingInheritedForParents` function
+
+### Patch Changes
+
+- 5e15b3a: Fix findPropertyAndSchema methods searching of parents
+- 5f754a2: Wrapper should be able to contain nullable values
+- 65accd3: Fix removal of property for discriminators to only remove if it's not required by an interface
+
 ## 0.41.5
 
 ### Patch Changes

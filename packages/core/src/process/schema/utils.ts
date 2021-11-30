@@ -1,5 +1,5 @@
 import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
-import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
+import { isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -272,4 +272,27 @@ export function addImplementor(parent: CodegenInterfaceSchema, child: CodegenObj
 		child.implements = []
 	}
 	child.implements.push(parent)
+}
+
+export function addReservedSchemaName(schemaName: string, state: InternalCodegenState): void {
+	const fqn = fullyQualifiedName([schemaName])
+	const $ref = normaliseRef(refForSchemaName(schemaName, state), state)
+	state.reservedSchemaNames[$ref] = fqn
+}
+
+export function reservedSchemaName($ref: string | undefined, state: InternalCodegenState): string | undefined {
+	if (!$ref) {
+		return undefined
+	}
+	$ref = normaliseRef($ref, state)
+	return state.reservedSchemaNames[$ref]
+}
+
+/**
+ * Returns the value of the `$ref` to use to refer to the given schema definition / component.
+ * @param schemaName the name of a schema
+ * @param state 
+ */
+export function refForSchemaName(schemaName: string, state: InternalCodegenState): string {
+	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }

@@ -4,6 +4,7 @@ import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { nameFromRef } from '../utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
+import { reservedSchemaName } from './utils'
 
 export interface ScopedModelInfo {
 	name: string
@@ -66,7 +67,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
 	const result = toScopedName($ref, suggestedName, scope, apiSchema, schemaType, state)
 
-	const reservedName = $ref ? state.reservedSchemaNames[$ref] : undefined
+	const reservedName = reservedSchemaName($ref, state)
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {
 		/* Model types that aren't defined in the spec need to be made unique */
 		result.scopedName = uniqueScopedName(result.scopedName, state)

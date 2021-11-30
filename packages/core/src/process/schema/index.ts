@@ -14,21 +14,20 @@ import { toCodegenArraySchema } from './array'
 import { toCodegenBooleanSchema } from './boolean'
 import { toCodegenEnumSchema } from './enum'
 import { toCodegenMapSchema } from './map'
-import { fullyQualifiedName, toUniqueScopedName, extractNaming, usedSchemaName } from './naming'
+import { toUniqueScopedName, extractNaming, usedSchemaName } from './naming'
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
-import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema } from './utils'
+import { addReservedSchemaName, addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema, refForSchemaName } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
 	for (const schemaName in specSchemas) {
-		const fqn = fullyQualifiedName([schemaName])
 		usedSchemaName([schemaName], state)
-		state.reservedSchemaNames[refForSchemaName(schemaName, state)] = fqn
+		addReservedSchemaName(schemaName, state)
 	}
 
 	for (const schemaName in specSchemas) {
@@ -44,15 +43,6 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 			suggestedScope: null,
 		})
 	}
-}
-
-/**
- * Returns the value of the `$ref` to use to refer to the given schema definition / component.
- * @param schemaName the name of a schema
- * @param state 
- */
-function refForSchemaName(schemaName: string, state: InternalCodegenState): string {
-	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
 }
 
 export interface SchemaUsageOptions {

@@ -319,13 +319,9 @@ export enum CodegenEncodingStyle {
  * Extra encoding information for multipart and application/x-www-form-urlencoded request bodies
  * https://swagger.io/specification/#encoding-object
  */
-export interface CodegenContentPropertyEncoding {
+export interface CodegenContentPropertyEncoding extends CodegenParameterEncoding {
 	contentType: string
 	headers: CodegenHeaders | null
-	style: string | null
-	explode: boolean
-	allowReserved: boolean
-	vendorExtensions: CodegenVendorExtensions | null
 
 	/**
 	 * The value or container property in the content object.
@@ -923,6 +919,7 @@ export interface CodegenParameterEncoding {
 	style: string | null
 	explode: boolean
 	allowReserved: boolean
+	allowEmptyValue: boolean
 	vendorExtensions: CodegenVendorExtensions | null
 }
 

@@ -150,6 +150,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			style,
 			explode: convertToBoolean(propertyEncodingSpec.explode, style === CodegenEncodingStyle.FORM),
 			allowReserved: convertToBoolean(propertyEncodingSpec.allowReserved, false),
+			allowEmptyValue: false,
 			vendorExtensions: toCodegenVendorExtensions(propertyEncodingSpec),
 			property: property,
 			valueProperty: null,

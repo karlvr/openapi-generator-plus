@@ -69,7 +69,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	const encoding: CodegenParameterEncoding | null = {
 		style,
 		explode: convertToBoolean(parameter.explode, style === CodegenEncodingStyle.FORM),
-		allowReserved: parameter.allowReserved || false,
+		allowReserved: convertToBoolean(parameter.allowReserved, false),
+		allowEmptyValue: convertToBoolean(parameter.allowEmptyValue, false),
 		vendorExtensions,
 	}
 

@@ -4,7 +4,7 @@
   "commit": false,
   "linked": [["@openapi-generator-plus/core", "@openapi-generator-plus/types", "@openapi-generator-plus/testing", "openapi-generator-plus"]],
   "access": "restricted",
-  "baseBranch": "master",
+  "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": []
 }

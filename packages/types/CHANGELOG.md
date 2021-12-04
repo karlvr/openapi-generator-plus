@@ -1,5 +1,20 @@
 # @openapi-generator-plus/types
 
+## 1.0.0
+
+### Major Changes
+
+- First major release
+
+### Minor Changes
+
+- d7f6d83: Add support for allowEmptyValue on parameters
+
+### Patch Changes
+
+- Updated dependencies
+  - @openapi-generator-plus/indexed-type@1.0.0
+
 ## 0.42.0
 
 ### Minor Changes

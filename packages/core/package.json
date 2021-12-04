@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/core",
-  "version": "0.42.0",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,12 +23,12 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/core#readme",
   "dependencies": {
-    "@openapi-generator-plus/indexed-type": "^0.1.6",
+    "@openapi-generator-plus/indexed-type": "^1.0.0",
     "@openapi-generator-plus/swagger-parser": "^10.0.6",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@openapi-generator-plus/types": "^0.42.0"
+    "@openapi-generator-plus/types": "^1.0.0"
   },
   "publishConfig": {
     "access": "public"

@@ -1,5 +1,18 @@
 # openapi-generator-plus
 
+## 1.0.0
+
+### Major Changes
+
+- First major release
+
+### Patch Changes
+
+- Updated dependencies [d7f6d83]
+- Updated dependencies
+  - @openapi-generator-plus/core@1.0.0
+  - @openapi-generator-plus/types@1.0.0
+
 ## 0.42.0
 
 ### Patch Changes

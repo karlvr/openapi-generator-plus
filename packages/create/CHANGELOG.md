@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.0.0
+
+### Major Changes
+
+- First major release
+
 ## 0.2.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/types",
-  "version": "0.42.0",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@openapi-generator-plus/indexed-type": "^0.1.6",
+    "@openapi-generator-plus/indexed-type": "^1.0.0",
     "openapi-types": "^9.3.1"
   }
 }

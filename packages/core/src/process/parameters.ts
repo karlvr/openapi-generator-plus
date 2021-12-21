@@ -1,5 +1,5 @@
 import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue, CodegenEncodingStyle, CodegenParameterEncoding, isCodegenArraySchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
-import { OpenAPI } from 'openapi-types'
+import { OpenAPI, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'
@@ -23,6 +23,7 @@ export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParamet
 
 function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, state: InternalCodegenState): CodegenParameter {
 	const parameterContextName = isOpenAPIReferenceObject(parameter) ? nameFromRef(parameter.$ref, state) : `${scopeName}_${parameter.name}`
+	const originalApiSchema = isOpenAPIReferenceObject(parameter) ? parameter : undefined
 	parameter = resolveReference(parameter, state)
 
 	let schemaUse: CodegenSchemaUsage | undefined
@@ -106,6 +107,17 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		isHeaderParam: parameter.in === 'header',
 		isCookieParam: parameter.in === 'cookie',
 		isFormParam: parameter.in === 'formData',
+	}
+
+	if (originalApiSchema) {
+		/* We allow some properties to be overriden on a $ref */
+		const originalApiSchemaAsSchemaObject: OpenAPIV3.ParameterObject = originalApiSchema as unknown as OpenAPIV3.ParameterObject
+		if (originalApiSchemaAsSchemaObject.required) {
+			result.required = true
+		}
+		if (originalApiSchemaAsSchemaObject.deprecated) {
+			result.deprecated = true
+		}
 	}
 
 	return result

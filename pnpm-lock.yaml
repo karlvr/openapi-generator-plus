@@ -38,7 +38,7 @@ importers:
 
   packages/cli:
     specifiers:
-      '@openapi-generator-plus/core': ^1.0.0
+      '@openapi-generator-plus/core': ^1.1.0
       '@openapi-generator-plus/types': ^1.0.0
       ansi-colors: ^4.1.1
       getopts: ^2.3.0

@@ -1,5 +1,18 @@
 # openapi-generator-plus
 
+## 1.1.0
+
+### Minor Changes
+
+- 7e8d6c9: Add support for loading specs from a URL
+
+### Patch Changes
+
+- Updated dependencies [a047d06]
+- Updated dependencies [7e8d6c9]
+- Updated dependencies [1feb878]
+  - @openapi-generator-plus/core@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

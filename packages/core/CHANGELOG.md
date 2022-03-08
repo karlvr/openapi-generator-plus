@@ -1,5 +1,13 @@
 # @openapi-generator-plus/core
 
+## 1.1.0
+
+### Minor Changes
+
+- a047d06: Support required and deprecated on a \$ref to a parameter
+- 7e8d6c9: Add support for loading specs from a URL
+- 1feb878: Ignore enum specified on a boolean property
+
 ## 1.0.0
 
 ### Major Changes

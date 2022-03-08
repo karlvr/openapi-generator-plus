@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Modular OpenAPI code generator written in TypeScript and Node.js",
   "keywords": [
     "openapi",
@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
-    "@openapi-generator-plus/core": "^1.0.0",
+    "@openapi-generator-plus/core": "^1.1.0",
     "@openapi-generator-plus/types": "^1.0.0",
     "ansi-colors": "^4.1.1",
     "getopts": "^2.3.0",

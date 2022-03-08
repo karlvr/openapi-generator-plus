@@ -56,3 +56,14 @@ export function chainedCompare<T>(...compares: CompareFunction<T>[]): CompareFun
 		return 0
 	}
 }
+
+/**
+ * Test whether the given string looks like a URL according to https://www.ietf.org/rfc/rfc1738.txt
+ * <p>
+ * Checks if the string starts with a valid scheme followed by a colon.
+ * @param value 
+ * @returns 
+ */
+export function isURL(value: string): boolean {
+	return value.match(/^[a-zA-Z0-9+.-]+:/) !== null
+}

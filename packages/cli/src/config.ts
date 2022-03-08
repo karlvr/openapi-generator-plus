@@ -2,6 +2,7 @@ import { CommandLineOptions, CommandLineConfig } from './types'
 import { promises as fs } from 'fs'
 import path from 'path'
 import YAML from 'yaml'
+import { isURL } from '@openapi-generator-plus/core/dist/utils'
 
 async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
@@ -25,7 +26,7 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 		if (config.outputPath) {
 			config.outputPath = path.resolve(path.dirname(configPath), config.outputPath)
 		}
-		if (config.inputPath) {
+		if (config.inputPath && !isURL(config.inputPath)) {
 			config.inputPath = path.resolve(path.dirname(configPath), config.inputPath)
 		}
 		if (commandLineOptions.generator) {

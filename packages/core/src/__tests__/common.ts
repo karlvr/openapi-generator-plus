@@ -5,6 +5,7 @@ import path from 'path'
 import pluralize from 'pluralize'
 import { camelCase } from 'lodash'
 import { createGeneratorContext } from '../generators'
+import { isURL } from '../utils'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig
@@ -142,7 +143,7 @@ export interface TestResult {
 export async function createTestResult(inputPath: string, config?: TestCodegenConfig): Promise<TestResult> {
 	const generator = createTestGenerator(config)
 	const state = createTestCodegenState(generator, config)
-	const input = await createCodegenInput(path.resolve(__dirname, inputPath))
+	const input = await createCodegenInput(isURL(inputPath) ? inputPath : path.resolve(__dirname, inputPath))
 	const result = createCodegenDocument(input, state)
 	return {
 		result,

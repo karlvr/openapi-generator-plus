@@ -1,0 +1,17 @@
+---
+# A boolean type with enum values
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths: {}
+components:
+  schemas:
+    Test1:
+      type: object
+      properties:
+        testProperty:
+          enum:
+            - 'true'
+            - 'false'
+          type: boolean

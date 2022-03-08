@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '..'
-import { CodegenEnumSchema, CodegenSchemaType } from '../../../types/dist'
+import { CodegenEnumSchema, CodegenSchemaType, CodegenObjectSchema } from '../../../types/dist'
 
 test('non-unique enum values', async() => {
 	const result = await createTestDocument('enums/non-unique-enum-values.yml')
@@ -22,4 +22,17 @@ test('non-unique enum values', async() => {
 		seenNames.add(enumValue.name)
 	}
 	expect(seenNames.size).toBe(5)
+})
+
+test('boolean with enum shouldn\'t be an enum', async() => {
+	const result = await createTestDocument('enums/boolean-enum.yml')
+
+	const test1 = idx.get(result.schemas, 'Test1') as CodegenObjectSchema
+	expect(test1).toBeDefined()
+
+	const testProperty = idx.get(test1.properties!, 'testProperty')
+	expect(testProperty).toBeDefined()
+
+	expect(testProperty?.schema.type).toEqual('boolean')
+	expect(testProperty?.schema.schemaType).toEqual(CodegenSchemaType.BOOLEAN)
 })

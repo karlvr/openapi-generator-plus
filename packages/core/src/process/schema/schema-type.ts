@@ -37,7 +37,7 @@ export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObjec
 		return CodegenSchemaType.ANYOF
 	} else if (apiSchema.oneOf) {
 		return CodegenSchemaType.ONEOF
-	} else if (apiSchema.enum) {
+	} else if (apiSchema.enum && apiSchema.type !== 'boolean') { /* Not sure which types should support enums, but boolean shouldn't - Jackson doesn't support them in its implementation */
 		return CodegenSchemaType.ENUM
 	} else if (apiSchema.type === 'object' && apiSchema.additionalProperties && (!apiSchema.properties || Object.keys(apiSchema.properties).length === 0)) {
 		return CodegenSchemaType.MAP

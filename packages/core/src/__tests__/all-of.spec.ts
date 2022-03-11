@@ -373,6 +373,105 @@ test('property conflict resolved', async() => {
 	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.INTEGER)
 })
 
+test('parent property no conflict', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	const child = idx.get(result.schemas, 'ControlChild') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.STRING)
+
+	expect(child.parents).not.toBeNull()
+})
+
+test('parent property no conflict (no inheritance)', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: false,
+	})
+	const child = idx.get(result.schemas, 'ControlChild') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.STRING)
+
+	expect(child.implements).not.toBeNull()
+})
+
+test('parent property type conflict resolved', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	const child = idx.get(result.schemas, 'Child') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.INTEGER) /* integer overrode string */
+
+	/* Our child cannot have parents as it cannot use inheritance because the property types of "name" are incompatible */
+	expect(child.parents).toBeNull()
+	/* For the same reason, it cannot have interface compatibility */
+	expect(child.implements).toBeNull()
+})
+
+test('parent property type conflict resolved (no inheritance)', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: false,
+	})
+	const child = idx.get(result.schemas, 'Child') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.INTEGER) /* integer overrode string */
+
+	/* Our child cannot have parents as it cannot use inheritance because the property types of "name" are incompatible */
+	expect(child.parents).toBeNull()
+	/* For the same reason, it cannot have interface compatibility */
+	expect(child.implements).toBeNull()
+})
+
+test('parent property nullability conflict resolved', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	const child = idx.get(result.schemas, 'Child2') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.STRING)
+
+	/* Our child cannot have parents as it cannot use inheritance because the property types of "name" are incompatible */
+	expect(child.parents).toBeNull()
+	/* For the same reason, it cannot have interface compatibility */
+	expect(child.implements).toBeNull()
+})
+
 /**
  * This test also tests serializedName on discriminators
  */

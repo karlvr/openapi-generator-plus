@@ -1,0 +1,35 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+  description: allOfs with a parent property of a conflicting type or configuration
+paths: {}
+components:
+  schemas:
+    Parent:
+      properties:
+        name:
+          type: string
+    Child:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          properties:
+            name:
+              type: integer
+    Child2:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          properties:
+            name:
+              type: string
+              nullable: true
+    ControlChild:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          properties:
+            name:
+              type: string

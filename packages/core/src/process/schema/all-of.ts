@@ -99,8 +99,12 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 }
 
 enum SchemaApproach {
+	/** Use inheritance */
 	PARENT,
-	ABSORB,
+	/** Absorb the schema and use interface conformance */
+	ABSORB_WITH_INTERFACE,
+	/** Absorb the schema with no interface conformance */
+	ABSORB_NO_INTERFACE,
 }
 interface ClassifiedSchema {
 	apiSchema: OpenAPIX.SchemaObject
@@ -193,25 +197,30 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	
 			/* Add discriminator values */
 			addToAnyDiscriminators(parentSchema, result, state)
-		} else {
+		} else if (approach === SchemaApproach.ABSORB_WITH_INTERFACE || approach === SchemaApproach.ABSORB_NO_INTERFACE) {
 			/* We must absorb the schema from the others, and then indicate that we conform to them */
 			const allOfSchema = absorbApiSchema(allOfApiSchema, result, scope, state)
 			if (!allOfSchema) {
 				continue
 			}
 
-			/* Make sure there's an interface schema to use */
-			const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
+			if (approach === SchemaApproach.ABSORB_WITH_INTERFACE) {
+				/* Make sure there's an interface schema to use */
+				const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
 
-			if (isCodegenInterfaceSchema(interfaceSchema)) {
-				addImplementor(interfaceSchema, result)
+				if (isCodegenInterfaceSchema(interfaceSchema)) {
+					addImplementor(interfaceSchema, result)
+				}
 			}
+
 			addToAnyDiscriminators(allOfSchema, result, state)
 
 			if (isCodegenHierarchySchema(allOfSchema)) {
 				/* Hierarchy schemas discover their members when we find them including the hierarchy in an allOf here */
 				allOfSchema.composes.push(result)
 			}
+		} else {
+			throw new Error(`Unsupported schema approach: ${approach}`)
 		}
 	}
 
@@ -228,6 +237,14 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
  * @returns 
  */
 function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState): ClassifiedSchema[] {
+	if (!checkObjectSchemaCompatibility(allOf, state)) {
+		/* The schemas are not compatible for inheritance or interface compatibility */
+		return allOf.map(apiSchema => ({
+			apiSchema,
+			approach: SchemaApproach.ABSORB_NO_INTERFACE,
+		}))
+	}
+
 	if (state.generator.supportsInheritance()) {
 		/* An allOf does not imply hierarchy (https://swagger.io/specification/#composition-and-inheritance-polymorphism)
 		   but we still prefer to use parent/child relationships to reduce the duplication of code.
@@ -237,7 +254,7 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 			/* Use parent/child relationships */
 			return allOf.map(apiSchema => ({
 				apiSchema,
-				approach: isOpenAPIReferenceObject(apiSchema) ? SchemaApproach.PARENT : SchemaApproach.ABSORB,
+				approach: isOpenAPIReferenceObject(apiSchema) ? SchemaApproach.PARENT : SchemaApproach.ABSORB_WITH_INTERFACE,
 			}))
 		}
 
@@ -250,7 +267,7 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 			/* Use parent/child relationship with just the discriminator schema */
 			return allOf.map(apiSchema => ({
 				apiSchema,
-				approach: apiSchema === discriminatorSchemas[0] ? SchemaApproach.PARENT : SchemaApproach.ABSORB,
+				approach: apiSchema === discriminatorSchemas[0] ? SchemaApproach.PARENT : SchemaApproach.ABSORB_WITH_INTERFACE,
 			}))
 		}
 	}
@@ -258,8 +275,78 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 	/* If we can't find any inheritance possibilties we just absorb all of the schemas */
 	return allOf.map(apiSchema => ({
 		apiSchema,
-		approach: SchemaApproach.ABSORB,
+		approach: SchemaApproach.ABSORB_WITH_INTERFACE,
 	}))
+}
+
+/**
+ * Check that the properties of the schemas are compatible with each other, otherwise we cannot use inheritance
+ * as languages do not allow inheritance with incompatible property types.
+ * <p>
+ * Note we check that reference schema properties are compatible with each other and with our non-reference schemas,
+ * as non-reference (inline) schemas are not generated as objects in the output and can therefore override 
+ * each other.
+ * 
+ * @param allOf 
+ * @param state 
+ * @returns 
+ */
+function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState): boolean {
+	const knownReferenceSchemaProperties: { [name: string]: OpenAPIX.SchemaObject } = {}
+
+	for (let apiSchema of allOf) {
+		let referenceSchema = false
+		if (isOpenAPIReferenceObject(apiSchema)) {
+			apiSchema = resolveReference(apiSchema, state)
+			referenceSchema = true
+		}
+		if (!apiSchema.properties) {
+			continue
+		}
+
+		for (const apiPropertyName of Object.keys(apiSchema.properties)) {
+			let apiProperty: OpenAPIX.SchemaObject = apiSchema.properties[apiPropertyName]
+			if (isOpenAPIReferenceObject(apiProperty)) {
+				apiProperty = resolveReference(apiProperty, state)
+			}
+
+			if (!knownReferenceSchemaProperties[apiPropertyName]) {
+				/* We're only concerned about compatibility with properties in referenced schemas, as they are
+				   the only ones that may be turned into objects in the target language.
+				 */
+				if (referenceSchema) {
+					knownReferenceSchemaProperties[apiPropertyName] = apiProperty
+				}
+			} else {
+				/* Check compatibility */
+				if (!checkPropertyCompatibility(apiProperty, knownReferenceSchemaProperties[apiPropertyName])) {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
+
+/**
+ * Check that two property schemas are compatible so that one can override the other in an
+ * inheritance hierarchy.
+ * @param prop1 
+ * @param prop2 
+ * @returns 
+ */
+function checkPropertyCompatibility(prop1: OpenAPIX.SchemaObject, prop2: OpenAPIX.SchemaObject): boolean {
+	if (prop1.type !== prop2.type) {
+		return false
+	}
+	if (prop1.format !== prop2.format) {
+		return false
+	}
+	if (!prop1.nullable !== !prop2.nullable) {
+		return false
+	}
+	return true
 }
 
 function hasDiscriminator(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {

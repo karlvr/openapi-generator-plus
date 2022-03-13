@@ -8,28 +8,43 @@ paths: {}
 components:
   schemas:
     Parent:
+      required:
+        - name
       properties:
         name:
           type: string
-    Child:
+    ChildTypes:
       allOf:
         - $ref: '#/components/schemas/Parent'
         - type: object
+          required:
+            - name
           properties:
             name:
               type: integer
-    Child2:
+    ChildNullability:
+      allOf:
+        - $ref: '#/components/schemas/Parent'
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              nullable: true
+    ChildRequired:
       allOf:
         - $ref: '#/components/schemas/Parent'
         - type: object
           properties:
             name:
               type: string
-              nullable: true
     ControlChild:
       allOf:
         - $ref: '#/components/schemas/Parent'
         - type: object
+          required:
+            - name
           properties:
             name:
               type: string

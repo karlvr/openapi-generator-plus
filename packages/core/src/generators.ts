@@ -14,6 +14,18 @@ const baseGenerator: CodegenBaseGeneratorConstructor = function(config, context)
 	return {
 		toEnumMemberName: (name) => context.generator().toConstantName(name),
 		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration + 1}`,
+		checkPropertyCompatibility: (parentProp, childProp) => {
+			if (parentProp.type !== childProp.type) {
+				return false
+			}
+			if (parentProp.format !== childProp.format) {
+				return false
+			}
+			if (parentProp.required && !childProp.required) {
+				return false
+			}
+			return true
+		},
 	}
 }
 

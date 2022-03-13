@@ -414,7 +414,7 @@ test('parent property type conflict resolved', async() => {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,
 		supportsInheritance: true,
 	})
-	const child = idx.get(result.schemas, 'Child') as CodegenObjectSchema
+	const child = idx.get(result.schemas, 'ChildTypes') as CodegenObjectSchema
 	
 	expect(child).toBeDefined()
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
@@ -435,7 +435,7 @@ test('parent property type conflict resolved (no inheritance)', async() => {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,
 		supportsInheritance: false,
 	})
-	const child = idx.get(result.schemas, 'Child') as CodegenObjectSchema
+	const child = idx.get(result.schemas, 'ChildTypes') as CodegenObjectSchema
 	
 	expect(child).toBeDefined()
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
@@ -451,12 +451,12 @@ test('parent property type conflict resolved (no inheritance)', async() => {
 	expect(child.implements).toBeNull()
 })
 
-test('parent property nullability conflict resolved', async() => {
+test('parent property nullability conflict ignored', async() => {
 	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,
 		supportsInheritance: true,
 	})
-	const child = idx.get(result.schemas, 'Child2') as CodegenObjectSchema
+	const child = idx.get(result.schemas, 'ChildNullability') as CodegenObjectSchema
 	
 	expect(child).toBeDefined()
 	expect(isCodegenObjectSchema(child)).toBeTruthy()
@@ -466,9 +466,27 @@ test('parent property nullability conflict resolved', async() => {
 	expect(property).toBeDefined()
 	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.STRING)
 
-	/* Our child cannot have parents as it cannot use inheritance because the property types of "name" are incompatible */
+	/* Nullability checks are _not_ considered in the base generator therefore the nullabilty difference doesn't matter in tests */
+	expect(child.parents).not.toBeNull()
+})
+
+test('parent property required conflict resolved', async() => {
+	const result = await createTestDocument('all-of/all-of-parent-property-conflict-v3.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	const child = idx.get(result.schemas, 'ChildRequired') as CodegenObjectSchema
+	
+	expect(child).toBeDefined()
+	expect(isCodegenObjectSchema(child)).toBeTruthy()
+	expect(child!.properties).not.toBeNull()
+
+	const property = idx.get(child!.properties!, 'name')
+	expect(property).toBeDefined()
+	expect(property!.schema.schemaType).toEqual(CodegenSchemaType.STRING)
+
+	/* If a parent requires a property, and a potential child doesn't, we cannot use inheritance / interface conformance */
 	expect(child.parents).toBeNull()
-	/* For the same reason, it cannot have interface compatibility */
 	expect(child.implements).toBeNull()
 })
 

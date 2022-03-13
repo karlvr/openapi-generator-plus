@@ -27,6 +27,7 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 	}
 
 	return {
+		...generatorContext.baseGenerator(config, generatorContext),
 		generatorType: () => CodegenGeneratorType.SERVER,
 		toClassName: (name) => `${name}_class`,
 		toIdentifier: (name) => {

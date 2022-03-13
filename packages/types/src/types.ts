@@ -104,6 +104,11 @@ export interface CodegenGenerator {
 	nativeComposedSchemaRequiresObjectLikeOrWrapper: () => boolean
 	interfaceCanBeNested: () => boolean
 
+	/**
+	 * Check the compatibility between a property in a parent schema with a child schema.
+	 */
+	checkPropertyCompatibility: (parentProp: CodegenPropertySummary, childProp: CodegenPropertySummary) => boolean
+
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.
 	 */
@@ -464,6 +469,19 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	discriminators: CodegenDiscriminator[] | null
 
 	vendorExtensions: CodegenVendorExtensions | null
+}
+
+/**
+ * A summary of a property before we've properly parsed it.
+ */
+export interface CodegenPropertySummary {
+	name: string
+	type?: string
+	format?: string
+	nullable: boolean
+	readOnly: boolean
+	writeOnly: boolean
+	required: boolean
 }
 
 export interface CodegenSchema extends CodegenSchemaInfo {

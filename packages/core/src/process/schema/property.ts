@@ -1,7 +1,7 @@
-import { CodegenLogLevel, CodegenProperties, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenLogLevel, CodegenProperties, CodegenProperty, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenSchemaUsage, toCodegenInitialValueOptions } from '../utils'
+import { convertToBoolean, extractCodegenSchemaUsage, toCodegenInitialValueOptions } from '../utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './naming'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
@@ -16,7 +16,7 @@ export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: Cod
 		return undefined
 	}
 
-	const requiredPropertyNames = typeof apiSchema.required === 'object' ? [...apiSchema.required as string[]] : []
+	const requiredPropertyNames = toRequiredPropertyNames(apiSchema)
 
 	const properties: CodegenProperties = idx.create()
 	for (const propertyName in apiSchema.properties) {
@@ -37,6 +37,10 @@ export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: Cod
 	}
 
 	return idx.undefinedIfEmpty(properties)
+}
+
+export function toRequiredPropertyNames(apiSchema: OpenAPIX.SchemaObject): string[] {
+	return typeof apiSchema.required === 'object' ? [...apiSchema.required as string[]] : []
 }
 
 /**
@@ -76,6 +80,18 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		initialValue: schemaUsage.defaultValue || state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)) || null,
 		vendorExtensions: toCodegenVendorExtensions(apiSchema),
 		discriminators: null,
+	}
+}
+
+export function toCodegenPropertySummary(name: string, apiSchema: OpenAPIX.SchemaObject, required: boolean): CodegenPropertySummary {
+	return {
+		name,
+		type: apiSchema.type as string | undefined,
+		format: apiSchema.format,
+		readOnly: convertToBoolean(apiSchema.readOnly, false),
+		writeOnly: convertToBoolean(apiSchema.writeOnly, false),
+		nullable: convertToBoolean(apiSchema.nullable, false),
+		required,
 	}
 }
 

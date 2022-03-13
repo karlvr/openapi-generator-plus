@@ -1,5 +1,15 @@
 # @openapi-generator-plus/core
 
+## 1.3.0
+
+### Minor Changes
+
+- d248bef: Don't generate inheritance or interface comformance when allOf schemas are incompatible
+
+### Patch Changes
+
+- e189df5: Don't generate inheritance or interface comformance when allOf schemas are incompatible
+
 ## 1.1.0
 
 ### Minor Changes

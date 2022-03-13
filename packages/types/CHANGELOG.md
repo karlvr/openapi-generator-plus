@@ -1,5 +1,16 @@
 # @openapi-generator-plus/types
 
+## 1.3.0
+
+### Minor Changes
+
+- 095d4b6: Add checkPropertyCompatibility to generator interface to check compatibility for inheritance and interface conformance
+- d248bef: Don't generate inheritance or interface comformance when allOf schemas are incompatible
+
+### Patch Changes
+
+- a8eb5af: Upgrade dependencies
+
 ## 1.0.0
 
 ### Major Changes

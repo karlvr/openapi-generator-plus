@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.0.1
+
+### Patch Changes
+
+- a8eb5af: Upgrade dependencies
+
 ## 1.0.0
 
 ### Major Changes

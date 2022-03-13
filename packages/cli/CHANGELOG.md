@@ -1,5 +1,17 @@
 # openapi-generator-plus
 
+## 1.3.0
+
+### Patch Changes
+
+- a8eb5af: Upgrade dependencies
+- Updated dependencies [095d4b6]
+- Updated dependencies [d248bef]
+- Updated dependencies [e189df5]
+- Updated dependencies [a8eb5af]
+  - @openapi-generator-plus/types@1.3.0
+  - @openapi-generator-plus/core@1.3.0
+
 ## 1.1.0
 
 ### Minor Changes

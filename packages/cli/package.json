@@ -38,7 +38,7 @@
     "getopts": "^2.3.0",
     "glob": "^7.2.0",
     "glob-promise": "^4.2.2",
-    "node-watch": "^0.7.2",
+    "node-watch": "^0.7.3",
     "yaml": "^1.10.2"
   },
   "publishConfig": {

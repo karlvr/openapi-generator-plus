@@ -6,8 +6,8 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import { fullyQualifiedName, ScopedModelInfo } from './naming'
 import { convertToBoolean } from '../utils'
 import { debugStringify } from '../../stringify'
-import { uniquePropertiesIncludingInheritedForParents } from '../../utils/objects'
 import path from 'path'
+import { OpenAPI } from 'openapi-types'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.
@@ -295,4 +295,16 @@ export function reservedSchemaName($ref: string | undefined, state: InternalCode
  */
 export function refForSchemaName(schemaName: string, state: InternalCodegenState): string {
 	return isOpenAPIV2Document(state.root) ? `#/definitions/${schemaName}` : `#/components/schemas/${schemaName}`
+}
+
+/**
+ * Returns the value of the `$ref` to use to refer to the given schema in an external document.
+ * @param path the path to the external schema
+ * @param doc the external schema document
+ * @param schemaName the name of the schema
+ * @param state 
+ * @returns 
+ */
+export function refForPathAndSchemaName(path: string, doc: OpenAPI.Document, schemaName: string, state: InternalCodegenState) {
+	return normaliseRef(isOpenAPIV2Document(doc) ? `${path}#/definitions/${schemaName}` : `${path}#/components/schemas/${schemaName}`, state)
 }

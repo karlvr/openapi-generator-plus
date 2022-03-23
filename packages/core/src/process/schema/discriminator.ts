@@ -1,6 +1,6 @@
 import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
-import { toCodegenSchemaUsage } from '.'
+import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -336,4 +336,40 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 
 function compareDiscriminatorReferences(a: CodegenDiscriminatorReference, b: CodegenDiscriminatorReference): number {
 	return a.value.toLowerCase().localeCompare(b.value.toLowerCase())
+}
+
+/**
+ * Find schemas in other documents (not the root, which are all discovered automatically) that should be members of the discriminator
+ * of the given schema, so that we find all such schemas that may exist in referenced docs. Otherwise we don't end up discovering and
+ * outputting those schemas if they're not directly referenced.
+ * @param discriminatorApiSchema 
+ * @param state 
+ * @returns 
+ */
+export function discoverDiscriminatorReferencesInOtherDocuments(discriminatorApiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState) {
+	return discoverSchemasInOtherDocuments(createDiscriminatorMemberTestFunc(discriminatorApiSchema), state)
+}
+
+/**
+ * Create a DiscoverRelatedSchemaTestFunc for finding schemas that reference the given discriminator schema.
+ * @returns 
+ */
+function createDiscriminatorMemberTestFunc(discriminatorApiSchema: OpenAPIX.SchemaObject): DiscoverSchemasTestFunc {
+	return function(anApiSchema, state) {
+		if ((anApiSchema as OpenAPIX.SchemaObject).allOf) {
+			const allOf = (anApiSchema as OpenAPIX.SchemaObject).allOf as Array<OpenAPIX.SchemaObject>
+			for (const anAllOf of allOf) {
+				if (anAllOf === discriminatorApiSchema) {
+					return true
+				}
+
+				const resolved = resolveReference(anAllOf, state)
+				if (resolved === discriminatorApiSchema) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
 }

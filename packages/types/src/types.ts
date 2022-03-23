@@ -6,6 +6,9 @@ export interface CodegenInputDocument {
 	$refs: {
 		get: <T>(name: string) => T
 		paths: () => string[]
+		values: () => {
+			[path: string]: OpenAPI.Document
+		}
 	}
 	root: OpenAPI.Document
 }

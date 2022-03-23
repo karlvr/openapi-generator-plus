@@ -21,7 +21,7 @@ import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
-import { addReservedSchemaName, addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema, refForSchemaName } from './utils'
+import { addReservedSchemaName, addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
@@ -266,4 +266,48 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenSt
 			}
 		}
 	}
+}
+
+export type DiscoverSchemasTestFunc = (apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState) => boolean
+
+/**
+ * Discover schemas that match a test function that exist in documents that are referenced by our root document, but
+ * which are not in our root document.
+ * @param testFunc 
+ * @param state 
+ */
+export function discoverSchemasInOtherDocuments(testFunc: DiscoverSchemasTestFunc, state: InternalCodegenState): CodegenSchemaUsage[] {
+	const paths = state.$refs.paths()
+	const values = state.$refs.values()
+
+	const result: CodegenSchemaUsage[] = []
+
+	for (const path of paths) {
+		const doc = values[path]
+		if (doc === state.root) {
+			/* Skip the root doc, as we're looking for schemas we haven't already discovered */
+			continue
+		}
+
+		const specSchemas = (isOpenAPIV2Document(doc) ? doc.definitions : doc.components?.schemas) || {}
+		for (const schemaName in specSchemas) {
+			const anApiSchema = resolveReference(specSchemas[schemaName], state) as OpenAPIX.SchemaObject
+			if (testFunc(anApiSchema, state)) {
+				/* We load the schema using a reference as we use references to distinguish between explicit and inline models */
+				const reference: OpenAPIX.ReferenceObject = {
+					$ref: refForPathAndSchemaName(path, doc, schemaName, state),
+				}
+		
+				const discovered = toCodegenSchemaUsage(reference, state, {
+					required: true, 
+					suggestedName: schemaName,
+					purpose: CodegenSchemaPurpose.GENERAL,
+					suggestedScope: null,
+				})
+				result.push(discovered)
+			}
+		}
+	}
+
+	return result
 }

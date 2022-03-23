@@ -6,7 +6,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
 import { toCodegenExamples } from '../examples'
-import { loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
+import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenInterfaceSchema } from './interface'
@@ -68,6 +68,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 	/* Process discriminator after adding composes so they can be used */
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	loadDiscriminatorMappings(result, state)
+	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 		
 	return result
 }

@@ -7,7 +7,7 @@ import { extractNaming, ScopedModelInfo, toUniqueScopedName, usedSchemaName } fr
 import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
 import { toCodegenExamples } from '../examples'
 import { toCodegenMapSchema } from './map'
-import { loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
+import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenInterfaceImplementationSchema } from './interface'
@@ -173,6 +173,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 		schema.polymorphic = true
 	}
 	loadDiscriminatorMappings(schema, state)
+	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 	return schema
 }
 

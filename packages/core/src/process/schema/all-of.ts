@@ -8,7 +8,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { addToAnyDiscriminators, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
+import { addToAnyDiscriminators, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema, absorbApiSchema } from './object-absorb'
@@ -95,6 +95,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		result.polymorphic = true
 	}
 	loadDiscriminatorMappings(result, state)
+	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 		
 	return result
 }
@@ -226,7 +227,8 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 
 	loadDiscriminatorMappings(result, state)
-	
+	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
+
 	return result
 }
 

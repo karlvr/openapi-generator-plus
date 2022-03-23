@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/core",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@openapi-generator-plus/types": "^1.3.0"
+    "@openapi-generator-plus/types": "^1.4.0"
   },
   "publishConfig": {
     "access": "public"

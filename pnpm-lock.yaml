@@ -60,7 +60,7 @@ importers:
     specifiers:
       '@openapi-generator-plus/indexed-type': ^1.0.0
       '@openapi-generator-plus/swagger-parser': ^10.0.6
-      '@openapi-generator-plus/types': ^1.3.0
+      '@openapi-generator-plus/types': ^1.4.0
       lodash: ^4.17.21
     dependencies:
       '@openapi-generator-plus/indexed-type': link:../indexed-type

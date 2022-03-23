@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 1.4.0
+
+### Minor Changes
+
+- ee74aa9: Discover external schemas that are members of an external discriminator [#36]
+
 ## 1.3.0
 
 ### Minor Changes

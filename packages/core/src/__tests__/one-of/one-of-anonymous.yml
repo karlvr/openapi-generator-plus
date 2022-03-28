@@ -1,0 +1,25 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: nested oneOf is anonymous
+paths: {}
+components:
+  schemas:
+    SubService:
+      type: object
+      properties:
+        name:
+          type: string
+        optionLists:
+          type: array
+          items:
+            type: string
+        regions:
+          oneOf:
+            - type: array
+              items: 
+                type: number
+            - type: string
+              enum: 
+                - ALL_NZ

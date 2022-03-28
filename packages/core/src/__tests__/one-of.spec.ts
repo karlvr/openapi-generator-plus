@@ -400,3 +400,39 @@ test('oneOf allOf (object with inheritance)', async() => {
 	expect(objectTypeProperty?.discriminators).toBeTruthy()
 })
 
+test('oneOf anonymous', async() => {
+	const result = await createTestDocument('one-of/one-of-anonymous.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+	expect(result).toBeDefined()
+
+	const subservice = idx.get(result.schemas, 'SubService') as CodegenObjectSchema
+	expect(subservice.schemaType).toEqual(CodegenSchemaType.OBJECT)
+
+	expect(subservice.schemas).not.toBeNull()
+	expect(idx.size(subservice.schemas!)).toEqual(1)
+
+	const regions = idx.get(subservice.schemas!, 'regions') as CodegenInterfaceSchema
+	expect(regions.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+})
+
+test('oneOf anonymous (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-anonymous.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+		supportsMultipleInheritance: true,
+	})
+	expect(result).toBeDefined()
+
+	const subservice = idx.get(result.schemas, 'SubService') as CodegenObjectSchema
+	expect(subservice.schemaType).toEqual(CodegenSchemaType.OBJECT)
+
+	expect(subservice.schemas).not.toBeNull()
+	expect(idx.size(subservice.schemas!)).toEqual(1)
+
+	const regions = idx.get(subservice.schemas!, 'regions') as CodegenOneOfSchema
+	expect(regions.schemaType).toEqual(CodegenSchemaType.ONEOF)
+})

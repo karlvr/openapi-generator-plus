@@ -171,7 +171,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
 			const wrapper = createWrapperSchemaUsage(
-				oneOfSchema.name || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
+				oneOfSchema.serializedName || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
 				isOpenAPIReferenceObject(oneOfApiSchema) ? null : result, 
 				oneOfSchemaUsage,
 				oneOfApiSchema,

@@ -9,7 +9,7 @@ import { addToScope } from './utils'
 
 export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
 	const $ref = isOpenAPIReferenceObject(wrapApi) ? wrapApi.$ref : undefined
-	const naming = toUniqueScopedName($ref, suggestedName, scope, wrapApi, CodegenSchemaType.WRAPPER, state)
+	const naming = toUniqueScopedName($ref, `${suggestedName}_wrapper`, scope, wrapApi, CodegenSchemaType.WRAPPER, state)
 
 	const property = createCodegenProperty('value', wrap, state)
 	property.required = true

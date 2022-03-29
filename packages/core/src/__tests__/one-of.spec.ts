@@ -192,7 +192,7 @@ test('oneOf arrays (object)', async() => {
 
 	const oneOfCoordinates = coordinates.implementors![0] as CodegenWrapperSchema
 	expect(oneOfCoordinates.schemaType).toEqual(CodegenSchemaType.WRAPPER)
-	expect(oneOfCoordinates.nativeType.nativeType).toEqual('Polygon.coordinates.array_value')
+	expect(oneOfCoordinates.nativeType.nativeType).toEqual('Polygon.coordinates.array_value_wrapper')
 
 	expect(oneOfCoordinates.property.nativeType.nativeType).toEqual('array array array number')
 	expect(oneOfCoordinates.property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)

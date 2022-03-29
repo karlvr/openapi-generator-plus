@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/core#readme",
   "dependencies": {
-    "@openapi-generator-plus/indexed-type": "^1.0.0",
+    "@openapi-generator-plus/indexed-type": "1.0.0",
     "@openapi-generator-plus/swagger-parser": "^10.0.6",
     "lodash": "^4.17.21"
   },

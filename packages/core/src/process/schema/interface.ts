@@ -113,7 +113,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	}
 
 	const scope = scopeOf(interfaceSchema, state)
-	const suggestedName = options.suggestedName || interfaceSchema.name
+	const suggestedName = options.suggestedName || interfaceSchema.serializedName || interfaceSchema.name
 	const result = createObjectSchema(suggestedName, scope, allowAbstract ? CodegenSchemaPurpose.ABSTRACT_IMPLEMENTATION : CodegenSchemaPurpose.IMPLEMENTATION, state)
 
 	result.abstract = allowAbstract

@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: toSchemaName for abstract implementation
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    BaseSchema:
+      type: object
+      properties:
+        type:
+          type: string
+        name:
+          type: string
+      discriminator:
+        propertyName: type
+    SchemaOne:
+      allOf:
+        - $ref: '#/components/schemas/BaseSchema'
+        - type: object
+          properties:
+            value:
+              type: integer
+    SchemaTwo:
+      allOf:
+        - $ref: '#/components/schemas/BaseSchema'
+        - type: object
+          properties:
+            value:
+              type: string

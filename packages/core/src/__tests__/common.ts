@@ -19,11 +19,13 @@ export interface TestCodegenConfig {
 	supportsInheritance?: boolean
 	supportsMultipleInheritance?: boolean
 	expectLogWarnings?: boolean
+	toSchemaName?: (name: string) => string
 }
 
 const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generatorContext) => {
+	const testConfig = config as TestCodegenConfig
 	const generatorOptions: TestCodegenOptions = {
-		config: config as TestCodegenConfig,
+		config: testConfig,
 	}
 
 	return {
@@ -41,7 +43,11 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toOperationName: (path, method) => `${method} ${path.replace(/\{[^}]*\}/g, '').replace(/\/$/, '')} operation`,
 		toOperationGroupName: (name) => `${name} api`,
 		toSchemaName: (name) => {
-			return name
+			if (testConfig.toSchemaName) {
+				return testConfig.toSchemaName(name)
+			} else {
+				return name
+			}
 		},
 		toSuggestedSchemaName: (name, options) => {
 			if (options.purpose === CodegenSchemaPurpose.ARRAY_ITEM || options.purpose === CodegenSchemaPurpose.MAP_VALUE) {

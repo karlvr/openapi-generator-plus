@@ -1,5 +1,12 @@
 # openapi-generator-plus
 
+## 1.5.1
+
+### Patch Changes
+
+- Updated dependencies [054d48d]
+  - @openapi-generator-plus/core@1.5.1
+
 ## 1.3.0
 
 ### Patch Changes

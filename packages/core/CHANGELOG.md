@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 1.5.1
+
+### Patch Changes
+
+- 054d48d: Fix double application of toSchemaName when creating an interface implementation
+
 ## 1.5.0
 
 ### Minor Changes

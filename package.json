@@ -5,17 +5,17 @@
   "description": "",
   "scripts": {
     "apply-updates": "pnpx -y npm-check-updates -u && pnpm --recursive exec pnpx -y npm-check-updates -u",
-    "build": "pnpm build --recursive",
+    "build": "pnpm --recursive build",
     "check-updates": "pnpx -y npm-check-updates && pnpm --recursive exec pnpx -y npm-check-updates",
-    "clean": "pnpm clean --recursive",
-    "clean:node_modules": "pnpm --recursive exec rm -rf node_modules",
+    "clean": "pnpm --recursive clean",
+    "clean:node": "pnpm --recursive exec rm -rf node_modules && rm -rf node_modules",
     "link": "pnpm --recursive exec pnpm link --global",
-    "lint": "pnpm lint --recursive",
+    "lint": "pnpm --recursive lint",
     "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpx changeset publish && pnpm install",
     "release:version": "pnpm changeset version && pnpm install",
-    "test": "pnpm test --recursive",
+    "test": "pnpm --recursive test",
     "test-core": "cd packages/core && pnpm t -- --watch",
-    "watch": "pnpm watch --parallel"
+    "watch": "pnpm --parallel watch"
   },
   "repository": {
     "type": "git",

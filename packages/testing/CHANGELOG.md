@@ -1,5 +1,11 @@
 # @openapi-generator-plus/testing
 
+## 1.6.1
+
+### Patch Changes
+
+- ed650b9: Add @openapi-generator-plus/indexed-type as an export so dependents don't need to import both
+
 ## 1.6.0
 
 ### Patch Changes

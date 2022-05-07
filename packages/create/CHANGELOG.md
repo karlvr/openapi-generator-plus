@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.0.2
+
+### Patch Changes
+
+- c88af7b: Upgrade dependencies
+
 ## 1.0.1
 
 ### Patch Changes

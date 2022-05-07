@@ -1,5 +1,17 @@
 # @openapi-generator-plus/core
 
+## 1.6.0
+
+### Minor Changes
+
+- 43092cb: Separate externally usable utility functions into @openapi-generator-plus/utils
+
+### Patch Changes
+
+- c88af7b: Upgrade dependencies
+- Updated dependencies [c88af7b]
+  - @openapi-generator-plus/types@1.4.1
+
 ## 1.5.1
 
 ### Patch Changes

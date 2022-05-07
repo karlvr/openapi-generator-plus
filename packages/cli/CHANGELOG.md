@@ -1,5 +1,15 @@
 # openapi-generator-plus
 
+## 1.6.0
+
+### Patch Changes
+
+- c88af7b: Upgrade dependencies
+- Updated dependencies [43092cb]
+- Updated dependencies [c88af7b]
+  - @openapi-generator-plus/core@1.6.0
+  - @openapi-generator-plus/types@1.4.1
+
 ## 1.5.1
 
 ### Patch Changes

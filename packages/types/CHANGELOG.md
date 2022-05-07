@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 1.4.1
+
+### Patch Changes
+
+- c88af7b: Upgrade dependencies
+
 ## 1.4.0
 
 ### Minor Changes

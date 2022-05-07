@@ -23,7 +23,7 @@
   "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/utils#readme",
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "^1.0.0",
-    "@openapi-generator-plus/types": "^1.4.0"
+    "@openapi-generator-plus/types": "^1.4.1"
   },
   "publishConfig": {
     "access": "public"

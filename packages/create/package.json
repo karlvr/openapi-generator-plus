@@ -34,11 +34,11 @@
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "getopts": "^2.3.0",
-    "inquirer": "^8.2.1",
-    "libnpmsearch": "^5.0.1"
+    "inquirer": "^8.2.4",
+    "libnpmsearch": "^5.0.3"
   },
   "devDependencies": {
-    "@types/inquirer": "^8.2.0",
+    "@types/inquirer": "^8.2.1",
     "@types/libnpmsearch": "^2.0.3"
   }
 }

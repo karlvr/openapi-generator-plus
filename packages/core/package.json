@@ -30,7 +30,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "openapi-types": "^10.0.0"
+    "openapi-types": "^11.0.0"
   },
   "publishConfig": {
     "access": "public"

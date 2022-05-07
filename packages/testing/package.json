@@ -22,6 +22,7 @@
   "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
   "dependencies": {
     "@openapi-generator-plus/core": "^1.6.0",
+    "@openapi-generator-plus/indexed-type": "^1.0.0",
     "@openapi-generator-plus/types": "^1.4.1"
   },
   "publishConfig": {

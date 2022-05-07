@@ -96,9 +96,11 @@ importers:
   packages/testing:
     specifiers:
       '@openapi-generator-plus/core': ^1.6.0
+      '@openapi-generator-plus/indexed-type': ^1.0.0
       '@openapi-generator-plus/types': ^1.4.1
     dependencies:
       '@openapi-generator-plus/core': link:../core
+      '@openapi-generator-plus/indexed-type': link:../indexed-type
       '@openapi-generator-plus/types': link:../types
 
   packages/types:

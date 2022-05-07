@@ -1,5 +1,6 @@
 import { CodegenDocument, CodegenState, CodegenConfig, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import { constructGenerator, createCodegenState, createCodegenInput, createCodegenDocument, createGeneratorContext } from '@openapi-generator-plus/core'
+export * as idx from '@openapi-generator-plus/indexed-type'
 
 export interface CodegenResult {
 	doc: CodegenDocument

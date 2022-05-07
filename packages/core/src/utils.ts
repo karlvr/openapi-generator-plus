@@ -2,7 +2,7 @@ import { OpenAPI } from 'openapi-types'
 import { CodegenLiteralValueOptions, CodegenSchemaType, CodegenGenerator } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 import { CodegenSpecVersion } from './types'
-import { debugStringify } from './stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toSpecVersion(root: OpenAPI.Document): CodegenSpecVersion {
 	if (isOpenAPIV2Document(root)) {

@@ -9,7 +9,7 @@ import { toCodegenSchemaUsage } from '.'
 import { OpenAPIV3_1 } from 'openapi-types'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { transformNativeTypeForUsage } from './usage'
-import { debugStringify } from '../../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: CodegenScope, state: InternalCodegenState): CodegenProperties | undefined {
 	if (typeof apiSchema.properties !== 'object') {

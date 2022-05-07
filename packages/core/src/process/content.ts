@@ -2,7 +2,7 @@ import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, Cod
 import { OpenAPIV3 } from 'openapi-types'
 import { idx } from '..'
 import { InternalCodegenState } from '../types'
-import { uniquePropertiesIncludingInherited } from '../utils/objects'
+import { uniquePropertiesIncludingInherited } from '@openapi-generator-plus/utils'
 import { toCodegenExamples } from './examples'
 import { toCodegenHeaders } from './headers'
 import { isMultipart, toCodegenMediaType } from './media-types'

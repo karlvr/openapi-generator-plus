@@ -1,5 +1,5 @@
 import { CodegenSchemaType } from '@openapi-generator-plus/types'
-import { debugStringify } from '../../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 import { OpenAPIX } from '../../types/patches'
 
 export function toCodegenSchemaType(type: string, format: string | undefined): CodegenSchemaType {

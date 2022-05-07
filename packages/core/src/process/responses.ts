@@ -11,7 +11,7 @@ import { toCodegenHeaders } from './headers'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenSchemaUsage } from './schema'
-import { debugStringify } from '../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: string, state: InternalCodegenState): CodegenResponses | undefined {
 	const responses = operation.responses

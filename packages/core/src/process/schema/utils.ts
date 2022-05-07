@@ -5,7 +5,7 @@ import { OpenAPIX } from '../../types/patches'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { fullyQualifiedName, ScopedModelInfo } from './naming'
 import { convertToBoolean } from '../utils'
-import { debugStringify } from '../../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 import path from 'path'
 import { OpenAPI } from 'openapi-types'
 

@@ -1,6 +1,6 @@
 {
-  "name": "@openapi-generator-plus/core",
-  "version": "1.5.1",
+  "name": "@openapi-generator-plus/utils",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,6 @@
     "clean": "../../node_modules/.bin/rimraf dist",
     "lint": "../../node_modules/.bin/eslint src",
     "test": "../../node_modules/.bin/jest",
-    "test-debug": "node --inspect-brk ../../node_modules/jest/bin/jest.js --runInBand",
     "watch": "../../node_modules/.bin/tsc --watch"
   },
   "repository": {
@@ -21,14 +20,9 @@
   "bugs": {
     "url": "https://github.com/karlvr/openapi-generator-plus/issues"
   },
-  "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/core#readme",
+  "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/utils#readme",
   "dependencies": {
-    "@openapi-generator-plus/indexed-type": "1.0.0",
-    "@openapi-generator-plus/swagger-parser": "^10.0.6",
-    "@openapi-generator-plus/utils": "1.0.0",
-    "lodash": "^4.17.21"
-  },
-  "devDependencies": {
+    "@openapi-generator-plus/indexed-type": "^1.0.0",
     "@openapi-generator-plus/types": "^1.4.0"
   },
   "publishConfig": {

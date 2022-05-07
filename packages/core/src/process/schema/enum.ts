@@ -8,7 +8,7 @@ import { toCodegenSchemaType } from './schema-type'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
-import { debugStringify } from '../../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
 	if (!apiSchema.enum) {

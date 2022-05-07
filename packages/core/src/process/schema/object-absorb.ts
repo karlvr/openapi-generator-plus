@@ -5,7 +5,7 @@ import { InternalCodegenState } from '../../types'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenProperties } from './property'
 import { toCodegenSchemaUsage } from '.'
-import { debugStringify } from '../../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 import { toCodegenMapSchema } from './map'
 
 function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {

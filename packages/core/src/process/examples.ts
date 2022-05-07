@@ -5,7 +5,7 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from '../openapi-type-guards'
 import { toCodegenMediaType } from './media-types'
 import { stringLiteralValueOptions } from '../utils'
-import { debugStringify } from '../stringify'
+import { debugStringify } from '@openapi-generator-plus/utils'
 import { resolveReference } from './utils'
 
 type OpenAPIV3Examples = { [name: string]: OpenAPIV3.ReferenceObject | OpenAPIV3.ExampleObject }

@@ -1,6 +1,6 @@
 {
   "name": "openapi-generator-plus",
-  "version": "1.6.0",
+  "version": "1.6.2",
   "description": "Modular OpenAPI code generator written in TypeScript and Node.js",
   "keywords": [
     "openapi",

@@ -1,5 +1,11 @@
 # openapi-generator-plus
 
+## 1.6.2
+
+### Patch Changes
+
+- d240501: Fix clean on Windows where filesystem timestamps differ from current system timestamp
+
 ## 1.6.0
 
 ### Patch Changes

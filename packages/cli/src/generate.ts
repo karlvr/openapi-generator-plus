@@ -146,7 +146,9 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 		process.exit(1)
 	}
 
-	const beforeGeneration = Date.now()
+	const startTime = Date.now()
+	const beforeFilesystemTimestamp = await currentFilesystemTimestamp(config.outputPath)
+	
 	let result: boolean
 	try {
 		result = await generate(config, generatorConstructor)
@@ -161,11 +163,11 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	}
 
 	if (result) {
-		console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
+		console.log(c.bold.green(`Generated in ${Date.now() - startTime}ms:`), config.outputPath)
 	}
 
 	if (result && commandLineOptions.clean) {
-		await clean(beforeGeneration, config, generatorConstructor)
+		await clean(beforeFilesystemTimestamp, config, generatorConstructor)
 	}
 	
 	if (commandLineOptions.watch) {
@@ -193,15 +195,17 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 			}
 			running = true
 
-			const beforeGeneration = Date.now()
+			const startTime = Date.now()
+			const beforeFilesystemTimestamp = await currentFilesystemTimestamp(config.outputPath)
+
 			console.log(c.cyan('Rebuilding:'), config.inputPath)
 			try {
 				const result = await generate(config, generatorConstructor)
 				if (result) {
-					console.log(c.bold.green(`Generated in ${Date.now() - beforeGeneration}ms:`), config.outputPath)
+					console.log(c.bold.green(`Generated in ${Date.now() - startTime}ms:`), config.outputPath)
 
 					if (commandLineOptions.clean) {
-						await clean(beforeGeneration, config, generatorConstructor)
+						await clean(beforeFilesystemTimestamp, config, generatorConstructor)
 					}
 				}
 				running = false
@@ -215,4 +219,27 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	if (!result) {
 		process.exit(1)
 	}
+}
+
+/**
+ * Calculate a current timestamp for files before generation using the filesystem to workaround
+ * differences between the current time (as determined by Date.now()) and timestamps that
+ * files in the filesystem will receive when created, due to filesystem time resolution
+ * differences on different platforms.
+ * @param outputPath the output path for the generator
+ * @returns a timestamp to use as the timestamp before files are generated
+ */
+async function currentFilesystemTimestamp(outputPath: string): Promise<number> {
+	if (typeof outputPath !== 'string') {
+		throw new Error('outputPath must be a string value')
+	}
+	
+	const tempName = `.temp-${Date.now()}`
+	const tempPath = path.join(outputPath, tempName)
+
+	await fs.mkdir(outputPath, { recursive: true })
+	await fs.writeFile(tempPath, '')
+	const stats = await fs.stat(tempPath)
+	await fs.unlink(tempPath)
+	return stats.mtime.getTime()
 }

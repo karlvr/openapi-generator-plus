@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 2.0.0
+
+### Major Changes
+
+- fb1ae88: Change the default vs initial value approach by removing `initialValue` from `CodegenProperty`, replacing it with `defaultValue`, and only populating it if a default is specified in the schema.
+
+  The `initialValue` function in `CodegenGenerator` has been removed. Previously the `initialValue` function would return a value to use if there wasn't a default in the schema, leading to default values in the generated code where no default was expected.
+
+### Patch Changes
+
+- Updated dependencies [fb1ae88]
+  - @openapi-generator-plus/types@2.0.0
+  - @openapi-generator-plus/utils@1.0.1
+
 ## 1.6.0
 
 ### Minor Changes

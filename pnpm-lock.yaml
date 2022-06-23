@@ -38,8 +38,8 @@ importers:
 
   packages/cli:
     specifiers:
-      '@openapi-generator-plus/core': 1.6.0
-      '@openapi-generator-plus/types': 1.4.1
+      '@openapi-generator-plus/core': 2.0.0
+      '@openapi-generator-plus/types': 2.0.0
       ansi-colors: ^4.1.1
       getopts: ^2.3.0
       glob: ^7.2.0
@@ -60,8 +60,8 @@ importers:
     specifiers:
       '@openapi-generator-plus/indexed-type': 1.0.0
       '@openapi-generator-plus/swagger-parser': ^10.0.6
-      '@openapi-generator-plus/types': 1.4.1
-      '@openapi-generator-plus/utils': 1.0.0
+      '@openapi-generator-plus/types': 2.0.0
+      '@openapi-generator-plus/utils': 1.0.1
       lodash: ^4.17.21
       openapi-types: ^11.0.0
     dependencies:
@@ -95,9 +95,9 @@ importers:
 
   packages/testing:
     specifiers:
-      '@openapi-generator-plus/core': ^1.6.0
+      '@openapi-generator-plus/core': ^2.0.0
       '@openapi-generator-plus/indexed-type': ^1.0.0
-      '@openapi-generator-plus/types': ^1.4.1
+      '@openapi-generator-plus/types': ^2.0.0
     dependencies:
       '@openapi-generator-plus/core': link:../core
       '@openapi-generator-plus/indexed-type': link:../indexed-type
@@ -114,7 +114,7 @@ importers:
   packages/utils:
     specifiers:
       '@openapi-generator-plus/indexed-type': ^1.0.0
-      '@openapi-generator-plus/types': ^1.4.1
+      '@openapi-generator-plus/types': ^2.0.0
     dependencies:
       '@openapi-generator-plus/indexed-type': link:../indexed-type
       '@openapi-generator-plus/types': link:../types
@@ -293,6 +293,8 @@ packages:
     resolution: {integrity: sha512-n2Q6i+fnJqzOaq2VkdXxy2TCPCWQZHiCo0XqmrCvDWcZQKRyZzYi4Z0yxlBuN0w+r2ZHmre+Q087DSrw3pbJDQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
+    dependencies:
+      '@babel/types': 7.17.10
     dev: true
 
   /@babel/plugin-syntax-async-generators/7.8.4_@babel+core@7.17.10:
@@ -1638,6 +1640,8 @@ packages:
       ssri: 9.0.0
       tar: 6.1.11
       unique-filename: 1.1.1
+    transitivePeerDependencies:
+      - bluebird
     dev: false
 
   /call-me-maybe/1.0.1:
@@ -3227,6 +3231,7 @@ packages:
     dependencies:
       npm-registry-fetch: 13.1.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: false
 
@@ -3340,6 +3345,7 @@ packages:
       socks-proxy-agent: 6.2.0
       ssri: 9.0.0
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: false
 
@@ -3575,6 +3581,7 @@ packages:
       npm-package-arg: 9.0.2
       proc-log: 2.0.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: false
 
@@ -3598,7 +3605,6 @@ packages:
 
   /openapi-types/11.0.0:
     resolution: {integrity: sha512-GB+QO6o1hAtKsb8tP3/FTD5jpkdKrf42L4Gel9UySngMurzr+Q9pO+dtnmySQCzoCEfJr39IH6bveEn71xNcVg==}
-    dev: true
 
   /optionator/0.9.1:
     resolution: {integrity: sha512-74RlY5FCnhq4jRxVUPKDaRwrVNXMqsGsiW6AJw4XK8hmtm10wC0ypZBLw5IIp85NZMr91+qd1RvvENwg7jjRFw==}
@@ -3805,6 +3811,11 @@ packages:
 
   /promise-inflight/1.0.1:
     resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
+    peerDependencies:
+      bluebird: '*'
+    peerDependenciesMeta:
+      bluebird:
+        optional: true
     dev: false
 
   /promise-retry/2.0.1:

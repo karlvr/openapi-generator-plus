@@ -77,14 +77,13 @@ export interface CodegenGenerator {
 	 */
 	nativeTypeUsageTransformer: (usage: CodegenSchemaUsage) => CodegenNativeTypeTransformers
 	/**
-	 * Return a default value that can be used for a property if possible. This will
-	 * usuaully be an `undefined`, `null` or initial value for primitives. Some generators will
-	 * be unable to provide a default value in some cases, in which case they return `null`.
-	 * @return a CodegenValue or `null` only if it is not possible to create a default value
+	 * Return a default value that can be used for a property, if possible. The default value is the 
+	 * value that a property, of the type defined by the options, would have by default in th
+	 * generator's target language.
+	 * For example, `int` properties in Java are `0` by default.
+	 * @return a CodegenValue or `null` only if it is not possible to create a default value, or the default value is undefined.
 	 */
 	defaultValue: (options: CodegenDefaultValueOptions) => CodegenValue | null
-	/** Return the initial value to use for a property, or `null` if it shouldn't have an initial value */
-	initialValue: (options: CodegenInitialValueOptions) => CodegenValue | null
 
 	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
 	allOfStrategy: () => CodegenAllOfStrategy
@@ -462,8 +461,11 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	serializedName: string
 	description: string | null
 
-	/** The initial value that the property should have. This is either the defaultValue, if there is one, or a default default from the generator. */
-	initialValue: CodegenValue | null
+	/**
+	 * The default value of the property if an explicit value is not provided.
+	 * This comes from the `default` in the schema.
+	 */
+	defaultValue: CodegenValue | null
 
 	/** The discriminators that this property is used by, if this property is used by a discriminator.
 	 * We usually remove properties used for discriminators, but sometimes they are left for

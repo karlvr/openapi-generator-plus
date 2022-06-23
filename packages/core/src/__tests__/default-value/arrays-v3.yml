@@ -18,3 +18,8 @@ components:
           type: array
           items:
             type: string
+        arrayPropertyWithDefault:
+          type: array
+          items:
+            type: string
+          default: []

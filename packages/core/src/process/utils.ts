@@ -257,7 +257,3 @@ export function toCodegenDefaultValueOptions(usage: CodegenSchemaUsage): Codegen
 export function toCodegenLiteralValueOptions(usage: CodegenSchemaUsage): CodegenLiteralValueOptions {
 	return toCodegenDefaultValueOptions(usage)
 }
-
-export function toCodegenInitialValueOptions(usage: CodegenSchemaUsage): CodegenInitialValueOptions {
-	return toCodegenDefaultValueOptions(usage)
-}

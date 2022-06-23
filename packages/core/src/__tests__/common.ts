@@ -66,7 +66,15 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			}
 		},
 		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration}`,
-		toLiteral: (value) => `literal ${value}`,
+		toLiteral: (value) => {
+			if (value === undefined || value === null) {
+				return null
+			} else if (typeof value === 'object') {
+				return JSON.stringify(value)
+			} else {
+				return `${value}`
+			}
+		},
 		toNativeType: (options) => new generatorContext.NativeType(options.type),
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.scopedName.join('.')),
 		toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
@@ -77,26 +85,6 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		defaultValue: (options) => {
 			if (!options.required) {
 				return { value: undefined, literalValue: 'undefined' }
-			}
-
-			switch (options.schemaType) {
-				case CodegenSchemaType.ARRAY:
-					return { value: [], literalValue: '[]' }
-				case CodegenSchemaType.OBJECT:
-					return { value: {}, literalValue: '{}' }
-				case CodegenSchemaType.NUMBER:
-					return { value: 0.0, literalValue: '0.0' }
-				case CodegenSchemaType.INTEGER:
-					return { value: 0, literalValue: '0' }
-				case CodegenSchemaType.BOOLEAN:
-					return { value: false, literalValue: 'false' }
-				default:
-					return { value: undefined, literalValue: 'undefined' }
-			}
-		},
-		initialValue: (options) => {
-			if (!options.required) {
-				return null
 			}
 
 			switch (options.schemaType) {

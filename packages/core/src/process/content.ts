@@ -14,7 +14,7 @@ import { addCodegenProperty, createCodegenProperty } from './schema/property'
 import { createStringSchemaUsage } from './schema/string'
 import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope } from './schema/utils'
-import { convertToBoolean, extractCodegenSchemaInfo, toCodegenInitialValueOptions } from './utils'
+import { convertToBoolean, extractCodegenSchemaInfo } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
@@ -193,7 +193,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 					}, state)
 					Object.assign(partProperty, partSchemaUsage)
 				}
-				partProperty.initialValue = state.generator.initialValue(toCodegenInitialValueOptions(partProperty)) || null
 				idx.set(newSchema.properties, name, partProperty)
 				addToScope(partSchema, newSchema, state)
 

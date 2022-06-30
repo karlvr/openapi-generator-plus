@@ -107,6 +107,10 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		}
 	}
 
+	private get wrapped(): CodegenNativeType {
+		return this.actualWrapped
+	}
+
 	public equals(other: CodegenNativeType | undefined): boolean {
 		return equalNativeType(this, other)
 	}
@@ -114,10 +118,7 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 	public toString() {
 		return this.nativeType
 	}
-
-	private get wrapped(): CodegenNativeType {
-		return this.actualWrapped
-	}
+	
 }
 
 export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
@@ -160,6 +161,10 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		}
 	}
 
+	private get wrapped(): CodegenNativeType[] {
+		return this.actualWrapped
+	}
+
 	public equals(other: CodegenNativeType | undefined): boolean {
 		return equalNativeType(this, other)
 	}
@@ -170,10 +175,6 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 
 	private compose(nativeTypes: CodegenNativeType[], composer: CodegenNativeTypeComposer): string {
 		return composer(nativeTypes)
-	}
-
-	private get wrapped(): CodegenNativeType[] {
-		return this.actualWrapped
 	}
 
 }

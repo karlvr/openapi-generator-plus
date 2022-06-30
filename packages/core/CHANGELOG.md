@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.1.0
+
+### Minor Changes
+
+- 6d88944: Reimplement initialValue as it is important for generators
+
+### Patch Changes
+
+- Updated dependencies [6d88944]
+  - @openapi-generator-plus/types@2.1.0
+
 ## 2.0.0
 
 ### Major Changes

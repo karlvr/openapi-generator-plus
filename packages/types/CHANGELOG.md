@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.1.0
+
+### Minor Changes
+
+- 6d88944: Reimplement initialValue as it is important for generators
+
 ## 2.0.0
 
 ### Major Changes

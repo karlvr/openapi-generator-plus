@@ -1,0 +1,56 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Primitives
+paths: {}
+components:
+  schemas:
+    AllRequired:
+      type: object
+      required:
+        - aString
+        - aNumber
+        - anInteger
+        - aFloat
+        - aDouble
+        - aBoolean
+      properties:
+        aString:
+          type: string
+        aNumber:
+          type: number
+        anInteger:
+          type: integer
+        aFloat:
+          type: number
+          format: float
+        aDouble:
+          type: number
+          format: double
+        aBoolean:
+          type: boolean
+    NoneRequired:
+      type: object
+      required:
+        - aString
+        - aNumber
+        - anInteger
+        - aFloat
+        - aDouble
+        - aBoolean
+      properties:
+        aString:
+          type: string
+        aNumber:
+          type: number
+        anInteger:
+          type: integer
+        aFloat:
+          type: number
+          format: float
+        aDouble:
+          type: number
+          format: double
+        aBoolean:
+          type: boolean

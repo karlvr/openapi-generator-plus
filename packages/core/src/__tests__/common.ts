@@ -71,6 +71,8 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 				return null
 			} else if (typeof value === 'object') {
 				return JSON.stringify(value)
+			} else if (typeof value === 'string') {
+				return `"${value}"`
 			} else {
 				return `${value}`
 			}
@@ -100,6 +102,28 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 					return { value: false, literalValue: 'false' }
 				default:
 					return { value: undefined, literalValue: 'undefined' }
+			}
+		},
+		initialValue: (options) => {
+			/* Use the default value from the spec if available */
+			if (options.defaultValue) {
+				return options.defaultValue
+			}
+
+			if (!options.required) {
+				return null
+			}
+
+			switch (options.schemaType) {
+				case CodegenSchemaType.ARRAY:
+					/* Initial blank array value for required array properties */
+					return { value: [], literalValue: '[]' }
+				case CodegenSchemaType.OBJECT:
+					/* Initial empty object value for required object properties */
+					return { value: {}, literalValue: '{}' }
+				default:
+					/* No initial values for other types */
+					return null
 			}
 		},
 		operationGroupingStrategy: () => generatorOptions.config.operationGroupingStrategy || addToGroupsByPath,

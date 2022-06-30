@@ -76,14 +76,23 @@ export interface CodegenGenerator {
 	 * Return a transformer to apply to native types when they are used.
 	 */
 	nativeTypeUsageTransformer: (usage: CodegenSchemaUsage) => CodegenNativeTypeTransformers
+
 	/**
-	 * Return a default value that can be used for a property, if possible. The default value is the 
-	 * value that a property, of the type defined by the options, would have by default in th
-	 * generator's target language.
-	 * For example, `int` properties in Java are `0` by default.
-	 * @return a CodegenValue or `null` only if it is not possible to create a default value, or the default value is undefined.
+	 * Return the default value that a property of the type described by the options would have
+	 * in the generator's target language. For example, `int` properties in Java are `0` by default.
+	 * @return a `CodegenValue` or `null` only if it is not possible to create a default value, or there is no default value.
 	 */
 	defaultValue: (options: CodegenDefaultValueOptions) => CodegenValue | null
+
+	/**
+	 * Return the initial value to use for a property, or `null` if it shouldn't have an initial value.
+	 * The implementation may choose to use the `defaultValue` from the options, which represents the default value
+	 * from the spec, or to use some other logic to introduce initial values for properties to support the requirements
+	 * of the generated code.
+	 * @param options describes the property type and the default value from the spec, if any
+	 * @return a `CodegenValue` or `null` if the property should not have an initial value
+	 */
+	initialValue: (options: CodegenInitialValueOptions) => CodegenValue | null
 
 	operationGroupingStrategy: () => CodegenOperationGroupingStrategy
 	allOfStrategy: () => CodegenAllOfStrategy
@@ -462,8 +471,13 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	description: string | null
 
 	/**
-	 * The default value of the property if an explicit value is not provided.
-	 * This comes from the `default` in the schema.
+	 * The initial value that the property should have, as determined by the CodegenGenerator's
+	 * `initialValue` function.
+	 */
+	initialValue: CodegenValue | null
+
+	/**
+	 * The default value of the property from the spec.
 	 */
 	defaultValue: CodegenValue | null
 
@@ -818,7 +832,12 @@ export interface CodegenDefaultValueOptions extends CodegenNativeTypeUsageOption
 	component: CodegenSchemaUsage | null
 }
 
-export type CodegenInitialValueOptions = CodegenDefaultValueOptions
+export interface CodegenInitialValueOptions extends CodegenDefaultValueOptions {
+	/**
+	 * The default value from the spec, or `null` if there was no default value in the spec.
+	 */
+	defaultValue: CodegenValue | null
+}
 
 export type CodegenLiteralValueOptions = CodegenDefaultValueOptions
 

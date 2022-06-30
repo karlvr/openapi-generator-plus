@@ -1,7 +1,7 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenTypeOptions, CodegenSchema, CodegenSchemaInfo, CodegenSchemaUsage, CodegenValue, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
+import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenTypeOptions, CodegenSchema, CodegenSchemaInfo, CodegenSchemaUsage, CodegenValue, isCodegenSchemaUsage, CodegenNativeTypeUsageOptions } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 
 /**
@@ -25,15 +25,21 @@ export function resolveReference<T>(ob: T | OpenAPIV3_1.ReferenceObject | OpenAP
 /**
  * Extract _just_ the CodegenTypeInfo properties from the source.
  */
-function extractCodegenTypeOptions(source: CodegenSchema | CodegenSchemaUsage): CodegenTypeOptions {
-	if (isCodegenSchemaUsage(source)) {
-		source = source.schema
-	}
-
+function extractCodegenTypeOptions(source: CodegenSchema): CodegenTypeOptions {
 	return {
 		type: source.type,
 		format: source.format,
 		schemaType: source.schemaType,
+	}
+}
+
+function extractCodegenNativeTypeUsageOptions(usage: CodegenSchemaUsage): CodegenNativeTypeUsageOptions {
+	return {
+		...extractCodegenTypeOptions(usage.schema),
+		required: usage.required,
+		nullable: usage.nullable,
+		readOnly: usage.readOnly,
+		writeOnly: usage.writeOnly,
 	}
 }
 
@@ -248,12 +254,20 @@ export function toDefaultValue(value: unknown, schemaUsage: CodegenSchemaUsage, 
 
 export function toCodegenDefaultValueOptions(usage: CodegenSchemaUsage): CodegenDefaultValueOptions {
 	return {
-		...extractCodegenTypeOptions(usage.schema),
-		...usage,
+		...extractCodegenNativeTypeUsageOptions(usage),
+		schemaType: usage.schema.schemaType,
+		nativeType: usage.nativeType,
 		component: usage.schema.component,
 	}
 }
 
 export function toCodegenLiteralValueOptions(usage: CodegenSchemaUsage): CodegenLiteralValueOptions {
 	return toCodegenDefaultValueOptions(usage)
+}
+
+export function toCodegenInitialValueOptions(usage: CodegenSchemaUsage): CodegenInitialValueOptions {
+	return {
+		...toCodegenDefaultValueOptions(usage),
+		defaultValue: usage.defaultValue,
+	}
 }

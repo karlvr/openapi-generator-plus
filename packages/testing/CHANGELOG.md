@@ -1,5 +1,11 @@
 # @openapi-generator-plus/testing
 
+## 2.1.0
+
+### Minor Changes
+
+- 30cefed: Testing module dependencies need to sync with the release version
+
 ## 2.0.0
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.2.0
+
+### Minor Changes
+
+- 616b459: Add checkAllOfInheritanceCompatibility to allow generators to perform more detailed checks for allOf inheritance compatibility
+
+### Patch Changes
+
+- Updated dependencies [616b459]
+  - @openapi-generator-plus/types@2.2.0
+
 ## 2.1.0
 
 ### Minor Changes

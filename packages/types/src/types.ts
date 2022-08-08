@@ -1,6 +1,8 @@
-import { OpenAPI } from 'openapi-types'
+import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { IndexedType } from '@openapi-generator-plus/indexed-type'
 import { CodegenNativeTypeTransformers } from './native-types'
+
+export type OpenAPISchemaObject = OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject
 
 export interface CodegenInputDocument {
 	$refs: {
@@ -114,6 +116,11 @@ export interface CodegenGenerator {
 	 */
 	nativeComposedSchemaRequiresObjectLikeOrWrapper: () => boolean
 	interfaceCanBeNested: () => boolean
+
+	/**
+	 * Check whether an allOf can be represented using inheritance.
+	 */
+	checkAllOfInheritanceCompatibility: (summary: AllOfSummary) => boolean
 
 	/**
 	 * Check the compatibility between a property in a parent schema with a child schema.
@@ -1096,4 +1103,36 @@ export enum CodegenOneOfStrategy {
 	NATIVE = 'NATIVE',
 	/** Convert the oneOf structure to interfaces schemas with relationships */
 	INTERFACE = 'INTERFACE',
+}
+
+/**
+ * Information about an allOf hierarchy to use to determine how it should be generated.
+ */
+export interface AllOfSummary {
+	/**
+	 * The properties that have been seen in the allOf hierarchy
+	 */
+	properties: {
+		[name: string]: {
+			/** The property schema */
+			schema: OpenAPISchemaObject
+			required: boolean
+		}
+	}
+	/**
+	 * The discriminator property names.
+	 */
+	discriminators: string[]
+	/**
+	 * All of the schemas in the whole allOf hierarchy
+	 */
+	schemas: OpenAPISchemaObject[]
+	/**
+	 * All of the schemas that are referenced rather than inline.
+	 */
+	referenceSchemas: OpenAPISchemaObject[]
+	/**
+	 * All of the schemas that are inline rather than referenced.
+	 */
+	inlineSchemas: OpenAPISchemaObject[]
 }

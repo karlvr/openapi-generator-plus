@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { AllOfSummary, CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -294,8 +294,16 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
  * @param state 
  * @returns 
  */
-function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState): boolean {
-	const knownReferenceSchemaProperties: { [name: string]: { schema: OpenAPIX.SchemaObject; required: boolean } } = {}
+function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState, allOfSummary?: AllOfSummary): boolean {
+	if (!allOfSummary) {
+		allOfSummary = {
+			properties: {},
+			discriminators: [],
+			schemas: [],
+			referenceSchemas: [],
+			inlineSchemas: [],
+		}
+	}
 
 	for (let apiSchema of allOf) {
 		let referenceSchema = false
@@ -303,6 +311,24 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 			apiSchema = resolveReference(apiSchema, state)
 			referenceSchema = true
 		}
+
+		allOfSummary.schemas.push(apiSchema)
+		if (referenceSchema) {
+			allOfSummary.referenceSchemas.push(apiSchema)
+		} else {
+			allOfSummary.inlineSchemas.push(apiSchema)
+		}
+
+		if (apiSchema.discriminator) {
+			allOfSummary.discriminators.push(apiSchema.discriminator.propertyName)
+		}
+
+		if (apiSchema.allOf) {
+			if (!checkObjectSchemaCompatibility(apiSchema.allOf, state, allOfSummary)) {
+				return false
+			}
+		}
+
 		if (!apiSchema.properties) {
 			continue
 		}
@@ -313,17 +339,17 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 				apiProperty = resolveReference(apiProperty, state)
 			}
 
-			if (!knownReferenceSchemaProperties[apiPropertyName]) {
+			if (!allOfSummary.properties[apiPropertyName]) {
 				/* We're only concerned about compatibility with properties in referenced schemas, as they are
 				   the only ones that may be turned into objects in the target language.
 				 */
 				if (referenceSchema) {
 					const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
-					knownReferenceSchemaProperties[apiPropertyName] = { schema: apiProperty, required }
+					allOfSummary.properties[apiPropertyName] = { schema: apiProperty, required }
 				}
 			} else {
 				/* Check compatibility */
-				const knownProperty = knownReferenceSchemaProperties[apiPropertyName]
+				const knownProperty = allOfSummary.properties[apiPropertyName]
 				const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
 				if (!checkPropertyCompatibility(
 					toCodegenPropertySummary(apiPropertyName, knownProperty.schema, knownProperty.required),
@@ -336,7 +362,8 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 		}
 	}
 
-	return true
+	/* There may still be incompatibilities in the schemas for the generator's target, so we give the generator an opportunity to check. */
+	return state.generator.checkAllOfInheritanceCompatibility(allOfSummary)
 }
 
 /**

@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.3.0
+
+### Minor Changes
+
+- 64cf2e6: Add originalName to CodegenSchema to fix creating suggested names based on names that might have been modified by the generator's toSchemaName
+
 ## 2.2.0
 
 ### Minor Changes

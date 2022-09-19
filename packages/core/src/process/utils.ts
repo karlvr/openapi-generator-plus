@@ -3,6 +3,7 @@ import { InternalCodegenState } from '../types'
 import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenTypeOptions, CodegenSchema, CodegenSchemaInfo, CodegenSchemaUsage, CodegenValue, isCodegenSchemaUsage, CodegenNativeTypeUsageOptions } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
+import { baseSuggestedNameForRelatedSchemas } from './schema/utils'
 
 /**
  * Resolve anything that may also be a ReferenceObject to the base type.
@@ -143,6 +144,12 @@ export function nameFromRef($ref: string, state: InternalCodegenState): string {
 				const operation = operations.find(op => op.httpMethod === components[2].toUpperCase())
 				if (operation && operation.responses) {
 					const response = operation.responses[components[4]]
+					if (response && response.defaultContent && response.defaultContent.schema) {
+						const suggestedName = baseSuggestedNameForRelatedSchemas(response.defaultContent.schema)
+						if (suggestedName !== null) {
+							return suggestedName
+						}
+					}
 					if (response && response.defaultContent && response.defaultContent.nativeType) {
 						return response.defaultContent.nativeType.nativeType
 					}
@@ -157,6 +164,12 @@ export function nameFromRef($ref: string, state: InternalCodegenState): string {
 					const response = operation.responses[components[4]]
 					if (response && response.contents) {
 						const content = response.contents.find(co => co.mediaType.mediaType === unescape(components[6]))
+						if (content && content.schema) {
+							const suggestedName = baseSuggestedNameForRelatedSchemas(content.schema)
+							if (suggestedName !== null) {
+								return suggestedName
+							}
+						}
 						if (content && content.nativeType) {
 							return content.nativeType.nativeType
 						}

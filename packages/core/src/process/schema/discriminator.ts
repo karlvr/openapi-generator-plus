@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, toCodegenDefaultValueOptions, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { findKnownSchema, findProperty, interfaceForProperty, removeProperty } from './utils'
+import { baseSuggestedNameForRelatedSchemas, findKnownSchema, findProperty, interfaceForProperty, removeProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
@@ -184,7 +184,7 @@ function findCommonDiscriminatorPropertyType(serializedName: string, schemas: Co
  * @returns 
  */
 function discriminatorValueForSchema(discriminator: CodegenDiscriminator, schema: CodegenDiscriminatableSchema, state: InternalCodegenState): string {
-	const name = schema.serializedName || schema.name
+	const name = baseSuggestedNameForRelatedSchemas(schema)
 	if (!discriminator.mappings) {
 		return name
 	}

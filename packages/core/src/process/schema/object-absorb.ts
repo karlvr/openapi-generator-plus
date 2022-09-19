@@ -7,6 +7,7 @@ import { toCodegenProperties } from './property'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { toCodegenMapSchema } from './map'
+import { baseSuggestedNameForRelatedSchemas } from './utils'
 
 function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
 	for (const property of idx.allValues(otherProperties)) {
@@ -84,7 +85,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 
 	const schemaUsage = toCodegenSchemaUsage(apiSchema, state, {
 		required: true,
-		suggestedName: target.name,
+		suggestedName: baseSuggestedNameForRelatedSchemas(target),
 		purpose: CodegenSchemaPurpose.GENERAL,
 		suggestedScope: scope,
 	})

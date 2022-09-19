@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenDiscriminatableSchema, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -307,4 +307,16 @@ export function refForSchemaName(schemaName: string, state: InternalCodegenState
  */
 export function refForPathAndSchemaName(path: string, doc: OpenAPI.Document, schemaName: string, state: InternalCodegenState) {
 	return normaliseRef(isOpenAPIV2Document(doc) ? `${path}#/definitions/${schemaName}` : `${path}#/components/schemas/${schemaName}`, state)
+}
+
+export function baseSuggestedNameForRelatedSchemas(schema: CodegenObjectSchema | CodegenHierarchySchema | CodegenDiscriminatableSchema): string
+export function baseSuggestedNameForRelatedSchemas(schema: CodegenSchema): string | null
+
+/**
+ * Returns a base suggested name to use for schemas related to the given schema.
+ * @param schema 
+ * @returns 
+ */
+export function baseSuggestedNameForRelatedSchemas(schema: CodegenSchema): string | null {
+	return schema.originalName || schema.serializedName || schema.name
 }

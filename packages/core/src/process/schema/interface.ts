@@ -4,7 +4,7 @@ import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
 import { createObjectSchema } from './object'
 import { absorbCodegenSchema } from './object-absorb'
-import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToScope, scopeOf } from './utils'
+import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, addToScope, baseSuggestedNameForRelatedSchemas, scopeOf } from './utils'
 
 /**
  * Create or return an interface schema for the given object schema
@@ -30,7 +30,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 	}
 
 	/* Get a name for this interface */
-	const suggestedName = state.generator.toSuggestedSchemaName(schema.name, {
+	const suggestedName = state.generator.toSuggestedSchemaName(baseSuggestedNameForRelatedSchemas(schema), {
 		purpose: CodegenSchemaPurpose.EXTRACTED_INTERFACE,
 		schemaType: CodegenSchemaType.INTERFACE,
 	})

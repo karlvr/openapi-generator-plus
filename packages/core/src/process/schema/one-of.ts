@@ -9,7 +9,7 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
-import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
@@ -171,7 +171,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
 			const wrapper = createWrapperSchemaUsage(
-				oneOfSchema.serializedName || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
+				baseSuggestedNameForRelatedSchemas(oneOfSchema) || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
 				isOpenAPIReferenceObject(oneOfApiSchema) ? null : result, 
 				oneOfSchemaUsage,
 				oneOfApiSchema,

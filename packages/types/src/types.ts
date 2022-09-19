@@ -517,6 +517,8 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	scopedName: string[] | null
 	/** The name of the schema in the API spec as it should be used when serialized (e.g. in JSON), if the schema was named in the spec */
 	serializedName: string | null
+	/** The original name (either specified or created by the generator) to use to form derived names */
+	originalName: string | null
 	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
 	anonymous: boolean | null
 

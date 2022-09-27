@@ -43,6 +43,8 @@ export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObjec
 		return CodegenSchemaType.MAP
 	} else if (typeof apiSchema.type === 'string') {
 		return toCodegenSchemaType(apiSchema.type, apiSchema.format)
+	} else if (apiSchema.type === undefined) {
+		throw new Error(`Missing schema type: ${debugStringify(apiSchema)}`)
 	} else {
 		throw new Error(`Invalid schema type "${apiSchema.type}": ${debugStringify(apiSchema)}`)
 	}

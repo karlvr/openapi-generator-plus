@@ -1,4 +1,4 @@
-import { CodegenMapSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenMapSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
@@ -6,6 +6,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -15,7 +16,20 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
 	})
-	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.additionalProperties, state, {
+
+	let additionalProperties = apiSchema.additionalProperties
+	if (additionalProperties === true) {
+		additionalProperties = { type: 'string' }
+	} else if (typeof additionalProperties === 'object') {
+		if (Object.keys(additionalProperties).length === 0) {
+			/* Handle an empty object */
+			additionalProperties = { type: 'string' }
+		}
+	} else {
+		throw new Error(`Invalid additionalProperties value: ${debugStringify(additionalProperties)}`)
+	}
+	
+	const componentSchemaUsage: CodegenSchemaUsage<CodegenSchema> = toCodegenSchemaUsage(additionalProperties, state, {
 		required: true,
 		suggestedName: suggestedValueModelName,
 		purpose: CodegenSchemaPurpose.MAP_VALUE,

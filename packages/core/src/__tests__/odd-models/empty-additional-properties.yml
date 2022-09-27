@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: Empty additionalProperties
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    EmptyAdditionalProperties:
+      type: object
+      properties:
+        one:
+          type: string
+      additionalProperties: {}
+    TrueAdditionalProperties:
+      type: object
+      properties:
+        one:
+          type: string
+      additionalProperties: true
+    FalseAdditionalProperties:
+      type: object
+      properties:
+        one:
+          type: string
+      additionalProperties: false

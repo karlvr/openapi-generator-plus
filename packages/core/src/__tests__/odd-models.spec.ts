@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema } from '@openapi-generator-plus/types'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -123,4 +123,29 @@ test('double reference', async() => {
 	expect(colourCollectionValue.property.schema.component?.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(colourCollectionValue.property.schema.component?.schema.name).toEqual('ColourValue')
 	expect(colourCollectionValue.property.schema.component?.schema).toBe(colourValue) /* Ensure that we've correctly re-used the same schema for ColourValue */
+})
+
+test('empty additionalProperties', async() => {
+	const result = await createTestDocument('odd-models/empty-additional-properties.yml')
+	expect(result).toBeDefined()
+
+	const emptyAdditionalProperties = result.schemas['EmptyAdditionalProperties'] as CodegenObjectSchema
+	expect(emptyAdditionalProperties).toBeDefined()
+	expect(emptyAdditionalProperties.additionalProperties).not.toBeNull()
+
+	const emptyAdditionalPropertiesSchema = emptyAdditionalProperties.additionalProperties as CodegenMapSchema
+	expect(emptyAdditionalPropertiesSchema.schemaType).toEqual(CodegenSchemaType.MAP)
+	expect(emptyAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map string')
+
+	const trueAdditionalProperties = result.schemas['TrueAdditionalProperties'] as CodegenObjectSchema
+	expect(trueAdditionalProperties).toBeDefined()
+	expect(trueAdditionalProperties.additionalProperties).not.toBeNull()
+
+	const trueAdditionalPropertiesSchema = trueAdditionalProperties.additionalProperties as CodegenMapSchema
+	expect(trueAdditionalPropertiesSchema.schemaType).toEqual(CodegenSchemaType.MAP)
+	expect(trueAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map string')
+
+	const falseAdditionalProperties = result.schemas['FalseAdditionalProperties'] as CodegenObjectSchema
+	expect(falseAdditionalProperties).toBeDefined()
+	expect(falseAdditionalProperties.additionalProperties).toBeNull()
 })

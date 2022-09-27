@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.3.1
+
+### Patch Changes
+
+- 81da24d: Improve handling of additionalProperties edge-cases
+
 ## 2.3.0
 
 ### Minor Changes

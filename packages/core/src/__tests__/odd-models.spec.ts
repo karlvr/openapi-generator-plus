@@ -149,3 +149,13 @@ test('empty additionalProperties', async() => {
 	expect(falseAdditionalProperties).toBeDefined()
 	expect(falseAdditionalProperties.additionalProperties).toBeNull()
 })
+
+test('additional properties no schema', async() => {
+	const result = await createTestDocument('odd-models/additional-properties-no-schema.yml', { expectLogWarnings: true })
+	expect(result).toBeDefined()
+
+	const emptyAdditionalProperties = result.schemas['NullableAdditionalProperties'] as CodegenObjectSchema
+	expect(emptyAdditionalProperties).toBeDefined()
+	expect(emptyAdditionalProperties.additionalProperties).toBeNull()
+
+})

@@ -1,0 +1,14 @@
+openapi: 3.0.3
+info:
+  title: Additional Properties - No Schema
+  version: "1.0"
+paths: {}
+components:
+  schemas:
+    NullableAdditionalProperties:
+      type: object
+      properties:
+        one:
+          type: string
+      additionalProperties:
+        nullable: true

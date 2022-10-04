@@ -1,4 +1,4 @@
-import { CodegenAllOfStrategy, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenLogLevel, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -164,8 +164,12 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 
 	if (apiSchema.additionalProperties) {
 		/* This schema also has additional properties */
-		const mapSchema = toCodegenMapSchema(apiSchema, naming, 'value', schema, state)
-		schema.additionalProperties = mapSchema
+		try {
+			const mapSchema = toCodegenMapSchema(apiSchema, naming, 'value', schema, state)
+			schema.additionalProperties = mapSchema
+		} catch (error) {
+			state.log(CodegenLogLevel.WARN, `Failed to generate additional property schema: ${(error as Error).message}`)
+		}
 	}
 		
 	schema.discriminator = toCodegenSchemaDiscriminator(apiSchema, schema, state)

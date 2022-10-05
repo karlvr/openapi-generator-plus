@@ -57,7 +57,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
 			then we do. We absorb the sub-schemas it creates by passing this model as to scope to toCodegenProperties.
 
-			This will not work in the inline schema is not an object schema, or is an allOf, oneOf, anyOf etc, in which
+			This will not work if the inline schema is not an object schema, or is an allOf, oneOf, anyOf etc, in which
 			case we fall back to using toCodegenSchemaUsage.
 			*/
 

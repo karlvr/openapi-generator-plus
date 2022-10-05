@@ -158,4 +158,8 @@ test('additional properties no schema', async() => {
 	expect(emptyAdditionalProperties).toBeDefined()
 	expect(emptyAdditionalProperties.additionalProperties).toBeNull()
 
+	const reffingAdditionalProperties = result.schemas['ReffingNullableAdditionalProperties'] as CodegenObjectSchema
+	expect(reffingAdditionalProperties).toBeDefined()
+	expect(reffingAdditionalProperties.additionalProperties).toBeFalsy()
+
 })

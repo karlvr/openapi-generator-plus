@@ -1,4 +1,4 @@
-import { CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenScope, isCodegenMapSchema, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
+import { CodegenLogLevel, CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenScope, isCodegenMapSchema, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../../types/patches'
 import { InternalCodegenState } from '../../types'
@@ -72,9 +72,13 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 				throw new Error(`Cannot absorb schema as the target already has additionalProperties: ${debugStringify(apiSchema)}`)
 			}
 
-			const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
-			target.additionalProperties = mapSchema
-			absorbed = true
+			try {
+				const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
+				target.additionalProperties = mapSchema
+				absorbed = true
+			} catch (error) {
+				state.log(CodegenLogLevel.WARN, `Failed to absorb additional property schema into ${target.name}: ${(error as Error).message}`)
+			}
 		}
 
 		if (absorbed) {

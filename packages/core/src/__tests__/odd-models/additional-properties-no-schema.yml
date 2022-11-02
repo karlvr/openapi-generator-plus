@@ -5,6 +5,15 @@ info:
 paths: {}
 components:
   schemas:
+    ReffingNullableAdditionalProperties:
+      allOf:
+        - $ref: "#/components/schemas/NullableAdditionalProperties"
+        - type: object
+          additionalProperties:
+            nullable: true
+          properties:
+            two:
+              type: string
     NullableAdditionalProperties:
       type: object
       properties:

@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.3.3
+
+### Patch Changes
+
+- 2b10a21: Re-release
+
 ## 2.3.2
 
 ### Patch Changes

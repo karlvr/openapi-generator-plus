@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema, CodegenAllOfStrategy } from '@openapi-generator-plus/types'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -151,7 +151,7 @@ test('empty additionalProperties', async() => {
 })
 
 test('additional properties no schema', async() => {
-	const result = await createTestDocument('odd-models/additional-properties-no-schema.yml', { expectLogWarnings: true })
+	const result = await createTestDocument('odd-models/additional-properties-no-schema.yml', { expectLogWarnings: true, allOfStrategy: CodegenAllOfStrategy.OBJECT })
 	expect(result).toBeDefined()
 
 	const emptyAdditionalProperties = result.schemas['NullableAdditionalProperties'] as CodegenObjectSchema

@@ -1,5 +1,12 @@
 # @openapi-generator-plus/testing
 
+## 2.3.2
+
+### Patch Changes
+
+- Updated dependencies [621b174]
+  - @openapi-generator-plus/core@2.3.2
+
 ## 2.3.1
 
 ### Patch Changes

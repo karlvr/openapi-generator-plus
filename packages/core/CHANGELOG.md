@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.3.2
+
+### Patch Changes
+
+- 621b174: Output a warning rather than failing when a schema contains an invalid additionalProperties
+
 ## 2.3.1
 
 ### Patch Changes

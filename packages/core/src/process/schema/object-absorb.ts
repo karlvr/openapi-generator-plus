@@ -1,4 +1,4 @@
-import { CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenScope, isCodegenMapSchema, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
+import { CodegenLogLevel, CodegenNamedSchemas, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperties, CodegenSchema, CodegenSchemaPurpose, CodegenScope, isCodegenMapSchema, isCodegenObjectLikeSchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../../types/patches'
 import { InternalCodegenState } from '../../types'
@@ -57,7 +57,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 			If the other schema is inline, and we can just absorb its properties and any sub-schemas it creates,
 			then we do. We absorb the sub-schemas it creates by passing this model as to scope to toCodegenProperties.
 
-			This will not work in the inline schema is not an object schema, or is an allOf, oneOf, anyOf etc, in which
+			This will not work if the inline schema is not an object schema, or is an allOf, oneOf, anyOf etc, in which
 			case we fall back to using toCodegenSchemaUsage.
 			*/
 
@@ -72,9 +72,13 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 				throw new Error(`Cannot absorb schema as the target already has additionalProperties: ${debugStringify(apiSchema)}`)
 			}
 
-			const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
-			target.additionalProperties = mapSchema
-			absorbed = true
+			try {
+				const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
+				target.additionalProperties = mapSchema
+				absorbed = true
+			} catch (error) {
+				state.log(CodegenLogLevel.WARN, `Failed to absorb additional property schema into ${target.name}: ${(error as Error).message}`)
+			}
 		}
 
 		if (absorbed) {

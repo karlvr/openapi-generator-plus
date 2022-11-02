@@ -168,7 +168,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 			const mapSchema = toCodegenMapSchema(apiSchema, naming, 'value', schema, state)
 			schema.additionalProperties = mapSchema
 		} catch (error) {
-			state.log(CodegenLogLevel.WARN, `Failed to generate additional property schema: ${(error as Error).message}`)
+			state.log(CodegenLogLevel.WARN, `Failed to generate additional property schema for ${naming.name} ${schema.additionalProperties}: ${(error as Error).message}`)
 		}
 	}
 		

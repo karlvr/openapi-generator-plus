@@ -232,7 +232,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 		schemas: null,
 	}
 
-	addToScope(schema, scope, state)
+	addToScope(schema, naming.scope, state)
 	usedSchemaName(naming.scopedName, state)
 	return schema
 }

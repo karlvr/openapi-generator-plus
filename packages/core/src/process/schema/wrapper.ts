@@ -44,7 +44,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		children: null,
 	}
 
-	addToScope(schema, scope, state)
+	addToScope(schema, naming.scope, state)
 	usedSchemaName(naming.scopedName, state)
 
 	return {

@@ -83,7 +83,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 		}
 	}
 
-	addToScope(result, scope, state)
+	addToScope(result, naming.scope, state)
 	return result
 }
 

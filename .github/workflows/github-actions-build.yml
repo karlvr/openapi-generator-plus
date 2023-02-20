@@ -9,6 +9,7 @@ jobs:
           - 12.x
           - 14.x
           - 16.x
+          - 18.x
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2

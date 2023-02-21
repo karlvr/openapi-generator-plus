@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.4.0
+
+### Minor Changes
+
+- 517e703: Wrapper classes should always be scoped to their point of use
+- 8eeed1f: Use name from $ref as suggested name for components
+
+### Patch Changes
+
+- ef73d86: A schema might sometimes be added to the wrong scope
+
 ## 2.3.3
 
 ### Patch Changes

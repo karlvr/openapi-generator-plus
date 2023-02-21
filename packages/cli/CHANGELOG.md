@@ -1,5 +1,15 @@
 # openapi-generator-plus
 
+## 2.4.0
+
+### Patch Changes
+
+- 6717fb3: Add missing --clean option to usage
+- Updated dependencies [517e703]
+- Updated dependencies [8eeed1f]
+- Updated dependencies [ef73d86]
+  - @openapi-generator-plus/core@2.4.0
+
 ## 2.3.3
 
 ### Patch Changes

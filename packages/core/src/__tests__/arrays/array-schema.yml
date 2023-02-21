@@ -1,0 +1,18 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    Ford:
+      type: object
+      properties:
+        messages:
+          $ref: '#/components/schemas/Holden'
+    Holden:
+      type: array
+      items:
+        type: string
+        enum: [Good, Bad, Ugly]

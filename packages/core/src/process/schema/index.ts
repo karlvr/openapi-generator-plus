@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
-import { extractCodegenSchemaInfo, resolveReference, toDefaultValue } from '../utils'
+import { extractCodegenSchemaInfo, nameFromRef, resolveReference, toDefaultValue } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { toCodegenAllOfSchema } from './all-of'
 import { toCodegenAnyOfSchema } from './any-of'
@@ -118,6 +118,9 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, state) : null
 	if (naming) {
 		usedSchemaName(naming.scopedName, state)
+	} else if ($ref) {
+		/* If we're not creating naming for this schema, but there's a $ref then we can update the suggestedName to take advantage of that naming from the spec for component naming */
+		suggestedName = nameFromRef($ref, state)
 	}
 
 	/* Due to the recursive nature of nameFromRef, we might have actually generated a schema for us now! */

@@ -76,14 +76,13 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			required: false,
 			suggestedScope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => `${type.toLowerCase()}_value`,
-			nameRequired: state.generator.nativeComposedSchemaRequiresName(),
 		})
 		let oneOfSchema = oneOfSchemaUsage.schema
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.schemaType.toLowerCase()}_value`, result, oneOfSchemaUsage, oneOfApiSchema, state).schema
-			oneOfSchema = wrapper
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.schemaType.toLowerCase()}_value_wrapper`, result, oneOfSchemaUsage, oneOfApiSchema, state)
+			oneOfSchema = wrapper.schema
 		}
 
 		result.composes.push(oneOfSchema)
@@ -171,13 +170,13 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
 			/* Create a wrapper around this primitive type */
 			const wrapper = createWrapperSchemaUsage(
-				baseSuggestedNameForRelatedSchemas(oneOfSchema) || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`, 
-				isOpenAPIReferenceObject(oneOfApiSchema) ? null : result, 
+				`${baseSuggestedNameForRelatedSchemas(oneOfSchema) || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`}_wrapper`, 
+				result,
 				oneOfSchemaUsage,
 				oneOfApiSchema,
 				state
-			).schema
-			oneOfSchema = wrapper
+			)
+			oneOfSchema = wrapper.schema
 		}
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && !isCodegenWrapperSchema(oneOfSchema)) {

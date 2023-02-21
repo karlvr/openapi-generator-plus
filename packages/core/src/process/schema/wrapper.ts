@@ -2,15 +2,31 @@ import { CodegenSchemaType, CodegenSchemaUsage, CodegenScope, CodegenWrapperSche
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { extractCodegenSchemaUsage } from '../utils'
+import { extractCodegenSchemaUsage, nameFromRef } from '../utils'
 import { extractNaming, toUniqueScopedName, usedSchemaName } from './naming'
 import { createCodegenProperty } from './property'
 import { addToScope } from './utils'
 
-export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope | null, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
+/**
+ * Create a wrapper schema to wrap a primitive value so it can be used by languages that require an object to hold the value.
+ * @param suggestedName 
+ * @param scope the scope where the wrapper should exist, this must ALWAYS be provided as wrappers are not shared as they are dependent on their usage (based on a CodegenSchemaUsage)
+ * @param wrap 
+ * @param wrapApi 
+ * @param state 
+ * @returns 
+ */
+export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
 	const $ref = isOpenAPIReferenceObject(wrapApi) ? wrapApi.$ref : undefined
-	const naming = toUniqueScopedName($ref, `${suggestedName}_wrapper`, scope, wrapApi, CodegenSchemaType.WRAPPER, state)
+	if ($ref) {
+		/* We update our suggested name from the $ref rather than passing it to `toUniqueScopedName` as if that method sees a $ref it will name us
+		   in the global scope, but wrappers are always scoped
+		 */
+		suggestedName = nameFromRef($ref, state)
+	}
 
+	const naming = toUniqueScopedName(undefined, suggestedName, scope, wrapApi, CodegenSchemaType.WRAPPER, state)
+	
 	const property = createCodegenProperty('value', wrap, state)
 	property.required = true
 	property.nullable = wrap.nullable

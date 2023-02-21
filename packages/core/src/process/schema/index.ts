@@ -48,7 +48,6 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 export interface SchemaUsageOptions {
 	required: boolean
 	suggestedName: string | ((type: CodegenSchemaType) => string)
-	nameRequired?: boolean
 	purpose: CodegenSchemaPurpose
 	suggestedScope: CodegenScope | null
 }
@@ -116,7 +115,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		schemaType,
 	})
 
-	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) || options.nameRequired ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, state) : null
+	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, state) : null
 	if (naming) {
 		usedSchemaName(naming.scopedName, state)
 	}

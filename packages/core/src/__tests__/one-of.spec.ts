@@ -277,7 +277,10 @@ test('oneOf primitives (object)', async() => {
 	const oneOf = result.schemas['OneOf'] as CodegenInterfaceSchema
 	expect(oneOf).toBeDefined()
 	expect(isCodegenInterfaceSchema(oneOf)).toBeTruthy()
-	expect(oneOf.schemas).toBeNull() /* As our schemas are refs, even though they're primitive */
+	
+	/* We generate wrapper schemas in the oneOf scope */
+	expect(oneOf.schemas).not.toBeNull()
+	expect(idx.size(oneOf.schemas!)).toBe(3)
 
 	expect(oneOf.implementors).not.toBeNull()
 	const customInteger = oneOf.implementors![0] as CodegenWrapperSchema

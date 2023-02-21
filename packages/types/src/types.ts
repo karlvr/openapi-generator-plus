@@ -109,6 +109,7 @@ export interface CodegenGenerator {
 	nativeCompositionCanBeScope: () => boolean
 	/**
 	 * When a schema is used in a native CodegenCompositionSchema, does it require a name?
+	 * @deprecated not currently used in the generation
 	 */
 	nativeComposedSchemaRequiresName: () => boolean
 	/**

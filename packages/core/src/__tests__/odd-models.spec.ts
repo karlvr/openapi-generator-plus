@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema, CodegenAllOfStrategy } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema, CodegenAllOfStrategy, CodegenOneOfSchema, CodegenInterfaceSchema } from '@openapi-generator-plus/types'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')
@@ -116,7 +116,16 @@ test('double reference', async() => {
 	expect(colourValue.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(colourValue.nullable).toBeTruthy()
 
-	const colourCollectionValue = idx.get(result.schemas, 'ColourCollectionValue') as CodegenWrapperSchema
+	/* Wrapper schemas are always scoped, so no longer in the global scope */
+	const globalColourCollectionValue = idx.get(result.schemas, 'ColourCollectionValue') as CodegenWrapperSchema | undefined
+	expect(globalColourCollectionValue).toBeUndefined()
+
+	const response = idx.get(result.schemas, 'Response') as CodegenInterfaceSchema
+	expect(response.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+	expect(response.schemas).not.toBeNull()
+	
+	const colourCollectionValue = idx.get(response.schemas!, 'ColourCollectionValue') as CodegenWrapperSchema
+	expect(colourCollectionValue).toBeDefined()
 	expect(colourCollectionValue.schemaType).toEqual(CodegenSchemaType.WRAPPER)
 	expect(colourCollectionValue.property.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
 	expect(colourCollectionValue.property.schema.component).toBeTruthy()

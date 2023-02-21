@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.5.0
+
+### Minor Changes
+
+- 6b8089f: Wrapper objects should correctly report the underlying API type rather than object
+
+### Patch Changes
+
+- Updated dependencies [6b8089f]
+  - @openapi-generator-plus/types@2.4.0
+
 ## 2.4.0
 
 ### Minor Changes

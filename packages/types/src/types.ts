@@ -763,7 +763,6 @@ export interface CodegenHierarchySchema extends CodegenCompositionSchema, Schema
  * A wrapper contains a single property that is the wrapped value.
  */
 export interface CodegenWrapperSchema extends CodegenNamedSchema, CodegenScope {
-	type: 'object'
 	schemaType: CodegenSchemaType.WRAPPER
 
 	property: CodegenProperty

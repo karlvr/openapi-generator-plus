@@ -40,7 +40,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 
 	const schema: CodegenWrapperSchema = {
 		...extractNaming(naming),
-		type: 'object',
+		type: wrap.schema.type,
 		format: null,
 		schemaType: CodegenSchemaType.WRAPPER,
 		property,

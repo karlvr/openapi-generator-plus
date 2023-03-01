@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 2.6.0
+
+### Minor Changes
+
+- 5fcceaa: Add originalScopedName for schemas
+- f1f6b49: Resolve situations where an interface might be implemented by a containing class, which Java doesn't support.
+
+### Patch Changes
+
+- 5adec2c: Nested map schema should be anonymous rather than assuming the name of the object
+- aa244ab: Refactor finalising a schema to reflect possibility that naming might change and to detect invalid dupes
+- Updated dependencies [5fcceaa]
+  - @openapi-generator-plus/types@2.5.0
+
 ## 2.5.0
 
 ### Minor Changes

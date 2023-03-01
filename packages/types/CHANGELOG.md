@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.5.0
+
+### Minor Changes
+
+- 5fcceaa: Add originalScopedName for schemas
+
 ## 2.4.0
 
 ### Minor Changes

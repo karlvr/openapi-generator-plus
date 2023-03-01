@@ -11,6 +11,7 @@ export interface ScopedModelInfo {
 	scopedName: string[]
 	serializedName: string | null
 	originalName: string | null
+	originalScopedName: string[] | null
 	scope: CodegenScope | null
 	anonymous: boolean
 	$ref: string | undefined
@@ -48,6 +49,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 		return {
 			name,
 			scopedName: [...scope.scopedName, name],
+			originalScopedName: scope.originalScopedName ? [...scope.originalScopedName, suggestedName] : null,
 			serializedName,
 			originalName: suggestedName,
 			scope,
@@ -58,6 +60,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 		return {
 			name,
 			scopedName: [name],
+			originalScopedName: [suggestedName],
 			serializedName,
 			originalName: suggestedName,
 			scope: null,
@@ -112,7 +115,7 @@ function uniqueScopedName(scopedName: string[], state: InternalCodegenState): st
 	return [...parentNames, name]
 }
 
-type ExtractNamingKeys = 'name' | 'scopedName' | 'serializedName' | 'originalName' | 'anonymous'
+type ExtractNamingKeys = 'name' | 'scopedName' | 'originalScopedName' | 'serializedName' | 'originalName' | 'anonymous'
 
 export function extractNaming(naming: ScopedModelInfo): Pick<CodegenNamedSchema, ExtractNamingKeys>
 export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchema, ExtractNamingKeys>
@@ -121,6 +124,7 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 		return {
 			name: null,
 			scopedName: null,
+			originalScopedName: null,
 			serializedName: null,
 			originalName: null,
 			anonymous: null,
@@ -130,6 +134,7 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 	return {
 		name: naming.name,
 		scopedName: naming.scopedName,
+		originalScopedName: naming.originalScopedName,
 		serializedName: naming.serializedName,
 		originalName: naming.originalName,
 		anonymous: naming.anonymous,

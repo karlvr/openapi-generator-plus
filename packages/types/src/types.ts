@@ -520,6 +520,8 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	serializedName: string | null
 	/** The original name (either specified or created by the generator) to use to form derived names */
 	originalName: string | null
+	/** The scoped name of this schema as an array, using the original schema names. */
+	originalScopedName: string[] | null
 	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
 	anonymous: boolean | null
 
@@ -633,6 +635,9 @@ export interface CodegenValue {
 export interface CodegenScope {
 	/** The scoped name of this schema as an array. The components are as returned by CodegenGenerator.toSchemaName */
 	scopedName: string[]
+	
+	/** The scoped name of this schema as an array. The components are the original schema names. This property is null if original names are not available or applicable. */
+	originalScopedName: string[] | null
 	
 	/** Nested schemas */
 	schemas: CodegenNamedSchemas | null

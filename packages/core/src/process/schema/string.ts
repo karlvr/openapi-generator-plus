@@ -7,7 +7,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { createSchemaUsage, CreateSchemaUsageOptions } from './usage'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 
 export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
 	if (apiSchema.type !== 'string') {
@@ -46,6 +46,8 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 		minLength: convertToNumber(apiSchema.minLength),
 		pattern: apiSchema.pattern || null,
 	}
+
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 

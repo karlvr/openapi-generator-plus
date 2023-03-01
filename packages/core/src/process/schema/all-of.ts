@@ -12,7 +12,7 @@ import { addToAnyDiscriminators, discoverDiscriminatorReferencesInOtherDocuments
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema, absorbApiSchema } from './object-absorb'
-import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { toCodegenPropertySummary, toRequiredPropertyNames } from './property'
 
 export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
@@ -70,7 +70,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	const allOf = apiSchema.allOf as Array<OpenAPIX.SchemaObject>
 	for (const allOfApiSchema of allOf) {
@@ -95,7 +95,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 
@@ -160,7 +160,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 	
 	/* Create a discriminator, if appropriate, removing the discriminator property from the schema's
 	properties.
@@ -227,7 +227,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 

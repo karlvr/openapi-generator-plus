@@ -1,4 +1,4 @@
-import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope, isCodegenNamedSchema } from '@openapi-generator-plus/types'
 import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
@@ -21,7 +21,7 @@ import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
-import { addReservedSchemaName, addToKnownSchemas, addToScope, extractCodegenSchemaCommon, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
+import { addReservedSchemaName, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
@@ -214,14 +214,10 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 
 				...extractCodegenSchemaCommon(apiSchema, state),
 			}
+
+			finaliseSchema(apiSchema, result, naming, state)
 			break
 		}
-	}
-
-	result = addToKnownSchemas(apiSchema, result, naming, state)
-
-	if (naming) {
-		addToScope(result, naming.scope, state)
 	}
 	return result
 }

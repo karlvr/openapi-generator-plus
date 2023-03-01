@@ -3,7 +3,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { convertToBoolean, convertToNumber } from '../utils'
@@ -53,6 +53,8 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		minItems: convertToNumber(apiSchema.minItems),
 		uniqueItems: convertToBoolean(apiSchema.uniqueItems, null),
 	}
+	
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 

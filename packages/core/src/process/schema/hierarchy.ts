@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { toCodegenExamples } from '../examples'
 import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenProperties } from './property'
@@ -59,7 +59,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	result.properties = toCodegenProperties(apiSchema, result, state) || null
 
@@ -69,6 +69,6 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }

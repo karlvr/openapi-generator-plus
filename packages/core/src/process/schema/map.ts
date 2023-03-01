@@ -3,7 +3,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { debugStringify } from '@openapi-generator-plus/utils'
@@ -61,5 +61,11 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		maxProperties: apiSchema.maxProperties || null,
 		minProperties: apiSchema.minProperties || null,
 	}
+	
+	/* Note that we don't pass the apiSchema to finaliseSchema if the map schema doesn't have a name, as it is
+	   probably the schema for additionalProperties inside an object, or it's an anonymous schema that doesn't
+	   need to be reused.
+	 */
+	finaliseSchema(naming ? apiSchema : undefined, result, naming, state)
 	return result
 }

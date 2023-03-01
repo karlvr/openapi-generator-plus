@@ -6,7 +6,7 @@ import { convertToBoolean, convertToNumber } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 
 export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
 	if (apiSchema.type !== 'number' && apiSchema.type !== 'integer') {
@@ -46,5 +46,7 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		exclusiveMinimum: convertToBoolean(apiSchema.exclusiveMinimum, null),
 		multipleOf: convertToNumber(apiSchema.multipleOf),
 	}
+
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }

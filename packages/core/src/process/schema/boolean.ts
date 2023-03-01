@@ -4,7 +4,7 @@ import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 
 export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenBooleanSchema {
 	if (apiSchema.type !== 'boolean') {
@@ -34,5 +34,7 @@ export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(apiSchema),
 	}
+
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }

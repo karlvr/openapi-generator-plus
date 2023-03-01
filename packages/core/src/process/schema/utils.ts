@@ -35,9 +35,23 @@ export function addToScope(schema: CodegenSchema, scope: CodegenScope | null, st
 		if (!scope.schemas) {
 			scope.schemas = idx.create()
 		}
-		idx.set(scope.schemas, schema.name, schema)
+		const existing = idx.get(scope.schemas, schema.name)
+		if (existing) {
+			if (existing !== schema) {
+				throw new Error(`Cannot add duplicate schema "${schema.name}" to scope: ${debugStringify(scope)}`)
+			}
+		} else {
+			idx.set(scope.schemas, schema.name, schema)
+		}
 	} else {
-		idx.set(state.schemas, schema.name, schema)
+		const existing = idx.get(state.schemas, schema.name)
+		if (existing) {
+			if (existing !== schema) {
+				throw new Error(`Cannot add duplicate schema "${schema.name}" to global scope`)
+			}
+		} else {
+			idx.set(state.schemas, schema.name, schema)
+		}
 	}
 }
 
@@ -119,20 +133,37 @@ export function findKnownSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string |
 }
 
 /**
+ * Call when a schema has been finalised and should be added in its completed state to its scope.
+ */
+export function finaliseSchema<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject | undefined, schema: T, naming: ScopedModelInfo | null, state: InternalCodegenState): void {
+	if (naming) {
+		addToScope(schema, naming?.scope, state)
+	}
+	
+	if (apiSchema) {
+		const dedupe = addToKnownSchemas(apiSchema, schema, naming?.$ref, state)
+		if (dedupe !== schema) {
+			/* If we know that we might need to use an already created schema we should have called addToKnownSchemas before finalising the schema */
+			throw new Error(`Finalised schema already known: ${debugStringify(schema)}`)
+		}
+	}
+}
+
+/**
  * Add the result to the knownSchemas to avoid generating again, and returns the canonical schema.
  * If theres already a known schema for the given schema, the already existing version is returned.
  * This helps to dedupe what we generate.
  */
-export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject, schema: T, naming: ScopedModelInfo | null, state: InternalCodegenState): T {
+export function addToKnownSchemas<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject, schema: T, $ref: string | undefined, state: InternalCodegenState): T {
 	const existing = state.knownSchemas.get(apiSchema)
 	if (!existing) {
 		state.knownSchemas.set(apiSchema, schema)
 	}
 
 	let existingByRef: CodegenSchema | undefined
-	if (naming?.$ref) {
-		const normalisedRef = normaliseRef(naming.$ref, state)
-		existingByRef = naming?.$ref ? state.knownSchemasByRef.get(normalisedRef) : undefined
+	if ($ref) {
+		const normalisedRef = normaliseRef($ref, state)
+		existingByRef = $ref ? state.knownSchemasByRef.get(normalisedRef) : undefined
 		if (!existingByRef) {
 			state.knownSchemasByRef.set(normalisedRef, schema)
 		}

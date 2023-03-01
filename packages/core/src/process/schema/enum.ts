@@ -3,7 +3,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { extractCodegenSchemaCommon } from './utils'
+import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { toCodegenSchemaType } from './schema-type'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
@@ -110,5 +110,7 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 
 	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
+
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }

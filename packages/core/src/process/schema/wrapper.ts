@@ -5,7 +5,7 @@ import { OpenAPIX } from '../../types/patches'
 import { extractCodegenSchemaUsage, nameFromRef } from '../utils'
 import { extractNaming, toUniqueScopedName, usedSchemaName } from './naming'
 import { createCodegenProperty } from './property'
-import { addToScope } from './utils'
+import { finaliseSchema } from './utils'
 
 /**
  * Create a wrapper schema to wrap a primitive value so it can be used by languages that require an object to hold the value.
@@ -60,7 +60,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		children: null,
 	}
 
-	addToScope(schema, naming.scope, state)
+	finaliseSchema(undefined, schema, naming, state)
 	usedSchemaName(naming.scopedName, state)
 
 	return {

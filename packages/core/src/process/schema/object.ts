@@ -4,7 +4,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo, toUniqueScopedName, usedSchemaName } from './naming'
-import { addToKnownSchemas, addToScope, extractCodegenSchemaCommon } from './utils'
+import { addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { toCodegenExamples } from '../examples'
 import { toCodegenMapSchema } from './map'
 import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
@@ -84,6 +84,8 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 	// 		}
 	// 	}
 	// }
+
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 
@@ -145,6 +147,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 		toCodegenInterfaceImplementationSchema(result, { allowAbstract: false }, state)
 	}
 
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 
@@ -158,7 +161,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	schema = addToKnownSchemas(apiSchema, schema, naming, state)
+	schema = addToKnownSchemas(apiSchema, schema, naming.$ref, state)
 
 	schema.properties = toCodegenProperties(apiSchema, schema, state) || null
 
@@ -232,7 +235,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 		schemas: null,
 	}
 
-	addToScope(schema, naming.scope, state)
+	finaliseSchema(undefined, schema, naming, state)
 	usedSchemaName(naming.scopedName, state)
 	return schema
 }

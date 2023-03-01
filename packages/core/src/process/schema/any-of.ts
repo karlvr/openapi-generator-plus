@@ -11,7 +11,7 @@ import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, lo
 import { toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema } from './object-absorb'
-import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon } from './utils'
+import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
@@ -69,7 +69,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	/* We bundle all of the properties together into this model and turn the subModels into interfaces */
 	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
@@ -106,7 +106,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 
@@ -158,7 +158,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
@@ -199,6 +199,6 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }

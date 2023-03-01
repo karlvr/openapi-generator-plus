@@ -1,7 +1,7 @@
 import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
-import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
+import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
@@ -9,7 +9,7 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
-import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon } from './utils'
+import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
 export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
@@ -66,7 +66,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
@@ -101,7 +101,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 
@@ -154,7 +154,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	/* Must add model to knownSchemas here before we try to load other models to avoid infinite loop
 	   when a model references other models that in turn reference this model.
 	 */
-	result = addToKnownSchemas(apiSchema, result, naming, state)
+	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
 	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
@@ -199,7 +199,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 	}
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-		
+	finaliseSchema(apiSchema, result, naming, state)
 	return result
 }
 

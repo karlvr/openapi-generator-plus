@@ -1,0 +1,32 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: oneOf with recursion
+paths: {}
+components:
+  schemas:
+    RecursiveContainer:
+      type: object
+      properties:
+        items:
+          oneOf:
+            - $ref: '#/components/schemas/Item'
+            - $ref: '#/components/schemas/RecursiveContainer'
+    NonRecursiveContainer:
+      type: object
+      properties:
+        items:
+          oneOf:
+            - $ref: '#/components/schemas/Item'
+            - $ref: '#/components/schemas/Thing'
+    Item:
+      type: object
+      properties:
+        name:
+          type: string
+    Thing:
+      type: object
+      properties:
+        name:
+          type: string

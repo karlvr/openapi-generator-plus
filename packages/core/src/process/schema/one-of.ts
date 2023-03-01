@@ -8,7 +8,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
-import { extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
+import { checkContainsRelationship, extractNaming, ScopedModelInfo, toUniqueScopedName } from './naming'
 import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
@@ -185,6 +185,31 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 
 		addImplementor(result, oneOfSchema)
 		added.push([oneOfApiSchema, oneOfSchema])
+	}
+
+	/* Check for a situation where an implementor of this interface is the scope where the interface is destined for or a parent of that */
+	const scope = naming.scope
+	if (result.implementors && scope) {
+		const needToMoveInterfaceToGlobalScope = !!result.implementors.find(schema => checkContainsRelationship(schema, scope))
+		
+		if (needToMoveInterfaceToGlobalScope) {
+			/* We are creating an interface to represent a oneOf, but the scope in which we're creating it is going to implement
+			the interface! This is not allowed (at least in Java) so we bump the naming out of the scope in which it is in.
+			*/
+			if (naming.moveToGlobalScope) {
+				naming.moveToGlobalScope()
+			} else {
+				throw new Error(`Recursion detected in one-of schema but cannot move interface to global scope: ${debugStringify(result)}`)
+			}
+			Object.assign(result, extractNaming(naming))
+
+			result.nativeType = state.generator.toNativeObjectType({
+				type: 'object',
+				schemaType: CodegenSchemaType.INTERFACE,
+				scopedName: naming.scopedName,
+				vendorExtensions,
+			})
+		}
 	}
 
 	/* Discriminator - must come after the oneOf relationships are established */

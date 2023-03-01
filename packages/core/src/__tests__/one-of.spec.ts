@@ -439,3 +439,40 @@ test('oneOf anonymous (native)', async() => {
 	const regions = idx.get(subservice.schemas!, 'regions') as CodegenOneOfSchema
 	expect(regions.schemaType).toEqual(CodegenSchemaType.ONEOF)
 })
+
+test('oneOf with recursion', async() => {
+	const result = await createTestDocument('one-of/one-of-recursive.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		supportsInheritance: true,
+		supportsMultipleInheritance: true,
+	})
+	expect(result).toBeDefined()
+
+	const recursiveContainer = idx.get(result.schemas, 'RecursiveContainer') as CodegenObjectSchema
+	expect(recursiveContainer.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(recursiveContainer.properties).not.toBeNull()
+	
+	const recursiveItems = idx.get(recursiveContainer.properties!, 'items')
+	expect(recursiveItems).toBeTruthy()
+	
+	const recursiveItemsSchema = recursiveItems!.schema
+	expect(recursiveItemsSchema.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+	expect(recursiveItemsSchema.scopedName?.length).toBe(1)
+
+	expect(recursiveContainer.schemas).toBeNull()
+
+	const nonRecursiveContainer = idx.get(result.schemas, 'NonRecursiveContainer') as CodegenObjectSchema
+	expect(nonRecursiveContainer.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(nonRecursiveContainer.properties).not.toBeNull()
+	
+	const nonRecursiveItems = idx.get(nonRecursiveContainer.properties!, 'items')
+	expect(nonRecursiveItems).toBeTruthy()
+	
+	/* The interface created for the non-recursive container's items should be nested in the NonRecursiveContainer */
+	const nonRecursiveItemsSchema = nonRecursiveItems!.schema
+	expect(nonRecursiveItemsSchema.schemaType).toEqual(CodegenSchemaType.INTERFACE)
+	expect(nonRecursiveItemsSchema.scopedName?.length).toBe(2)
+
+	expect(nonRecursiveContainer.schemas).not.toBeNull()
+	expect(idx.size(nonRecursiveContainer.schemas!)).toBe(1)
+})

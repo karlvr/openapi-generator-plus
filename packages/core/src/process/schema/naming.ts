@@ -15,6 +15,7 @@ export interface ScopedModelInfo {
 	scope: CodegenScope | null
 	anonymous: boolean
 	$ref: string | undefined
+	moveToGlobalScope?: () => void
 }
 
 function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
@@ -55,6 +56,10 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			scope,
 			anonymous: serializedName === null,
 			$ref,
+			moveToGlobalScope: function() {
+				const newScopedName = toScopedName($ref, this.originalScopedName ? this.originalScopedName.join('_') : suggestedName, null, apiSchema, schemaType, state)
+				Object.assign(this, newScopedName)
+			},
 		}
 	} else {
 		return {
@@ -173,6 +178,37 @@ export function toUniqueName(suggestedName: string, parentNames: string[] | unde
 function uniqueNameInIndexedCollection(name: string, collection: IndexedCollectionType<WithName>): boolean {
 	for (const value of idx.allValues(collection)) {
 		if (value.name === name) {
+			return false
+		}
+	}
+	return true
+}
+
+/**
+ * Check whether two schemas are the same or whether the first contains the second in its nested schemas.
+ * @param possibleAncestor 
+ * @param possibleDescendent 
+ * @returns 
+ */
+export function checkContainsRelationship(possibleAncestor: CodegenSchema, possibleDescendent: CodegenSchema | CodegenScope): boolean {
+	if (possibleAncestor === possibleDescendent as unknown) {
+		return true
+	}
+
+	const scopedAncestorName = possibleAncestor.scopedName
+	if (scopedAncestorName === null) {
+		return false
+	}
+	const scopedDescendentName = possibleDescendent.scopedName
+	if (scopedDescendentName === null) {
+		return false
+	}
+	if (scopedAncestorName.length > scopedDescendentName.length) {
+		return false
+	}
+
+	for (let i = 0; i < scopedAncestorName.length; i++) {
+		if (scopedAncestorName[i] !== scopedDescendentName[i]) {
 			return false
 		}
 	}

@@ -1,5 +1,17 @@
 # @openapi-generator-plus/core
 
+## 2.7.0
+
+### Minor Changes
+
+- 3531f21: When creating a schema name for array or map values, convert the property name to its singular form (in case it's a plural)
+- 29717b7: Add general generation options, starting with configuring the requestBody identifier for an operation
+
+### Patch Changes
+
+- Updated dependencies [29717b7]
+  - @openapi-generator-plus/types@2.6.0
+
 ## 2.6.0
 
 ### Minor Changes

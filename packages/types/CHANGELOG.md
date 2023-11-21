@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.6.0
+
+### Minor Changes
+
+- 29717b7: Add general generation options, starting with configuring the requestBody identifier for an operation
+
 ## 2.5.0
 
 ### Minor Changes

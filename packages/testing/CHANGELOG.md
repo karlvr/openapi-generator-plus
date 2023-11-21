@@ -1,5 +1,18 @@
 # @openapi-generator-plus/testing
 
+## 2.7.0
+
+### Minor Changes
+
+- 29717b7: Add general generation options, starting with configuring the requestBody identifier for an operation
+
+### Patch Changes
+
+- Updated dependencies [3531f21]
+- Updated dependencies [29717b7]
+  - @openapi-generator-plus/core@2.7.0
+  - @openapi-generator-plus/types@2.6.0
+
 ## 2.6.0
 
 ### Patch Changes

@@ -9,7 +9,7 @@ export interface CodegenResult {
 
 export async function createCodegenResult(inputPath: string, config: CodegenConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<CodegenResult> {
 	const generator = constructGenerator(config, createGeneratorContext(), generatorConstructor)
-	const state = createCodegenState(generator)
+	const state = createCodegenState(config, generator)
 	const input = await createCodegenInput(inputPath)
 	const doc = createCodegenDocument(input, state)
 	return {

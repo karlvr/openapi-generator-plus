@@ -18,6 +18,13 @@ export interface CodegenInputDocument {
 export interface CodegenState {
 	generator: CodegenGenerator
 	log?: CodegenLogFunction
+	options: CodegenOptions
+}
+
+export interface CodegenOptions {
+	operations: {
+		defaultRequestBodyIdentifier: string
+	}
 }
 
 export type CodegenLogFunction = (level: CodegenLogLevel, message: string) => void

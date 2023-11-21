@@ -117,8 +117,21 @@ The configuration file may be YAML or JSON. A basic configuration file contains:
 |`inputPath`|`string`|The path to the input API specification, relative to the config file.|`undefined`|
 |`outputPath`|`string`|The path to the output directory, relative to the config file.|`undefined`|
 |`generator`|`string`|The name of the generator template, or the path relative to the config file for the generator template module.|`undefined`|
+|`options`|`Options`|Additional options to control the generation.|`undefined`|
 
 See the README for the generator template you're using for additional configuration options supported by that generator.
+
+#### Options
+
+|Property|Type|Description|Default|
+|--------|----|-----------|-------|
+|`operations`|`Operations`|Options specific to generation of operations|`undefined`|
+
+#### Operations
+
+|Property|Type|Description|Default|
+|--------|----|-----------|-------|
+|`defaultRequestBodyIdentifier`|`string`|The identifier to use for the request body (OpenAPI 3)|`"request"`|
 
 ## Background
 

@@ -20,9 +20,14 @@ export function constructGenerator(config: CodegenConfig, context: CodegenGenera
 	return generator
 }
 
-export function createCodegenState(generator: CodegenGenerator): CodegenState {
+export function createCodegenState(config: CodegenConfig, generator: CodegenGenerator): CodegenState {
 	return {
 		generator,
+		options: {
+			operations: {
+				defaultRequestBodyIdentifier: (config as any).options?.operations?.defaultRequestBodyIdentifier || 'request',
+			},
+		},
 	}
 }
 

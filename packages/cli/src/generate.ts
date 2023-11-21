@@ -21,7 +21,7 @@ function createMyGeneratorContext() {
 async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
 	const generator = constructGenerator(config, createMyGeneratorContext(), generatorConstructor)
 	
-	const state = createCodegenState(generator)
+	const state = createCodegenState(config, generator)
 	state.log = log
 	const input = await createCodegenInput(config.inputPath)
 

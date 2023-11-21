@@ -171,7 +171,7 @@ export async function createTestResult(inputPath: string, config?: TestCodegenCo
 }
 
 function createTestCodegenState(generator: CodegenGenerator, config?: TestCodegenConfig): CodegenState {
-	const state = createCodegenState(generator)
+	const state = createCodegenState({}, generator)
 	state.log = function(level, message) {
 		if (level >= CodegenLogLevel.WARN && (!config || !config.expectLogWarnings)) {
 			/* We should not emit any warning messages during the tests */

@@ -61,8 +61,8 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 
 			const defaultContent = requestBodyContents[0]
 			bodyParam = {
-				name: toUniqueName('request', undefined, parameters, state),
-				serializedName: 'request', /* This doesn't actually have a serialized name as we created it */
+				name: toUniqueName(state.options.operations.defaultRequestBodyIdentifier, undefined, parameters, state),
+				serializedName: state.options.operations.defaultRequestBodyIdentifier, /* This doesn't actually have a serialized name as we created it */
 
 				required: defaultContent.required,
 				schema: defaultContent.schema,

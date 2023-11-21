@@ -22,6 +22,7 @@ import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
 import { addReservedSchemaName, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
+import { singular } from 'pluralize'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
@@ -132,7 +133,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	let result: CodegenSchema
 	switch (schemaType) {
 		case CodegenSchemaType.MAP:
-			result = toCodegenMapSchema(apiSchema, naming, naming ? 'value' : suggestedName, naming ? naming.scope : suggestedScope, state)
+			result = toCodegenMapSchema(apiSchema, naming, naming ? 'value' : singular(suggestedName), naming ? naming.scope : suggestedScope, state)
 			break
 		case CodegenSchemaType.OBJECT:
 			if (!naming) {
@@ -166,7 +167,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			result = toCodegenOneOfSchema(apiSchema, naming, state)
 			break
 		case CodegenSchemaType.ARRAY:
-			result = toCodegenArraySchema(apiSchema, naming, naming ? 'item' : suggestedName, naming ? naming.scope : suggestedScope, state)
+			result = toCodegenArraySchema(apiSchema, naming, naming ? 'item' : singular(suggestedName), naming ? naming.scope : suggestedScope, state)
 			break
 		case CodegenSchemaType.ENUM:
 			result = toCodegenEnumSchema(apiSchema, naming, state)

@@ -53,7 +53,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			examples: null,
 		}
 	} else if (isOpenAPIV3HeaderObject(header, state.specVersion)) {
-		const schemaUse = toCodegenSchemaUsage(header.schema || { type: 'string' }, state, {
+		/* NB: header schemas are strings, it goes without saying so we forcibly add the type to the schema in case it isn't specified */
+		const schemaUse = toCodegenSchemaUsage(header.schema ? { type: 'string', ...header.schema } : { type: 'string' }, state, {
 			required: convertToBoolean(header.required, false), 
 			suggestedName: name, 
 			purpose: CodegenSchemaPurpose.HEADER,

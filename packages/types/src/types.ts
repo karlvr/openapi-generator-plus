@@ -167,6 +167,7 @@ export interface CodegenGeneratorHelper {
 	addToScope(schema: CodegenSchema, scope: CodegenScope | null): void
 	createObjectSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenObjectSchema
 	createOneOfSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenOneOfSchema
+	uniqueName(suggestedName: string, scope: CodegenScope | null, schemaType: CodegenSchemaType): string
 	findSchema(name: string, scope: CodegenScope | null): CodegenSchema | undefined
 	scopeOf(schema: CodegenNamedSchema): CodegenScope | null
 }

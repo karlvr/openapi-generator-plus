@@ -15,6 +15,7 @@ import { toCodegenExternalDocs } from './process/external-docs'
 import { createObjectSchema } from './process/schema/object'
 import { createOneOfSchema } from './process/schema/one-of'
 import { addToScope, scopeOf } from './process/schema/utils'
+import { toUniqueScopedName, usedSchemaName } from './process/schema/naming'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
@@ -85,6 +86,11 @@ function createGeneratorHelper(state: InternalCodegenState): CodegenGeneratorHel
 		addToScope: (schema, scope) => addToScope(schema, scope, state),
 		createObjectSchema: (suggestedName, scope, purpose) => createObjectSchema(suggestedName, scope, purpose, state),
 		createOneOfSchema: (suggestedName, scope, purpose) => createOneOfSchema(suggestedName, scope, purpose, state),
+		uniqueName(suggestedName, scope, schemaType) {
+			const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, schemaType, state)
+			usedSchemaName(naming.scopedName, state)
+			return naming.name
+		},
 		findSchema: (name, scope) => scope !== null ? scope.schemas != null ? idx.get(scope.schemas, name) : undefined : idx.get(state.schemas, name),
 		scopeOf: (schema) => scopeOf(schema, state),
 	}

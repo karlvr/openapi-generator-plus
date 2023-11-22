@@ -138,7 +138,7 @@ export interface CodegenGenerator {
 	/** Apply any post-processing to the given schema.
 	 * @returns `false` if the schema should be excluded.
 	 */
-	postProcessSchema?: (model: CodegenSchema, helper: CodegenGeneratorHelper) => boolean | void
+	postProcessSchema?: (schema: CodegenSchema, helper: CodegenGeneratorHelper) => boolean | void
 
 	/**
 	 * Apply any post-processing to the given document.
@@ -654,7 +654,7 @@ export interface CodegenScope {
  * An interface to be extended by schemas that can contain a discriminator.
  */
 interface SchemaMixinDiscriminator {
-	/** Information about the discriminator that this model uses to differentiate either its children or submodels */
+	/** Information about the discriminator that this schema uses to differentiate either its children or subschemas */
 	discriminator: CodegenDiscriminator | null
 
 	/** Whether this schema represents a polymorphic hierarchy (whether or not it has a discriminator) */
@@ -668,7 +668,7 @@ export type CodegenDiscriminatorSchema = Readonly<CodegenSchema> & SchemaMixinDi
  */
 interface SchemaMixinDiscriminatorValues {
 
-	/** Information about the values of discriminators for this model */
+	/** Information about the values of discriminators for this schema */
 	discriminatorValues: CodegenDiscriminatorValue[] | null
 
 }
@@ -883,7 +883,7 @@ export enum CodegenSchemaPurpose {
 	 */
 	PARAMETER = 'PARAMETER',
 	/**
-	 * The schema is being used for a model property.
+	 * The schema is being used for an object property.
 	 */
 	PROPERTY = 'PROPERTY',
 	/**

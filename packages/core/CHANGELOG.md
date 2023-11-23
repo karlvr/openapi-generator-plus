@@ -1,5 +1,18 @@
 # @openapi-generator-plus/core
 
+## 2.8.0
+
+### Minor Changes
+
+- 7cff4eb: Add generator helper method to generate unique schema names
+
+### Patch Changes
+
+- a73e59c: Fix for header schemas that don't specify a type
+- 15223fb: Fix hierarchy construction from allOf where there is a chain of inheritance
+- Updated dependencies [7cff4eb]
+  - @openapi-generator-plus/types@2.7.0
+
 ## 2.7.0
 
 ### Minor Changes

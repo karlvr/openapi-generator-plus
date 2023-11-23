@@ -1,5 +1,15 @@
 # openapi-generator-plus
 
+## 2.8.0
+
+### Patch Changes
+
+- Updated dependencies [a73e59c]
+- Updated dependencies [7cff4eb]
+- Updated dependencies [15223fb]
+  - @openapi-generator-plus/core@2.8.0
+  - @openapi-generator-plus/types@2.7.0
+
 ## 2.7.0
 
 ### Minor Changes

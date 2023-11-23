@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.7.0
+
+### Minor Changes
+
+- 7cff4eb: Add generator helper method to generate unique schema names
+
 ## 2.6.0
 
 ### Minor Changes

@@ -214,11 +214,22 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 				}
 			}
 
-			addToAnyDiscriminators(allOfSchema, result, state)
+			const addedTo = addToAnyDiscriminators(allOfSchema, result, state)
+
+			for (const addedToSchema of addedTo) {
+				if (isCodegenHierarchySchema(addedToSchema)) {
+					/* Hierarchy schemas discover their members when we find them including the hierarchy in an allOf here */
+					if (addedToSchema.composes.indexOf(result) === -1) {
+						addedToSchema.composes.push(result)
+					}
+				}
+			}
 
 			if (isCodegenHierarchySchema(allOfSchema)) {
 				/* Hierarchy schemas discover their members when we find them including the hierarchy in an allOf here */
-				allOfSchema.composes.push(result)
+				if (allOfSchema.composes.indexOf(result) === -1) {
+					allOfSchema.composes.push(result)
+				}
 			}
 		} else {
 			throw new Error(`Unsupported schema approach: ${approach}`)

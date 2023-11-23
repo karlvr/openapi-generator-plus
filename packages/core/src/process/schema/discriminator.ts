@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { OpenAPIV3 } from 'openapi-types'
 import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -263,11 +263,12 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
  * @param target 
  * @param state 
  */
-export function addToAnyDiscriminators(parent: CodegenSchema, target: CodegenDiscriminatableSchema, state: InternalCodegenState): void {
+export function addToAnyDiscriminators(parent: CodegenSchema, target: CodegenDiscriminatableSchema, state: InternalCodegenState): CodegenDiscriminatorSchema[] {
 	const discriminatorSchemas = findDiscriminatorSchemas(parent)
 	for (const aDiscriminatorSchema of discriminatorSchemas) {
 		addToDiscriminator(aDiscriminatorSchema, target, state)
 	}
+	return discriminatorSchemas
 }
 
 /**
@@ -278,9 +279,19 @@ export function addToAnyDiscriminators(parent: CodegenSchema, target: CodegenDis
 function findDiscriminatorSchemas(schema: CodegenSchema): CodegenDiscriminatorSchema[] {
 	const open = [schema]
 	const result: CodegenDiscriminatorSchema[] = []
+	const closed: CodegenSchema[] = []
 	for (const aSchema of open) {
+		if (closed.indexOf(aSchema) !== -1) {
+			continue
+		}
+		closed.push(aSchema)
+		
 		if (isCodegenDiscriminatorSchema(aSchema) && aSchema.discriminator) {
-			result.push(aSchema as CodegenDiscriminatorSchema)
+			result.push(aSchema)
+		}
+		/* If we find a schema that is itself a member of a discriminator, then that is also a target */
+		if (isCodegenDiscriminatableSchema(aSchema) && aSchema.discriminatorValues) {
+			open.push(...aSchema.discriminatorValues.map(dv => dv.schema))
 		}
 		if (isCodegenObjectSchema(aSchema)) {
 			if (aSchema.parents) {

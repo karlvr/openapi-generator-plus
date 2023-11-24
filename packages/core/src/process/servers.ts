@@ -1,5 +1,5 @@
-import { CodegenServer } from '@openapi-generator-plus/types'
-import { OpenAPI } from 'openapi-types'
+import type { CodegenServer } from '@openapi-generator-plus/types'
+import type { OpenAPI } from 'openapi-types'
 import { isOpenAPIServersContainer, isOpenAPIV2Document } from '../openapi-type-guards'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenVendorExtensions } from './vendor-extensions'

@@ -1,4 +1,4 @@
-import { OpenAPI } from 'openapi-types'
+import type { OpenAPI } from 'openapi-types'
 import { CodegenLiteralValueOptions, CodegenSchemaType, CodegenGenerator } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV3Document } from './openapi-type-guards'
 import { CodegenSpecVersion } from './types'

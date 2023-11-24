@@ -1,5 +1,5 @@
 import { CodegenContactObject, CodegenInfo, CodegenLicenseObject } from '@openapi-generator-plus/types'
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 
 export function toCodegenInfo(info: OpenAPIV2.InfoObject | OpenAPIV3.InfoObject): CodegenInfo {
 	return {

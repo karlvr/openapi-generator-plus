@@ -1,5 +1,5 @@
 import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
-import { OpenAPIV3 } from 'openapi-types'
+import type { OpenAPIV3 } from 'openapi-types'
 import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'

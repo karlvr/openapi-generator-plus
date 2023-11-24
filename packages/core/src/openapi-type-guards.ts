@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { OpenAPIX } from './types/patches'
 import { CodegenSpecVersion } from './types'
 

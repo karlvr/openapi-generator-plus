@@ -1,6 +1,6 @@
 import { isOpenAPIReferenceObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
-import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { CodegenDefaultValueOptions, CodegenInitialValueOptions, CodegenLiteralValueOptions, CodegenLogLevel, CodegenTypeOptions, CodegenSchema, CodegenSchemaInfo, CodegenSchemaUsage, CodegenValue, isCodegenSchemaUsage, CodegenNativeTypeUsageOptions } from '@openapi-generator-plus/types'
 import { toCodegenOperations } from './paths'
 import { baseSuggestedNameForRelatedSchemas } from './schema/utils'

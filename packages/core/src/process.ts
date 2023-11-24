@@ -1,4 +1,4 @@
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenGeneratorHelper } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import _ from 'lodash'

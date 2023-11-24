@@ -1,4 +1,4 @@
-import { OpenAPI } from 'openapi-types'
+import type { OpenAPI } from 'openapi-types'
 import { CodegenExternalDocs } from '../../../types/dist'
 import { OpenAPIX } from '../types/patches'
 

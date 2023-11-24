@@ -7,7 +7,7 @@ import { fullyQualifiedName, ScopedModelInfo } from './naming'
 import { convertToBoolean } from '../utils'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import path from 'path'
-import { OpenAPI } from 'openapi-types'
+import type { OpenAPI } from 'openapi-types'
 
 /**
  * Extract the common attributes that we use from OpenAPI schema in our CodegenSchema.

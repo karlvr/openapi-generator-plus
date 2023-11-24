@@ -1,5 +1,5 @@
 import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'

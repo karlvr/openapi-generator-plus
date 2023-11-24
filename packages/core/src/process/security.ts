@@ -1,5 +1,5 @@
-import { CodegenAuthScope, CodegenOAuthFlow, CodegenSecurityRequirements, CodegenSecurityRequirementScheme, CodegenSecurityScheme } from '@openapi-generator-plus/types'
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { CodegenAuthScope, CodegenOAuthFlow, CodegenSecurityRequirements, CodegenSecurityRequirementScheme, CodegenSecurityScheme } from '@openapi-generator-plus/types'
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIV2Document, isOpenAPIV2SecurityScheme, isOpenAPIV3Document, isOpenAPIV3SecurityScheme } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { resolveReference } from './utils'

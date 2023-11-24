@@ -1,5 +1,5 @@
 import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue, CodegenEncodingStyle, CodegenParameterEncoding, isCodegenArraySchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
-import { OpenAPI, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPI, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenExamples } from './examples'

@@ -1,5 +1,5 @@
 import { CodegenContent, CodegenLogLevel, CodegenMediaType, CodegenOperation, CodegenParameters, CodegenRequestBody, CodegenResponses, CodegenSchemaPurpose, CodegenSecurityRequirements, CodegenServer, CodegenVendorExtensions } from '@openapi-generator-plus/types'
-import { OpenAPI, OpenAPIV2 } from 'openapi-types'
+import type { OpenAPI, OpenAPIV2 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV3Operation } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { toCodegenSecurityRequirements } from './security'

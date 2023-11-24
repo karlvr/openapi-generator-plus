@@ -1,4 +1,4 @@
-import { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 export declare namespace OpenAPIX {
 	export type ResponsesObject = OpenAPIV2.ResponsesObject | OpenAPIV3.ResponsesObject

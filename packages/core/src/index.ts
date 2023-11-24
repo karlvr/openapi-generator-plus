@@ -4,7 +4,7 @@ import SwaggerParser from '@openapi-generator-plus/swagger-parser'
 import { toSpecVersion } from './utils'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { OpenAPI } from 'openapi-types'
+import type { OpenAPI } from 'openapi-types'
 import { defaultLog } from './logging'
 export { createGeneratorContext } from './generators'
 

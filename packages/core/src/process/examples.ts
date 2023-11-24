@@ -1,5 +1,5 @@
 import { CodegenExample, CodegenExamples, CodegenSchemaType, CodegenSchema, CodegenLogLevel, CodegenSchemaUsage, isCodegenSchemaUsage } from '@openapi-generator-plus/types'
-import { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { isOpenAPIV2ExampleObject, isOpenAPIV3ExampleObject } from '../openapi-type-guards'

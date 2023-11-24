@@ -1,6 +1,6 @@
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { IndexedType } from '@openapi-generator-plus/indexed-type'
-import { CodegenNativeTypeTransformers } from './native-types'
+import type { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { IndexedType } from '@openapi-generator-plus/indexed-type'
+import type { CodegenNativeTypeTransformers } from './native-types'
 
 export type OpenAPISchemaObject = OpenAPIV2.SchemaObject | OpenAPIV3.SchemaObject | OpenAPIV2.GeneralParameterObject
 

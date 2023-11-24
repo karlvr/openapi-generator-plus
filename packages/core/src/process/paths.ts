@@ -1,5 +1,5 @@
 import { CodegenOperation, HttpMethods } from '@openapi-generator-plus/types'
-import { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
+import type { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIV3PathItemObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
 import { CodegenOperationContext, toCodegenOperation } from './operations'

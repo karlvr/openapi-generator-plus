@@ -38,7 +38,7 @@ export function toCodegenProperties(apiSchema: OpenAPIX.SchemaObject, scope: Cod
 }
 
 export function toRequiredPropertyNames(apiSchema: OpenAPIX.SchemaObject): string[] {
-	return typeof apiSchema.required === 'object' ? [...apiSchema.required as string[]] : []
+	return Array.isArray(apiSchema.required) ? [...apiSchema.required] : []
 }
 
 /**

@@ -6,7 +6,6 @@ import { toCodegenSecurityRequirements } from './security'
 import { nameFromRef, resolveReference } from './utils'
 import { mergeCodegenVendorExtensions, toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import _ from 'lodash'
 import { toCodegenMediaType } from './media-types'
 import { toCodegenParameters } from './parameters'
 import { toCodegenResponses } from './responses'
@@ -15,6 +14,7 @@ import { nullIfEmpty } from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './schema/naming'
 import { toCodegenExternalDocs } from './external-docs'
 import { toCodegenServers } from './servers'
+import { uniqWith } from 'lodash'
 
 export interface CodegenOperationContext {
 	parameters?: CodegenParameters
@@ -241,7 +241,7 @@ function responsesHaveExamples(responses: CodegenResponses | null): boolean {
 }
 
 function toUniqueMediaTypes(mediaTypes: CodegenMediaType[]): CodegenMediaType[] {
-	return _.uniqWith(mediaTypes, mediaTypeEquals)
+	return uniqWith(mediaTypes, mediaTypeEquals)
 }
 
 function mediaTypeEquals(a: CodegenMediaType, b: CodegenMediaType): boolean {

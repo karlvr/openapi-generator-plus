@@ -27,7 +27,8 @@
     "@openapi-generator-plus/swagger-parser": "^10.1.0",
     "@openapi-generator-plus/types": "2.7.0",
     "@openapi-generator-plus/utils": "1.0.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "pluralize": "^8.0.0"
   },
   "devDependencies": {
     "openapi-types": "^12.0.0"

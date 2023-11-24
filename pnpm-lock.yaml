@@ -98,6 +98,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
+      pluralize:
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       openapi-types:
         specifier: ^12.0.0
@@ -4138,7 +4141,6 @@ packages:
   /pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
-    dev: true
 
   /preferred-pm@3.0.3:
     resolution: {integrity: sha512-+wZgbxNES/KlJs9q40F/1sfOd/j7f1O9JaHcW5Dsn3aUUOZg3L2bjpVUcKV2jvtElYfoTuQiNeMfQJ4kwUAhCQ==}

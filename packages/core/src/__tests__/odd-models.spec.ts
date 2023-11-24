@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '../'
-import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema, CodegenAllOfStrategy, CodegenOneOfSchema, CodegenInterfaceSchema } from '@openapi-generator-plus/types'
+import { CodegenObjectSchema, CodegenSchemaType, CodegenOneOfStrategy, CodegenWrapperSchema, CodegenMapSchema, CodegenAllOfStrategy, CodegenInterfaceSchema } from '@openapi-generator-plus/types'
 
 test('array of strings without collection models', async() => {
 	const result = await createTestDocument('odd-models/array-of-strings-v2.yml')

@@ -25,6 +25,8 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 		return CodegenSchemaType.STRING
 	} else if (type === 'file') {
 		return CodegenSchemaType.BINARY
+	} else if (type === 'null') {
+		return CodegenSchemaType.NULL
 	} else {
 		throw new Error(`Unsupported schema type: ${type}`)
 	}

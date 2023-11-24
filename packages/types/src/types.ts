@@ -462,6 +462,7 @@ export enum CodegenSchemaType {
 	DATE = 'DATE',
 	TIME = 'TIME',
 	BINARY = 'BINARY',
+	NULL = 'NULL',
 }
 
 export interface CodegenSchemaInfo {
@@ -586,6 +587,11 @@ export interface CodegenNumericSchema extends CodegenSchema {
 export interface CodegenBooleanSchema extends CodegenSchema {
 	type: 'boolean'
 	schemaType: CodegenSchemaType.BOOLEAN
+}
+
+export interface CodegenNullSchema extends CodegenSchema {
+	type: 'null'
+	schemaType: CodegenSchemaType.NULL
 }
 
 export interface CodegenStringSchema extends CodegenSchema {

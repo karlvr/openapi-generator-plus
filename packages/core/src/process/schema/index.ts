@@ -23,6 +23,7 @@ import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
 import { addReservedSchemaName, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
 import { singular } from 'pluralize'
+import { toCodegenNullSchema } from './null'
 
 export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject | Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject>, state: InternalCodegenState): void {
 	/* Collect defined schema names first, so no inline or external schemas can use those names */
@@ -221,6 +222,10 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			}
 
 			finaliseSchema(apiSchema, result, naming, state)
+			break
+		}
+		case CodegenSchemaType.NULL: {
+			result = toCodegenNullSchema(apiSchema, naming, state)
 			break
 		}
 	}

@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Example
+  version: '1.0.1'
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    $ref: '#/components/schemas/MyObject'
+                    description: Description on $ref
+components:
+  schemas:
+    MyObject:
+      type: object
+      description: MyObject description
+      properties:
+        prop1:
+          type: string
+          description: Prop1 description
+        prop2:
+          type: string

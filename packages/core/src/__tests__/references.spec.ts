@@ -1,4 +1,5 @@
 import { CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import { createTestDocument } from './common'
 
 test('response reference names nested models', async() => {
@@ -30,4 +31,22 @@ test('external references and discriminators', async() => {
 
 	/* Check that we've found the external schemas that are part of this discriminator */
 	expect(responseSchema.discriminator?.references.length).toEqual(2)
+})
+
+test('description on $ref', async() => {
+	const result = await createTestDocument('references/description.yml')
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+
+	const responseSchema = op.defaultResponse?.defaultContent?.schema as CodegenObjectSchema
+	expect(responseSchema).toBeDefined()
+
+	const properties = responseSchema.properties
+	expect(properties).toBeTruthy()
+	
+	const valueProperty = idx.get(properties!, 'value')
+	expect(valueProperty).toBeTruthy()
+
+	expect(valueProperty?.description).toEqual('Description on $ref')
+	expect(valueProperty?.schema.description).toEqual('MyObject description')
 })

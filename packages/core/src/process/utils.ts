@@ -83,6 +83,7 @@ export function typeInfoToString(a: CodegenSchema | CodegenSchemaUsage): string 
 export function extractCodegenSchemaInfo(source: CodegenSchemaInfo): CodegenSchemaInfo {
 	return {
 		nativeType: source.nativeType,
+		description: source.description,
 		nullable: source.nullable,
 		readOnly: source.readOnly,
 		writeOnly: source.writeOnly,

@@ -71,6 +71,10 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	if (originalApiSchema) {
 		/* We allow some properties to be overriden on a $ref */
 		const originalApiSchemaAsSchemaObject: OpenAPIX.SchemaObject = originalApiSchema
+		if (originalApiSchemaAsSchemaObject.description) {
+			/* We allow preserving the original description if the usage is by reference */
+			result.description = originalApiSchemaAsSchemaObject.description
+		}
 		if (originalApiSchemaAsSchemaObject.nullable) {
 			result.nullable = true
 		}

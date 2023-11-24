@@ -37,7 +37,6 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 		return {
 			name: state.generator.toIdentifier(name),
 			serializedName: name,
-			description: null,
 	
 			...schemaUse,
 	

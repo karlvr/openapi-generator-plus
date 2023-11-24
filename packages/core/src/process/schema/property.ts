@@ -4,9 +4,7 @@ import { OpenAPIX } from '../../types/patches'
 import { convertToBoolean, extractCodegenSchemaUsage, toCodegenInitialValueOptions } from '../utils'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toUniqueName } from './naming'
-import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenSchemaUsage } from '.'
-import type { OpenAPIV3_1 } from 'openapi-types'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { transformNativeTypeForUsage } from './usage'
 import { debugStringify } from '@openapi-generator-plus/utils'
@@ -63,9 +61,6 @@ export function addCodegenProperty(properties: CodegenProperties, property: Code
 }
 
 function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, required: boolean, scope: CodegenScope | null, state: InternalCodegenState): CodegenProperty {
-	/* We allow preserving the original description if the usage is by reference */
-	const description = isOpenAPIReferenceObject(apiSchema) ? (apiSchema as OpenAPIV3_1.ReferenceObject).description : undefined
-
 	const schemaUsage = toCodegenSchemaUsage(apiSchema, state, {
 		required, 
 		suggestedName: name,
@@ -76,7 +71,7 @@ function toCodegenProperty(name: string, apiSchema: OpenAPIX.SchemaObject, requi
 		...schemaUsage,
 		name: state.generator.toIdentifier(name),
 		serializedName: name,
-		description: description || schemaUsage.schema.description || null,
+		description: schemaUsage.description || schemaUsage.schema.description || null,
 		initialValue: state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)),
 		vendorExtensions: toCodegenVendorExtensions(apiSchema),
 		discriminators: null,
@@ -99,7 +94,6 @@ export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUs
 	const property: CodegenProperty = {
 		name: state.generator.toIdentifier(name),
 		serializedName: name,
-		description: null,
 		...extractCodegenSchemaUsage(schemaUsage),
 		initialValue: state.generator.initialValue(toCodegenInitialValueOptions(schemaUsage)),
 		vendorExtensions: null,

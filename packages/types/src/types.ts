@@ -468,6 +468,7 @@ export interface CodegenSchemaInfo {
 	/** Type in native language */
 	nativeType: CodegenNativeType
 	
+	description: string | null
 	nullable: boolean
 	readOnly: boolean
 	writeOnly: boolean
@@ -538,7 +539,6 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
 	anonymous: boolean | null
 
-	description: string | null
 	title: string | null
 
 	/** OpenAPI type */

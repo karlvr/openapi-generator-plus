@@ -218,9 +218,7 @@ export interface CodegenServer {
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
-export interface CodegenOperationGroups {
-	[name: string]: CodegenOperationGroup
-}
+export type CodegenOperationGroups = IndexedCollectionType<CodegenOperationGroup>
 
 export interface CodegenOperationGroup {
 	name: string

@@ -1,7 +1,6 @@
 import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenGeneratorHelper } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
-import _ from 'lodash'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenServers } from './process/servers'
@@ -20,14 +19,14 @@ import { toUniqueScopedName, usedSchemaName } from './process/schema/naming'
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
 	const strategy = state.generator.operationGroupingStrategy()
 
-	const groups: CodegenOperationGroups = {}
+	const groups: CodegenOperationGroups = idx.create()
 	for (const operationInfo of operationInfos) {
 		strategy(operationInfo, groups, state)
 	}
 
 	uniqueifyOperationNames(groups, state)
 
-	return _.values(groups)
+	return idx.allValues(groups)
 }
 
 /**

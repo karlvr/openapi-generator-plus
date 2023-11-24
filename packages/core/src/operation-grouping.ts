@@ -1,4 +1,5 @@
 import { CodegenOperation, CodegenOperationGroups, CodegenOperationGroup, CodegenState } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 
 function prepareOperationForGroup(operation: CodegenOperation, group: CodegenOperationGroup) {
 	if (group.path !== '') {
@@ -19,7 +20,7 @@ function prepareOperationForGroup(operation: CodegenOperation, group: CodegenOpe
 function addToGroups(operation: CodegenOperation, groupName: string, groupPath: string, groups: CodegenOperationGroups, state: CodegenState): void {
 	groupName = state.generator.toOperationGroupName(groupName)
 
-	let group = groups[groupName]
+	let group = idx.get(groups, groupName)
 	if (!group) {
 		group = {
 			name: groupName,
@@ -28,7 +29,7 @@ function addToGroups(operation: CodegenOperation, groupName: string, groupPath: 
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 		}
-		groups[groupName] = group
+		idx.set(groups, groupName, group)
 	}
 
 	prepareOperationForGroup(operation, group)

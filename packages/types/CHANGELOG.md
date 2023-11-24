@@ -1,5 +1,14 @@
 # @openapi-generator-plus/types
 
+## 2.7.1
+
+### Patch Changes
+
+- 700b509: Use import type on openapi-types imports
+- 30d6516: Update dependencies
+- dc4f1b7: Add global options to CodegenConfig
+- f082b1a: CodegenOperationGroups should have been an IndexedCollectionType
+
 ## 2.7.0
 
 ### Minor Changes

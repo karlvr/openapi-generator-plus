@@ -1,5 +1,22 @@
 # @openapi-generator-plus/core
 
+## 2.8.1
+
+### Patch Changes
+
+- 23ec19b: Fix missing pluralize dependency
+- f9439c6: Import just the required function from lodash
+- 700b509: Use import type on openapi-types imports
+- 30d6516: Update dependencies
+- 01bb97d: Fix response type compile problem with updated openapi-types
+- dc4f1b7: Add global options to CodegenConfig
+- f082b1a: CodegenOperationGroups should have been an IndexedCollectionType
+- Updated dependencies [700b509]
+- Updated dependencies [30d6516]
+- Updated dependencies [dc4f1b7]
+- Updated dependencies [f082b1a]
+  - @openapi-generator-plus/types@2.7.1
+
 ## 2.8.0
 
 ### Minor Changes

@@ -180,6 +180,13 @@ export interface CodegenConfig {
 
 	/** The path to the config file, if any */
 	configPath?: string
+
+	/** Options loaded from the config file */
+	options?: {
+		operations?: {
+			defaultRequestBodyIdentifier?: string
+		}
+	}
 }
 
 export interface CodegenDocument {

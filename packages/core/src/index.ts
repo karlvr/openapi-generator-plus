@@ -25,7 +25,7 @@ export function createCodegenState(config: CodegenConfig, generator: CodegenGene
 		generator,
 		options: {
 			operations: {
-				defaultRequestBodyIdentifier: (config as any).options?.operations?.defaultRequestBodyIdentifier || 'request',
+				defaultRequestBodyIdentifier: config.options?.operations?.defaultRequestBodyIdentifier || 'request',
 			},
 		},
 	}

@@ -21,7 +21,7 @@ import { toCodegenOneOfSchema } from './one-of'
 import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
-import { addReservedSchemaName, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
+import { addReservedSchemaName, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
 import { singular } from 'pluralize'
 import { toCodegenNullSchema } from './null'
 
@@ -60,7 +60,21 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	apiSchema = resolveReference(apiSchema, state)
 	fixApiSchema(apiSchema, state)
 
-	const schemaObject = toCodegenSchema(apiSchema, $ref, options, state)
+	/* Check if we've already generated this schema, and return it */
+	const existing = findKnownSchema(apiSchema, $ref, state)
+	let schemaObject: CodegenSchema
+	if (existing) {
+		schemaObject = existing
+	} else {
+		schemaObject = toCodegenSchema(apiSchema, $ref, options, state)
+
+		const dedupe = addToKnownSchemas(apiSchema, schemaObject, $ref, state)
+		if (dedupe !== schemaObject) {
+			/* If we know that we might need to use an already created schema we should have called addToKnownSchemas before finalising the schema */
+			throw new Error(`Created schema that is already known: ${debugStringify(schemaObject)}`)
+		}
+	}
+
 	const result: CodegenSchemaUsage = {
 		...extractCodegenSchemaInfo(schemaObject),
 		required: options.required,
@@ -100,12 +114,6 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 }
 
 function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, options: SchemaUsageOptions, state: InternalCodegenState): CodegenSchema {
-	/* Check if we've already generated this schema, and return it */
-	const existing = findKnownSchema(apiSchema, $ref, state)
-	if (existing) {
-		return existing
-	}
-
 	const schemaType = toCodegenSchemaTypeFromApiSchema(apiSchema)
 
 	const { purpose, suggestedScope } = options
@@ -221,7 +229,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 				...extractCodegenSchemaCommon(apiSchema, state),
 			}
 
-			finaliseSchema(apiSchema, result, naming, state)
+			finaliseSchema(result, naming, state)
 			break
 		}
 		case CodegenSchemaType.NULL: {

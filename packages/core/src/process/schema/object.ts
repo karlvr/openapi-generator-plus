@@ -85,7 +85,7 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 	// 	}
 	// }
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 
@@ -147,7 +147,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 		toCodegenInterfaceImplementationSchema(result, { allowAbstract: false }, state)
 	}
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 
@@ -235,7 +235,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 		schemas: null,
 	}
 
-	finaliseSchema(undefined, schema, naming, state)
+	finaliseSchema(schema, naming, state)
 	usedSchemaName(naming.scopedName, state)
 	return schema
 }

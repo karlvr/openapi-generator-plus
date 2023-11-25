@@ -83,7 +83,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 		}
 	}
 
-	finaliseSchema(undefined, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 

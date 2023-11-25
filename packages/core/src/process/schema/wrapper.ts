@@ -60,7 +60,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		children: null,
 	}
 
-	finaliseSchema(undefined, schema, naming, state)
+	finaliseSchema(schema, naming, state)
 	usedSchemaName(naming.scopedName, state)
 
 	return {

@@ -135,17 +135,9 @@ export function findKnownSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string |
 /**
  * Call when a schema has been finalised and should be added in its completed state to its scope.
  */
-export function finaliseSchema<T extends CodegenSchema>(apiSchema: OpenAPIX.SchemaObject | undefined, schema: T, naming: ScopedModelInfo | null, state: InternalCodegenState): void {
+export function finaliseSchema<T extends CodegenSchema>(schema: T, naming: ScopedModelInfo | null, state: InternalCodegenState): void {
 	if (naming) {
 		addToScope(schema, naming?.scope, state)
-	}
-	
-	if (apiSchema) {
-		const dedupe = addToKnownSchemas(apiSchema, schema, naming?.$ref, state)
-		if (dedupe !== schema) {
-			/* If we know that we might need to use an already created schema we should have called addToKnownSchemas before finalising the schema */
-			throw new Error(`Finalised schema already known: ${debugStringify(schema)}`)
-		}
 	}
 }
 

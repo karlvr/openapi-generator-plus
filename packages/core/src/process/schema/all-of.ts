@@ -95,7 +95,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 
@@ -238,7 +238,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 

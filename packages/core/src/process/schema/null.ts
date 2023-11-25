@@ -32,6 +32,6 @@ export function toCodegenNullSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		externalDocs: toCodegenExternalDocs(apiSchema),
 	}
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

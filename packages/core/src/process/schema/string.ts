@@ -47,7 +47,7 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 		pattern: apiSchema.pattern || null,
 	}
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 

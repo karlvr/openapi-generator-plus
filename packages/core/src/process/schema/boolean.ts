@@ -35,6 +35,6 @@ export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		externalDocs: toCodegenExternalDocs(apiSchema),
 	}
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

@@ -111,6 +111,6 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

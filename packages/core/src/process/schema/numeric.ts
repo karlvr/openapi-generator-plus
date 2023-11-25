@@ -47,6 +47,6 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		multipleOf: convertToNumber(apiSchema.multipleOf),
 	}
 
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

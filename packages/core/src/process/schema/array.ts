@@ -54,7 +54,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		uniqueItems: convertToBoolean(apiSchema.uniqueItems, null),
 	}
 	
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }
 

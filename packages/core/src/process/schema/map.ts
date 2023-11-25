@@ -62,10 +62,6 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		minProperties: apiSchema.minProperties || null,
 	}
 	
-	/* Note that we don't pass the apiSchema to finaliseSchema if the map schema doesn't have a name, as it is
-	   probably the schema for additionalProperties inside an object, or it's an anonymous schema that doesn't
-	   need to be reused.
-	 */
-	finaliseSchema(naming ? apiSchema : undefined, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

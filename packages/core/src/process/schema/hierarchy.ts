@@ -69,6 +69,6 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
-	finaliseSchema(apiSchema, result, naming, state)
+	finaliseSchema(result, naming, state)
 	return result
 }

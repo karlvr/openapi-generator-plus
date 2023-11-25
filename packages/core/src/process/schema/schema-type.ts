@@ -47,7 +47,9 @@ export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObjec
 		return toCodegenSchemaType(apiSchema.type, apiSchema.format)
 	} else if (apiSchema.type === undefined) {
 		throw new Error(`Missing schema type in schema: ${debugStringify(apiSchema)}`)
+	} else if (apiSchema.type === null) {
+		throw new Error(`Invalid null schema type (the word "null" should probably be quoted) in schema: ${debugStringify(apiSchema)}`)
 	} else {
-		throw new Error(`Invalid schema type "${apiSchema.type}": ${debugStringify(apiSchema)}`)
+		throw new Error(`Invalid schema type "${apiSchema.type}" in schema: ${debugStringify(apiSchema)}`)
 	}
 }

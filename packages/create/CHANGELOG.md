@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.0
+
+### Minor Changes
+
+- 36041ab: Support adding to an existing package.json
+
 ## 1.0.2
 
 ### Patch Changes

@@ -2,7 +2,7 @@ import { PathLike, promises as fs } from 'fs'
 import process from 'process'
 import c from 'ansi-colors'
 import getopts from 'getopts'
-import path from 'path'
+import path, { basename } from 'path'
 import inquirer from 'inquirer'
 import search from 'libnpmsearch'
 import { exec, spawn, SpawnOptionsWithoutStdio } from 'child_process'
@@ -28,7 +28,7 @@ function help() {
 	console.log(`usage: ${path.basename(process.argv[1])} [-g <generator template or keywords>] [-p <package manager>] [<dest dir>]`)
 }
 
-function instructions() {
+function instructions(readmePath: string) {
 	console.log(`
 
 ${c.bold.green('Congratulations, your new OpenAPI generator project has been created!')}
@@ -36,7 +36,7 @@ ${c.bold.green('Congratulations, your new OpenAPI generator project has been cre
 Enter the path or URL for your API specification, and the path to output the
 generated API, in the config.yml file.
 
-Check out the README.md file for more information.
+Check out the ${basename(readmePath)} file for more information.
 `)
 }
 
@@ -91,12 +91,6 @@ async function run(): Promise<void> {
 		usage()
 	}
 
-	const packageJsonPath = path.join(dest, 'package.json')
-	if (await exists(packageJsonPath)) {
-		die(`package.json already exists at ${packageJsonPath}`)
-		// TODO ask if you'd like to add to it
-	}
-
 	await checkDestination(dest)
 
 	const packageManager = await choosePackageManager(opts.packageManager)
@@ -126,8 +120,21 @@ async function run(): Promise<void> {
 	}
 
 	await fs.mkdir(dest, { recursive: true })
-	await fs.writeFile(packageJsonPath, JSON.stringify(pkg, undefined, 4) + '\n')
-	info(`Created ${packageJsonPath}`)
+
+	const packageJsonPath = path.join(dest, 'package.json')
+	if (await exists(packageJsonPath)) {
+		warn(`package.json already exists at ${packageJsonPath}; adding dependencies`)
+		
+		await addDependencies([
+			`openapi-generator-plus@^${cliPackage.version}`,
+			`${generator.name}@^${generator.version}`,
+		], packageManager, dest)
+
+		warn('Add the following script to your package.json manually: "scripts": { "generate": "openapi-generator-plus -c config.yml" }')
+	} else {
+		await fs.writeFile(packageJsonPath, JSON.stringify(pkg, undefined, 4) + '\n')
+		info(`Created ${packageJsonPath}`)
+	}
 
 	const configPath = path.join(dest, 'config.yml')
 	if (await exists(configPath)) {
@@ -151,7 +158,10 @@ generator: "${generator.name}"
 		info(`Created API generator config: ${configPath}`)
 	}
 
-	const readmePath = path.join(dest, 'README.md')
+	let readmePath = path.join(dest, 'README.md')
+	if (await exists(readmePath)) {
+		readmePath = path.join(dest, 'README-openapi-generator-plus.md')
+	}
 	if (await exists(readmePath)) {
 		warn(`README already exists at ${readmePath}`)
 	} else {
@@ -160,11 +170,21 @@ generator: "${generator.name}"
 	}
 
 	info(`Installing dependencies using ${packageManager}`)
+	installDependencies(packageManager, dest)
+
+	instructions(readmePath)
+}
+
+async function installDependencies(packageManager: PackageManager, dest: string) {
 	await spawnPromise(packageManager, ['install'], {
 		cwd: dest,
 	})
+}
 
-	instructions()
+async function addDependencies(dependencies: string[], packageManager: PackageManager, dest: string) {
+	await spawnPromise(packageManager, [packageManager === 'npm' ? 'install' : 'add', ...dependencies], {
+		cwd: dest,
+	})
 }
 
 async function checkDestination(dest: string): Promise<void> {
@@ -215,6 +235,16 @@ The generator template used is ${generatorLink}.
 ${packageManager} install
 ${buildCommand(packageManager)}
 \`\`\`
+
+The generate task requires a script configured in \`package.json\`. The default version of that script is:
+
+\`\`\`json
+"scripts": {
+	"generate": "openapi-generator-plus -c config.yml"
+}
+\`\`\`
+
+You may also wish to add \`--clean\` to that command in order to delete defunct files from the generated output.
 
 ## Configuration
 

@@ -1,0 +1,127 @@
+openapi: 3.1.0
+info:
+  title: Example
+  description: Lorem ipsum
+  version: '1.0.1'
+servers:
+- url: http://example.com/api/v1
+  description: Example server
+- url: https://example.com/api/v1
+paths:
+  /test1:
+    get:
+      summary: Lorem ipsum
+      operationId: getTest1
+      parameters:
+      - name: param1
+        in: query
+        description: The first param
+        required: false
+        schema:
+          type: string
+      - name: param2
+        in: query
+        description: The second param
+        required: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: Sit amet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test1Response'
+        400:
+          description: Qip dolor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test1Error'
+    post:
+      summary: Felis podis
+      responses:
+        204:
+          description: Success
+  /test2:
+    post:
+      summary: Donec felis turpis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Test2Request'
+      responses:
+        200:
+          description: Aliquam non mi pellentesque
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test2Response'
+components:
+  schemas:
+    Test1Response:
+      type: object
+      properties:
+        first:
+          type:
+            - string
+            - "null"
+        second:
+          type: number
+        third:
+          type: array
+          items:
+            type: object
+            required:
+            - code
+            - description
+            properties:
+              code:
+                type: string
+              description:
+                type: string
+    Test1Error:
+      type: object
+      required:
+      - messages
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+    Test2Request:
+      type: object
+      required:
+      - first
+      - second
+      properties:
+        first:
+          type:
+            - string
+            - "null"
+        second:
+          type: string
+          enum: [ABC, DEF]
+        third:
+          type: string
+        fourth:
+          type: number
+        fifth:
+          type: boolean
+    Test2Response:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+        object:
+          anyOf:
+            - $ref: "#/components/schemas/Test2Object"
+            - type: "null"
+    Test2Object:
+      type: object
+      properties:
+        test2:
+          type: string

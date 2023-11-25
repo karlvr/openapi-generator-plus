@@ -1,4 +1,4 @@
-import { CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenSchema, CodegenSchemaInfo, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
@@ -56,9 +56,22 @@ export interface SchemaUsageOptions {
 
 export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
 	const $ref = isOpenAPIReferenceObject(apiSchema) ? apiSchema.$ref : undefined
-	const originalApiSchema = isOpenAPIReferenceObject(apiSchema) ? apiSchema : undefined
+
+	const usageInfo: Partial<CodegenSchemaInfo> = {}
+
+	if (isOpenAPIReferenceObject(apiSchema)) {
+		/* A reference schema (one containing a $ref) may specify some properties that effect the usage of that schema */
+		const originalApiSchemaAsSchemaObject: OpenAPIX.SchemaObject = apiSchema
+
+		usageInfo.description = originalApiSchemaAsSchemaObject.description
+		usageInfo.nullable = originalApiSchemaAsSchemaObject.nullable
+		usageInfo.readOnly = originalApiSchemaAsSchemaObject.readOnly
+		usageInfo.writeOnly = originalApiSchemaAsSchemaObject.writeOnly
+		usageInfo.deprecated = originalApiSchemaAsSchemaObject.deprecated
+	}
+
 	apiSchema = resolveReference(apiSchema, state)
-	fixApiSchema(apiSchema, state)
+	apiSchema = fixApiSchema(apiSchema, usageInfo, state)
 
 	/* Check if we've already generated this schema, and return it */
 	const existing = findKnownSchema(apiSchema, $ref, state)
@@ -83,25 +96,20 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 		defaultValue: null,
 	}
 
-	if (originalApiSchema) {
-		/* We allow some properties to be overriden on a $ref */
-		const originalApiSchemaAsSchemaObject: OpenAPIX.SchemaObject = originalApiSchema
-		if (originalApiSchemaAsSchemaObject.description) {
-			/* We allow preserving the original description if the usage is by reference */
-			result.description = originalApiSchemaAsSchemaObject.description
-		}
-		if (originalApiSchemaAsSchemaObject.nullable) {
-			result.nullable = true
-		}
-		if (originalApiSchemaAsSchemaObject.readOnly) {
-			result.readOnly = true
-		}
-		if (originalApiSchemaAsSchemaObject.writeOnly) {
-			result.writeOnly = true
-		}
-		if (originalApiSchemaAsSchemaObject.deprecated) {
-			result.deprecated = true
-		}
+	if (usageInfo.description) {
+		result.description = usageInfo.description
+	}
+	if (usageInfo.nullable) {
+		result.nullable = true
+	}
+	if (usageInfo.readOnly) {
+		result.readOnly = true
+	}
+	if (usageInfo.writeOnly) {
+		result.writeOnly = true
+	}
+	if (usageInfo.deprecated) {
+		result.deprecated = true
 	}
 
 	/* Apply the schema usage to the native type */
@@ -259,9 +267,51 @@ function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean
 /**
  * Sometimes a schema omits the `type`, even though the specification states that it must be a `string`.
  * This method corrects for those cases where we can determine what the schema _should_ be.
+ * <p>
+ * NOTE: It is critical that this method DOES NOT modify the original parsed schema IF we make changes to the usageInfo
+ * that would not be repeated if we see that modified schema again, because in that case the subsequent uses would get the
+ * fixed schema but NOT the fixed usageInfo.
  * @param apiSchema 
  */
-function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): void {
+function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, usageInfo: Partial<CodegenSchemaInfo>, state: InternalCodegenState): OpenAPIX.SchemaObject {
+	if (apiSchema.anyOf && apiSchema.anyOf.length > 1) {
+		const nullIndex = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).findIndex(s => s.type === 'null')
+		if (nullIndex !== -1) {
+			const otherTypes = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).filter(s => s.type !== 'null')
+			if (otherTypes.length === 1) {
+				/* An anyOf that was a single type + null gets turned back into that single type, but with a "nullable" attribute
+				 * on this usage.
+				 */
+				const originalApiSchema = apiSchema
+				
+				apiSchema = resolveReference(otherTypes[0], state)
+
+				/* Mark this usage as nullable */
+				usageInfo.nullable = true
+
+				/* Preserve other attributes from the original anyOf, if present */
+				if (originalApiSchema.description) {
+					usageInfo.description = originalApiSchema.description
+				}
+				if (originalApiSchema.readOnly) {
+					usageInfo.readOnly = originalApiSchema.readOnly
+				}
+				if (originalApiSchema.writeOnly) {
+					usageInfo.writeOnly = originalApiSchema.writeOnly
+				}
+				if (originalApiSchema.deprecated) {
+					usageInfo.deprecated = originalApiSchema.deprecated
+				}
+
+				/* Note that we fall through to do the rest of the "fixes" */
+			} else {
+				/* The anyOf has more members */
+				apiSchema.nullable = true
+				apiSchema.anyOf = otherTypes
+			}
+		}
+	}
+
 	if (apiSchema.type === undefined) {
 		if (apiSchema.required || apiSchema.properties || apiSchema.additionalProperties) {
 			apiSchema.type = 'object'
@@ -282,6 +332,25 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenSt
 			}
 		}
 	}
+
+	/* OpenAPI 3.1.0 no longer has the nullable attribute and instead uses a type _array_ with a "null" type.
+	   We change that here to be a nullable attribute instead.
+	 */
+	if (Array.isArray(apiSchema.type) && apiSchema.type.length > 1) {
+		const nullIndex = apiSchema.type.indexOf('null')
+		if (nullIndex !== -1) {
+			apiSchema.nullable = true
+
+			const otherTypes = apiSchema.type.filter(t => t !== 'null')
+			if (otherTypes.length === 1) {
+				apiSchema.type = otherTypes[0]
+			} else {
+				apiSchema.type = otherTypes
+			}
+		}
+	}
+
+	return apiSchema
 }
 
 export type DiscoverSchemasTestFunc = (apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState) => boolean

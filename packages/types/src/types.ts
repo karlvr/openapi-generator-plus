@@ -1175,4 +1175,8 @@ export interface AllOfSummary {
 	 * All of the schemas that are inline rather than referenced.
 	 */
 	inlineSchemas: OpenAPISchemaObject[]
+	/**
+	 * The required properties listed explicitly on the allOf schema. These apply to the output of the allOf.
+	 */
+	required: string[]
 }

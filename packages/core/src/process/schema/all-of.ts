@@ -350,8 +350,12 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 			schemas: [],
 			referenceSchemas: [],
 			inlineSchemas: [],
+			required: [],
 		}
 	}
+
+	const allOfRequired = toRequiredPropertyNames(allOfSchema)
+	allOfSummary.required = allOfSummary.required.concat(allOfRequired)
 
 	for (let apiSchema of allOfSchemas) {
 		let referenceSchema = false
@@ -412,7 +416,6 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 	}
 
 	/* Check allOf's required, if any */
-	const allOfRequired = toRequiredPropertyNames(allOfSchema)
 	if (allOfRequired.length) {
 		for (const propertyName of allOfRequired) {
 			const knownProperty = allOfSummary.properties[propertyName]

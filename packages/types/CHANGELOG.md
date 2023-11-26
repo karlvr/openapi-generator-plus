@@ -1,5 +1,18 @@
 # @openapi-generator-plus/types
 
+## 2.8.0
+
+### Minor Changes
+
+- faedb90: Support required on allOf schema
+- 3b1dec8: Add support for null schema
+
+  A schema type of null is used in OpenAPI 3.1.0 instead of the nullable attribute.
+
+### Patch Changes
+
+- edcd1b8: Improve handling of description with a $ref
+
 ## 2.7.1
 
 ### Patch Changes

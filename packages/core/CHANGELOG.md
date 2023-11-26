@@ -1,5 +1,27 @@
 # @openapi-generator-plus/core
 
+## 2.9.0
+
+### Minor Changes
+
+- faedb90: Support required on allOf schema
+- 31bd79f: Support OpenAPI 3.1.0 style of nullable in type arrays and anyOf with null
+- 3b1dec8: Add support for null schema
+
+  A schema type of null is used in OpenAPI 3.1.0 instead of the nullable attribute.
+
+### Patch Changes
+
+- 9320c43: Centralise adding known schemas
+- 01c7855: Use Array.isArray rather than typeof === 'object' + a cast
+- 61a11d1: Don't "fix" allOf, anyOf and oneOf schemas to have a type of "object"
+- edcd1b8: Improve handling of description with a $ref
+- 5949a32: Improve error reporting when an unquoted null is used as a type
+- Updated dependencies [faedb90]
+- Updated dependencies [edcd1b8]
+- Updated dependencies [3b1dec8]
+  - @openapi-generator-plus/types@2.8.0
+
 ## 2.8.1
 
 ### Patch Changes

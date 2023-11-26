@@ -756,6 +756,9 @@ interface CodegenCompositionSchema extends CodegenNamedSchema, CodegenScope, Sch
 export interface CodegenAllOfSchema extends CodegenCompositionSchema {
 	type: 'allOf' // TODO do we want to introduce new types? can this be null?
 	schemaType: CodegenSchemaType.ALLOF
+
+	/** An array of property names that should end up as required in the resulting combined schema */
+	required: string[] | null
 }
 
 export interface CodegenAnyOfSchema extends CodegenCompositionSchema {
@@ -1136,9 +1139,20 @@ export enum CodegenOneOfStrategy {
  */
 export interface AllOfSummary {
 	/**
-	 * The properties that have been seen in the allOf hierarchy
+	 * The properties that have been seen in the allOf hierarchy that we need to check
+	 * compatibility with.
 	 */
 	properties: {
+		[name: string]: {
+			/** The property schema */
+			schema: OpenAPISchemaObject
+			required: boolean
+		}
+	}
+	/**
+	 * All the properties that have been seen in the allOf hierarchy.
+	 */
+	allProperties: {
 		[name: string]: {
 			/** The property schema */
 			schema: OpenAPISchemaObject

@@ -1,0 +1,44 @@
+openapi: 3.1.0
+info:
+  title: Example
+  description: Lorem ipsum
+  version: '1.0.1'
+servers:
+- url: http://example.com/api/v1
+  description: Example server
+- url: https://example.com/api/v1
+paths: {}
+components:
+  schemas:
+    Base:
+      type: object
+      properties:
+        first:
+          type: string
+    First:
+      allOf:
+        - $ref: "#/components/schemas/Base"
+        - type: object
+          properties:
+            second:
+              type: string
+      required:
+        - first
+        - second
+    Base2:
+      type: object
+      properties:
+        first:
+          type: string
+      required:
+        - first
+    Second:
+      allOf:
+        - $ref: "#/components/schemas/Base2"
+        - type: object
+          properties:
+            second:
+              type: string
+      required:
+        - first
+        - second

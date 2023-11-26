@@ -1,4 +1,5 @@
-import { AllOfSummary, CodegenAllOfSchema, CodegenAllOfStrategy, CodegenObjectSchema, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { AllOfSummary, CodegenAllOfSchema, CodegenAllOfStrategy, CodegenLogLevel, CodegenObjectSchema, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -12,8 +13,9 @@ import { addToAnyDiscriminators, discoverDiscriminatorReferencesInOtherDocuments
 import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema, absorbApiSchema } from './object-absorb'
-import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findProperty } from './utils'
 import { toCodegenPropertySummary, toRequiredPropertyNames } from './property'
+import { transformNativeTypeForUsage } from './usage'
 
 export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.allOfStrategy()
@@ -59,6 +61,8 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		composes: [],
 		implements: null,
+
+		required: Array.isArray(apiSchema.required) ? apiSchema.required : null,
 	}
 
 	result.examples = toCodegenExamples(apiSchema.example, undefined, undefined, result, state)
@@ -171,8 +175,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	
 	/* Handle the reference schemas, either using inheritance or interface conformance */
-	const allOf = apiSchema.allOf as Array<OpenAPIX.SchemaObject>
-	for (const { apiSchema: allOfApiSchema, approach } of classifyAllOfSchemas(allOf, state)) {
+	for (const { apiSchema: allOfApiSchema, approach } of classifyAllOfSchemas(apiSchema, state)) {
 		if (approach === SchemaApproach.PARENT) {
 			const parentSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 				required: true,
@@ -236,6 +239,38 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		}
 	}
 
+	/* Apply required that is present on allOf, which seems to be there in OpenAPI 3.1.0 */
+	if (Array.isArray(apiSchema.required) && result.properties) {
+		const missingRequired: string[] = []
+
+		for (const required of apiSchema.required) {
+			const property = idx.get(result.properties, required)
+			if (property) {
+				/* Change the property to required in our resulting object */
+				property.required = true
+				property.nativeType = transformNativeTypeForUsage(property, state)
+			} else {
+				/* Check our inherited properties to make sure they're compatible, and correct if need be */
+				const inheritedProperty = findProperty(result, required)
+				if (inheritedProperty) {
+					if (!inheritedProperty.required) {
+						/* Add an overriding property in our result with the correct required state */
+						idx.set(result.properties, required, {
+							...inheritedProperty,
+							required: true,
+						})
+					}
+				} else {
+					missingRequired.push(required)
+				}
+			}
+		}
+
+		if (missingRequired.length) {
+			state.log(CodegenLogLevel.WARN, `Required property [${missingRequired.join(', ')}] missing from allOf: ${debugStringify(apiSchema)}`)
+		}
+	}
+
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 	finaliseSchema(result, naming, state)
@@ -245,14 +280,16 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 /**
  * Classify each of the allOf schemas according to the approach that we should use to model them as object
  * relationships.
- * @param allOf the allOf schemas
+ * @param allOfSchemas the allOf schemas
  * @param state 
  * @returns 
  */
-function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState): ClassifiedSchema[] {
-	if (!checkObjectSchemaCompatibility(allOf, state)) {
+function classifyAllOfSchemas(allOfSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): ClassifiedSchema[] {
+	const allOfSchemas = allOfSchema.allOf as Array<OpenAPIX.SchemaObject>
+
+	if (!checkObjectSchemaCompatibility(allOfSchema, allOfSchemas, state)) {
 		/* The schemas are not compatible for inheritance or interface compatibility */
-		return allOf.map(apiSchema => ({
+		return allOfSchemas.map(apiSchema => ({
 			apiSchema,
 			approach: SchemaApproach.ABSORB_NO_INTERFACE,
 		}))
@@ -262,10 +299,10 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 		/* An allOf does not imply hierarchy (https://swagger.io/specification/#composition-and-inheritance-polymorphism)
 		   but we still prefer to use parent/child relationships to reduce the duplication of code.
 		 */
-		const referenceSchemas = allOf.filter(isOpenAPIReferenceObject)
+		const referenceSchemas = allOfSchemas.filter(isOpenAPIReferenceObject)
 		if (referenceSchemas.length === 1 || state.generator.supportsMultipleInheritance()) {
 			/* Use parent/child relationships */
-			return allOf.map(apiSchema => ({
+			return allOfSchemas.map(apiSchema => ({
 				apiSchema,
 				approach: isOpenAPIReferenceObject(apiSchema) ? SchemaApproach.PARENT : SchemaApproach.ABSORB_WITH_INTERFACE,
 			}))
@@ -278,7 +315,7 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 		const discriminatorSchemas = referenceSchemas.filter(schema => hasDiscriminator(schema, state))
 		if (discriminatorSchemas.length === 1) {
 			/* Use parent/child relationship with just the discriminator schema */
-			return allOf.map(apiSchema => ({
+			return allOfSchemas.map(apiSchema => ({
 				apiSchema,
 				approach: apiSchema === discriminatorSchemas[0] ? SchemaApproach.PARENT : SchemaApproach.ABSORB_WITH_INTERFACE,
 			}))
@@ -286,7 +323,7 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
 	}
 
 	/* If we can't find any inheritance possibilties we just absorb all of the schemas */
-	return allOf.map(apiSchema => ({
+	return allOfSchemas.map(apiSchema => ({
 		apiSchema,
 		approach: SchemaApproach.ABSORB_WITH_INTERFACE,
 	}))
@@ -300,14 +337,15 @@ function classifyAllOfSchemas(allOf: OpenAPIX.SchemaObject[], state: InternalCod
  * as non-reference (inline) schemas are not generated as objects in the output and can therefore override 
  * each other.
  * 
- * @param allOf 
+ * @param allOfSchemas 
  * @param state 
  * @returns 
  */
-function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: InternalCodegenState, allOfSummary?: AllOfSummary): boolean {
+function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allOfSchemas: OpenAPIX.SchemaObject[], state: InternalCodegenState, allOfSummary?: AllOfSummary): boolean {
 	if (!allOfSummary) {
 		allOfSummary = {
 			properties: {},
+			allProperties: {},
 			discriminators: [],
 			schemas: [],
 			referenceSchemas: [],
@@ -315,7 +353,7 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 		}
 	}
 
-	for (let apiSchema of allOf) {
+	for (let apiSchema of allOfSchemas) {
 		let referenceSchema = false
 		if (isOpenAPIReferenceObject(apiSchema)) {
 			apiSchema = resolveReference(apiSchema, state)
@@ -334,7 +372,7 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 		}
 
 		if (apiSchema.allOf) {
-			if (!checkObjectSchemaCompatibility(apiSchema.allOf, state, allOfSummary)) {
+			if (!checkObjectSchemaCompatibility(apiSchema, apiSchema.allOf, state, allOfSummary)) {
 				return false
 			}
 		}
@@ -343,27 +381,45 @@ function checkObjectSchemaCompatibility(allOf: OpenAPIX.SchemaObject[], state: I
 			continue
 		}
 
-		for (const apiPropertyName of Object.keys(apiSchema.properties)) {
+		for (const apiPropertyName of idx.allKeys(apiSchema.properties)) {
 			let apiProperty: OpenAPIX.SchemaObject = apiSchema.properties[apiPropertyName]
 			if (isOpenAPIReferenceObject(apiProperty)) {
 				apiProperty = resolveReference(apiProperty, state)
 			}
+
+			const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
+			allOfSummary.allProperties[apiPropertyName] = { schema: apiProperty, required }
 
 			if (!allOfSummary.properties[apiPropertyName]) {
 				/* We're only concerned about compatibility with properties in referenced schemas, as they are
 				   the only ones that may be turned into objects in the target language.
 				 */
 				if (referenceSchema) {
-					const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
 					allOfSummary.properties[apiPropertyName] = { schema: apiProperty, required }
 				}
 			} else {
 				/* Check compatibility */
 				const knownProperty = allOfSummary.properties[apiPropertyName]
-				const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
 				if (!checkPropertyCompatibility(
 					toCodegenPropertySummary(apiPropertyName, knownProperty.schema, knownProperty.required),
 					toCodegenPropertySummary(apiPropertyName, apiProperty, required),
+					state
+				)) {
+					return false
+				}
+			}
+		}
+	}
+
+	/* Check allOf's required, if any */
+	const allOfRequired = toRequiredPropertyNames(allOfSchema)
+	if (allOfRequired.length) {
+		for (const propertyName of allOfRequired) {
+			const knownProperty = allOfSummary.properties[propertyName]
+			if (knownProperty) {
+				if (!checkPropertyCompatibility(
+					toCodegenPropertySummary(propertyName, knownProperty.schema, knownProperty.required),
+					toCodegenPropertySummary(propertyName, knownProperty.schema, true),
 					state
 				)) {
 					return false

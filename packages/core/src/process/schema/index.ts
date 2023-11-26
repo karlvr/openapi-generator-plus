@@ -312,7 +312,7 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, usageInfo: Partial<Codeg
 		}
 	}
 
-	if (apiSchema.type === undefined) {
+	if (apiSchema.type === undefined && !apiSchema.allOf && !apiSchema.anyOf && !apiSchema.oneOf) {
 		if (apiSchema.required || apiSchema.properties || apiSchema.additionalProperties) {
 			apiSchema.type = 'object'
 		} else if (apiSchema.enum) {

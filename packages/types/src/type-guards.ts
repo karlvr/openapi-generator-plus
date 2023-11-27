@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage, CodegenHierarchySchema } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage, CodegenHierarchySchema, CodegenOperation } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -87,8 +87,7 @@ export function isCodegenSchemaUsage(ob: unknown): ob is CodegenSchemaUsage {
 		return false
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const anyOb = ob as any
+	const anyOb = ob as CodegenSchemaUsage
 
 	if (typeof anyOb.schema !== 'object') {
 		return false
@@ -98,4 +97,13 @@ export function isCodegenSchemaUsage(ob: unknown): ob is CodegenSchemaUsage {
 		return false
 	}
 	return true
+}
+
+export function isCodegenOperation(ob: unknown): ob is CodegenOperation {
+	if (typeof ob !== 'object') {
+		return false
+	}
+
+	const anyOb = ob as CodegenOperation
+	return typeof anyOb.name === 'string' && typeof anyOb.httpMethod === 'string' && typeof anyOb.path === 'string' && typeof anyOb.fullPath === 'string'
 }

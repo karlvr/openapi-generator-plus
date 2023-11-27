@@ -1,5 +1,12 @@
 # @openapi-generator-plus/types
 
+## 2.8.1
+
+### Patch Changes
+
+- 5c4818e: Add list of required properties to AllOfSummary
+- 4fdf814: Add isCodegenOperation typeguard
+
 ## 2.8.0
 
 ### Minor Changes

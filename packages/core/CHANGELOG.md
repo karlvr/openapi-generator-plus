@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 2.10.0
+
+### Minor Changes
+
+- 0530715: Support OpenAPI v3.1-style exclusiveMaximum and exclusiveMinimum
+
+### Patch Changes
+
+- 5c4818e: Add list of required properties to AllOfSummary
+- f01f197: Ensure we output null rather than undefined even if the API spec contains invalid OAuth flows
+- Updated dependencies [5c4818e]
+- Updated dependencies [4fdf814]
+  - @openapi-generator-plus/types@2.8.1
+
 ## 2.9.0
 
 ### Minor Changes

@@ -40,10 +40,11 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		vendorExtensions,
 		externalDocs: toCodegenExternalDocs(apiSchema),
 
-		maximum: convertToNumber(apiSchema.maximum),
-		exclusiveMaximum: convertToBoolean(apiSchema.exclusiveMaximum, null),
-		minimum: convertToNumber(apiSchema.minimum),
-		exclusiveMinimum: convertToBoolean(apiSchema.exclusiveMinimum, null),
+		/* Support OpenAPI v3.0 and v3.1 here, see https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0 */
+		maximum: typeof apiSchema.exclusiveMaximum === 'number' ? convertToNumber(apiSchema.exclusiveMaximum) : convertToNumber(apiSchema.maximum),
+		exclusiveMaximum: typeof apiSchema.exclusiveMaximum === 'number' ? true : convertToBoolean(apiSchema.exclusiveMaximum, null),
+		minimum: typeof apiSchema.exclusiveMinimum === 'number' ? convertToNumber(apiSchema.exclusiveMinimum) : convertToNumber(apiSchema.minimum),
+		exclusiveMinimum: typeof apiSchema.exclusiveMinimum === 'number' ? true : convertToBoolean(apiSchema.exclusiveMinimum, null),
 		multipleOf: convertToNumber(apiSchema.multipleOf),
 	}
 

@@ -190,8 +190,8 @@ function toCodegenSecurityScheme(name: string, scheme: OpenAPIV2.SecuritySchemeO
 			if (isOpenAPIV2SecurityScheme(scheme, state.specVersion)) {
 				flows = [{
 					type: scheme.flow,
-					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl : null,
-					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl : null,
+					authorizationUrl: scheme.flow === 'implicit' || scheme.flow === 'accessCode' ? scheme.authorizationUrl || null : null,
+					tokenUrl: scheme.flow === 'password' || scheme.flow === 'application' || scheme.flow === 'accessCode' ? scheme.tokenUrl || null : null,
 					refreshUrl: null,
 					scopes: toCodegenAuthScopes(scheme.scopes),
 					vendorExtensions: null,
@@ -232,7 +232,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAu
 	if (scheme.flows.implicit) {
 		result.push({
 			type: 'implicit',
-			authorizationUrl: scheme.flows.implicit.authorizationUrl,
+			authorizationUrl: scheme.flows.implicit.authorizationUrl || null,
 			tokenUrl: null,
 			refreshUrl: scheme.flows.implicit.refreshUrl || null,
 			scopes: toCodegenAuthScopes(scheme.flows.implicit.scopes),
@@ -243,7 +243,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAu
 		result.push({
 			type: 'password',
 			authorizationUrl: null,
-			tokenUrl: scheme.flows.password.tokenUrl,
+			tokenUrl: scheme.flows.password.tokenUrl || null,
 			refreshUrl: scheme.flows.password.refreshUrl || null,
 			scopes: toCodegenAuthScopes(scheme.flows.password.scopes),
 			vendorExtensions: toCodegenVendorExtensions(scheme.flows.password),
@@ -252,8 +252,8 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAu
 	if (scheme.flows.authorizationCode) {
 		result.push({
 			type: 'authorizationCode',
-			authorizationUrl: scheme.flows.authorizationCode.authorizationUrl,
-			tokenUrl: scheme.flows.authorizationCode.tokenUrl,
+			authorizationUrl: scheme.flows.authorizationCode.authorizationUrl || null,
+			tokenUrl: scheme.flows.authorizationCode.tokenUrl || null,
 			refreshUrl: scheme.flows.authorizationCode.refreshUrl || null,
 			scopes: toCodegenAuthScopes(scheme.flows.authorizationCode.scopes),
 			vendorExtensions: toCodegenVendorExtensions(scheme.flows.authorizationCode),
@@ -263,7 +263,7 @@ function toCodegenOAuthFlows(scheme: OpenAPIV3.OAuth2SecurityScheme): CodegenOAu
 		result.push({
 			type: 'clientCredentials',
 			authorizationUrl: null,
-			tokenUrl: scheme.flows.clientCredentials.tokenUrl,
+			tokenUrl: scheme.flows.clientCredentials.tokenUrl || null,
 			refreshUrl: scheme.flows.clientCredentials.refreshUrl || null,
 			scopes: toCodegenAuthScopes(scheme.flows.clientCredentials.scopes),
 			vendorExtensions: toCodegenVendorExtensions(scheme.flows.clientCredentials),

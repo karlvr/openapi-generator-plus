@@ -15,7 +15,6 @@ import { createStringSchemaUsage } from './schema/string'
 import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo, toCodegenInitialValueOptions } from './utils'
-import { toCodegenVendorExtensions } from './vendor-extensions'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
@@ -151,7 +150,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			explode: convertToBoolean(propertyEncodingSpec.explode, style === CodegenEncodingStyle.FORM),
 			allowReserved: convertToBoolean(propertyEncodingSpec.allowReserved, false),
 			allowEmptyValue: false,
-			vendorExtensions: toCodegenVendorExtensions(propertyEncodingSpec),
 			property: property,
 			valueProperty: null,
 			filenameProperty: null,

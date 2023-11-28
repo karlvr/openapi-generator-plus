@@ -16,9 +16,19 @@ export function isOpenAPIV3ResponseObject(ob: OpenAPIX.Response, specVersion: Co
 	return specVersion === CodegenSpecVersion.OpenAPIV3
 }
 
-export function isOpenAPIV2GeneralParameterObject(ob: OpenAPI.Parameter, specVersion: CodegenSpecVersion): ob is OpenAPIV2.GeneralParameterObject {
+export function isOpenAPIV2Parameter(ob: OpenAPI.Parameter | OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV2.Parameter {
 	const anyOb = ob as any
-	return (specVersion === CodegenSpecVersion.OpenAPIV2 && anyOb.type !== undefined)
+	return (specVersion === CodegenSpecVersion.OpenAPIV2 && typeof anyOb.name === 'string' && typeof anyOb.in === 'string')
+}
+
+export function isOpenAPIV2GeneralParameterObject(ob: OpenAPI.Parameter | OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV2.GeneralParameterObject {
+	const anyOb = ob as any
+	return (specVersion === CodegenSpecVersion.OpenAPIV2 && typeof anyOb.type === 'string' && typeof anyOb.name === 'string' && typeof anyOb.in === 'string')
+}
+
+export function isOpenAPIV2ItemsObject(ob: OpenAPI.Parameter | OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV2.ItemsObject {
+	const anyOb = ob as any
+	return (specVersion === CodegenSpecVersion.OpenAPIV2 && typeof anyOb.type === 'string')
 }
 
 export function isOpenAPIV2HeaderObject(ob: OpenAPIX.Header, specVersion: CodegenSpecVersion): ob is OpenAPIV2.HeaderObject {

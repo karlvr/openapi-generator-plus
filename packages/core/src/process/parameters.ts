@@ -1,4 +1,4 @@
-import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue, CodegenEncodingStyle, CodegenParameterEncoding, isCodegenArraySchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenExamples, CodegenParameter, CodegenParameterIn, CodegenParameters, CodegenSchemaUsage, CodegenSchemaPurpose, CodegenValue, CodegenEncodingStyle, isCodegenArraySchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import type { OpenAPI, OpenAPIV3 } from 'openapi-types'
 import { isOpenAPIReferenceObject, isOpenAPIV2GeneralParameterObject } from '../openapi-type-guards'
 import { InternalCodegenState } from '../types'
@@ -8,6 +8,7 @@ import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenSchemaUsage } from './schema'
+import { toCodegenParameterEncoding } from './parameter-encoding'
 
 export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | null {
 	const result: CodegenParameters = idx.create()
@@ -30,8 +31,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let examples: CodegenExamples | null
 	let defaultValue: CodegenValue | null
 
-	const parameterIn = parameter.in as CodegenParameterIn
-	const required = parameterIn === 'path' ? true : convertToBoolean(parameter.required, false)
+	const required = parameter.in === 'path' ? true : convertToBoolean(parameter.required, false)
 
 	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
@@ -65,15 +65,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 
 	const vendorExtensions = toCodegenVendorExtensions(parameter)
 
-	const style = (parameter.style as CodegenEncodingStyle | undefined) || defaultEncodingStyle(parameterIn)
-
-	const encoding: CodegenParameterEncoding | null = {
-		style,
-		explode: convertToBoolean(parameter.explode, style === CodegenEncodingStyle.FORM),
-		allowReserved: convertToBoolean(parameter.allowReserved, false),
-		allowEmptyValue: convertToBoolean(parameter.allowEmptyValue, false),
-		vendorExtensions,
-	}
+	const encoding = toCodegenParameterEncoding(parameter, state)
 
 	if ((encoding.style === CodegenEncodingStyle.SPACE_DELIMITED || encoding.style === CodegenEncodingStyle.PIPE_DELIMITED) && !isCodegenArraySchema(schemaUse.schema) && !isCodegenObjectSchema(schemaUse.schema)) {
 		throw new Error(`Encoding style "${encoding.style}" is not appropriate schema type ${schemaUse.schema.schemaType} in parameter "${parameter.name}"`)
@@ -85,12 +77,11 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		name: state.generator.toIdentifier(parameter.name),
 		serializedName: parameter.name,
 
-		in: parameterIn,
+		in: parameter.in as CodegenParameterIn,
 		description: parameter.description || null,
 		required,
 		schema: schemaUse.schema,
 		nativeType: schemaUse.nativeType,
-		collectionFormat: isOpenAPIV2GeneralParameterObject(parameter, state.specVersion) ? parameter.collectionFormat || null : null, // TODO OpenAPI3
 		examples,
 		defaultValue,
 
@@ -121,16 +112,4 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	}
 
 	return result
-}
-
-function defaultEncodingStyle(parameterIn: CodegenParameterIn): CodegenEncodingStyle {
-	switch (parameterIn) {
-		case 'query': return CodegenEncodingStyle.FORM
-		case 'path': return CodegenEncodingStyle.SIMPLE
-		case 'header': return CodegenEncodingStyle.SIMPLE
-		case 'cookie': return CodegenEncodingStyle.FORM
-		case 'formData': return CodegenEncodingStyle.FORM
-		case 'body': return CodegenEncodingStyle.FORM /* This is an OpenAPIv2 thing that we repair later */
-	}
-	throw new Error(`Unsupported 'in' for parameter: ${parameterIn}`)
 }

@@ -304,6 +304,7 @@ export type CodegenHeaders = IndexedCollectionType<CodegenHeader>
 export interface CodegenHeader extends CodegenParameterBase {
 	name: string
 	schema: CodegenSchema
+	encoding: CodegenParameterEncoding
 }
 	
 export interface CodegenContent {
@@ -964,7 +965,6 @@ interface CodegenParameterBase {
 	
 	description: string | null
 	required: boolean
-	collectionFormat: string | null
 	examples: CodegenExamples | null
 
 	/** The value that a server will use if the parameter is not provided. */
@@ -984,6 +984,8 @@ export interface CodegenParameter extends CodegenParameterBase {
 	nativeType: CodegenNativeType
 
 	in: CodegenParameterIn
+
+	/** The encoding to use for the parameter */
 	encoding: CodegenParameterEncoding
 
 	isQueryParam: boolean
@@ -998,7 +1000,6 @@ export interface CodegenParameterEncoding {
 	explode: boolean
 	allowReserved: boolean
 	allowEmptyValue: boolean
-	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenRequestBody extends CodegenParameterBase {

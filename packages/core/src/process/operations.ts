@@ -76,7 +76,6 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 				deprecated: false,
 
 				description: requestBody.description || null,
-				collectionFormat: null,
 				
 				contents: requestBodyContents,
 				defaultContent,
@@ -118,7 +117,6 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 					name: existingBodyParam.name,
 					serializedName: existingBodyParam.serializedName,
 					description: existingBodyParam.description,
-					collectionFormat: existingBodyParam.collectionFormat,
 					vendorExtensions: existingBodyParam.vendorExtensions,
 
 					nullable: existingBodyParam.nullable,

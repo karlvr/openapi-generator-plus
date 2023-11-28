@@ -6,6 +6,7 @@ import { toCodegenExamples } from './examples'
 import { toCodegenSchemaUsage } from './schema'
 import { convertToBoolean, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
+import { toCodegenHeaderEncoding } from './parameter-encoding'
 
 export function toCodegenHeaders(headers: OpenAPIX.Headers | undefined, state: InternalCodegenState): CodegenHeaders | null {
 	if (headers === undefined) {
@@ -46,8 +47,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			writeOnly: false,
 			deprecated: false,
 
-			collectionFormat: header.collectionFormat || null,
-	
+			encoding: toCodegenHeaderEncoding(name, header, state),
+
 			vendorExtensions: toCodegenVendorExtensions(header),
 			examples: null,
 		}
@@ -69,8 +70,9 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 	
 			description: header.description || null,
 			required: convertToBoolean(header.required, false),
-			collectionFormat: null,
 			examples,
+
+			encoding: toCodegenHeaderEncoding(name, header, state),
 
 			nullable: false,
 			readOnly: false,

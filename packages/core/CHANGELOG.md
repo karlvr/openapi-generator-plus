@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.11.0
+
+### Minor Changes
+
+- 73f6cf4: Fix collectionFormat handling for OpenAPI v2
+
+### Patch Changes
+
+- Updated dependencies [73f6cf4]
+  - @openapi-generator-plus/types@2.9.0
+
 ## 2.10.0
 
 ### Minor Changes

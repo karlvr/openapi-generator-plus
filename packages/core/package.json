@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/core",
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "1.0.0",
     "@openapi-generator-plus/swagger-parser": "^10.1.0",
-    "@openapi-generator-plus/types": "2.8.1",
+    "@openapi-generator-plus/types": "2.9.0",
     "@openapi-generator-plus/utils": "1.0.1",
     "lodash": "^4.17.21",
     "pluralize": "^8.0.0"

@@ -195,7 +195,6 @@ export interface CodegenDocument {
 	schemas: CodegenNamedSchemas
 	servers: CodegenServer[] | null
 	securitySchemes: CodegenSecurityScheme[] | null
-	securityRequirements: CodegenSecurityRequirements | null
 	externalDocs: CodegenExternalDocs | null
 }
 

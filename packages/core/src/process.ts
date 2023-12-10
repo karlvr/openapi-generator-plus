@@ -5,7 +5,7 @@ import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { toCodegenServers } from './process/servers'
 import { resolveReference } from './process/utils'
-import { toCodegenSecurityRequirements, toCodegenSecuritySchemes } from './process/security'
+import { toCodegenSecuritySchemes } from './process/security'
 import { discoverCodegenSchemas } from './process/schema'
 import { toCodegenInfo } from './process/info'
 import { toCodegenOperations } from './process/paths'
@@ -268,7 +268,6 @@ export function processDocument(state: InternalCodegenState): CodegenDocument {
 		schemas: state.schemas,
 		servers: toCodegenServers(root),
 		securitySchemes: toCodegenSecuritySchemes(state),
-		securityRequirements: root.security ? toCodegenSecurityRequirements(root.security, state) || null : null,
 		externalDocs: toCodegenExternalDocs(root),
 	}
 

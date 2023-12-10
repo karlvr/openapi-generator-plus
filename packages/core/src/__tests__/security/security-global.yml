@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Global security
+  version: 1.0.0
+paths:
+  /test:
+    get:
+      responses:
+        204:
+          description: OK
+  /test/a:
+    get:
+      responses:
+        204:
+          description: OK
+      security:
+        - test_auth2: []
+components:
+  securitySchemes:
+    test_auth:
+      type: http
+      scheme: basic
+      x-session: false
+    test_auth2:
+      type: http
+      scheme: basic
+      x-session: false
+security:
+- test_auth: []

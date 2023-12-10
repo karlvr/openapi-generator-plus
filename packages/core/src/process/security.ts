@@ -74,6 +74,9 @@ function toCodegenSecurityRequirementScheme(name: string, scopes: string[], stat
 			throw new Error('security requirement found but no security schemes found')
 		}
 
+		if (!schemes[name]) {
+			throw new Error(`security requirement references security scheme that was not found: ${name}`)
+		}
 		definition = resolveReference(schemes[name], state)
 	} else {
 		throw new Error(`Unsupported spec version: ${state.specVersion}`)

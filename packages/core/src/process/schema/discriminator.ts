@@ -349,6 +349,13 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 		}
 
 		removeProperty(schema, discriminator.serializedName)
+
+		/* Also remove from parents of the schema */
+		if (schema.parents) {
+			for (const parent of schema.parents) {
+				removeDiscriminatorPropertyFromSchema(parent)
+			}
+		}
 	}
 
 	/* Sort references so we generate in a consistent order */

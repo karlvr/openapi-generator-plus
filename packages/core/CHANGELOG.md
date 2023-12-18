@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.12.1
+
+### Patch Changes
+
+- 5572091: Fix removal of discriminators from parent models
+
 ## 2.12.0
 
 ### Minor Changes

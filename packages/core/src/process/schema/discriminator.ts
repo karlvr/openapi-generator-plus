@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenLogLevel, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import type { OpenAPIV3 } from 'openapi-types'
 import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -42,7 +42,7 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 		discriminatorType = extractCodegenSchemaUsage(discriminatorProperty)
 	} else if (isCodegenAnyOfSchema(target) || isCodegenOneOfSchema(target)) {
 		/* For an anyOf or oneOf schemas we have to look in their composes to find the property */
-		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.composes, target)
+		discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.composes, target, state)
 	} else if (isCodegenInterfaceSchema(target)) {
 		/* First check if the interface has the property, which is the case if it's the root of an allOf */
 		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
@@ -50,7 +50,7 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 			discriminatorType = extractCodegenSchemaUsage(discriminatorProperty)
 		} else {
 			/* Or for a oneOf interface, look in its implementors */
-			discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target)
+			discriminatorType = findCommonDiscriminatorPropertyType(schemaDiscriminator.propertyName, target.implementors || [], target, state)
 		}
 	} else {
 		throw new Error(`Unsupported schema type for discriminator: ${target.schemaType}`)
@@ -143,14 +143,16 @@ function findDiscriminatorPropertyInAllOfSchema(serializedName: string, schema: 
 }
 
 /**
- * Find the common discriminator property type for a named discimrinator property across a collection of schemas.
+ * Find the common discriminator property type for a named discriminator property across a collection of schemas.
  * @param serializedName the serialized name of the property
  * @param schemas the schemas to look for the property in
  * @param container the container of the discriminator property
  * @returns 
  */
-function findCommonDiscriminatorPropertyType(serializedName: string, schemas: CodegenSchema[], container: CodegenNamedSchema): CodegenSchemaUsage {
+function findCommonDiscriminatorPropertyType(serializedName: string, schemas: CodegenSchema[], container: CodegenNamedSchema, state: InternalCodegenState): CodegenSchemaUsage {
 	let result: CodegenSchemaUsage | undefined = undefined
+	let resultContainingSchema: CodegenSchema | undefined = undefined
+
 	for (const schema of schemas) {
 		let property: CodegenProperty | undefined
 		if (isCodegenObjectSchema(schema)) {
@@ -167,12 +169,18 @@ function findCommonDiscriminatorPropertyType(serializedName: string, schemas: Co
 		const propertyType = extractCodegenSchemaUsage(property)
 		if (result === undefined) {
 			result = propertyType
+			resultContainingSchema = schema
 		} else if (!equalCodegenTypeInfo(result, propertyType)) {
 			throw new Error(`Found mismatching type for discriminator property "${serializedName}" for "${container.name}" in "${schema.name}": ${typeInfoToString(propertyType)} vs ${typeInfoToString(result)}`)
 		}
 	}
 	if (!result) {
 		throw new Error(`Discriminator property "${serializedName}" missing from all schemas for "${container.name}"`)
+	}
+
+	if (!result.required) {
+		/* See https://swagger.io/specification/v3/#composition-and-inheritance-polymorphism for the note that discriminator properties MUST be required */
+		state.log(CodegenLogLevel.WARN, `Discriminator property "${serializedName}" for "${container.name}" in "${resultContainingSchema?.name || 'unknown'}" SHOULD be marked as required`)
 	}
 	return result
 }
@@ -329,7 +337,7 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
 
 	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
-		/* Check that the discriminator property isn't required for interface comformance */
+		/* Check that the discriminator property isn't required for interface conformance */
 		if (!interfaceForProperty(schema, discriminator.serializedName)) {
 			removeProperty(schema, discriminator.serializedName)
 		}
@@ -337,7 +345,7 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 
 	for (const reference of discriminator.references) {
 		if (isCodegenObjectLikeSchema(reference.schema)) {
-			/* Check that the discriminator property isn't required for interface comformance */
+			/* Check that the discriminator property isn't required for interface conformance */
 			if (!interfaceForProperty(reference.schema, discriminator.serializedName)) {
 				removeProperty(reference.schema, discriminator.serializedName)
 			}

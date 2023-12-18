@@ -1,5 +1,13 @@
 # @openapi-generator-plus/types
 
+## 2.10.0
+
+### Minor Changes
+
+- 21bac4f: Remove global securityRequirements from CodegenDocument
+
+  And test that the global `security` requirements are applied to operations that don't specify their own security.
+
 ## 2.9.0
 
 ### Minor Changes

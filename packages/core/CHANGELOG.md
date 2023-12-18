@@ -1,5 +1,24 @@
 # @openapi-generator-plus/core
 
+## 2.12.0
+
+### Minor Changes
+
+- 21bac4f: Remove global securityRequirements from CodegenDocument
+
+  And test that the global `security` requirements are applied to operations that don't specify their own security.
+
+- be71953: Detect and warn when a discriminator property is not marked as required
+- 5bff6c8: Always remove discriminators from object properties
+
+  Previously when the generator had introduced an _interface_—such as in some `allOf` cases when multiple-inheritance isn't supported (e.g. Java)—the discriminator properties were retained, which resulted in
+  inconsistent behaviour.
+
+### Patch Changes
+
+- Updated dependencies [21bac4f]
+  - @openapi-generator-plus/types@2.10.0
+
 ## 2.11.0
 
 ### Minor Changes

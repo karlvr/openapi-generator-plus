@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenLogLevel, CodegenNamedSchema, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenLogLevel, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import type { OpenAPIV3 } from 'openapi-types'
 import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -332,23 +332,35 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 	}
 
 	const discriminator = schema.discriminator
+	
+	function removeDiscriminatorPropertyFromSchema(schema: CodegenObjectLikeSchemas) {
+		/* Check if the discriminator property is in an interface that this referenced schema conforms to, and if it is, remove
+		   the property from the interface as well. Interfaces are a construct of the generator and are used in languages that
+		   have a concept of interface conformance (e.g. Java, but not TypeScript which uses duck-typing), so it's OK to remove
+		   properties from the interface.
+
+		   I've concluded that when a property of an object is identified as a discriminator that property is no longer an
+		   independent part of the object... it must fulfil its role as a discriminator value holder, even when polymorphism isn't
+		   important, because what's it doing otherwise? Being a random string property? With what value?
+		 */
+		const iface = interfaceForProperty(schema, discriminator.serializedName)
+		if (iface) {
+			removeProperty(iface, discriminator.serializedName)
+		}
+
+		removeProperty(schema, discriminator.serializedName)
+	}
 
 	/* Sort references so we generate in a consistent order */
 	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
 
 	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
-		/* Check that the discriminator property isn't required for interface conformance */
-		if (!interfaceForProperty(schema, discriminator.serializedName)) {
-			removeProperty(schema, discriminator.serializedName)
-		}
+		removeDiscriminatorPropertyFromSchema(schema)
 	}
 
 	for (const reference of discriminator.references) {
 		if (isCodegenObjectLikeSchema(reference.schema)) {
-			/* Check that the discriminator property isn't required for interface conformance */
-			if (!interfaceForProperty(reference.schema, discriminator.serializedName)) {
-				removeProperty(reference.schema, discriminator.serializedName)
-			}
+			removeDiscriminatorPropertyFromSchema(reference.schema)
 		}
 	}
 }

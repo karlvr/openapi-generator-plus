@@ -239,11 +239,10 @@ test('oneOf discriminator with separate allOf (object)', async() => {
 	const abstractAnimal = child.implements![0]
 	expect(abstractAnimal.schemaType).toEqual(CodegenSchemaType.INTERFACE)
 	expect(abstractAnimal.name).toEqual('i_AbstractAnimal')
-	expect(abstractAnimal.properties).toBeTruthy()
-	expect(idx.has(abstractAnimal.properties!, 'petType')).toBeTruthy()
+	expect(abstractAnimal.properties).toBeNull() /* As the petType property gets removed and turned into a discriminator */
 
 	expect(child.properties).toBeTruthy()
-	expect(idx.has(child.properties!, 'petType')).toBeTruthy() /* The child must have it as it implements AbstractAnimal, which specifies it */
+	expect(idx.has(child.properties!, 'petType')).toBeFalsy() /* The discriminator property doesn't exist in the child (removed, as above) */
 
 	expect(parent.name).toEqual('Pet')
 	expect(parent.discriminator!.name).toEqual('petType')
@@ -346,23 +345,24 @@ test('oneOf allOf (object)', async() => {
 	expect(integerProperty.implements).toBeTruthy()
 	expect(integerProperty.implements?.length).toEqual(2)
 	expect(integerProperty.properties).toBeTruthy()
-	expect(idx.size(integerProperty.properties!)).toEqual(2)
-	expect(idx.has(integerProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+	expect(idx.size(integerProperty.properties!)).toEqual(1)
+	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
 
-	const integerTypeProperty = idx.get(integerProperty.properties!, 'type')
-	expect(integerTypeProperty).toBeTruthy()
-	expect(integerTypeProperty?.discriminators).toBeTruthy()
+	expect(idx.get(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	expect(integerProperty.discriminatorValues).toBeTruthy()
+	expect(integerProperty.discriminatorValues?.length).toEqual(1)
+	expect(integerProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
 
 	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
 	expect(objectProperty.name).toEqual('ObjectProperty')
 	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(objectProperty.implements).toBeTruthy()
 	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
-	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
 
-	const objectTypeProperty = idx.get(objectProperty.properties!, 'type')
-	expect(objectTypeProperty).toBeTruthy()
-	expect(objectTypeProperty?.discriminators).toBeTruthy()
+	expect(objectProperty.discriminatorValues).toBeTruthy()
+	expect(objectProperty.discriminatorValues?.length).toEqual(1)
+	expect(objectProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
 })
 
 test('oneOf allOf (object with inheritance)', async() => {
@@ -389,18 +389,22 @@ test('oneOf allOf (object with inheritance)', async() => {
 	expect(integerProperty.parents!.length).toEqual(1)
 	expect(integerProperty.properties).toBeTruthy()
 	expect(idx.size(integerProperty.properties!)).toEqual(1)
-	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* Doesn't have discriminator property as it doesn't need it for interface conformance */
+	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	
+	expect(integerProperty.discriminatorValues).toBeTruthy()
+	expect(integerProperty.discriminatorValues?.length).toEqual(1)
+	expect(integerProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
 
 	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
 	expect(objectProperty.name).toEqual('ObjectProperty')
 	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(objectProperty.implements).toBeTruthy()
 	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
-	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy() /* Has the discriminator property as it needs it for interface conformance */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
 
-	const objectTypeProperty = idx.get(objectProperty.properties!, 'type')
-	expect(objectTypeProperty).toBeTruthy()
-	expect(objectTypeProperty?.discriminators).toBeTruthy()
+	expect(objectProperty.discriminatorValues).toBeTruthy()
+	expect(objectProperty.discriminatorValues?.length).toEqual(1)
+	expect(objectProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
 })
 
 test('oneOf anonymous', async() => {

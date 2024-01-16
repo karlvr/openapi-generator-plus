@@ -1025,9 +1025,11 @@ export interface CodegenSecurityRequirements {
 }
 
 /**
- * All of the security requirements required.
+ * The security requirement contains the list of security schemes (usually one) that must all
+ * be satisfied in order to meet this security requirement.
  */
 export interface CodegenSecurityRequirement {
+	/** The security schemes that must all be satisfied in order to meet this security requirement. */
 	schemes: CodegenSecurityRequirementScheme[]
 }
 

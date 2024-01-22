@@ -1,5 +1,5 @@
 import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
-import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenGeneratorHelper } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenOperation, CodegenOperationGroup, CodegenOperationGroups, CodegenGeneratorType, CodegenSchema, CodegenSchemas, isCodegenScope, CodegenGeneratorHelper, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIV2PathItemObject, isOpenAPIV3Document, isOpenAPIV3PathItemObject } from './openapi-type-guards'
 import { InternalCodegenState } from './types'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -13,7 +13,7 @@ import { postProcessSchemaForDiscriminator } from './process/schema/discriminato
 import { toCodegenExternalDocs } from './process/external-docs'
 import { createObjectSchema } from './process/schema/object'
 import { createOneOfSchema } from './process/schema/one-of'
-import { addToScope, scopeOf } from './process/schema/utils'
+import { addToScope, interfaceForProperty, scopeOf } from './process/schema/utils'
 import { toUniqueScopedName, usedSchemaName } from './process/schema/naming'
 
 function groupOperations(operationInfos: CodegenOperation[], state: InternalCodegenState) {
@@ -170,6 +170,15 @@ function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState
 	}
 
 	postProcessSchemaForDiscriminator(schema)
+
+	/* Compute overrides for properties */
+	if (isCodegenObjectSchema(schema) && schema.properties) {
+		for (const property of idx.allValues(schema.properties)) {
+			if (interfaceForProperty(schema, property.serializedName)) {
+				property.overrides = true
+			}
+		}
+	}
 	
 	if (state.generator.postProcessSchema) {
 		const result = state.generator.postProcessSchema(schema, createGeneratorHelper(state))

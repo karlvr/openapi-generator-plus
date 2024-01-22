@@ -191,6 +191,13 @@ test('allOf with discriminator and base properties (object, no inheritance)', as
 	expect(parent.properties).toBeTruthy()
 	expect(idx.size(parent.properties!)).toEqual(1)
 	expect(idx.allKeys(parent.properties!)[0]).toEqual('colour')
+
+	const child = idx.get(result.schemas, 'Cat') as CodegenObjectSchema
+	expect(child.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(child.properties).toBeTruthy()
+	expect(idx.size(child.properties!)).toEqual(2)
+	expect(idx.get(child.properties!, 'colour')!.overrides).toBeTruthy()
+	expect(idx.get(child.properties!, 'name')!.overrides).toBeFalsy()
 })
 
 test('allOf with discriminator no properties (object)', async() => {

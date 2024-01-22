@@ -511,6 +511,9 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	discriminators: CodegenDiscriminator[] | null
 
 	vendorExtensions: CodegenVendorExtensions | null
+
+	/** Whether this property overrides a property in a parent or interface */
+	overrides: boolean
 }
 
 /**

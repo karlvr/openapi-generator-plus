@@ -1,5 +1,13 @@
 # openapi-generator-plus
 
+## 2.13.0
+
+### Patch Changes
+
+- Updated dependencies [2febe2a]
+  - @openapi-generator-plus/types@2.11.0
+  - @openapi-generator-plus/core@2.13.0
+
 ## 2.12.1
 
 ### Patch Changes

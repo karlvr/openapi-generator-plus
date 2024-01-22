@@ -1,5 +1,16 @@
 # @openapi-generator-plus/core
 
+## 2.13.0
+
+### Minor Changes
+
+- 2febe2a: Add overrides property to CodegenProperty
+
+### Patch Changes
+
+- Updated dependencies [2febe2a]
+  - @openapi-generator-plus/types@2.11.0
+
 ## 2.12.1
 
 ### Patch Changes

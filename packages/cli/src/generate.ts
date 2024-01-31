@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext } from '@openapi-generator-plus/core'
-import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
+import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor, CodegenInputDocument } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions, CommandLineConfig } from './types'
@@ -18,13 +18,37 @@ function createMyGeneratorContext() {
 	})
 }
 
+async function createCodegenInputPossiblyWithUrl(inputPathOrUrl: string): Promise<CodegenInputDocument> {
+	if (isURL(inputPathOrUrl)) {
+		console.info(c.bold.green('Downloading:'), inputPathOrUrl)
+		
+		const startTime = Date.now()
+		const response = await fetch(inputPathOrUrl)
+		const text = await response.text()
+		console.info(c.bold.green(`Downloaded in ${Date.now() - startTime}ms:`), inputPathOrUrl)
+
+		const tempDir = await fs.mkdtemp('openapi-generator-plus')
+		const tempFile = path.resolve(tempDir, path.basename(inputPathOrUrl) || 'openapi.yaml')
+		fs.writeFile(tempFile, text)
+
+		try {
+			return await createCodegenInput(tempFile)
+		} finally {
+			await fs.unlink(tempFile)
+			await fs.rmdir(tempDir)
+		}
+	} else {
+		return await createCodegenInput(inputPathOrUrl)
+	}
+}
+
 async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
 	const generator = constructGenerator(config, createMyGeneratorContext(), generatorConstructor)
 	
 	const state = createCodegenState(config, generator)
 	state.log = log
-	const input = await createCodegenInput(config.inputPath)
-
+	
+	const input = await createCodegenInputPossiblyWithUrl(config.inputPath)
 	let doc: CodegenDocument
 	try {
 		doc = createCodegenDocument(input, state)
@@ -242,4 +266,15 @@ async function currentFilesystemTimestamp(outputPath: string): Promise<number> {
 	const stats = await fs.stat(tempPath)
 	await fs.unlink(tempPath)
 	return stats.mtime.getTime()
+}
+
+/**
+ * Test whether the given string looks like a URL according to https://www.ietf.org/rfc/rfc1738.txt
+ * <p>
+ * Checks if the string starts with a valid scheme followed by a colon.
+ * @param value 
+ * @returns 
+ */
+function isURL(value: string): boolean {
+	return value.match(/^[a-zA-Z0-9+.-]+:/) !== null
 }

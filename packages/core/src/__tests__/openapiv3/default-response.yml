@@ -1,0 +1,27 @@
+---
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Response with a default
+paths:
+  /test1:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  test1:
+                    type: string
+        default:
+          description: All other
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  test2:
+                    type: string

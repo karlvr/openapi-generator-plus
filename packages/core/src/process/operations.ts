@@ -28,6 +28,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 	const name = toCodegenOperationName(fullPath, method, operation, state)
 	const responses: CodegenResponses | undefined = toCodegenResponses(operation, name, state)
 	const defaultResponse = responses ? idx.find(responses, r => r.isDefault) : undefined
+	const catchAllResponse = responses ? idx.find(responses, r => r.isCatchAll) : undefined
 
 	let parameters: CodegenParameters | null
 	if (operation.parameters) {
@@ -185,6 +186,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 
 		securityRequirements: securityRequirements || null,
 		defaultResponse: defaultResponse || null,
+		catchAllResponse: catchAllResponse || null,
 		responses: responses || null,
 		deprecated: !!operation.deprecated,
 		summary: operation.summary || context.summary || null,

@@ -21,21 +21,18 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 
 	const result: CodegenResponses = idx.create()
 
-	let bestCode: number | undefined
+	let bestCode: number | 'default' | undefined
 	let bestResponse: CodegenResponse | undefined
 
 	for (const responseCodeString in responses) {
-		const responseCode = responseCodeString === 'default' ? 0 : parseInt(responseCodeString, 10)
-		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString]!, false, scopeName, state)
+		const responseCode = responseCodeString === 'default' ? 'default' : parseInt(responseCodeString, 10)
+		const response = toCodegenResponse(operation, responseCode, responses[responseCodeString]!, scopeName, state)
 
 		idx.set(result, `${responseCode}`, response)
 
-		/* See DefaultCodegen.findMethodResponse */
-		if (responseCode === 0 || Math.floor(responseCode / 100) === 2) {
-			if (bestCode === undefined || responseCode < bestCode) {
-				bestCode = responseCode
-				bestResponse = response
-			}
+		if (bestCode === undefined || compareResponseCodes(responseCode, bestCode) < 0) {
+			bestCode = responseCode
+			bestResponse = response
 		}
 	}
 
@@ -46,17 +43,47 @@ export function toCodegenResponses(operation: OpenAPI.Operation, scopeName: stri
 	return idx.undefinedIfEmpty(result)
 }
 
-function toCodegenResponse(operation: OpenAPI.Operation, code: number, response: OpenAPIX.Response, isDefault: boolean, scopeName: string, state: InternalCodegenState): CodegenResponse {
+/**
+ * Compares two response codes to put them in order of best response code for the operation to worst, where
+ * best means it's the one most likely to be considered the main response.
+ * @param a 
+ * @param b 
+ */
+function compareResponseCodes(a: number | 'default', b: number | 'default'): number {
+	if (a === 'default') {
+		if (b === 'default') {
+			return 0
+		} else {
+			return 1
+		}
+	} else if (b === 'default') {
+		return -1
+	}
+
+	const a200 = Math.floor(a / 100) === 2
+	const b200 = Math.floor(b / 100) === 2
+	if (a200 && !b200) {
+		return -1
+	} else if (b200 && !a200) {
+		return 1
+	}
+
+	if (a < b) {
+		return -1
+	} else if (a > b) {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+function toCodegenResponse(operation: OpenAPI.Operation, code: number | 'default', response: OpenAPIX.Response, scopeName: string, state: InternalCodegenState): CodegenResponse {
 	const responseContextName = isOpenAPIReferenceObject(response) ? nameFromRef(response.$ref, state) : `${scopeName}_${code}_response`
 
 	/* We allow preserving the original description if the usage is by reference */
 	const description = isOpenAPIReferenceObject(response) ? (response as OpenAPIV3_1.ReferenceObject).description : undefined
 
 	response = resolveReference(response, state)
-
-	if (code === 0) {
-		code = 200
-	}
 	
 	let contents: CodegenContent[] | undefined
 
@@ -102,7 +129,8 @@ function toCodegenResponse(operation: OpenAPI.Operation, code: number, response:
 	return {
 		code,
 		description: description || response.description,
-		isDefault,
+		isDefault: false, /* This gets determined later */
+		isCatchAll: code === 'default',
 		contents: contents && contents.length ? contents : null,
 		defaultContent,
 		produces: produces || null,

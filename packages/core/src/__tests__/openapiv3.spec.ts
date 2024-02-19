@@ -120,3 +120,23 @@ test('description at path level', async() => {
 	expect(op1.description).toBe('Path description')
 	expect(op2.description).toBe('Operation description')
 })
+
+test('default response', async() => {
+	const { result } = await createTestResult('openapiv3/default-response.yml')
+
+	const group1 = result.groups[0]
+	expect(group1.operations.length).toBe(1)
+
+	const op1 = group1.operations[0]
+	expect(op1.responses).toBeTruthy()
+	expect(idx.size(op1.responses!)).toBe(2)
+
+	const r1 = idx.get(op1.responses!, '200')
+	expect(r1).toBeTruthy()
+	expect(r1?.code).toBe(200)
+	expect(r1?.isDefault).toBeTruthy()
+	const r2 = idx.get(op1.responses!, 'default')
+	expect(r2).toBeTruthy()
+	expect(r2?.code).toBe('default')
+	expect(r2?.isDefault).toBeFalsy()
+})

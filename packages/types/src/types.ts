@@ -261,7 +261,10 @@ export interface CodegenOperation {
 	vendorExtensions: CodegenVendorExtensions | null
 	externalDocs: CodegenExternalDocs | null
 	responses: CodegenResponses | null
+	/** The response that should be considered the main response of the operation. This is NOT the same as the 'default' response code in the OpenAPI spec. */
 	defaultResponse: CodegenResponse | null
+	/** The response for all unknown response codes. This IS the 'default' response code in the OpenAPI spec. */
+	catchAllResponse: CodegenResponse | null
 	deprecated: boolean
 	summary: string | null
 	description: string | null
@@ -284,7 +287,8 @@ export type CodegenResponses = IndexedCollectionType<CodegenResponse>
 export type CodegenParameters = IndexedCollectionType<CodegenParameter>
 
 export interface CodegenResponse {
-	code: number
+	/** The response code, or the string "default" if this response represents the schema of all _other_ response codes. */
+	code: number | 'default'
 	description: string
 
 	/** The responses contents */
@@ -293,7 +297,10 @@ export interface CodegenResponse {
 
 	defaultContent: CodegenContent | null
 
+	/** Whether this response is considered the default response for the operation. This is NOT the same as having a code of 'default', which is instead the catch-all response. */
 	isDefault: boolean
+	/** Whether this response is the catch-all response for the operation. That is, the response for any _other_ code. This IS what a code of 'default' means. */
+	isCatchAll: boolean
 	vendorExtensions: CodegenVendorExtensions | null
 	headers: CodegenHeaders | null
 }

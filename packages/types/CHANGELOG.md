@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.12.0
+
+### Minor Changes
+
+- 1e4eb38: Fix handling of default response, which should represent all other response codes rather than representing the main response
+
 ## 2.11.0
 
 ### Minor Changes

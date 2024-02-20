@@ -11,6 +11,7 @@ import { loadGeneratorConstructor } from './generator'
 import c from 'ansi-colors'
 import { usage } from './usage'
 import { log } from './log'
+import fetch from 'node-fetch'
 
 function createMyGeneratorContext() {
 	return createGeneratorContext({

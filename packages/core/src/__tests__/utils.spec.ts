@@ -11,4 +11,5 @@ test('isUrl rejects invalid URLs', async() => {
 	expect(isURL('github.com')).toBeFalsy()
 	expect(isURL('!://github.com')).toBeFalsy()
 	expect(isURL(' :karl@example.com')).toBeFalsy()
+	expect(isURL('c:\\windows')).toBeFalsy()
 })

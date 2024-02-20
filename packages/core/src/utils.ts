@@ -60,10 +60,11 @@ export function chainedCompare<T>(...compares: CompareFunction<T>[]): CompareFun
 /**
  * Test whether the given string looks like a URL according to https://www.ietf.org/rfc/rfc1738.txt
  * <p>
- * Checks if the string starts with a valid scheme followed by a colon.
+ * Checks if the string starts with a valid scheme followed by a colon. I've required the scheme to contain
+ * at least two characters so Windows paths that include a drive letter don't look like URLs.
  * @param value 
  * @returns 
  */
 export function isURL(value: string): boolean {
-	return value.match(/^[a-zA-Z0-9+.-]+:/) !== null
+	return value.match(/^[a-zA-Z0-9+.-]{2,}:/) !== null
 }

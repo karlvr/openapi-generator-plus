@@ -12,6 +12,7 @@ import c from 'ansi-colors'
 import { usage } from './usage'
 import { log } from './log'
 import fetch from 'node-fetch'
+import { isURL } from '@openapi-generator-plus/core/dist/utils'
 
 function createMyGeneratorContext() {
 	return createGeneratorContext({
@@ -267,15 +268,4 @@ async function currentFilesystemTimestamp(outputPath: string): Promise<number> {
 	const stats = await fs.stat(tempPath)
 	await fs.unlink(tempPath)
 	return stats.mtime.getTime()
-}
-
-/**
- * Test whether the given string looks like a URL according to https://www.ietf.org/rfc/rfc1738.txt
- * <p>
- * Checks if the string starts with a valid scheme followed by a colon.
- * @param value 
- * @returns 
- */
-function isURL(value: string): boolean {
-	return value.match(/^[a-zA-Z0-9+.-]+:/) !== null
 }

@@ -38,11 +38,14 @@
     "getopts": "^2.3.0",
     "glob": "^7.2.0",
     "glob-promise": "^4.2.2",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "node-watch": "^0.7.3",
     "yaml": "^2.0.1"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.11"
   }
 }

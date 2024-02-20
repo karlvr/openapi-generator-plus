@@ -1,5 +1,11 @@
 # openapi-generator-plus
 
+## 2.14.2
+
+### Patch Changes
+
+- 66957a6: Fix node-fetch by downgrading as v3 requires ESM
+
 ## 2.14.1
 
 ### Patch Changes

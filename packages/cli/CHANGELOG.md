@@ -1,5 +1,14 @@
 # openapi-generator-plus
 
+## 2.14.1
+
+### Patch Changes
+
+- 13be7b1: Fix missing `fetch` dependency for downloading specs
+- 8890b9b: Improve spec input path URL detection to not have false positives on Windows
+- Updated dependencies [8890b9b]
+  - @openapi-generator-plus/core@2.14.1
+
 ## 2.14.0
 
 ### Minor Changes

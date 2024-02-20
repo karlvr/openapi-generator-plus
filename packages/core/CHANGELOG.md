@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.14.1
+
+### Patch Changes
+
+- 8890b9b: Improve spec input path URL detection to not have false positives on Windows
+
 ## 2.14.0
 
 ### Minor Changes

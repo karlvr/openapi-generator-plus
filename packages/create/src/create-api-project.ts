@@ -169,6 +169,11 @@ generator: "${generator.name}"
 		await fs.writeFile(readmePath, projectReadme)
 	}
 
+	const gitignorePath = path.join(dest, '.gitignore')
+	if (!await exists(gitignorePath)) {
+		await fs.writeFile(gitignorePath, '/node_modules\n')
+	}
+
 	info(`Installing dependencies using ${packageManager}`)
 	installDependencies(packageManager, dest)
 

@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.1
+
+### Patch Changes
+
+- 146fa35: Create a .gitignore file to avoid node_modules being committed
+
 ## 1.1.0
 
 ### Minor Changes

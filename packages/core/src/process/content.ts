@@ -1,6 +1,6 @@
 import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenContentPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenEncodingStyle } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import type { OpenAPIV3 } from 'openapi-types'
-import { idx } from '..'
 import { InternalCodegenState } from '../types'
 import { uniquePropertiesIncludingInherited } from '@openapi-generator-plus/utils'
 import { toCodegenExamples } from './examples'

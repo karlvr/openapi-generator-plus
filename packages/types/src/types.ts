@@ -1099,6 +1099,8 @@ export interface CodegenMediaType {
 	mimeType: string
 	/** The encoding / charset part of the media type, if present */
 	encoding: string | null
+	/** Does the mimeType contain a wildcard? */
+	wildcard: boolean
 }
 
 export type CodegenOperationGroupingStrategy = (operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState) => void

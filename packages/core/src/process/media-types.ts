@@ -7,6 +7,7 @@ export function toCodegenMediaType(mediaType: string): CodegenMediaType {
 			mediaType,
 			mimeType: mediaType,
 			encoding: null,
+			wildcard: mediaType.indexOf('*') !== -1,
 		}
 	}
 
@@ -17,10 +18,12 @@ export function toCodegenMediaType(mediaType: string): CodegenMediaType {
 		charset = matches[1]
 	}
 	
+	const mimeType = mediaType.substring(0, i)
 	return {
 		mediaType,
-		mimeType: mediaType.substring(0, i),
+		mimeType,
 		encoding: charset || null,
+		wildcard: mimeType.indexOf('*') !== -1,
 	}
 }
 

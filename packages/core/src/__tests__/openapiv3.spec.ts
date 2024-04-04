@@ -45,12 +45,12 @@ test('parse operation response', async() => {
 	const op1 = group1.operations[0]
 	expect(op1.name).toEqual('getTest1')
 	expect(op1.returnNativeType?.toString()).toEqual('Test1Response')
-	expect(op1.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
+	expect(op1.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json', wildcard: false }])
 
 	const group2 = result.groups[1]
 	const op2 = group2.operations[0]
 	expect(op2.returnNativeType?.toString()).toEqual('Test2Response')
-	expect(op2.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json' }])
+	expect(op2.produces).toEqual([{ encoding: null, mediaType: 'application/json', mimeType: 'application/json', wildcard: false }])
 })
 
 test('parse groups', async() => {

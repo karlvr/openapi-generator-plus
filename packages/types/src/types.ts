@@ -380,6 +380,14 @@ export interface CodegenContentPropertyEncoding extends CodegenParameterEncoding
 	 */
 	filenameProperty: CodegenProperty | null
 	/**
+	 * The size property in the container object, if there is one.
+	 */
+	sizeProperty: CodegenProperty | null
+	/**
+	 * The contentType property in the container object, if there is one.
+	 */
+	contentTypeProperty: CodegenProperty | null
+	/**
 	 * The header property in the container object, if there is one, and if there are any headers.
 	 */
 	headerProperties: IndexedCollectionType<CodegenProperty> | null

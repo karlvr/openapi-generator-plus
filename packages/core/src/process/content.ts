@@ -15,6 +15,7 @@ import { createStringSchemaUsage } from './schema/string'
 import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo, toCodegenInitialValueOptions } from './utils'
+import { createNumericSchemaUsage } from './schema/numeric'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
@@ -153,6 +154,8 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			property: property,
 			valueProperty: null,
 			filenameProperty: null,
+			sizeProperty: null,
+			contentTypeProperty: null,
 			headerProperties: null,
 		}
 		encoding.properties[name] = propertyEncoding
@@ -210,13 +213,25 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				addCodegenProperty(partSchema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
 
-				/* Filename property */
-				if (propertySupportsFilenameMetadata(encoding, propertyEncoding)) {
+				/* File metadata */
+				if (propertySupportsFileMetadata(encoding, propertyEncoding)) {
 					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {
 						required: false,
 					}, state), state)
 					addCodegenProperty(partSchema.properties, filenameProperty, state)
 					propertyEncoding.filenameProperty = filenameProperty
+
+					const sizeProperty = createCodegenProperty('size', createNumericSchemaUsage(undefined, {
+						required: false,
+					}, state), state)
+					addCodegenProperty(partSchema.properties, sizeProperty, state)
+					propertyEncoding.sizeProperty = sizeProperty
+
+					const contentTypeProperty = createCodegenProperty('contentType', createStringSchemaUsage(undefined, {
+						required: false,
+					}, state), state)
+					addCodegenProperty(partSchema.properties, contentTypeProperty, state)
+					propertyEncoding.contentTypeProperty = contentTypeProperty
 				}
 
 				/* Header properties */
@@ -287,13 +302,13 @@ function propertyRequiresMetadata(encoding: CodegenContentEncoding, propertyEnco
 	if (propertyEncoding.headers) {
 		return true
 	}
-	if (propertySupportsFilenameMetadata(encoding, propertyEncoding)) {
+	if (propertySupportsFileMetadata(encoding, propertyEncoding)) {
 		return true
 	}
 	return false	
 }
 
-function propertySupportsFilenameMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
+function propertySupportsFileMetadata(encoding: CodegenContentEncoding, propertyEncoding: CodegenContentPropertyEncoding): boolean {
 	if (encoding.mediaType.mimeType === 'multipart/form-data' && propertyEncoding.contentType === 'application/octet-stream') {
 		return true
 	}

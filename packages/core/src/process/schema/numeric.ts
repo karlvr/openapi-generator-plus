@@ -1,4 +1,4 @@
-import { CodegenNumericSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenNumericSchema, CodegenSchemaType, CodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
@@ -7,6 +7,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { CreateSchemaUsageOptions, createSchemaUsage } from './usage'
 
 export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
 	if (apiSchema.type !== 'number' && apiSchema.type !== 'integer') {
@@ -50,4 +51,16 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 
 	finaliseSchema(result, naming, state)
 	return result
+}
+
+/**
+ * Create a new schema usage of a numeric type.
+ * @param state 
+ */
+export function createNumericSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, state: InternalCodegenState): CodegenSchemaUsage<CodegenNumericSchema> {
+	const schema = toCodegenNumericSchema({
+		type: 'number',
+		format,
+	}, null, state)
+	return createSchemaUsage(schema, options, state)
 }

@@ -209,13 +209,6 @@ export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName:
 
 	idx.remove(schema.properties, serializedName)
 	if (idx.isEmpty(schema.properties)) {
-		/* Check for schemas that share these properties */
-		if (isCodegenObjectSchema(schema) && schema.interface && schema.interface.properties === schema.properties) {
-			schema.interface.properties = null
-		}
-		if (isCodegenInterfaceSchema(schema) && schema.implementation && schema.implementation.properties === schema.properties) {
-			schema.implementation.properties = null
-		}
 		schema.properties = null
 	}
 

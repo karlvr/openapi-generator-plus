@@ -1,4 +1,5 @@
 import { CodegenHierarchySchema, CodegenInterfaceSchema, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import { InternalCodegenState } from '../../types'
 import { extractCodegenSchemaInfo } from '../utils'
 import { extractNaming, fullyQualifiedName, toUniqueScopedName, usedSchemaName } from './naming'
@@ -63,7 +64,7 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 		deprecated: schema.deprecated,
 
 		additionalProperties: schema.additionalProperties,
-		properties: schema.properties,
+		properties: schema.properties ? idx.create(schema.properties) : null,
 		examples: null,
 		children: null,
 		implementation: isCodegenObjectSchema(schema) ? schema : null,
@@ -117,7 +118,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 	const result = createObjectSchema(suggestedName, scope, allowAbstract ? CodegenSchemaPurpose.ABSTRACT_IMPLEMENTATION : CodegenSchemaPurpose.IMPLEMENTATION, state)
 
 	result.abstract = allowAbstract
-	result.properties = interfaceSchema.properties
+	result.properties = interfaceSchema.properties ? idx.create(interfaceSchema.properties) : null
 	result.additionalProperties = interfaceSchema.additionalProperties
 
 	addImplementor(interfaceSchema, result)

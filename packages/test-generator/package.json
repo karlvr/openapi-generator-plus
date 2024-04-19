@@ -1,0 +1,27 @@
+{
+  "name": "@openapi-generator-plus/test-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc",
+    "clean": "../../node_modules/.bin/rimraf dist",
+    "lint": "../../node_modules/.bin/eslint src",
+    "watch": "../../node_modules/.bin/tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karlvr/openapi-generator-plus.git"
+  },
+  "author": "Karl von Randow",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/karlvr/openapi-generator-plus/issues"
+  },
+  "homepage": "https://github.com/karlvr/openapi-generator-plus#readme",
+  "dependencies": {
+    "@openapi-generator-plus/types": "2.12.0"
+  }
+}

@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: Example
+  description: Lorem ipsum
+  version: '1.0.1'
+servers:
+- url: http://example.com/api/v1
+  description: Example server
+- url: https://example.com/api/v1
+paths: {}
+components:
+  schemas:
+    Test2Request:
+      type: object
+      required:
+      - first
+      - second
+      properties:
+        first:
+          type:
+            - string
+            - "null"
+        second:
+          type: string
+          enum: [ABC, DEF]
+        third:
+          type: string
+        fourth:
+          type: number
+        fifth:
+          type: boolean
+    Test2Response:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            type: string
+        object:
+          anyOf:
+            - $ref: "#/components/schemas/Test2Object"
+            - type: "null"
+    Test2Object:
+      type: object
+      properties:
+        test2:
+          type: string

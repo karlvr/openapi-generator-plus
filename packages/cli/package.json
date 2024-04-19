@@ -46,6 +46,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@openapi-generator-plus/test-generator": "1.0.0",
     "@types/node-fetch": "^2.6.11"
   }
 }

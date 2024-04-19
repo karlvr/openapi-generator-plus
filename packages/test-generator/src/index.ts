@@ -136,7 +136,10 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 			// NOOP
 		},
 		watchPaths: () => [],
-		cleanPathPatterns: () => undefined,
+		cleanPathPatterns: () => {
+			/* So we trigger the clean function of the cli app */
+			return ['test*']
+		},
 		templateRootContext: () => ({}),
 	}
 }

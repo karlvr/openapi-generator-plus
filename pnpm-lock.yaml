@@ -84,6 +84,9 @@ importers:
         specifier: ^2.4.1
         version: 2.4.1
     devDependencies:
+      '@openapi-generator-plus/test-generator':
+        specifier: 1.0.0
+        version: link:../test-generator
       '@types/node-fetch':
         specifier: ^2.6.11
         version: 2.6.11

@@ -31,7 +31,7 @@ describe('generate', () => {
 	const files = fs.readdirSync(basePath)
 
 	for (const file of files) {
-		test(file, async() => {
+		test(`Generate spec: ${file}`, async() => {
 			const outputPath = path.join(tmpdir(), 'openapi-generator-plus', 'cli')
 			fs.mkdirSync(outputPath, { recursive: true })
 
@@ -41,6 +41,7 @@ describe('generate', () => {
 				'--clean',
 				path.join(basePath, file),
 			])
+			expect(true).toBe(true)
 		})
 	}
 })

@@ -1,7 +1,6 @@
-import { CodegenGeneratorConstructor, CodegenGenerator, CodegenDocument, CodegenState, CodegenGeneratorType, CodegenSchemaType, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenLogLevel, CodegenAllOfStrategy, CodegenOneOfStrategy, CodegenAnyOfStrategy, CodegenConfig } from '@openapi-generator-plus/types'
-import path from 'path'
-import pluralize from 'pluralize'
+import { CodegenAllOfStrategy, CodegenAnyOfStrategy, CodegenGeneratorConstructor, CodegenGeneratorType, CodegenOneOfStrategy, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { camelCase } from 'lodash'
+import pluralize from 'pluralize'
 
 interface TestCodegenOptions {
 	config: TestCodegenConfig

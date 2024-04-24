@@ -1,5 +1,22 @@
 # @openapi-generator-plus/core
 
+## 2.15.0
+
+### Minor Changes
+
+- 60d019b: Add support for wildcard media types
+- 916cd75: Interface and implementation properties should be separate from their source, so we can remove properties from specific schemas
+- 9a65a18: Add additional metadata for multipart file properties
+
+### Patch Changes
+
+- fc5f83e: Extract test generator from core
+- Updated dependencies [60d019b]
+- Updated dependencies [cf1dbe0]
+- Updated dependencies [9a65a18]
+  - @openapi-generator-plus/types@2.13.0
+  - @openapi-generator-plus/utils@1.0.2
+
 ## 2.14.1
 
 ### Patch Changes

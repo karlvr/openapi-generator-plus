@@ -1,5 +1,20 @@
 # openapi-generator-plus
 
+## 2.15.0
+
+### Patch Changes
+
+- b03806d: Downgrade node-fetch as it requires ESM
+- cf1dbe0: Upgrade to node 20 and upgrade dependencies
+- dede8c1: Add test that runs the CLI app
+- 669ff5c: Remove glob-promise as glob is now async
+- Updated dependencies [60d019b]
+- Updated dependencies [fc5f83e]
+- Updated dependencies [916cd75]
+- Updated dependencies [9a65a18]
+  - @openapi-generator-plus/types@2.13.0
+  - @openapi-generator-plus/core@2.15.0
+
 ## 2.14.2
 
 ### Patch Changes

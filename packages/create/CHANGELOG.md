@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.2
+
+### Patch Changes
+
+- cf1dbe0: Upgrade to node 20 and upgrade dependencies
+
 ## 1.1.1
 
 ### Patch Changes

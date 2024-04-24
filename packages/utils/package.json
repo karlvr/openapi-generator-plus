@@ -1,6 +1,6 @@
 {
   "name": "@openapi-generator-plus/utils",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/karlvr/openapi-generator-plus/tree/master/packages/utils#readme",
   "dependencies": {
     "@openapi-generator-plus/indexed-type": "^1.0.0",
-    "@openapi-generator-plus/types": "^2.12.0"
+    "@openapi-generator-plus/types": "^2.13.0"
   },
   "publishConfig": {
     "access": "public"

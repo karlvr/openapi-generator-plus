@@ -1,5 +1,12 @@
 # @openapi-generator-plus/types
 
+## 2.13.0
+
+### Minor Changes
+
+- 60d019b: Add support for wildcard media types
+- 9a65a18: Add additional metadata for multipart file properties
+
 ## 2.12.0
 
 ### Minor Changes

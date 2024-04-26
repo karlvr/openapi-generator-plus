@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.3
+
+### Patch Changes
+
+- c63045c: Downgrade inquirer as the latest version requires esm
+
 ## 1.1.2
 
 ### Patch Changes

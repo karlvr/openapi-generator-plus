@@ -30,8 +30,8 @@ paths:
                       type: string
               file:
                 headers:
-                  # The filename header should conflict with the filename property we automatically create
-                  filename:
+                  # The value header should conflict with the value property we automatically create
+                  value:
                     schema:
                       type: string
       responses:

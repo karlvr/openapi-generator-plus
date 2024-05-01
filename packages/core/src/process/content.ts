@@ -153,9 +153,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			allowEmptyValue: false,
 			property: property,
 			valueProperty: null,
-			filenameProperty: null,
-			sizeProperty: null,
-			contentTypeProperty: null,
 			headerProperties: null,
 		}
 		encoding.properties[name] = propertyEncoding
@@ -202,9 +199,20 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				partSchema.properties = idx.create()
 
+				const newSchemaUsage = {
+					...(originalProperty.schema.component ? originalProperty.schema.component.schema : originalProperty.schema),
+				}
+
+				/* Detect parts that should be treated as files */
+				if (newSchemaUsage.schemaType === CodegenSchemaType.BINARY) {
+					newSchemaUsage.schemaType = CodegenSchemaType.FILE
+					newSchemaUsage.type = 'file'
+				}
+
 				/* Value property contains the actual value */
 				const valueProperty = createCodegenProperty('value', {
 					...(originalProperty.schema.component ? originalProperty.schema.component : originalProperty),
+					schema: newSchemaUsage,
 					required: true, /* As if there's no value, our container shouldn't be created */
 					nullable: false,
 					readOnly: false,
@@ -212,27 +220,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				}, state)
 				addCodegenProperty(partSchema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
-
-				/* File metadata */
-				if (propertySupportsFileMetadata(encoding, propertyEncoding)) {
-					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, filenameProperty, state)
-					propertyEncoding.filenameProperty = filenameProperty
-
-					const sizeProperty = createCodegenProperty('size', createNumericSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, sizeProperty, state)
-					propertyEncoding.sizeProperty = sizeProperty
-
-					const contentTypeProperty = createCodegenProperty('contentType', createStringSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, contentTypeProperty, state)
-					propertyEncoding.contentTypeProperty = contentTypeProperty
-				}
 
 				/* Header properties */
 				if (propertyEncoding.headers) {

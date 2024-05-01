@@ -368,7 +368,7 @@ export interface CodegenContentPropertyEncoding extends CodegenParameterEncoding
 	headers: CodegenHeaders | null
 
 	/**
-	 * The value or container property in the content object.
+	 * The property in the content object for the container object.
 	 */
 	property: CodegenProperty
 	/**
@@ -376,19 +376,7 @@ export interface CodegenContentPropertyEncoding extends CodegenParameterEncoding
 	 */
 	valueProperty: CodegenProperty | null
 	/**
-	 * The filename property in the container object, if there is one.
-	 */
-	filenameProperty: CodegenProperty | null
-	/**
-	 * The size property in the container object, if there is one.
-	 */
-	sizeProperty: CodegenProperty | null
-	/**
-	 * The contentType property in the container object, if there is one.
-	 */
-	contentTypeProperty: CodegenProperty | null
-	/**
-	 * The header property in the container object, if there is one, and if there are any headers.
+	 * The header properties in the container object, if there is one, and if there are any headers.
 	 */
 	headerProperties: IndexedCollectionType<CodegenProperty> | null
 }
@@ -477,6 +465,7 @@ export enum CodegenSchemaType {
 	DATE = 'DATE',
 	TIME = 'TIME',
 	BINARY = 'BINARY',
+	FILE = 'FILE',
 	NULL = 'NULL',
 }
 
@@ -614,12 +603,17 @@ export interface CodegenNullSchema extends CodegenSchema {
 
 export interface CodegenStringSchema extends CodegenSchema {
 	type: 'string'
-	schemaType: CodegenSchemaType.STRING | CodegenSchemaType.DATE | CodegenSchemaType.DATETIME | CodegenSchemaType.TIME
+	schemaType: CodegenSchemaType.STRING | CodegenSchemaType.DATE | CodegenSchemaType.DATETIME | CodegenSchemaType.TIME | CodegenSchemaType.BINARY
 
 	maxLength: number | null
 	minLength: number | null
 	pattern: string | null
 
+}
+
+export interface CodegenFileSchema extends CodegenSchema {
+	type: 'file'
+	schemaType: CodegenSchemaType.FILE
 }
 
 export interface CodegenArraySchema extends CodegenSchema {

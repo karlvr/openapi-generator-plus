@@ -2,6 +2,10 @@ import { CodegenSchemaType } from '@openapi-generator-plus/types'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { OpenAPIX } from '../../types/patches'
 
+/**
+ * Converts the OpenAPI specification's `type` and `format` values into a `CodegenSchemaType`, which is what the generator uses
+ * to determine the type handling.
+ */
 export function toCodegenSchemaType(type: string, format: string | undefined): CodegenSchemaType {
 	if (type === 'object') {
 		return CodegenSchemaType.OBJECT

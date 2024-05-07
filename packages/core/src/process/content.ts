@@ -11,11 +11,9 @@ import { createArraySchema } from './schema/array'
 import { toUniqueName } from './schema/naming'
 import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
-import { createStringSchemaUsage } from './schema/string'
 import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo, toCodegenInitialValueOptions } from './utils'
-import { createNumericSchemaUsage } from './schema/numeric'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
@@ -199,20 +197,22 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				partSchema.properties = idx.create()
 
-				const newSchemaUsage = {
-					...(originalProperty.schema.component ? originalProperty.schema.component.schema : originalProperty.schema),
-				}
+				let newSchemaUsage = originalProperty.schema.component ? originalProperty.schema.component : originalProperty
 
 				/* Detect parts that should be treated as files */
-				if (newSchemaUsage.schemaType === CodegenSchemaType.BINARY) {
-					newSchemaUsage.schemaType = CodegenSchemaType.FILE
-					newSchemaUsage.type = 'file'
+				if (newSchemaUsage.schema.schemaType === CodegenSchemaType.BINARY) {
+					newSchemaUsage = createSchemaUsage({
+						...newSchemaUsage.schema,
+						type: 'file',
+						schemaType: CodegenSchemaType.FILE,
+					}, {
+						required: newSchemaUsage.required,
+					}, state)
 				}
 
 				/* Value property contains the actual value */
 				const valueProperty = createCodegenProperty('value', {
-					...(originalProperty.schema.component ? originalProperty.schema.component : originalProperty),
-					schema: newSchemaUsage,
+					...newSchemaUsage,
 					required: true, /* As if there's no value, our container shouldn't be created */
 					nullable: false,
 					readOnly: false,

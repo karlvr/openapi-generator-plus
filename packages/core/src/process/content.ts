@@ -205,6 +205,12 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 						...newSchemaUsage.schema,
 						type: 'file',
 						schemaType: CodegenSchemaType.FILE,
+						nativeType: state.generator.toNativeType({
+							type: 'file',
+							format: newSchemaUsage.schema.format,
+							schemaType: CodegenSchemaType.FILE,
+							vendorExtensions: newSchemaUsage.schema.vendorExtensions,
+						}),
 					}, {
 						required: newSchemaUsage.required,
 					}, state)

@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "description": "",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "build": "pnpm --recursive build",
     "check-updates": "pnpm dlx npm-check-updates -u && pnpm --recursive exec pnpm dlx npm-check-updates -u",

@@ -39,14 +39,11 @@ test('multipart/form-data basic', async() => {
 	expect(filePropertyEncoding.contentType).toEqual('application/octet-stream')
 	expect(filePropertyEncoding.property.name).toEqual('file')
 	expect(filePropertyEncoding.valueProperty!.name).toEqual('value')
-	expect(filePropertyEncoding.filenameProperty!.name).toEqual('filename')
 
 	const filePropertySchema = fileProperty.schema as CodegenObjectSchema
 	const fileValueProperty = idx.get(filePropertySchema.properties!, 'value')
-	const fileFilenameProperty = idx.get(filePropertySchema.properties!, 'filename')
 	expect(fileValueProperty).toBeDefined()
-	expect(fileFilenameProperty).toBeDefined()
-	expect(fileValueProperty!.schema.type).toEqual('string')
+	expect(fileValueProperty!.schema.type).toEqual('file')
 	expect(fileValueProperty!.schema.format).toEqual('binary')
 })
 
@@ -190,7 +187,6 @@ test('multipart/form-data conflicts', async() => {
 	expect(filePropertyEncoding.contentType).toEqual('application/octet-stream')
 	expect(filePropertyEncoding.property.name).toEqual('file')
 	expect(filePropertyEncoding.valueProperty!.name).toEqual('value')
-	expect(filePropertyEncoding.filenameProperty!.name).toEqual('filename')
 
 	expect(infoPropertyEncoding.headerProperties).not.toBeNull()
 	expect(idx.size(infoPropertyEncoding.headerProperties!)).toBe(1)
@@ -200,9 +196,9 @@ test('multipart/form-data conflicts', async() => {
 
 	expect(filePropertyEncoding.headerProperties).not.toBeNull()
 	expect(idx.size(filePropertyEncoding.headerProperties!)).toBe(1)
-	const fileHeaderProperty = idx.get(filePropertyEncoding.headerProperties!, 'filename')
+	const fileHeaderProperty = idx.get(filePropertyEncoding.headerProperties!, 'value')
 	expect(fileHeaderProperty).toBeDefined()
-	expect(fileHeaderProperty!.name).toEqual(generator.toIdentifier('filename_header'))
+	expect(fileHeaderProperty!.name).toEqual(generator.toIdentifier('value_header'))
 })
 
 test('multipart/form-data conflicts in identifiers', async() => {

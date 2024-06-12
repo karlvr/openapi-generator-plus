@@ -206,7 +206,8 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		case CodegenSchemaType.DATE:
 		case CodegenSchemaType.DATETIME:
 		case CodegenSchemaType.TIME:
-		case CodegenSchemaType.BINARY: {
+		case CodegenSchemaType.BINARY:
+		case CodegenSchemaType.FILE: {
 			if (typeof apiSchema.type !== 'string') {
 				throw new Error(`Unsupported schema type "${apiSchema.type}" for property in ${debugStringify(apiSchema)}`)
 			}

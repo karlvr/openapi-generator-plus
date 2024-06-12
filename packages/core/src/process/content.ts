@@ -11,11 +11,9 @@ import { createArraySchema } from './schema/array'
 import { toUniqueName } from './schema/naming'
 import { createObjectSchema } from './schema/object'
 import { addCodegenProperty, createCodegenProperty } from './schema/property'
-import { createStringSchemaUsage } from './schema/string'
 import { createSchemaUsage, transformNativeTypeForUsage } from './schema/usage'
 import { addToScope } from './schema/utils'
 import { convertToBoolean, extractCodegenSchemaInfo, toCodegenInitialValueOptions } from './utils'
-import { createNumericSchemaUsage } from './schema/numeric'
 
 export function toCodegenContentArray(content: { [media: string]: OpenAPIV3.MediaTypeObject }, required: boolean, suggestedSchemaName: string, purpose: CodegenSchemaPurpose, scope: CodegenScope | null, state: InternalCodegenState): CodegenContent[] {
 	const result: CodegenContent[] = []
@@ -153,9 +151,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 			allowEmptyValue: false,
 			property: property,
 			valueProperty: null,
-			filenameProperty: null,
-			sizeProperty: null,
-			contentTypeProperty: null,
 			headerProperties: null,
 		}
 		encoding.properties[name] = propertyEncoding
@@ -202,9 +197,28 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 				partSchema.properties = idx.create()
 
+				let newSchemaUsage = originalProperty.schema.component ? originalProperty.schema.component : originalProperty
+
+				/* Detect parts that should be treated as files */
+				if (newSchemaUsage.schema.schemaType === CodegenSchemaType.BINARY) {
+					newSchemaUsage = createSchemaUsage({
+						...newSchemaUsage.schema,
+						type: 'file',
+						schemaType: CodegenSchemaType.FILE,
+						nativeType: state.generator.toNativeType({
+							type: 'file',
+							format: newSchemaUsage.schema.format,
+							schemaType: CodegenSchemaType.FILE,
+							vendorExtensions: newSchemaUsage.schema.vendorExtensions,
+						}),
+					}, {
+						required: newSchemaUsage.required,
+					}, state)
+				}
+
 				/* Value property contains the actual value */
 				const valueProperty = createCodegenProperty('value', {
-					...(originalProperty.schema.component ? originalProperty.schema.component : originalProperty),
+					...newSchemaUsage,
 					required: true, /* As if there's no value, our container shouldn't be created */
 					nullable: false,
 					readOnly: false,
@@ -212,27 +226,6 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				}, state)
 				addCodegenProperty(partSchema.properties, valueProperty, state)
 				propertyEncoding.valueProperty = valueProperty
-
-				/* File metadata */
-				if (propertySupportsFileMetadata(encoding, propertyEncoding)) {
-					const filenameProperty = createCodegenProperty('filename', createStringSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, filenameProperty, state)
-					propertyEncoding.filenameProperty = filenameProperty
-
-					const sizeProperty = createCodegenProperty('size', createNumericSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, sizeProperty, state)
-					propertyEncoding.sizeProperty = sizeProperty
-
-					const contentTypeProperty = createCodegenProperty('contentType', createStringSchemaUsage(undefined, {
-						required: false,
-					}, state), state)
-					addCodegenProperty(partSchema.properties, contentTypeProperty, state)
-					propertyEncoding.contentTypeProperty = contentTypeProperty
-				}
 
 				/* Header properties */
 				if (propertyEncoding.headers) {

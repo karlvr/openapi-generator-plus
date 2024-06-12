@@ -24,7 +24,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "@openapi-generator-plus/indexed-type": "^1.0.0",
+    "@openapi-generator-plus/indexed-type": "workspace:*",
     "openapi-types": "^12.1.3"
   }
 }

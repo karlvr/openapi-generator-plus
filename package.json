@@ -14,7 +14,7 @@
     "clean:node": "pnpm --recursive exec rm -rf node_modules && rm -rf node_modules",
     "link": "pnpm --recursive exec pnpm link --global",
     "lint": "pnpm --recursive lint",
-    "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpm exec changeset publish && pnpm install",
+    "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpm publish --recursive && pnpm exec changeset tag && pnpm install",
     "release:version": "pnpm changeset version && pnpm install",
     "test": "pnpm --recursive test",
     "test-core": "cd packages/core && pnpm t -- --watch",

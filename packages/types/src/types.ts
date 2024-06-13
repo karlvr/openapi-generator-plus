@@ -167,7 +167,7 @@ export interface CodegenGeneratorHelper {
 	addToScope(schema: CodegenSchema, scope: CodegenScope | null): void
 	createObjectSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenObjectSchema
 	createOneOfSchema(suggestedName: string, scope: CodegenScope | null, purpose: CodegenSchemaPurpose): CodegenOneOfSchema
-	uniqueName(suggestedName: string, scope: CodegenScope | null, schemaType: CodegenSchemaType): string
+	uniqueName(suggestedName: string, scope: CodegenScope | null, schemaType: CodegenSchemaType, purpose: CodegenSchemaPurpose): string
 	findSchema(name: string, scope: CodegenScope | null): CodegenSchema | undefined
 	scopeOf(schema: CodegenNamedSchema): CodegenScope | null
 }
@@ -547,6 +547,12 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	/** Anonymous is true if the schema has been given a name as it was anonymous in the spec */
 	anonymous: boolean | null
 
+	/**
+	 * The purpose for which this schema was created. Note that for non-anonymous schemas, this is the purpose which first
+	 * created the schema, not necessarily the only purpose for which the schema is used.
+	 */
+	purpose: CodegenSchemaPurpose
+
 	title: string | null
 
 	/** OpenAPI type */
@@ -924,9 +930,9 @@ export enum CodegenSchemaPurpose {
 	RESPONSE = 'RESPONSE',
 	HEADER = 'HEADER',
 	/**
-	 * An interface extracted from an implementation.
+	 * An interface extracted from an implementation or represent relationships between schemas in a composition.
 	 */
-	EXTRACTED_INTERFACE = 'EXTRACTED_INTERFACE',
+	INTERFACE = 'INTERFACE',
 	/**
 	 * An abstract implementation extracted from an interface
 	 */
@@ -951,6 +957,10 @@ export enum CodegenSchemaPurpose {
 	 * A schema created for property metadata.
 	 */
 	METADATA = 'METADATA',
+	/**
+	 * A schema to wrap around a primitive value where an object is required.
+	 */
+	WRAPPER = 'WRAPPER',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {

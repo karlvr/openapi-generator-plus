@@ -64,7 +64,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
  * @param state 
  * @returns 
  */
-export function createArraySchema(component: CodegenSchemaUsage, state: InternalCodegenState): CodegenArraySchema {
+export function createArraySchema(component: CodegenSchemaUsage, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenArraySchema {
 	const nativeType = state.generator.toNativeArrayType({
 		type: 'array',
 		schemaType: CodegenSchemaType.ARRAY,
@@ -79,6 +79,7 @@ export function createArraySchema(component: CodegenSchemaUsage, state: Internal
 		originalName: null,
 		originalScopedName: null,
 		anonymous: true,
+		purpose,
 
 		type: 'array',
 		format: null,

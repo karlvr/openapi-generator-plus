@@ -1,6 +1,6 @@
 import { createTestDocument, createTestGenerator } from './common'
 import { idx } from '..'
-import { CodegenContentEncodingType, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenContentEncodingType, CodegenObjectSchema, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
 
 test('multipart/form-data basic', async() => {
 	const result = await createTestDocument('encoding/multipart-form-data-basic.yml')
@@ -19,7 +19,9 @@ test('multipart/form-data basic', async() => {
 	expect(fileProperty).toBeDefined()
 
 	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.purpose).toBe(CodegenSchemaPurpose.PROPERTY)
 	expect(fileProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(fileProperty.schema.purpose).toBe(CodegenSchemaPurpose.METADATA)
 
 	const encoding = op.requestBody!.defaultContent.encoding!
 	expect(encoding).not.toBeNull()
@@ -41,6 +43,54 @@ test('multipart/form-data basic', async() => {
 	expect(filePropertyEncoding.valueProperty!.name).toEqual('value')
 
 	const filePropertySchema = fileProperty.schema as CodegenObjectSchema
+	const fileValueProperty = idx.get(filePropertySchema.properties!, 'value')
+	expect(fileValueProperty).toBeDefined()
+	expect(fileValueProperty!.schema.type).toEqual('file')
+	expect(fileValueProperty!.schema.format).toEqual('binary')
+})
+
+test('multipart/form-data array', async() => {
+	const result = await createTestDocument('encoding/multipart-form-data-array.yml')
+
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+	expect(op.requestBody).not.toBeNull()
+
+	const schema = op.requestBody?.schema as CodegenObjectSchema
+	expect(schema).toBeDefined()
+	expect(schema.scopedName.length).toBe(2) /* As we should have made a nested schema as we require metadata */
+
+	const infoProperty = idx.get(schema.properties!, 'info')!
+	const filesProperty = idx.get(schema.properties!, 'files')!
+	expect(infoProperty).toBeDefined()
+	expect(filesProperty).toBeDefined()
+
+	expect(infoProperty.schema.schemaType).toEqual(CodegenSchemaType.OBJECT)
+	expect(infoProperty.schema.purpose).toBe(CodegenSchemaPurpose.PROPERTY)
+	expect(filesProperty.schema.schemaType).toEqual(CodegenSchemaType.ARRAY)
+	expect(filesProperty.schema.purpose).toBe(CodegenSchemaPurpose.METADATA)
+
+	const encoding = op.requestBody!.defaultContent.encoding!
+	expect(encoding).not.toBeNull()
+
+	expect(encoding.type).toEqual(CodegenContentEncodingType.MULTIPART)
+
+	const infoPropertyEncoding = idx.get(encoding.properties, 'info')!
+	expect(infoPropertyEncoding).toBeDefined()
+	expect(infoPropertyEncoding.headers).toBeNull()
+	expect(infoPropertyEncoding.contentType).toEqual('application/json')
+	expect(infoPropertyEncoding.property.name).toEqual('info')
+	expect(infoPropertyEncoding.valueProperty).toBeNull()
+
+	const filePropertyEncoding = idx.get(encoding.properties, 'files')!
+	expect(filePropertyEncoding).toBeDefined()
+	expect(filePropertyEncoding.headers).toBeNull()
+	expect(filePropertyEncoding.contentType).toEqual('application/octet-stream')
+	expect(filePropertyEncoding.property.name).toEqual('files')
+	expect(filePropertyEncoding.valueProperty!.name).toEqual('value')
+
+	const filePropertySchema = filesProperty.schema.component?.schema as CodegenObjectSchema
+	expect(filePropertySchema).toBeTruthy()
 	const fileValueProperty = idx.get(filePropertySchema.properties!, 'value')
 	expect(fileValueProperty).toBeDefined()
 	expect(fileValueProperty!.schema.type).toEqual('file')

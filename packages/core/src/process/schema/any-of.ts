@@ -8,7 +8,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
-import { toCodegenInterfaceSchema } from './interface'
+import { createIfNotExistsCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema } from './object-absorb'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
@@ -180,7 +180,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		absorbCodegenSchema(anyOfSchema, result, { includeNestedSchemas: false, makePropertiesOptional: true })
 
 		/* Make sure there's an interface schema to use */
-		const interfaceSchema = toCodegenInterfaceSchema(anyOfSchema, scope, state)
+		const interfaceSchema = createIfNotExistsCodegenInterfaceSchema(anyOfSchema, scope, CodegenSchemaPurpose.INTERFACE, state)
 
 		addImplementor(interfaceSchema, result)
 		added.push([anyOfApiSchema, interfaceSchema])

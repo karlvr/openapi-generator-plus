@@ -158,7 +158,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 	content.encoding = encoding
 
 	if (requiresMetadata(content.encoding)) {
-		const newSchema = createObjectSchema(content.mediaType.mimeType, content.schema, CodegenSchemaPurpose.UNKNOWN, state)
+		const newSchema = createObjectSchema(content.mediaType.mimeType, content.schema, content.schema.purpose, state)
 		newSchema.properties = idx.create(allProperties)
 
 		for (const name of idx.allKeys(newSchema.properties)) {
@@ -178,7 +178,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 						readOnly: false,
 						writeOnly: false,
 					}, state)
-					partProperty.schema = createArraySchema(partComponentSchemaUsage, state)
+					partProperty.schema = createArraySchema(partComponentSchemaUsage, CodegenSchemaPurpose.METADATA, state)
 					partProperty.nativeType = transformNativeTypeForUsage(partProperty, state)
 				} else {
 					const partSchemaUsage = createSchemaUsage(partSchema, {

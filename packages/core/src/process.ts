@@ -85,8 +85,8 @@ function createGeneratorHelper(state: InternalCodegenState): CodegenGeneratorHel
 		addToScope: (schema, scope) => addToScope(schema, scope, state),
 		createObjectSchema: (suggestedName, scope, purpose) => createObjectSchema(suggestedName, scope, purpose, state),
 		createOneOfSchema: (suggestedName, scope, purpose) => createOneOfSchema(suggestedName, scope, purpose, state),
-		uniqueName(suggestedName, scope, schemaType) {
-			const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, schemaType, state)
+		uniqueName(suggestedName, scope, schemaType, purpose) {
+			const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, schemaType, purpose, state)
 			usedSchemaName(naming.scopedName, state)
 			return naming.name
 		},

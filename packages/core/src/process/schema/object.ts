@@ -197,7 +197,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 		schemaType: CodegenSchemaType.OBJECT,
 	})
 	
-	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.OBJECT, state)
+	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.OBJECT, purpose, state)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',

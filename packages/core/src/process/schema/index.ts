@@ -140,7 +140,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 		schemaType,
 	})
 
-	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, state) : null
+	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, purpose, state) : null
 	if (naming) {
 		usedSchemaName(naming.scopedName, state)
 	} else if ($ref) {

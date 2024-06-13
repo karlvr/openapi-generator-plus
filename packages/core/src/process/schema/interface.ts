@@ -12,7 +12,7 @@ import { addChildInterfaceSchema, addChildObjectSchema, addImplementor, baseSugg
  * @param schema 
  * @returns 
  */
-export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHierarchySchema, scope: CodegenScope | null, state: InternalCodegenState): CodegenInterfaceSchema {
+export function createIfNotExistsCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHierarchySchema, scope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenInterfaceSchema {
 	if (schema.interface) {
 		return schema.interface
 	}
@@ -26,16 +26,16 @@ export function toCodegenInterfaceSchema(schema: CodegenObjectSchema | CodegenHi
 	if (schema.parents) {
 		parents = []
 		for (const parentSchema of schema.parents) {
-			parents.push(toCodegenInterfaceSchema(parentSchema, scopeOf(parentSchema, state), state))
+			parents.push(createIfNotExistsCodegenInterfaceSchema(parentSchema, scopeOf(parentSchema, state), purpose, state))
 		}
 	}
 
 	/* Get a name for this interface */
 	const suggestedName = state.generator.toSuggestedSchemaName(baseSuggestedNameForRelatedSchemas(schema), {
-		purpose: CodegenSchemaPurpose.EXTRACTED_INTERFACE,
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 	})
-	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.INTERFACE, state)
+	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.INTERFACE, purpose, state)
 	usedSchemaName(naming.scopedName, state)
 
 	const nativeType = state.generator.toNativeObjectType({

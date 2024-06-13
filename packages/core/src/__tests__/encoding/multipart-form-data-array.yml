@@ -1,0 +1,28 @@
+openapi: 3.0.3
+info:
+  title: Multipart with array
+  version: '1.0'
+paths:
+  /object/create:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                info:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    size:
+                      type: number
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        200:
+          description: OK

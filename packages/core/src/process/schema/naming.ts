@@ -1,4 +1,4 @@
-import { CodegenNamedSchema, CodegenSchema, CodegenSchemaNameOptions, CodegenSchemaType, CodegenScope, IndexedCollectionType } from '@openapi-generator-plus/types'
+import { CodegenNamedSchema, CodegenSchema, CodegenSchemaNameOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, IndexedCollectionType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
@@ -14,11 +14,13 @@ export interface ScopedModelInfo {
 	originalScopedName: string[] | null
 	scope: CodegenScope | null
 	anonymous: boolean
+	/** The purpose for which the schema was created */
+	purpose: CodegenSchemaPurpose
 	$ref: string | undefined
 	moveToGlobalScope?: () => void
 }
 
-function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
+function toScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, purpose: CodegenSchemaPurpose, state: InternalCodegenState): ScopedModelInfo {
 	if ($ref) {
 		/* We always want referenced schemas to be at the top-level */
 		scope = null
@@ -55,9 +57,10 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			originalName: suggestedName,
 			scope,
 			anonymous: serializedName === null,
+			purpose,
 			$ref,
 			moveToGlobalScope: function() {
-				const newScopedName = toScopedName($ref, this.originalScopedName ? this.originalScopedName.join('_') : suggestedName, null, apiSchema, schemaType, state)
+				const newScopedName = toScopedName($ref, this.originalScopedName ? this.originalScopedName.join('_') : suggestedName, null, apiSchema, schemaType, purpose, state)
 				Object.assign(this, newScopedName)
 			},
 		}
@@ -70,13 +73,14 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			originalName: suggestedName,
 			scope: null,
 			anonymous: serializedName === null,
+			purpose,
 			$ref,
 		}
 	}
 }
 
-export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, state: InternalCodegenState): ScopedModelInfo {
-	const result = toScopedName($ref, suggestedName, scope, apiSchema, schemaType, state)
+export function toUniqueScopedName($ref: string | undefined, suggestedName: string, scope: CodegenScope | null, apiSchema: OpenAPIX.SchemaObject | undefined, schemaType: CodegenSchemaType, purpose: CodegenSchemaPurpose, state: InternalCodegenState): ScopedModelInfo {
+	const result = toScopedName($ref, suggestedName, scope, apiSchema, schemaType, purpose, state)
 
 	const reservedName = reservedSchemaName($ref, state)
 	if (reservedName !== fullyQualifiedName(result.scopedName)) {
@@ -120,7 +124,7 @@ function uniqueScopedName(scopedName: string[], state: InternalCodegenState): st
 	return [...parentNames, name]
 }
 
-type ExtractNamingKeys = 'name' | 'scopedName' | 'originalScopedName' | 'serializedName' | 'originalName' | 'anonymous'
+type ExtractNamingKeys = 'name' | 'scopedName' | 'originalScopedName' | 'serializedName' | 'originalName' | 'anonymous' | 'purpose'
 
 export function extractNaming(naming: ScopedModelInfo): Pick<CodegenNamedSchema, ExtractNamingKeys>
 export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchema, ExtractNamingKeys>
@@ -133,6 +137,7 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 			serializedName: null,
 			originalName: null,
 			anonymous: null,
+			purpose: CodegenSchemaPurpose.UNKNOWN,
 		}
 	}
 
@@ -143,6 +148,7 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 		serializedName: naming.serializedName,
 		originalName: naming.originalName,
 		anonymous: naming.anonymous,
+		purpose: naming.purpose,
 	}
 }
 

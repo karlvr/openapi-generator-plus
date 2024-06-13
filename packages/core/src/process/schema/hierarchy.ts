@@ -1,4 +1,4 @@
-import { CodegenHierarchySchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenHierarchySchema, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -9,7 +9,7 @@ import { toCodegenExamples } from '../examples'
 import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
-import { toCodegenInterfaceSchema } from './interface'
+import { createIfNotExistsCodegenInterfaceSchema } from './interface'
 
 export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenHierarchySchema {
 	const { scopedName, scope } = naming
@@ -63,7 +63,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 
 	result.properties = toCodegenProperties(apiSchema, result, state) || null
 
-	result.interface = toCodegenInterfaceSchema(result, scope, state)
+	result.interface = createIfNotExistsCodegenInterfaceSchema(result, scope, CodegenSchemaPurpose.INTERFACE, state)
 
 	/* Process discriminator after adding composes so they can be used */
 	result.discriminator = toCodegenSchemaDiscriminator(apiSchema, result, state)

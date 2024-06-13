@@ -10,7 +10,7 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToAnyDiscriminators, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
-import { toCodegenInterfaceImplementationSchema, toCodegenInterfaceSchema } from './interface'
+import { toCodegenInterfaceImplementationSchema, createIfNotExistsCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema, absorbApiSchema } from './object-absorb'
 import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findProperty } from './utils'
@@ -210,7 +210,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 			if (approach === SchemaApproach.ABSORB_WITH_INTERFACE) {
 				/* Make sure there's an interface schema to use */
-				const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? toCodegenInterfaceSchema(allOfSchema, scope, state) : allOfSchema
+				const interfaceSchema = isCodegenObjectSchema(allOfSchema) || isCodegenHierarchySchema(allOfSchema) ? createIfNotExistsCodegenInterfaceSchema(allOfSchema, scope, CodegenSchemaPurpose.INTERFACE, state) : allOfSchema
 
 				if (isCodegenInterfaceSchema(interfaceSchema)) {
 					addImplementor(interfaceSchema, result)

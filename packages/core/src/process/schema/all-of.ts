@@ -79,7 +79,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const allOf = apiSchema.allOf as Array<OpenAPIX.SchemaObject>
 	for (const allOfApiSchema of allOf) {
 		const allOfSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
-			purpose: CodegenSchemaPurpose.GENERAL,
+			purpose: CodegenSchemaPurpose.ALL_OF,
 			required: false,
 			suggestedScope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: 'content',
@@ -180,7 +180,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			const parentSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 				required: true,
 				suggestedName: `${result.name}_parent`,
-				purpose: CodegenSchemaPurpose.GENERAL,
+				purpose: CodegenSchemaPurpose.ALL_OF,
 				suggestedScope: scope,
 			}).schema
 

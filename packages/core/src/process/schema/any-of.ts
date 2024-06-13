@@ -76,7 +76,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 	for (const anyOfApiSchema of anyOf) {
 		const anyOfSchemaUsage = toCodegenSchemaUsage(anyOfApiSchema, state, {
-			purpose: CodegenSchemaPurpose.GENERAL,
+			purpose: CodegenSchemaPurpose.ANY_OF,
 			required: false,
 			suggestedScope: state.generator.nativeCompositionCanBeScope() ? result : scope,
 			suggestedName: (type) => `${type.toLowerCase()}_value`,
@@ -169,7 +169,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
 			required: true,
 			suggestedName: `${result.name}_submodel`,
-			purpose: CodegenSchemaPurpose.GENERAL,
+			purpose: CodegenSchemaPurpose.ANY_OF,
 			suggestedScope: result,
 		}).schema
 		if (!isCodegenObjectSchema(anyOfSchema)) {

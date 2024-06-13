@@ -890,7 +890,8 @@ export interface CodegenInitialValueOptions extends CodegenDefaultValueOptions {
 export type CodegenLiteralValueOptions = CodegenDefaultValueOptions
 
 /**
- * Describes the purpose for which a schema is being used.
+ * Describes the purpose for which a schema is being used. It is only used by generator templates to customise their behaviour
+ * such as to generate appropriate names for anonymous schemas.
  */
 export enum CodegenSchemaPurpose {
 	/**
@@ -902,9 +903,9 @@ export enum CodegenSchemaPurpose {
 	 */
 	MAP_VALUE = 'MAP_VALUE',
 	/**
-	 * The schema is being used for no specific pupose other than being a schema.
+	 * The schema is being used an unknown purpose, so there's no information to provide to help with naming.
 	 */
-	GENERAL = 'GENERAL',
+	UNKNOWN = 'UNKNOWN',
 	/**
 	 * The schema is being used as a parameter.
 	 */
@@ -934,6 +935,22 @@ export enum CodegenSchemaPurpose {
 	 * A non-abstract implementation extracted from an interface
 	 */
 	IMPLEMENTATION = 'IMPLEMENTATION',
+	/**
+	 * A schema created for an allOf.
+	 */
+	ALL_OF = 'ALL_OF',
+	/**
+	 * A schema created for an anyOf.
+	 */
+	ANY_OF = 'ANY_OF',
+	/**
+	 * A schema created for an oneOf.
+	 */
+	ONE_OF = 'ONE_OF',
+	/**
+	 * A schema created for property metadata.
+	 */
+	METADATA = 'METADATA',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {

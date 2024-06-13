@@ -41,7 +41,7 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 		toCodegenSchemaUsage(reference, state, {
 			required: true, 
 			suggestedName: schemaName,
-			purpose: CodegenSchemaPurpose.GENERAL,
+			purpose: CodegenSchemaPurpose.UNKNOWN,
 			suggestedScope: null,
 		})
 	}
@@ -50,6 +50,9 @@ export function discoverCodegenSchemas(specSchemas: OpenAPIV2.DefinitionsObject 
 export interface SchemaUsageOptions {
 	required: boolean
 	suggestedName: string | ((type: CodegenSchemaType) => string)
+	/**
+	 * The purpose for which this schema is being used in the context requesting the creation of the `CodegenSchemaUsage`.
+	 */
 	purpose: CodegenSchemaPurpose
 	suggestedScope: CodegenScope | null
 }
@@ -387,7 +390,7 @@ export function discoverSchemasInOtherDocuments(testFunc: DiscoverSchemasTestFun
 				const discovered = toCodegenSchemaUsage(reference, state, {
 					required: true, 
 					suggestedName: schemaName,
-					purpose: CodegenSchemaPurpose.GENERAL,
+					purpose: CodegenSchemaPurpose.UNKNOWN,
 					suggestedScope: null,
 				})
 				result.push(discovered)

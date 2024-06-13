@@ -78,7 +78,7 @@ export function createArraySchema(component: CodegenSchemaUsage, state: Internal
 		scopedName: null,
 		originalName: null,
 		originalScopedName: null,
-		anonymous: false,
+		anonymous: true,
 
 		type: 'array',
 		format: null,

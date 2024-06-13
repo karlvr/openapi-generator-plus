@@ -107,7 +107,8 @@ function processCodegenDocument(doc: CodegenDocument, state: InternalCodegenStat
 	}
 
 	/* Process models */
-	processCodegenSchemas(doc.schemas, state)
+	processCodegenSchemas(processCodegenSchema, doc.schemas, state)
+	processCodegenSchemas(processCodegenSchema2, doc.schemas, state)
 
 	/* Sort groups */
 	doc.groups.sort((a, b) => a.name.localeCompare(b.name))
@@ -139,15 +140,15 @@ function processCodegenOperationGroup(group: CodegenOperationGroup, state: Inter
 	return true
 }
 
-function processCodegenSchemas(models: CodegenSchemas, state: InternalCodegenState) {
+function processCodegenSchemas(handler: (schema: CodegenSchema, state: InternalCodegenState) => boolean, models: CodegenSchemas, state: InternalCodegenState) {
 	for (const entry of idx.iterable(models)) {
-		const result = processCodegenSchema(entry[1], state)
+		const result = handler(entry[1], state)
 		if (!result) {
 			idx.remove(models, entry[0])
 		} else if (isCodegenScope(entry[1])) {
 			const subModels = entry[1].schemas
 			if (subModels) {
-				processCodegenSchemas(subModels, state)
+				processCodegenSchemas(handler, subModels, state)
 				if (idx.isEmpty(subModels)) {
 					entry[1].schemas = null
 				}
@@ -164,13 +165,23 @@ function processCodegenOperation(op: CodegenOperation, state: InternalCodegenSta
 	return true
 }
 
+/**
+ * First-pass for schemas. This makes the first pass of changes that the second-pass depends upon having
+ * been completed.
+ */
 function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState): boolean {
 	if (hasNoGenerationRule(schema, state)) {
 		return false
 	}
 
 	postProcessSchemaForDiscriminator(schema)
+	return true
+}
 
+/**
+ * Second-pass for schemas.
+ */
+function processCodegenSchema2(schema: CodegenSchema, state: InternalCodegenState): boolean {
 	/* Compute overrides for properties */
 	if (isCodegenObjectSchema(schema) && schema.properties) {
 		for (const property of idx.allValues(schema.properties)) {
@@ -179,7 +190,7 @@ function processCodegenSchema(schema: CodegenSchema, state: InternalCodegenState
 			}
 		}
 	}
-	
+
 	if (state.generator.postProcessSchema) {
 		const result = state.generator.postProcessSchema(schema, createGeneratorHelper(state))
 		if (result === false) {

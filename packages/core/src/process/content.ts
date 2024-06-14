@@ -1,4 +1,4 @@
-import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenContentPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenEncodingStyle } from '@openapi-generator-plus/types'
+import { CodegenContent, CodegenContentEncoding, CodegenContentEncodingType, CodegenContentPropertyEncoding, CodegenExamples, CodegenLogLevel, CodegenMediaType, CodegenProperty, CodegenSchemaPurpose, CodegenSchemaUsage, CodegenScope, isCodegenObjectSchema, CodegenSchemaType, CodegenEncodingStyle, isCodegenArraySchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import type { OpenAPIV3 } from 'openapi-types'
 import { InternalCodegenState } from '../types'
@@ -171,14 +171,18 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 				const partProperty: CodegenProperty = {
 					...originalProperty,
 				}
-				if (originalProperty.schema.schemaType === CodegenSchemaType.ARRAY) {
+				if (isCodegenArraySchema(originalProperty.schema)) {
 					const partComponentSchemaUsage = createSchemaUsage(partSchema, {
 						required: true,
 						nullable: originalProperty.schema.component!.nullable,
 						readOnly: false,
 						writeOnly: false,
 					}, state)
-					partProperty.schema = createArraySchema(partComponentSchemaUsage, CodegenSchemaPurpose.METADATA, state)
+					const newArraySchema = createArraySchema(partComponentSchemaUsage, CodegenSchemaPurpose.METADATA, state)
+					newArraySchema.maxItems = originalProperty.schema.maxItems
+					newArraySchema.minItems = originalProperty.schema.minItems
+					newArraySchema.uniqueItems = originalProperty.schema.uniqueItems
+					partProperty.schema = newArraySchema
 					partProperty.nativeType = transformNativeTypeForUsage(partProperty, state)
 				} else {
 					const partSchemaUsage = createSchemaUsage(partSchema, {

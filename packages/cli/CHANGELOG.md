@@ -1,5 +1,22 @@
 # openapi-generator-plus
 
+## 2.16.0
+
+### Patch Changes
+
+- abc2168: Change to use pnpm workspace: uris for monorepo packages
+- 1fda1b4: Use pnpm 9
+- Updated dependencies [ac079c7]
+- Updated dependencies [f52e0a8]
+- Updated dependencies [be9830d]
+- Updated dependencies
+- Updated dependencies [abc2168]
+- Updated dependencies [cfc3835]
+- Updated dependencies [1fda1b4]
+- Updated dependencies [6ec95e8]
+  - @openapi-generator-plus/types@2.14.0
+  - @openapi-generator-plus/core@2.16.0
+
 ## 2.15.0
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @openapi-generator-plus/types
 
+## 2.14.0
+
+### Minor Changes
+
+- ac079c7: Introduce FILE schema type for files in a multipart body
+- be9830d: Add more CodegenSchemaPurpose values for collection types and rename GENERAL to UNKNOWN
+- 6ec95e8: Add purpose as a property in CodegenSchema so we know why schemas were created
+
+### Patch Changes
+
+- abc2168: Change to use pnpm workspace: uris for monorepo packages
+
 ## 2.13.0
 
 ### Minor Changes

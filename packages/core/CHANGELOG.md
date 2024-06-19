@@ -1,5 +1,27 @@
 # @openapi-generator-plus/core
 
+## 2.16.0
+
+### Minor Changes
+
+- ac079c7: Introduce FILE schema type for files in a multipart body
+- be9830d: Add more CodegenSchemaPurpose values for collection types and rename GENERAL to UNKNOWN
+- 6ec95e8: Add purpose as a property in CodegenSchema so we know why schemas were created
+
+### Patch Changes
+
+- f52e0a8: Created arrays should be anonymous
+- Maintain additional array metadata such as min and maxItems for new array schemas created due to content-encoding (such as multipart)
+- abc2168: Change to use pnpm workspace: uris for monorepo packages
+- cfc3835: Fix determination of whether properties override when a property is removed from an interface
+- 1fda1b4: Use pnpm 9
+- Updated dependencies [ac079c7]
+- Updated dependencies [be9830d]
+- Updated dependencies [abc2168]
+- Updated dependencies [6ec95e8]
+  - @openapi-generator-plus/types@2.14.0
+  - @openapi-generator-plus/utils@1.0.3
+
 ## 2.15.0
 
 ### Minor Changes

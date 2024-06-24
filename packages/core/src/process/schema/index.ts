@@ -232,6 +232,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 				type,
 				format: format || null,
 				schemaType: toCodegenSchemaType(type, format),
+				contentMediaType: null,
 				nativeType,
 				component: null,
 

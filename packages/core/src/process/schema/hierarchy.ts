@@ -36,6 +36,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 		type: 'hierarchy',
 		format: null,
 		schemaType: CodegenSchemaType.HIERARCHY,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 		examples: null,

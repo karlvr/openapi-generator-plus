@@ -41,6 +41,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		type: 'array',
 		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.ARRAY,
+		contentMediaType: null,
 		component: componentSchemaUsage,
 		nativeType,
 
@@ -84,6 +85,7 @@ export function createArraySchema(component: CodegenSchemaUsage, purpose: Codege
 		type: 'array',
 		format: null,
 		schemaType: CodegenSchemaType.ARRAY,
+		contentMediaType: null,
 		description: null,
 		title: null,
 		vendorExtensions: null,

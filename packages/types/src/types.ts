@@ -553,6 +553,8 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	 */
 	purpose: CodegenSchemaPurpose
 
+	contentMediaType: CodegenMediaType | null
+
 	title: string | null
 
 	/** OpenAPI type */

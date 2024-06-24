@@ -27,6 +27,7 @@ export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		type: apiSchema.type,
 		format: format || null,
 		schemaType: CodegenSchemaType.BOOLEAN,
+		contentMediaType: null,
 		nativeType,
 		component: null,
 

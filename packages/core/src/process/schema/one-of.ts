@@ -48,6 +48,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		type: 'oneOf',
 		format: null,
 		schemaType: CodegenSchemaType.ONEOF,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 		examples: null,
@@ -131,6 +132,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		type: 'object',
 		format: null,
 		schemaType: CodegenSchemaType.INTERFACE,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 
@@ -258,6 +260,7 @@ export function createOneOfSchema(suggestedName: string, scope: CodegenScope | n
 		type: 'oneOf',
 		format: null,
 		schemaType: CodegenSchemaType.ONEOF,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 		examples: null,

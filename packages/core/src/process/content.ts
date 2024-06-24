@@ -159,6 +159,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 	if (requiresMetadata(content.encoding)) {
 		const newSchema = createObjectSchema(content.mediaType.mimeType, content.schema, content.schema.purpose, state)
+		newSchema.contentMediaType = content.mediaType
 		newSchema.properties = idx.create(allProperties)
 
 		for (const name of idx.allKeys(newSchema.properties)) {

@@ -95,6 +95,7 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		type: apiSchema.type,
 		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.ENUM,
+		contentMediaType: null,
 		component: null,
 		nativeType,
 

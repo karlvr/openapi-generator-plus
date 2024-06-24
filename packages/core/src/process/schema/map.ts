@@ -51,6 +51,7 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		type: 'object',
 		format: apiSchema.format || null,
 		schemaType: CodegenSchemaType.MAP,
+		contentMediaType: null,
 		component: componentSchemaUsage,
 		nativeType,
 

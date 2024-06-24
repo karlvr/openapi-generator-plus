@@ -35,6 +35,7 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 		type: apiSchema.type,
 		format: format || null,
 		schemaType,
+		contentMediaType: null,
 		nativeType,
 		component: null,
 

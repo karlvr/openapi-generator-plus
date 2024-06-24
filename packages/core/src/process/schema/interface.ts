@@ -60,6 +60,7 @@ export function createIfNotExistsCodegenInterfaceSchema(schema: CodegenObjectSch
 		description: schema.description,
 		title: schema.title,
 		schemaType: CodegenSchemaType.INTERFACE,
+		contentMediaType: null,
 		component: null,
 		deprecated: schema.deprecated,
 

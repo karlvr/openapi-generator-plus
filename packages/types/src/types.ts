@@ -553,6 +553,7 @@ export interface CodegenSchema extends CodegenSchemaInfo {
 	 */
 	purpose: CodegenSchemaPurpose
 
+	/** If this schema was created to represent a specific request content type, this property will be populated with that media type. */
 	contentMediaType: CodegenMediaType | null
 
 	title: string | null

@@ -6,7 +6,6 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 16.x
           - 18.x
           - 20.x
     steps:
@@ -20,11 +19,15 @@ jobs:
       # https://pnpm.io/continuous-integration
       - uses: pnpm/action-setup@v3
         with:
-          version: 8
-      - name: Use Node.js ${{ matrix.node-version }}
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm build
+      - name: Use Node.js ${{ matrix.node-version }} for test
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: pnpm install
-      - run: pnpm build
       - run: pnpm test

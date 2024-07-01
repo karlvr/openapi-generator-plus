@@ -54,6 +54,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		type: 'allOf',
 		format: null,
 		schemaType: CodegenSchemaType.ALLOF,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 		examples: null,
@@ -142,6 +143,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		type: 'object',
 		format: null,
 		schemaType: CodegenSchemaType.OBJECT,
+		contentMediaType: null,
 		component: null,
 		deprecated: false,
 

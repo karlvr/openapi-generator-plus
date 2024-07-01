@@ -24,6 +24,7 @@ export function toCodegenNullSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		type: 'null',
 		format: null,
 		schemaType: CodegenSchemaType.NULL,
+		contentMediaType: null,
 		nativeType,
 		component: null,
 

@@ -43,6 +43,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		type: wrap.schema.type,
 		format: null,
 		schemaType: CodegenSchemaType.WRAPPER,
+		contentMediaType: null,
 		property,
 		implements: null,
 		description: null,

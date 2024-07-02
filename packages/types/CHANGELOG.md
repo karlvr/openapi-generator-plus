@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.15.0
+
+### Minor Changes
+
+- Improve support for schemas created to support different content encodings
+
 ## 2.14.0
 
 ### Minor Changes

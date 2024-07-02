@@ -1,5 +1,16 @@
 # @openapi-generator-plus/utils
 
+## 1.1.0
+
+### Minor Changes
+
+- Improve support for schemas created to support different content encodings
+
+### Patch Changes
+
+- Updated dependencies
+  - @openapi-generator-plus/types@2.15.0
+
 ## 1.0.3
 
 ### Patch Changes

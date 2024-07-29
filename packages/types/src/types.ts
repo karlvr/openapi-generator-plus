@@ -467,6 +467,8 @@ export enum CodegenSchemaType {
 	BINARY = 'BINARY',
 	FILE = 'FILE',
 	NULL = 'NULL',
+	/** The schema type is not known; this could be any valid JSON (see https://json-schema.org/understanding-json-schema/basics#hello-world!) */
+	ANY = 'ANY',
 }
 
 export interface CodegenSchemaInfo {
@@ -608,6 +610,11 @@ export interface CodegenBooleanSchema extends CodegenSchema {
 export interface CodegenNullSchema extends CodegenSchema {
 	type: 'null'
 	schemaType: CodegenSchemaType.NULL
+}
+
+export interface CodegenAnySchema extends CodegenSchema {
+	type: 'any'
+	schemaType: CodegenSchemaType.ANY
 }
 
 export interface CodegenStringSchema extends CodegenSchema {

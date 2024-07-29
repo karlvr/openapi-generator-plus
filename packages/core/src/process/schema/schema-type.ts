@@ -49,6 +49,9 @@ export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObjec
 		return CodegenSchemaType.MAP
 	} else if (typeof apiSchema.type === 'string') {
 		return toCodegenSchemaType(apiSchema.type, apiSchema.format)
+	} else if (Object.keys(apiSchema).length == 0) {
+		/* An empty object means the value can be any valid JSON (see https://json-schema.org/understanding-json-schema/basics#hello-world!) */
+		return CodegenSchemaType.ANY
 	} else if (apiSchema.type === undefined) {
 		throw new Error(`Missing schema type in schema: ${debugStringify(apiSchema)}`)
 	} else if (apiSchema.type === null) {

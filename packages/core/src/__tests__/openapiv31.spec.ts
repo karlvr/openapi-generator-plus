@@ -87,3 +87,14 @@ test('required on all-of with compatible base', async() => {
 	expect(second.schema.schemaType).toBe(CodegenSchemaType.STRING)
 	expect(second.required).toBeTruthy()
 })
+
+test('any schema', async() => {
+	const result = await createTestDocument('openapiv31/any-schema.yml')
+	expect(result).toBeDefined()
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+	expect(schema.schemaType).toBe(CodegenSchemaType.OBJECT)
+
+	const property = idx.get(schema.properties!, 'test')
+	expect(property?.schema.schemaType).toBe(CodegenSchemaType.ANY)
+})

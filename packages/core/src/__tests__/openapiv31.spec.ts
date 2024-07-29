@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '..'
-import { CodegenAllOfStrategy, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenArraySchema, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { findProperty } from '../process/schema/utils'
 
 test('process document', async() => {
@@ -97,4 +97,17 @@ test('any schema', async() => {
 
 	const property = idx.get(schema.properties!, 'test')
 	expect(property?.schema.schemaType).toBe(CodegenSchemaType.ANY)
+})
+
+test('array without items schema', async() => {
+	const result = await createTestDocument('openapiv31/array-without-items-schema.yml')
+	expect(result).toBeDefined()
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+	expect(schema.schemaType).toBe(CodegenSchemaType.OBJECT)
+
+	const property = idx.get(schema.properties!, 'test')
+	expect(property?.schema.schemaType).toBe(CodegenSchemaType.ARRAY)
+	
+	expect((property?.schema as CodegenArraySchema).component.schema.schemaType).toBe(CodegenSchemaType.ANY)
 })

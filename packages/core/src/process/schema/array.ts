@@ -13,14 +13,10 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		throw new Error('Not an array schema')
 	}
 
-	if (!apiSchema.items) {
-		throw new Error('items missing for schema type "array"')
-	}
-
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
-	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.items, state, {
+	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.items || {}, state, {
 		required: true,
 		suggestedName: suggestedItemModelName,
 		purpose: CodegenSchemaPurpose.ARRAY_ITEM,

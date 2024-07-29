@@ -26,6 +26,10 @@ async function createCodegenInputPossiblyWithUrl(inputPathOrUrl: string): Promis
 		
 		const startTime = Date.now()
 		const response = await fetch(inputPathOrUrl)
+		if (!response.ok) {
+			throw new Error(`Download failed with status ${response.status}: ${inputPathOrUrl}`)
+		}
+
 		const text = await response.text()
 		console.info(c.bold.green(`Downloaded in ${Date.now() - startTime}ms:`), inputPathOrUrl)
 
@@ -50,7 +54,14 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	const state = createCodegenState(config, generator)
 	state.log = log
 	
-	const input = await createCodegenInputPossiblyWithUrl(config.inputPath)
+	let input: CodegenInputDocument
+	try {
+		input = await createCodegenInputPossiblyWithUrl(config.inputPath)
+	} catch (error) {
+		console.error(c.bold.red('Failed to get the API specification:'), error)
+		return false
+	}
+
 	let doc: CodegenDocument
 	try {
 		doc = createCodegenDocument(input, state)

@@ -1,5 +1,18 @@
 # @openapi-generator-plus/core
 
+## 2.18.0
+
+### Minor Changes
+
+- 9005afb: Add support for arrays without a specified items schema
+- 8f4555b: Add support for an ANY schema represented by an empty schema object in OpenAPI
+
+### Patch Changes
+
+- Updated dependencies [8f4555b]
+  - @openapi-generator-plus/types@2.16.0
+  - @openapi-generator-plus/utils@1.1.1
+
 ## 2.17.0
 
 ### Minor Changes

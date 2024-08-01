@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.16.0
+
+### Minor Changes
+
+- 8f4555b: Add support for an ANY schema represented by an empty schema object in OpenAPI
+
 ## 2.15.0
 
 ### Minor Changes

@@ -36,12 +36,7 @@ function addToGroups(operation: CodegenOperation, groupName: string, groupPath: 
 	group.operations.push(operation)
 }
 
-/**
- * See JavaJAXRSSpecServerCodegen.addOperationToGroup
- * @param operation 
- * @param apiInfo 
- */
-export function addToGroupsByPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
+function preferredGroupMetadata(operation: CodegenOperation): { path: string; name: string } {
 	let basePath = operation.path
 	
 	const pos = basePath.indexOf('/', 1)
@@ -58,7 +53,21 @@ export function addToGroupsByPath(operation: CodegenOperation, groups: CodegenOp
 		groupName = 'default'
 	}
 
-	addToGroups(operation, groupName, basePath, groups, state)
+	return {
+		path: basePath,
+		name: groupName,
+	}
+}
+
+/**
+ * See JavaJAXRSSpecServerCodegen.addOperationToGroup
+ * @param operation 
+ * @param apiInfo 
+ */
+export function addToGroupsByPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
+	const metadata = preferredGroupMetadata(operation)
+
+	addToGroups(operation, metadata.name, metadata.path, groups, state)
 }
 
 export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
@@ -69,7 +78,9 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 		groupName = 'default'
 	}
 
-	addToGroups(operation, groupName, '', groups, state)
+	const metadata = preferredGroupMetadata(operation)
+
+	addToGroups(operation, groupName, metadata.path, groups, state)
 }
 
 export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {

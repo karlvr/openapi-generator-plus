@@ -139,6 +139,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	suggestedName = state.generator.toSuggestedSchemaName(suggestedName, {
 		purpose,
 		schemaType,
+		scope: suggestedScope,
 	})
 
 	const naming = supportedNamedSchema(schemaType, !!$ref, purpose, state) ? toUniqueScopedName($ref, suggestedName, suggestedScope, apiSchema, schemaType, purpose, state) : null

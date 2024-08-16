@@ -34,6 +34,7 @@ export function createIfNotExistsCodegenInterfaceSchema(schema: CodegenObjectSch
 	const suggestedName = state.generator.toSuggestedSchemaName(baseSuggestedNameForRelatedSchemas(schema), {
 		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
+		scope,
 	})
 	const naming = toUniqueScopedName(undefined, suggestedName, scope, undefined, CodegenSchemaType.INTERFACE, purpose, state)
 	usedSchemaName(naming.scopedName, state)

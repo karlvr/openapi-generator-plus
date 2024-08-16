@@ -38,6 +38,7 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 
 	const nameOptions: CodegenSchemaNameOptions = {
 		schemaType,
+		scope,
 	}
 	let name = state.generator.toSchemaName(suggestedName, nameOptions)
 

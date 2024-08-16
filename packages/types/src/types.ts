@@ -866,11 +866,15 @@ export interface CodegenDiscriminatorMappings {
 
 export interface CodegenSchemaNameOptions {
 	schemaType: CodegenSchemaType
+	/** The scope that the schema to name is scoped inside */
+	scope: CodegenScope | null
 }
 
 export interface CodegenSchemaNameSuggestionOptions {
 	purpose: CodegenSchemaPurpose
 	schemaType: CodegenSchemaType
+	/** The scope that the schema to suggest a name for will probably be scoped inside */
+	scope: CodegenScope | null
 }
 
 export interface CodegenTypeOptions {

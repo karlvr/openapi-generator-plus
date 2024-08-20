@@ -257,6 +257,7 @@ export interface CodegenOperation {
 	headerParams: CodegenParameters | null
 	cookieParams: CodegenParameters | null
 	formParams: CodegenParameters | null
+	requiredParams: CodegenParameters | null
 
 	requestBody: CodegenRequestBody | null
 

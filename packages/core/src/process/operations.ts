@@ -156,6 +156,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 	const headerParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isHeaderParam)) : null
 	const cookieParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isCookieParam)) : null
 	const formParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isFormParam)) : null
+	const requiredParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.required)) : null
 
 	/* Validate path params */
 	if (pathParams) {
@@ -182,6 +183,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 		headerParams,
 		cookieParams,
 		formParams,
+		requiredParams,
 
 		requestBody: bodyParam || null,
 

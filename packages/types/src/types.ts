@@ -237,7 +237,10 @@ export interface CodegenOperationGroup {
 }
 
 export interface CodegenOperation {
+	/** The name for this operation (safe as an identifier) */
 	name: string
+	/** A name for this operation that is unique within the API. Often based on the `operationId`, but always safe as an identifier */
+	uniqueName: string
 	httpMethod: string
 	/** The operation path, relative to the containing CodegenOperationGroup */
 	path: string

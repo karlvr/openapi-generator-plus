@@ -34,9 +34,8 @@ function groupOperations(operationInfos: CodegenOperation[], state: InternalCode
  * This can be a problem if an API spec uses non-unique operationIds.
  */
 function uniqueifyOperationNames(groups: CodegenOperationGroups, state: InternalCodegenState) {
-	for (const name in groups) {
-		const group = groups[name]
-		
+	/* Within each group */
+	for (const group of idx.values(groups)) {
 		const duplicateNames = findDuplicateNamesLowerCase(group.operations)
 
 		if (duplicateNames.length > 0) {
@@ -62,6 +61,21 @@ function uniqueifyOperationNames(groups: CodegenOperationGroups, state: Internal
 				}
 
 				newDuplicateNames = findDuplicateNamesLowerCase(group.operations)
+			}
+		}
+	}
+
+	/* Set operation.uniqueName */
+	const allOperations = idx.allValues(groups).reduce((result, group) => {
+		result.push(...group.operations); return result 
+	}, [] as CodegenOperation[])
+	const duplicateNames = findDuplicateNamesLowerCase(allOperations)
+	for (const group of idx.values(groups)) {
+		for (const op of group.operations) {
+			if (duplicateNames.indexOf(op.name.toLowerCase()) !== -1) {
+				op.uniqueName = state.generator.toIdentifier(`${group.name}_${op.name}`)
+			} else {
+				op.uniqueName = op.name
 			}
 		}
 	}

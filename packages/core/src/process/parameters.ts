@@ -60,7 +60,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		})
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
-		defaultValue = null
+		defaultValue = schemaUse.defaultValue
 	}
 
 	const vendorExtensions = toCodegenVendorExtensions(parameter)

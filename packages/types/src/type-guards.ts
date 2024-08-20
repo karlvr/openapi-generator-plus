@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage, CodegenHierarchySchema, CodegenOperation } from './types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenArraySchema, CodegenBooleanSchema, CodegenDiscriminatableSchema, CodegenDiscriminatorSchema, CodegenEnumSchema, CodegenInterfaceSchema, CodegenMapSchema, CodegenNamedSchema, CodegenNumericSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchema, CodegenSchemaType, CodegenScope, CodegenStringSchema, CodegenWrapperSchema, CodegenSchemaUsage, CodegenHierarchySchema, CodegenOperation, CodegenParameter, CodegenProperty } from './types'
 
 export function isCodegenNumericSchema(schema: CodegenSchema): schema is CodegenNumericSchema {
 	return schema.schemaType === CodegenSchemaType.NUMBER || schema.schemaType == CodegenSchemaType.INTEGER
@@ -106,4 +106,30 @@ export function isCodegenOperation(ob: unknown): ob is CodegenOperation {
 
 	const anyOb = ob as CodegenOperation
 	return typeof anyOb.name === 'string' && typeof anyOb.httpMethod === 'string' && typeof anyOb.path === 'string' && typeof anyOb.fullPath === 'string'
+}
+
+export function isCodegenProperty(ob: unknown): ob is CodegenProperty {
+	if (typeof ob !== 'object') {
+		return false
+	}
+
+	const anyParam = ob as CodegenProperty
+	if (typeof anyParam.name !== 'string' || typeof anyParam.serializedName !== 'string' || typeof anyParam.overrides !== 'boolean') {
+		return false
+	}
+
+	return true
+}
+
+export function isCodegenParameter(ob: unknown): ob is CodegenParameter {
+	if (typeof ob !== 'object') {
+		return false
+	}
+
+	const anyParam = ob as CodegenParameter
+	if (typeof anyParam.name !== 'string' || typeof anyParam.in !== 'string' || typeof anyParam.encoding !== 'object') {
+		return false
+	}
+
+	return true
 }

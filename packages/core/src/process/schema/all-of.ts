@@ -393,7 +393,11 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 				apiProperty = resolveReference(apiProperty, state)
 			}
 
-			const required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
+			let required = toRequiredPropertyNames(apiSchema).indexOf(apiPropertyName) !== -1
+			if (!referenceSchema) {
+				/* If it's not a reference schema then the allOf's own required list also applies */
+				required ||= allOfRequired.indexOf(apiPropertyName) !== -1
+			}
 			allOfSummary.allProperties[apiPropertyName] = { schema: apiProperty, required }
 
 			if (!allOfSummary.properties[apiPropertyName]) {

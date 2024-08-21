@@ -59,7 +59,7 @@ export interface SchemaUsageOptions {
 }
 
 export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
-	const $ref = isOpenAPIReferenceObject(apiSchema) ? apiSchema.$ref : undefined
+	let $ref = isOpenAPIReferenceObject(apiSchema) ? apiSchema.$ref : undefined
 
 	const usageInfo: Partial<CodegenSchemaInfo> = {}
 
@@ -75,7 +75,9 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	}
 
 	apiSchema = resolveReference(apiSchema, state)
-	apiSchema = fixApiSchema(apiSchema, usageInfo, state)
+	const fixed = fixApiSchema(apiSchema, $ref, usageInfo, state)
+	apiSchema = fixed.apiSchema
+	$ref = fixed.$ref
 
 	/* Check if we've already generated this schema, and return it */
 	const existing = findKnownSchema(apiSchema, $ref, state)
@@ -284,7 +286,7 @@ function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean
  * fixed schema but NOT the fixed usageInfo.
  * @param apiSchema 
  */
-function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, usageInfo: Partial<CodegenSchemaInfo>, state: InternalCodegenState): OpenAPIX.SchemaObject {
+function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, usageInfo: Partial<CodegenSchemaInfo>, state: InternalCodegenState): { apiSchema: OpenAPIX.SchemaObject; $ref: string | undefined } {
 	if (apiSchema.anyOf && apiSchema.anyOf.length > 1) {
 		const nullIndex = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).findIndex(s => s.type === 'null')
 		if (nullIndex !== -1) {
@@ -295,6 +297,10 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, usageInfo: Partial<Codeg
 				 */
 				const originalApiSchema = apiSchema
 				
+				if (isOpenAPIReferenceObject(otherTypes[0])) {
+					/* As we're unwrapping this redundant anyOf we need to also update the $ref to point to our new target schema */
+					$ref = otherTypes[0].$ref
+				}
 				apiSchema = resolveReference(otherTypes[0], state)
 
 				/* Mark this usage as nullable */
@@ -361,7 +367,7 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, usageInfo: Partial<Codeg
 		}
 	}
 
-	return apiSchema
+	return { apiSchema, $ref }
 }
 
 export type DiscoverSchemasTestFunc = (apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState) => boolean

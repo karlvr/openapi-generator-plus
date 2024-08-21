@@ -91,6 +91,33 @@ export function toCodegenPropertySummary(name: string, apiSchema: OpenAPIX.Schem
 	}
 }
 
+export function propertySummaryToString(summary: CodegenPropertySummary): string {
+	let result = summary.name
+	if (summary.type) {
+		result += `: ${summary.type}`
+	}
+	const extras: string[] = []
+	if (summary.format) {
+		extras.push(`format: ${summary.format}`)
+	}
+	if (summary.readOnly) {
+		extras.push('read-only')
+	}
+	if (summary.writeOnly) {
+		extras.push('write-only')
+	}
+	if (summary.nullable) {
+		extras.push('nullable')
+	}
+	if (summary.required) {
+		extras.push('required')
+	}
+	if (extras.length) {
+		result += ` (${extras.join(', ')})`
+	}
+	return result
+}
+
 export function createCodegenProperty(name: string, schemaUsage: CodegenSchemaUsage, state: InternalCodegenState): CodegenProperty {
 	const property: CodegenProperty = {
 		name: state.generator.toIdentifier(name),

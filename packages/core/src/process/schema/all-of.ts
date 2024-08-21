@@ -14,7 +14,7 @@ import { toCodegenInterfaceImplementationSchema, createIfNotExistsCodegenInterfa
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema, absorbApiSchema } from './object-absorb'
 import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findProperty } from './utils'
-import { toCodegenPropertySummary, toRequiredPropertyNames } from './property'
+import { propertySummaryToString, toCodegenPropertySummary, toRequiredPropertyNames } from './property'
 import { transformNativeTypeForUsage } from './usage'
 
 export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
@@ -177,7 +177,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	}
 	
 	/* Handle the reference schemas, either using inheritance or interface conformance */
-	for (const { apiSchema: allOfApiSchema, approach } of classifyAllOfSchemas(apiSchema, state)) {
+	for (const { apiSchema: allOfApiSchema, approach } of classifyAllOfSchemas(apiSchema, naming, state)) {
 		if (approach === SchemaApproach.PARENT) {
 			const parentSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 				required: true,
@@ -286,11 +286,14 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
  * @param state 
  * @returns 
  */
-function classifyAllOfSchemas(allOfSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): ClassifiedSchema[] {
+function classifyAllOfSchemas(allOfSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): ClassifiedSchema[] {
 	const allOfSchemas = allOfSchema.allOf as Array<OpenAPIX.SchemaObject>
 
-	if (!checkObjectSchemaCompatibility(allOfSchema, allOfSchemas, state)) {
+	const compatibilityFail = checkObjectSchemaCompatibility(allOfSchema, allOfSchemas, state)
+	if (compatibilityFail) {
 		/* The schemas are not compatible for inheritance or interface compatibility */
+		state.log(CodegenLogLevel.INFO, `allOf schema "${(naming.originalScopedName || naming.scopedName).join('.')}" not suitable for inheritance or interface conformance: ${compatibilityFail.reason}`)
+		
 		return allOfSchemas.map(apiSchema => ({
 			apiSchema,
 			approach: SchemaApproach.ABSORB_NO_INTERFACE,
@@ -331,6 +334,10 @@ function classifyAllOfSchemas(allOfSchema: OpenAPIX.SchemaObject, state: Interna
 	}))
 }
 
+interface CodegenCheckFailure {
+	reason: string
+}
+
 /**
  * Check that the properties of the schemas are compatible with each other, otherwise we cannot use inheritance
  * as languages do not allow inheritance with incompatible property types.
@@ -343,7 +350,7 @@ function classifyAllOfSchemas(allOfSchema: OpenAPIX.SchemaObject, state: Interna
  * @param state 
  * @returns 
  */
-function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allOfSchemas: OpenAPIX.SchemaObject[], state: InternalCodegenState, allOfSummary?: AllOfSummary): boolean {
+function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allOfSchemas: OpenAPIX.SchemaObject[], state: InternalCodegenState, allOfSummary?: AllOfSummary): CodegenCheckFailure | null {
 	if (!allOfSummary) {
 		allOfSummary = {
 			properties: {},
@@ -378,8 +385,9 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 		}
 
 		if (apiSchema.allOf) {
-			if (!checkObjectSchemaCompatibility(apiSchema, apiSchema.allOf, state, allOfSummary)) {
-				return false
+			const fail = checkObjectSchemaCompatibility(apiSchema, apiSchema.allOf, state, allOfSummary)
+			if (fail) {
+				return fail
 			}
 		}
 
@@ -410,12 +418,13 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 			} else {
 				/* Check compatibility */
 				const knownProperty = allOfSummary.properties[apiPropertyName]
-				if (!checkPropertyCompatibility(
+				const fail = checkPropertyCompatibility(
 					toCodegenPropertySummary(apiPropertyName, knownProperty.schema, knownProperty.required),
 					toCodegenPropertySummary(apiPropertyName, apiProperty, required),
 					state
-				)) {
-					return false
+				)
+				if (fail) {
+					return fail
 				}
 			}
 		}
@@ -426,19 +435,25 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
 		for (const propertyName of allOfRequired) {
 			const knownProperty = allOfSummary.properties[propertyName]
 			if (knownProperty) {
-				if (!checkPropertyCompatibility(
+				const fail = checkPropertyCompatibility(
 					toCodegenPropertySummary(propertyName, knownProperty.schema, knownProperty.required),
 					toCodegenPropertySummary(propertyName, knownProperty.schema, true),
-					state
-				)) {
-					return false
+					state)
+				if (fail) {
+					return fail
 				}
 			}
 		}
 	}
 
 	/* There may still be incompatibilities in the schemas for the generator's target, so we give the generator an opportunity to check. */
-	return state.generator.checkAllOfInheritanceCompatibility(allOfSummary)
+	if (!state.generator.checkAllOfInheritanceCompatibility(allOfSummary)) {
+		return {
+			reason: 'Generator failed general inheritance compatibility check',
+		}
+	}
+
+	return null
 }
 
 /**
@@ -448,8 +463,14 @@ function checkObjectSchemaCompatibility(allOfSchema: OpenAPIX.SchemaObject, allO
  * @param childProp 
  * @returns 
  */
-function checkPropertyCompatibility(parentProp: CodegenPropertySummary, childProp: CodegenPropertySummary, state: InternalCodegenState): boolean {
-	return state.generator.checkPropertyCompatibility(parentProp, childProp)
+function checkPropertyCompatibility(parentProp: CodegenPropertySummary, childProp: CodegenPropertySummary, state: InternalCodegenState): CodegenCheckFailure | null {
+	if (!state.generator.checkPropertyCompatibility(parentProp, childProp)) {
+		return {
+			reason: `Parent property ${propertySummaryToString(parentProp)} is incompatible with child property ${propertySummaryToString(childProp)}`,
+		}
+	} else {
+		return null
+	}
 }
 
 function hasDiscriminator(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): boolean {

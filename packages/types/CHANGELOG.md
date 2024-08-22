@@ -1,5 +1,17 @@
 # @openapi-generator-plus/types
 
+## 2.17.0
+
+### Minor Changes
+
+- a0d868d: Add info to CodegenNativeType to support generators to augment native types as required
+- 207ebd5: Add schema scope to generator template's naming callbacks
+- 33281d9: Add requiredParams to CodegenOperation
+- 41862b9: Add config option for operation grouping strategy
+- 1537b09: Add uniqueName property to CodegenOperation for an identifier that is unique in the entire API (often based on the operationId)
+- 70ed015: Add tags to CodegenOperationGroup containing common tags from its operations
+- c130d49: Add type guards for CodegenProperty and CodegenParameter
+
 ## 2.16.0
 
 ### Minor Changes

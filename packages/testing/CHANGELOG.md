@@ -1,5 +1,24 @@
 # @openapi-generator-plus/testing
 
+## 2.19.0
+
+### Patch Changes
+
+- Updated dependencies [fe54120]
+- Updated dependencies [609006e]
+- Updated dependencies [a0d868d]
+- Updated dependencies [207ebd5]
+- Updated dependencies [c3d8509]
+- Updated dependencies [33281d9]
+- Updated dependencies [cbd8017]
+- Updated dependencies [41862b9]
+- Updated dependencies [343c53e]
+- Updated dependencies [1537b09]
+- Updated dependencies [70ed015]
+- Updated dependencies [c130d49]
+  - @openapi-generator-plus/core@2.19.0
+  - @openapi-generator-plus/types@2.17.0
+
 ## 2.18.0
 
 ### Patch Changes

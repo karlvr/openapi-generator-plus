@@ -1,5 +1,37 @@
 # @openapi-generator-plus/core
 
+## 2.19.0
+
+### Minor Changes
+
+- fe54120: Fix unpopulated `defaultValue` property on CodegenParameter for OAI 3 specs
+- a0d868d: Add info to CodegenNativeType to support generators to augment native types as required
+- 207ebd5: Add schema scope to generator template's naming callbacks
+- 33281d9: Add requiredParams to CodegenOperation
+- 41862b9: Add config option for operation grouping strategy
+- 343c53e: Try to use an operation group path even when grouping by tag
+- 1537b09: Add uniqueName property to CodegenOperation for an identifier that is unique in the entire API (often based on the operationId)
+- 70ed015: Add tags to CodegenOperationGroup containing common tags from its operations
+
+### Patch Changes
+
+- 609006e: Fix `allOf` property compatibility checking of inline object properties that have `required` specified on the `allOf` itself
+- c3d8509: Add info logging about `allOf` property incompatibility to help explain the generator's choices
+- cbd8017: Fix handling of OAI 3.1 nullable schema references using `anyOf`
+
+  The generator did not properly use the referenced schema so it would not be generated as a top-level schema
+  and its name would not be used.
+
+- Updated dependencies [a0d868d]
+- Updated dependencies [207ebd5]
+- Updated dependencies [33281d9]
+- Updated dependencies [41862b9]
+- Updated dependencies [1537b09]
+- Updated dependencies [70ed015]
+- Updated dependencies [c130d49]
+  - @openapi-generator-plus/types@2.17.0
+  - @openapi-generator-plus/utils@1.1.2
+
 ## 2.18.0
 
 ### Minor Changes

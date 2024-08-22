@@ -236,6 +236,9 @@ export interface CodegenOperationGroup {
 	operations: CodegenOperation[]
 	consumes: CodegenMediaType[] | null // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 	produces: CodegenMediaType[] | null // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+
+	/** Tags that apply to the group as a whole, if any */
+	tags: string[] | null
 }
 
 export interface CodegenOperation {

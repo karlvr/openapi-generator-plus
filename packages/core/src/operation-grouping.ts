@@ -28,12 +28,21 @@ function addToGroups(operation: CodegenOperation, groupName: string, groupPath: 
 			operations: [],
 			consumes: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
 			produces: [], // TODO in OpenAPIV2 these are on the document, but not on OpenAPIV3
+			tags: operation.tags,
 		}
 		idx.set(groups, groupName, group)
 	}
 
 	prepareOperationForGroup(operation, group)
 	group.operations.push(operation)
+
+	/* Remove incompatible tags from group */
+	if (group.tags) {
+		group.tags = group.tags.filter(tag => operation.tags && operation.tags.indexOf(tag) !== -1)
+		if (group.tags.length === 0) {
+			group.tags = null
+		}
+	}
 }
 
 function preferredGroupMetadata(operation: CodegenOperation): { path: string; name: string } {

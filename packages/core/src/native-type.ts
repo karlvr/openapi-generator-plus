@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { CodegenNativeType, CodegenNativeTypeTransformers, CodegenNativeTypeComposers, CodegenNativeTypeComposer } from '@openapi-generator-plus/types'
+import { CodegenNativeType, CodegenNativeTypeTransformers, CodegenNativeTypeComposers, CodegenNativeTypeComposer, CodegenNativeTypeInfo } from '@openapi-generator-plus/types'
 
 export class CodegenNativeTypeImpl implements CodegenNativeType {
 
@@ -9,6 +9,7 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 	public concreteType: string
 	public parentType: string
 	public componentType: CodegenNativeType | null
+	private infoValue: CodegenNativeTypeInfo | null
 
 	public constructor(nativeType: string, additionalTypes?: {
 		serializedType?: string
@@ -16,6 +17,7 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 		concreteType?: string
 		parentType?: string
 		componentType?: CodegenNativeType | null
+		info?: CodegenNativeTypeInfo
 	}) {
 		this.nativeType = nativeType
 		if (additionalTypes) {
@@ -24,12 +26,23 @@ export class CodegenNativeTypeImpl implements CodegenNativeType {
 			this.concreteType = additionalTypes.concreteType !== undefined ? additionalTypes.concreteType : nativeType
 			this.parentType = additionalTypes.parentType !== undefined ? additionalTypes.parentType : nativeType
 			this.componentType = additionalTypes.componentType !== undefined ? additionalTypes.componentType : null
+			this.infoValue = additionalTypes.info !== undefined ? additionalTypes.info : null
 		} else {
 			this.serializedType = nativeType
 			this.literalType = nativeType
 			this.concreteType = nativeType
 			this.parentType = nativeType
 			this.componentType = null
+			this.infoValue = null
+		}
+	}
+
+	public get info() {
+		/* We provide this getter to ensure that our info remains immutable */
+		if (this.infoValue) {
+			return { ...this.infoValue }
+		} else {
+			return null
 		}
 	}
 
@@ -107,6 +120,16 @@ export class CodegenTransformingNativeTypeImpl implements CodegenNativeType {
 		}
 	}
 
+	public get info(): CodegenNativeTypeInfo | null {
+		const transformer = this.transformers.info !== undefined ? this.transformers.info : (nativeType: CodegenNativeType) => nativeType.info
+		if (transformer) {
+			/* We must create a new object to prevent modifications to the wrapped info */
+			return transformer(this.wrapped)
+		} else {
+			return this.wrapped.info
+		}
+	}
+
 	private get wrapped(): CodegenNativeType {
 		return this.actualWrapped
 	}
@@ -160,6 +183,18 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 			return null
 		}
 	}
+	
+
+	/**
+	 * The default composing of `info` is to combine left to right.
+	 */
+	public get info(): CodegenNativeTypeInfo | null {
+		if (this.composers.info) {
+			return this.composers.info(this.wrapped, defaultCodegenNativeTypeInfoComposer)
+		} else {
+			return defaultCodegenNativeTypeInfoComposer(this.wrapped)
+		}
+	}
 
 	private get wrapped(): CodegenNativeType[] {
 		return this.actualWrapped
@@ -177,6 +212,19 @@ export class CodegenComposingNativeTypeImpl implements CodegenNativeType {
 		return composer(nativeTypes)
 	}
 
+}
+
+function defaultCodegenNativeTypeInfoComposer(nativeTypes: CodegenNativeType[]): CodegenNativeTypeInfo | null {
+	let result: CodegenNativeTypeInfo | null = null
+	for (const nativeType of nativeTypes) {
+		if (nativeType.info) {
+			if (!result) {
+				result = {}
+			}
+			Object.assign(result, nativeType.info)
+		}
+	}
+	return result
 }
 
 function equalNativeType(a: CodegenNativeType, b: CodegenNativeType | undefined): boolean {

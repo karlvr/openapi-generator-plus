@@ -1,7 +1,9 @@
-import { CodegenNativeType } from './types'
+import { CodegenNativeType, CodegenNativeTypeInfo } from './types'
 
 export type CodegenNativeTypeStringComposer = (nativeTypeStrings: string[]) => string
 export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => string
+type DefaultCodegenNativeTypeInfoComposer = (nativeTypes: CodegenNativeType[]) => CodegenNativeTypeInfo | null
+export type CodegenNativeTypeInfoComposer = (nativeTypes: CodegenNativeType[], defaultComposer: DefaultCodegenNativeTypeInfoComposer) => CodegenNativeTypeInfo | null
 
 /**
  * Transform the given native type.
@@ -10,6 +12,12 @@ export type CodegenNativeTypeComposer = (nativeTypes: CodegenNativeType[]) => st
  * @returns a new native type string, or `null` to remove the native type.
  */
 export type CodegenNativeTypeTransformer = (nativeType: CodegenNativeType, nativeTypeString: string) => string
+
+/**
+ * Transform the native type info
+ * @param nativeType the native type
+ */
+export type CodegenNativeTypeInfoTransformer = (nativeType: CodegenNativeType) => CodegenNativeTypeInfo | null
 
 export interface CodegenNativeTypeTransformers {
 	/**
@@ -29,6 +37,7 @@ export interface CodegenNativeTypeTransformers {
 	 * If undefined, the component type is transformed using this set of transformers.
 	 */
 	componentType?: CodegenNativeTypeTransformers | null
+	info?: CodegenNativeTypeInfoTransformer | null
 }
 
 export interface CodegenTransformingNativeTypeConstructor {
@@ -42,6 +51,7 @@ export interface CodegenNativeTypeComposers {
 	literalType?: CodegenNativeTypeComposer
 	parentType?: CodegenNativeTypeComposer
 	concreteType?: CodegenNativeTypeComposer
+	info?: CodegenNativeTypeInfoComposer
 }
 
 export interface CodegenComposingNativeTypeConstructor {

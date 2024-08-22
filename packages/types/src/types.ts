@@ -418,6 +418,7 @@ export interface CodegenNativeTypeConstructor {
 		literalType?: string
 		concreteType?: string
 		componentType?: CodegenNativeType
+		info?: CodegenNativeTypeInfo
 	}): CodegenNativeType
 }
 
@@ -449,10 +450,19 @@ export interface CodegenNativeType {
 	 */
 	componentType: CodegenNativeType | null
 
+	/**
+	 * Any extra information that a generator template might provide to help with code generation.
+	 */
+	info: CodegenNativeTypeInfo | null
+
 	toString(): string
 
 	equals(other: CodegenNativeType | undefined): boolean
 
+}
+
+export interface CodegenNativeTypeInfo {
+	[key: string]: unknown
 }
 
 export enum CodegenSchemaType {

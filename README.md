@@ -132,6 +132,7 @@ See the README for the generator template you're using for additional configurat
 |Property|Type|Description|Default|
 |--------|----|-----------|-------|
 |`defaultRequestBodyIdentifier`|`string`|The identifier to use for the request body (OpenAPI 3)|`"request"`|
+|`groupBy`|`"path"` \| `"tag"` \| `"default"`|The strategy for grouping operations. The default is to use tags, if present on an operation and to fallback to paths. If a specific strategy is specified, only that strategy will be used.|`"default"`|
 
 ## Background
 

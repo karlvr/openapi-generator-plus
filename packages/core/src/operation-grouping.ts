@@ -84,6 +84,12 @@ export function addToGroupsByTag(operation: CodegenOperation, groups: CodegenOpe
 }
 
 export function addToGroupsByTagOrPath(operation: CodegenOperation, groups: CodegenOperationGroups, state: CodegenState): void {
+	if (state.options.operations.groupBy === 'path') {
+		return addToGroupsByPath(operation, groups, state)
+	} else if (state.options.operations.groupBy === 'tag') {
+		return addToGroupsByTag(operation, groups, state)
+	}
+
 	if (operation.vendorExtensions && operation.vendorExtensions['x-group']) {
 		return addToGroups(operation, String(operation.vendorExtensions['x-group']), '', groups, state)
 	} else if (operation.tags && operation.tags.length) {

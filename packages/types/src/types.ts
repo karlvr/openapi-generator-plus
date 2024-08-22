@@ -24,6 +24,7 @@ export interface CodegenState {
 export interface CodegenOptions {
 	operations: {
 		defaultRequestBodyIdentifier: string
+		groupBy: 'path' | 'tag' | 'default'
 	}
 }
 
@@ -185,6 +186,7 @@ export interface CodegenConfig {
 	options?: {
 		operations?: {
 			defaultRequestBodyIdentifier?: string
+			groupBy?: string
 		}
 	}
 }

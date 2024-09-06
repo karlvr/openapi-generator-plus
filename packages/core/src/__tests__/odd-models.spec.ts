@@ -172,3 +172,12 @@ test('additional properties no schema', async() => {
 	expect(reffingAdditionalProperties.additionalProperties).toBeFalsy()
 
 })
+
+test('empty object', async() => {
+	const result = await createTestDocument('odd-models/empty-object.yml')
+	expect(result).toBeDefined()
+
+	const ob = result.schemas['EmptyObject'] as CodegenObjectSchema
+	expect(ob).toBeDefined()
+	expect(ob.properties).toBeNull()
+})

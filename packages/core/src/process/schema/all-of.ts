@@ -186,7 +186,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 			const parentSchema = toCodegenSchemaUsage(allOfApiSchema, state, {
 				required: true,
 				suggestedName: `${result.name}_parent`,
-				purpose: CodegenSchemaPurpose.ALL_OF,
+				purpose: CodegenSchemaPurpose.PARENT,
 				suggestedScope: scope,
 			}).schema
 

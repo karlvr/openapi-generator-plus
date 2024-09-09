@@ -175,7 +175,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
 			required: true,
 			suggestedName: `${result.name}_submodel`,
-			purpose: CodegenSchemaPurpose.ANY_OF,
+			purpose: CodegenSchemaPurpose.ABSORB,
 			suggestedScope: result,
 		}).schema
 		if (!isCodegenObjectSchema(anyOfSchema)) {

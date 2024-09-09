@@ -1002,6 +1002,10 @@ export enum CodegenSchemaPurpose {
 	 * The schema is being created for the purposes of being absorbed into another schema as part of inheritance / hierarchy.
 	 */
 	ABSORB = 'ABSORB',
+	/**
+	 * The schema is a parent of another schema (such as an allOf)
+	 */
+	PARENT = 'PARENT',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {

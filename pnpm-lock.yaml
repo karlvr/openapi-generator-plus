@@ -56,12 +56,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@openapi-generator-plus/core':
-        specifier: workspace:*
-        version: link:../core
-      '@openapi-generator-plus/types':
-        specifier: workspace:*
-        version: link:../types
       ansi-colors:
         specifier: ^4.1.3
         version: 4.1.3
@@ -81,9 +75,15 @@ importers:
         specifier: ^2.4.1
         version: 2.4.5
     devDependencies:
+      '@openapi-generator-plus/core':
+        specifier: workspace:*
+        version: link:../core
       '@openapi-generator-plus/test-generator':
         specifier: workspace:*
         version: link:../test-generator
+      '@openapi-generator-plus/types':
+        specifier: workspace:*
+        version: link:../types
       '@types/node-fetch':
         specifier: ^2.6.11
         version: 2.6.11

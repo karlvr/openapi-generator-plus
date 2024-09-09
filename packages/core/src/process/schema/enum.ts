@@ -1,4 +1,4 @@
-import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
@@ -10,7 +10,7 @@ import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { debugStringify } from '@openapi-generator-plus/utils'
 
-export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenEnumSchema {
+export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenEnumSchema {
 	if (!apiSchema.enum) {
 		throw new Error('Not an enum schema')
 	}
@@ -28,22 +28,25 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		// the enum values as well and can optionally use them to make a type literal?
 		throw new Error('enum doesn\'t currently support not being named')
 	}
+
+	const enumValueType = apiSchema.type
+	const enumValueFormat = apiSchema.format
 	
 	const nativeType = state.generator.toNativeObjectType({
-		type: apiSchema.type,
-		format: apiSchema.format,
+		type: enumValueType,
+		format: enumValueFormat,
+		purpose,
 		schemaType: CodegenSchemaType.ENUM,
 		scopedName: naming.scopedName,
 		vendorExtensions,
 	})
 
-	const enumValueType = apiSchema.type
-	const enumValueFormat = apiSchema.format
 	const enumValuePropertyType = toCodegenSchemaType(enumValueType, enumValueFormat)
 
 	const enumValueNativeType = state.generator.toNativeType({
 		type: enumValueType,
 		format: apiSchema.format,
+		purpose,
 		schemaType: enumValuePropertyType,
 		vendorExtensions,
 	})
@@ -94,6 +97,7 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		type: apiSchema.type,
 		format: apiSchema.format || null,
+		purpose,
 		schemaType: CodegenSchemaType.ENUM,
 		contentMediaType: null,
 		component: null,

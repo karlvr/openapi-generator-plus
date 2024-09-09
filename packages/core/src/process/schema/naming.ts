@@ -14,8 +14,6 @@ export interface ScopedModelInfo {
 	originalScopedName: string[] | null
 	scope: CodegenScope | null
 	anonymous: boolean
-	/** The purpose for which the schema was created */
-	purpose: CodegenSchemaPurpose
 	$ref: string | undefined
 	moveToGlobalScope?: () => void
 }
@@ -58,7 +56,6 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			originalName: suggestedName,
 			scope,
 			anonymous: serializedName === null,
-			purpose,
 			$ref,
 			moveToGlobalScope: function() {
 				const newScopedName = toScopedName($ref, this.originalScopedName ? this.originalScopedName.join('_') : suggestedName, null, apiSchema, schemaType, purpose, state)
@@ -74,7 +71,6 @@ function toScopedName($ref: string | undefined, suggestedName: string, scope: Co
 			originalName: suggestedName,
 			scope: null,
 			anonymous: serializedName === null,
-			purpose,
 			$ref,
 		}
 	}
@@ -125,7 +121,7 @@ function uniqueScopedName(scopedName: string[], state: InternalCodegenState): st
 	return [...parentNames, name]
 }
 
-type ExtractNamingKeys = 'name' | 'scopedName' | 'originalScopedName' | 'serializedName' | 'originalName' | 'anonymous' | 'purpose'
+type ExtractNamingKeys = 'name' | 'scopedName' | 'originalScopedName' | 'serializedName' | 'originalName' | 'anonymous'
 
 export function extractNaming(naming: ScopedModelInfo): Pick<CodegenNamedSchema, ExtractNamingKeys>
 export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchema, ExtractNamingKeys>
@@ -138,7 +134,6 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 			serializedName: null,
 			originalName: null,
 			anonymous: null,
-			purpose: CodegenSchemaPurpose.UNKNOWN,
 		}
 	}
 
@@ -149,7 +144,6 @@ export function extractNaming(naming: ScopedModelInfo | null): Pick<CodegenSchem
 		serializedName: naming.serializedName,
 		originalName: naming.originalName,
 		anonymous: naming.anonymous,
-		purpose: naming.purpose,
 	}
 }
 

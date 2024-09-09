@@ -1,4 +1,4 @@
-import { CodegenBooleanSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenBooleanSchema, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
@@ -6,7 +6,7 @@ import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 
-export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenBooleanSchema {
+export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenBooleanSchema {
 	if (apiSchema.type !== 'boolean') {
 		throw new Error('Not a boolean schema')
 	}
@@ -17,6 +17,7 @@ export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 	const nativeType = state.generator.toNativeType({
 		type: apiSchema.type,
 		format,
+		purpose,
 		schemaType: CodegenSchemaType.BOOLEAN,
 		vendorExtensions,
 	})
@@ -26,6 +27,7 @@ export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 
 		type: apiSchema.type,
 		format: format || null,
+		purpose,
 		schemaType: CodegenSchemaType.BOOLEAN,
 		contentMediaType: null,
 		nativeType,

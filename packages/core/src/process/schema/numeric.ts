@@ -1,4 +1,4 @@
-import { CodegenNumericSchema, CodegenSchemaType, CodegenSchemaUsage } from '@openapi-generator-plus/types'
+import { CodegenNumericSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
@@ -9,7 +9,7 @@ import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { CreateSchemaUsageOptions, createSchemaUsage } from './usage'
 
-export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenNumericSchema {
+export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenNumericSchema {
 	if (apiSchema.type !== 'number' && apiSchema.type !== 'integer') {
 		throw new Error('Not a numeric schema')
 	}
@@ -24,6 +24,7 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 	const nativeType = state.generator.toNativeType({
 		type: apiSchema.type,
 		format: apiSchema.format,
+		purpose,
 		schemaType,
 		vendorExtensions,
 	})
@@ -33,6 +34,7 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
 		
 		type: apiSchema.type,
 		format: apiSchema.format || null,
+		purpose,
 		schemaType,
 		contentMediaType: null,
 		nativeType,
@@ -58,10 +60,10 @@ export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming:
  * Create a new schema usage of a numeric type.
  * @param state 
  */
-export function createNumericSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, state: InternalCodegenState): CodegenSchemaUsage<CodegenNumericSchema> {
+export function createNumericSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenSchemaUsage<CodegenNumericSchema> {
 	const schema = toCodegenNumericSchema({
 		type: 'number',
 		format,
-	}, null, state)
+	}, null, purpose, state)
 	return createSchemaUsage(schema, options, state)
 }

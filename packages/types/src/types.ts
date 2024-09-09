@@ -994,17 +994,31 @@ export enum CodegenSchemaPurpose {
 	 * A schema to wrap around a primitive value where an object is required.
 	 */
 	WRAPPER = 'WRAPPER',
+	/**
+	 * A schema to define a literal value that the generator has created.
+	 */
+	LITERAL = 'LITERAL',
+	/**
+	 * The schema is being created for the purposes of being absorbed into another schema as part of inheritance / hierarchy.
+	 */
+	ABSORB = 'ABSORB',
 }
 
 export interface CodegenNativeTypeOptions extends CodegenTypeOptions {
+	/** The purpose of schema that will be using this type. */
+	purpose: CodegenSchemaPurpose
 }
 
 export interface CodegenNativeObjectTypeOptions extends CodegenTypeOptions {
+	/** The purpose of schema that will be using this type. */
+	purpose: CodegenSchemaPurpose
 	scopedName: string[]
 	vendorExtensions: CodegenVendorExtensions | null
 }
 
 export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
+	/** The purpose of schema that will be using this type. */
+	purpose: CodegenSchemaPurpose
 	schemaType: CodegenSchemaType.ARRAY
 	componentNativeType: CodegenNativeType
 	/** The uniqueItems property from the API spec */

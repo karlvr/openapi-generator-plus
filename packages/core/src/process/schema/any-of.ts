@@ -14,24 +14,25 @@ import { absorbCodegenSchema } from './object-absorb'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
-export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
+export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.anyOfStrategy()
 	switch (strategy) {
 		case CodegenAnyOfStrategy.NATIVE:
-			return toCodegenAnyOfSchemaNative(apiSchema, naming, state)
+			return toCodegenAnyOfSchemaNative(apiSchema, naming, purpose, state)
 		case CodegenAnyOfStrategy.OBJECT:
-			return toCodegenAnyOfSchemaObject(apiSchema, naming, state)
+			return toCodegenAnyOfSchemaObject(apiSchema, naming, purpose, state)
 	}
 	throw new Error(`Unsupported anyOf strategy: ${strategy}`)
 }
 
-function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAnyOfSchema {
+function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAnyOfSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: apiSchema.type as string,
+		purpose,
 		schemaType: CodegenSchemaType.ANYOF,
 		scopedName,
 		vendorExtensions,
@@ -50,6 +51,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		nativeType,
 		type: 'anyOf',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.ANYOF,
 		contentMediaType: null,
 		component: null,
@@ -86,7 +88,7 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		if (!isCodegenObjectSchema(anyOfSchema) && !isCodegenCompositionSchema(anyOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value_wrapper`, result, anyOfSchemaUsage, anyOfApiSchema, state).schema
+			const wrapper = createWrapperSchemaUsage(`${anyOfSchema.type}_value_wrapper`, result, anyOfSchemaUsage, anyOfApiSchema, purpose, state).schema
 			anyOfSchema = wrapper
 		}
 
@@ -111,13 +113,14 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	return result
 }
 
-function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
@@ -136,6 +139,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		nativeType,
 		type: 'object',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		contentMediaType: null,
 		component: null,

@@ -73,7 +73,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 			}
 
 			try {
-				const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, state)
+				const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, CodegenSchemaPurpose.ABSORB, state)
 				target.additionalProperties = mapSchema
 				absorbed = true
 			} catch (error) {

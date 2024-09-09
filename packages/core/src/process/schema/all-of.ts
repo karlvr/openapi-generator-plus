@@ -17,25 +17,26 @@ import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegen
 import { propertySummaryToString, toCodegenPropertySummary, toRequiredPropertyNames } from './property'
 import { transformNativeTypeForUsage } from './usage'
 
-export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
+export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.allOfStrategy()
 	switch (strategy) {
 		case CodegenAllOfStrategy.NATIVE:
-			return toCodegenAllOfSchemaNative(apiSchema, naming, state)
+			return toCodegenAllOfSchemaNative(apiSchema, naming, purpose, state)
 		case CodegenAllOfStrategy.OBJECT:
 		case CodegenAllOfStrategy.HIERARCHY:
-			return toCodegenAllOfSchemaObject(apiSchema, naming, state)
+			return toCodegenAllOfSchemaObject(apiSchema, naming, purpose, state)
 	}
 	throw new Error(`Unsupported allOf strategy: ${strategy}`)
 }
 
-function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenAllOfSchema {
+function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAllOfSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.ALLOF,
 		scopedName,
 		vendorExtensions,
@@ -53,6 +54,7 @@ function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		nativeType,
 		type: 'allOf',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.ALLOF,
 		contentMediaType: null,
 		component: null,
@@ -117,13 +119,14 @@ interface ClassifiedSchema {
 	approach: SchemaApproach
 }
 
-function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
@@ -142,6 +145,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		nativeType,
 		type: 'object',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		contentMediaType: null,
 		component: null,

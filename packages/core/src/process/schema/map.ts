@@ -8,11 +8,12 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { debugStringify } from '@openapi-generator-plus/utils'
 
-export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, state: InternalCodegenState): CodegenMapSchema {
+export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenMapSchema {
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 	
 	const keyNativeType = state.generator.toNativeType({
 		type: 'string',
+		purpose,
 		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
 	})
@@ -50,6 +51,7 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 		
 		type: 'object',
 		format: apiSchema.format || null,
+		purpose,
 		schemaType: CodegenSchemaType.MAP,
 		contentMediaType: null,
 		component: componentSchemaUsage,

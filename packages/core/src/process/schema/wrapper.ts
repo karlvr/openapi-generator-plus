@@ -16,7 +16,7 @@ import { finaliseSchema } from './utils'
  * @param state 
  * @returns 
  */
-export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
+export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenScope, wrap: CodegenSchemaUsage, wrapApi: OpenAPIX.SchemaObject, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenSchemaUsage<CodegenWrapperSchema> {
 	const $ref = isOpenAPIReferenceObject(wrapApi) ? wrapApi.$ref : undefined
 	if ($ref) {
 		/* We update our suggested name from the $ref rather than passing it to `toUniqueScopedName` as if that method sees a $ref it will name us
@@ -33,6 +33,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.WRAPPER,
 		scopedName: naming.scopedName,
 		vendorExtensions: null,
@@ -42,6 +43,7 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 		...extractNaming(naming),
 		type: wrap.schema.type,
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.WRAPPER,
 		contentMediaType: null,
 		property,

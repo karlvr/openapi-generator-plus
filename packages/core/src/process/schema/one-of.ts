@@ -12,24 +12,25 @@ import { checkContainsRelationship, extractNaming, ScopedModelInfo, toUniqueScop
 import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
-export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
+export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
 	const strategy = state.generator.oneOfStrategy()
 	switch (strategy) {
 		case CodegenOneOfStrategy.NATIVE:
-			return toCodegenOneOfSchemaNative(apiSchema, naming, state)
+			return toCodegenOneOfSchemaNative(apiSchema, naming, purpose, state)
 		case CodegenOneOfStrategy.INTERFACE:
-			return toCodegenOneOfSchemaInterface(apiSchema, naming, state)
+			return toCodegenOneOfSchemaInterface(apiSchema, naming, purpose, state)
 	}
 	throw new Error(`Unsupported oneOf strategy: ${strategy}`)
 }
 
-function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenOneOfSchema {
+function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenOneOfSchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.ONEOF,
 		scopedName,
 		vendorExtensions,
@@ -47,6 +48,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 		nativeType,
 		type: 'oneOf',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.ONEOF,
 		contentMediaType: null,
 		component: null,
@@ -82,7 +84,7 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 
 		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && state.generator.nativeComposedSchemaRequiresObjectLikeOrWrapper()) {
 			/* Create a wrapper around this primitive type */
-			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.schemaType.toLowerCase()}_value_wrapper`, result, oneOfSchemaUsage, oneOfApiSchema, state)
+			const wrapper = createWrapperSchemaUsage(`${oneOfSchema.schemaType.toLowerCase()}_value_wrapper`, result, oneOfSchemaUsage, oneOfApiSchema, purpose, state)
 			oneOfSchema = wrapper.schema
 		}
 
@@ -106,13 +108,14 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	return result
 }
 
-function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { scopedName } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName,
 		vendorExtensions,
@@ -131,6 +134,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 		nativeType,
 		type: 'object',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 		contentMediaType: null,
 		component: null,
@@ -176,6 +180,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 				result,
 				oneOfSchemaUsage,
 				oneOfApiSchema,
+				purpose,
 				state
 			)
 			oneOfSchema = wrapper.schema
@@ -207,6 +212,7 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming:
 
 			result.nativeType = state.generator.toNativeObjectType({
 				type: 'object',
+				purpose,
 				schemaType: CodegenSchemaType.INTERFACE,
 				scopedName: naming.scopedName,
 				vendorExtensions,
@@ -241,6 +247,7 @@ export function createOneOfSchema(suggestedName: string, scope: CodegenScope | n
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.ONEOF,
 		scopedName: naming.scopedName,
 		vendorExtensions: null,
@@ -251,6 +258,7 @@ export function createOneOfSchema(suggestedName: string, scope: CodegenScope | n
 
 		description: null,
 		title: null,
+		purpose,
 
 		discriminator: null,
 		discriminatorValues: null,

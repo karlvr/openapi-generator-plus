@@ -13,9 +13,9 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenInterfaceImplementationSchema } from './interface'
 import { toCodegenHierarchySchema } from './hierarchy'
 
-export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema | CodegenHierarchySchema {
+export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema | CodegenInterfaceSchema | CodegenHierarchySchema {
 	if (apiSchema.discriminator && state.generator.allOfStrategy() === CodegenAllOfStrategy.HIERARCHY) {
-		return toCodegenHierarchySchema(apiSchema, naming, state)
+		return toCodegenHierarchySchema(apiSchema, naming, purpose, state)
 	} else if (apiSchema.discriminator && state.generator.allOfStrategy() === CodegenAllOfStrategy.OBJECT && !(state.generator.supportsInheritance() && state.generator.supportsMultipleInheritance())) {
 		/* 
 		If we use the OBJECT allOf strategy, then we need to consider whether we need to turn objects into interfaces if
@@ -27,13 +27,13 @@ export function toCodegenObjectSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 		If we don't support multiple inheritance (or any form of inheritance) then the schema containing the discriminator needs to
 		be an interface so any members can be compatible with it.
 		*/
-		return toCodegenObjectSchemaInterface(apiSchema, naming, state)
+		return toCodegenObjectSchemaInterface(apiSchema, naming, purpose, state)
 	} else {
-		return toCodegenObjectSchemaObject(apiSchema, naming, state)
+		return toCodegenObjectSchemaObject(apiSchema, naming, purpose, state)
 	}
 }
 
-function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema {
 	const { scopedName } = naming
 	
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -41,6 +41,7 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 	const nativeType = state.generator.toNativeObjectType({
 		type: apiSchema.type as string,
 		format: apiSchema.format,
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName,
 		vendorExtensions,
@@ -64,6 +65,7 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 		nativeType,
 		type: 'object',
 		format: apiSchema.format || null,
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		contentMediaType: null,
 		interface: null,
@@ -74,7 +76,7 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 		deprecated: false,
 	}
 
-	result = handleObjectCommon(apiSchema, naming, result, state)
+	result = handleObjectCommon(apiSchema, naming, result, purpose, state)
 	// TODO we previous had an issue where a member of a discriminator didn't discover the discriminator
 	// because of order-of-operations between populating model.discriminator and the member being created
 	// and looking for it. If that happens again, this is one approach to work around it.
@@ -90,7 +92,7 @@ function toCodegenObjectSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: S
 	return result
 }
 
-function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { scopedName } = naming
 	
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -98,6 +100,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 	const nativeType = state.generator.toNativeObjectType({
 		type: apiSchema.type as string,
 		format: apiSchema.format,
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName,
 		vendorExtensions,
@@ -120,6 +123,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 		nativeType,
 		type: 'object',
 		format: apiSchema.format || null,
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 		contentMediaType: null,
 		implementation: null,
@@ -130,7 +134,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 		deprecated: false,
 	}
 
-	result = handleObjectCommon(apiSchema, naming, result, state)
+	result = handleObjectCommon(apiSchema, naming, result, purpose, state)
 	// TODO we previous had an issue where a member of a discriminator didn't discover the discriminator
 	// because of order-of-operations between populating model.discriminator and the member being created
 	// and looking for it. If that happens again, this is one approach to work around it.
@@ -153,7 +157,7 @@ function toCodegenObjectSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming
 	return result
 }
 
-function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSchema>(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, schema: T, state: InternalCodegenState) {
+function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSchema>(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, schema: T, purpose: CodegenSchemaPurpose, state: InternalCodegenState) {
 	schema.examples = toCodegenExamples(apiSchema.example, undefined, undefined, schema, state)
 
 	if (isOpenAPIv3SchemaObject(apiSchema, state.specVersion)) {
@@ -170,7 +174,7 @@ function handleObjectCommon<T extends CodegenObjectSchema | CodegenInterfaceSche
 	if (apiSchema.additionalProperties) {
 		/* This schema also has additional properties */
 		try {
-			const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', schema, state)
+			const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', schema, purpose, state)
 			schema.additionalProperties = mapSchema
 		} catch (error) {
 			state.log(CodegenLogLevel.WARN, `Failed to generate additional property schema for ${naming.name} ${schema.additionalProperties}: ${(error as Error).message}`)
@@ -204,6 +208,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		scopedName: naming.scopedName,
 		vendorExtensions: null,
@@ -213,6 +218,7 @@ export function createObjectSchema(suggestedName: string, scope: CodegenScope | 
 		...extractNaming(naming),
 		type: 'object',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.OBJECT,
 		contentMediaType: null,
 		abstract: false,

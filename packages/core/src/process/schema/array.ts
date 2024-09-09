@@ -8,7 +8,7 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { convertToBoolean, convertToNumber } from '../utils'
 
-export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, state: InternalCodegenState): CodegenArraySchema {
+export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenArraySchema {
 	if (apiSchema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
@@ -25,6 +25,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 	const nativeType = state.generator.toNativeArrayType({
 		type: apiSchema.type,
 		format: apiSchema.format,
+		purpose,
 		schemaType: CodegenSchemaType.ARRAY,
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: apiSchema.uniqueItems,
@@ -36,6 +37,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 		
 		type: 'array',
 		format: apiSchema.format || null,
+		purpose,
 		schemaType: CodegenSchemaType.ARRAY,
 		contentMediaType: null,
 		component: componentSchemaUsage,
@@ -64,6 +66,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: S
 export function createArraySchema(component: CodegenSchemaUsage, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenArraySchema {
 	const nativeType = state.generator.toNativeArrayType({
 		type: 'array',
+		purpose,
 		schemaType: CodegenSchemaType.ARRAY,
 		vendorExtensions: null,
 		componentNativeType: component.nativeType,

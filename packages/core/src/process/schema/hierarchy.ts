@@ -11,13 +11,14 @@ import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 import { createIfNotExistsCodegenInterfaceSchema } from './interface'
 
-export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, state: InternalCodegenState): CodegenHierarchySchema {
+export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenHierarchySchema {
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.HIERARCHY,
 		scopedName,
 		vendorExtensions,
@@ -35,6 +36,7 @@ export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, namin
 		nativeType,
 		type: 'hierarchy',
 		format: null,
+		purpose,
 		schemaType: CodegenSchemaType.HIERARCHY,
 		contentMediaType: null,
 		component: null,

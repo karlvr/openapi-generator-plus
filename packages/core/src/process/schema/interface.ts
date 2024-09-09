@@ -41,6 +41,7 @@ export function createIfNotExistsCodegenInterfaceSchema(schema: CodegenObjectSch
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',
+		purpose,
 		schemaType: CodegenSchemaType.INTERFACE,
 		scopedName: naming.scopedName,
 		vendorExtensions: schema.vendorExtensions,
@@ -58,6 +59,7 @@ export function createIfNotExistsCodegenInterfaceSchema(schema: CodegenObjectSch
 		nativeType,
 		type: 'object',
 		format: null,
+		purpose,
 		description: schema.description,
 		title: schema.title,
 		schemaType: CodegenSchemaType.INTERFACE,

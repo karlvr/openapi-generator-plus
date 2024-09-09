@@ -1,4 +1,4 @@
-import { CodegenSchemaType, CodegenSchemaUsage, CodegenStringSchema } from '@openapi-generator-plus/types'
+import { CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenStringSchema } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExternalDocs } from '../external-docs'
@@ -9,7 +9,7 @@ import { toCodegenSchemaType } from './schema-type'
 import { createSchemaUsage, CreateSchemaUsageOptions } from './usage'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 
-export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, state: InternalCodegenState): CodegenStringSchema {
+export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenStringSchema {
 	if (apiSchema.type !== 'string') {
 		throw new Error('Not a string schema')
 	}
@@ -24,6 +24,7 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 
 	const nativeType = state.generator.toNativeType({
 		type: apiSchema.type,
+		purpose,
 		format,
 		schemaType: CodegenSchemaType.STRING,
 		vendorExtensions,
@@ -34,6 +35,7 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
 		
 		type: apiSchema.type,
 		format: format || null,
+		purpose,
 		schemaType,
 		contentMediaType: null,
 		nativeType,
@@ -56,10 +58,10 @@ export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: 
  * Create a new schema usage of a string type.
  * @param state 
  */
-export function createStringSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, state: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema> {
+export function createStringSchemaUsage(format: string | undefined, options: CreateSchemaUsageOptions, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenSchemaUsage<CodegenStringSchema> {
 	const schema = toCodegenStringSchema({
 		type: 'string',
 		format,
-	}, null, state)
+	}, null, purpose, state)
 	return createSchemaUsage(schema, options, state)
 }

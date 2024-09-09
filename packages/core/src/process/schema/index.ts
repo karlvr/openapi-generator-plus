@@ -161,14 +161,14 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	let result: CodegenSchema
 	switch (schemaType) {
 		case CodegenSchemaType.MAP:
-			result = toCodegenMapSchema(apiSchema, naming, naming ? 'value' : singular(suggestedName), naming ? naming.scope : suggestedScope, state)
+			result = toCodegenMapSchema(apiSchema, naming, naming ? 'value' : singular(suggestedName), naming ? naming.scope : suggestedScope, purpose, state)
 			break
 		case CodegenSchemaType.OBJECT:
 			if (!naming) {
 				// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenObjectSchema(apiSchema, naming, state)
+			result = toCodegenObjectSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.INTERFACE:
 			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${debugStringify(apiSchema)}`)
@@ -180,35 +180,35 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenAllOfSchema(apiSchema, naming, state)
+			result = toCodegenAllOfSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.ANYOF:
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenAnyOfSchema(apiSchema, naming, state)
+			result = toCodegenAnyOfSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.ONEOF:
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenOneOfSchema(apiSchema, naming, state)
+			result = toCodegenOneOfSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.ARRAY:
-			result = toCodegenArraySchema(apiSchema, naming, naming ? 'item' : singular(suggestedName), naming ? naming.scope : suggestedScope, state)
+			result = toCodegenArraySchema(apiSchema, naming, naming ? 'item' : singular(suggestedName), naming ? naming.scope : suggestedScope, purpose, state)
 			break
 		case CodegenSchemaType.ENUM:
-			result = toCodegenEnumSchema(apiSchema, naming, state)
+			result = toCodegenEnumSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.NUMBER:
 		case CodegenSchemaType.INTEGER:
-			result = toCodegenNumericSchema(apiSchema, naming, state)
+			result = toCodegenNumericSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.STRING:
-			result = toCodegenStringSchema(apiSchema, naming, state)
+			result = toCodegenStringSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.BOOLEAN:
-			result = toCodegenBooleanSchema(apiSchema, naming, state)
+			result = toCodegenBooleanSchema(apiSchema, naming, purpose, state)
 			break
 		case CodegenSchemaType.DATE:
 		case CodegenSchemaType.DATETIME:
@@ -227,6 +227,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			const nativeType = state.generator.toNativeType({
 				type,
 				format,
+				purpose,
 				schemaType,
 				vendorExtensions,
 			})
@@ -235,6 +236,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 				...extractNaming(naming),
 				type,
 				format: format || null,
+				purpose,
 				schemaType: toCodegenSchemaType(type, format),
 				contentMediaType: null,
 				nativeType,
@@ -250,11 +252,11 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			break
 		}
 		case CodegenSchemaType.NULL: {
-			result = toCodegenNullSchema(apiSchema, naming, state)
+			result = toCodegenNullSchema(apiSchema, naming, purpose, state)
 			break
 		}
 		case CodegenSchemaType.ANY: {
-			result = toCodegenAnySchema(apiSchema, naming, state)
+			result = toCodegenAnySchema(apiSchema, naming, purpose, state)
 			break
 		}
 	}

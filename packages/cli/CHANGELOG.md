@@ -1,5 +1,17 @@
 # openapi-generator-plus
 
+## 2.20.0
+
+### Minor Changes
+
+- 6a72372: Change package dependencies so that generator templates pull in the version of core they require
+
+### Patch Changes
+
+- Updated dependencies [778ef0c]
+- Updated dependencies [4474205]
+  - @openapi-generator-plus/core@2.20.0
+
 ## 2.19.0
 
 ### Patch Changes

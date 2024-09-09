@@ -1,5 +1,19 @@
 # @openapi-generator-plus/core
 
+## 2.20.0
+
+### Minor Changes
+
+- 778ef0c: Introduce CodegenSchemaPurpose.PARENT to better describe why the parent schema is created
+- 4474205: Pass purpose through to native type generator functions
+
+### Patch Changes
+
+- Updated dependencies [778ef0c]
+- Updated dependencies [4474205]
+  - @openapi-generator-plus/types@2.18.0
+  - @openapi-generator-plus/utils@1.1.3
+
 ## 2.19.0
 
 ### Minor Changes

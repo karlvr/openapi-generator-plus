@@ -58,10 +58,12 @@ export interface SchemaUsageOptions {
 	suggestedScope: CodegenScope | null
 }
 
+type RememberedCodegenSchemaInfo = Partial<CodegenSchemaInfo> & { default?: unknown }
+
 export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX.ReferenceObject, state: InternalCodegenState, options: SchemaUsageOptions): CodegenSchemaUsage {
 	let $ref = isOpenAPIReferenceObject(apiSchema) ? apiSchema.$ref : undefined
 
-	const usageInfo: Partial<CodegenSchemaInfo> = {}
+	const usageInfo: RememberedCodegenSchemaInfo = {}
 
 	if (isOpenAPIReferenceObject(apiSchema)) {
 		/* A reference schema (one containing a $ref) may specify some properties that effect the usage of that schema */
@@ -72,6 +74,7 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 		usageInfo.readOnly = originalApiSchemaAsSchemaObject.readOnly
 		usageInfo.writeOnly = originalApiSchemaAsSchemaObject.writeOnly
 		usageInfo.deprecated = originalApiSchemaAsSchemaObject.deprecated
+		usageInfo.default = originalApiSchemaAsSchemaObject.default
 	}
 
 	apiSchema = resolveReference(apiSchema, state)
@@ -122,7 +125,11 @@ export function toCodegenSchemaUsage(apiSchema: OpenAPIX.SchemaObject | OpenAPIX
 	result.nativeType = transformNativeTypeForUsage(result, state)
 
 	result.examples = apiSchema.example ? toCodegenExamples(apiSchema.example, undefined, undefined, result, state) : null
-	result.defaultValue = toDefaultValue(apiSchema.default, result, state)
+	if (usageInfo.default) {
+		result.defaultValue = toDefaultValue(usageInfo.default, result, state)
+	} else {
+		result.defaultValue = toDefaultValue(apiSchema.default, result, state)
+	}
 
 	return result
 }
@@ -288,7 +295,7 @@ function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean
  * fixed schema but NOT the fixed usageInfo.
  * @param apiSchema 
  */
-function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, usageInfo: Partial<CodegenSchemaInfo>, state: InternalCodegenState): { apiSchema: OpenAPIX.SchemaObject; $ref: string | undefined } {
+function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, usageInfo: RememberedCodegenSchemaInfo, state: InternalCodegenState): { apiSchema: OpenAPIX.SchemaObject; $ref: string | undefined } {
 	if (apiSchema.anyOf && apiSchema.anyOf.length > 1) {
 		const nullIndex = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).findIndex(s => s.type === 'null')
 		if (nullIndex !== -1) {
@@ -320,6 +327,9 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 				}
 				if (originalApiSchema.deprecated) {
 					usageInfo.deprecated = originalApiSchema.deprecated
+				}
+				if (originalApiSchema.default) {
+					usageInfo.default = originalApiSchema.default
 				}
 
 				/* Note that we fall through to do the rest of the "fixes" */

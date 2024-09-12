@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.21.0
+
+### Minor Changes
+
+- 8266830: Support default on a schema usage with a $ref
+
 ## 2.20.0
 
 ### Minor Changes

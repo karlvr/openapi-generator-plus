@@ -152,7 +152,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 	}
 
 	const queryParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isQueryParam)) : null
-	const pathParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isPathParam)) : null
+	let pathParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isPathParam)) : null
 	const headerParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isHeaderParam)) : null
 	const cookieParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isCookieParam)) : null
 	const formParams = parameters ? idx.nullIfEmpty(idx.filter(parameters, p => p.isFormParam)) : null
@@ -165,6 +165,23 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 				state.log(CodegenLogLevel.WARN, `${fullPath} has a path parameter "${param.serializedName}" that is not contained in the path.`)
 			}
 		}
+
+		/* Sort path params so they're in the order in which they appear in the URL */
+		pathParams = idx.sortValues(pathParams, (a, b) => {
+			const posA = fullPath.indexOf(`{${a.serializedName}}`)
+			const posB = fullPath.indexOf(`{${b.serializedName}}`)
+			if (posA === posB) {
+				return 0
+			} else if (posA === -1) {
+				return 1
+			} else if (posB === -1) {
+				return -1
+			} else if (posA < posB) {
+				return -1
+			} else {
+				return 1
+			}
+		})
 	}
 
 	const op: CodegenOperation = {

@@ -510,6 +510,10 @@ export interface CodegenSchemaUsage<T extends CodegenSchema = CodegenSchema> ext
 	schema: T
 	required: boolean
 	examples: CodegenExamples | null
+
+	/**
+	 * The default value of the usage from the spec.
+	 */
 	defaultValue: CodegenValue | null
 }
 
@@ -524,11 +528,6 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	 * `initialValue` function.
 	 */
 	initialValue: CodegenValue | null
-
-	/**
-	 * The default value of the property from the spec.
-	 */
-	defaultValue: CodegenValue | null
 
 	/** The discriminators that this property is used by, if this property is used by a discriminator.
 	 * We usually remove properties used for discriminators, but sometimes they are left for

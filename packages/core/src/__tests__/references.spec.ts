@@ -50,3 +50,23 @@ test('description on $ref', async() => {
 	expect(valueProperty?.description).toEqual('Description on $ref')
 	expect(valueProperty?.schema.description).toEqual('MyObject description')
 })
+
+test('default value on $ref', async() => {
+	const result = await createTestDocument('references/default-value.yml')
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+
+	const responseSchema = op.defaultResponse?.defaultContent?.schema as CodegenObjectSchema
+	expect(responseSchema).toBeDefined()
+
+	const properties = responseSchema.properties
+	expect(properties).toBeTruthy()
+	
+	const valueProperty = idx.get(properties!, 'value')
+	expect(valueProperty).toBeTruthy()
+
+	const defaultValue = valueProperty?.defaultValue
+	expect(defaultValue).not.toBeNull()
+	expect(typeof defaultValue?.value).toBe('object')
+	expect((defaultValue?.value as Record<string, string>).prop1).toEqual('Test 1')
+})

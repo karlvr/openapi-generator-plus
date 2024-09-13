@@ -258,6 +258,7 @@ export interface CodegenOperation {
 
 	parameters: CodegenParameters | null
 	queryParams: CodegenParameters | null
+	/** The path parameters for the operation. These are always in the order in which they appear in the path. */
 	pathParams: CodegenParameters | null
 	headerParams: CodegenParameters | null
 	cookieParams: CodegenParameters | null

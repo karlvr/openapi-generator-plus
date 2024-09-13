@@ -1,5 +1,13 @@
 # @openapi-generator-plus/core
 
+## 2.22.0
+
+### Minor Changes
+
+- 782c7ab: Ensure `pathParams` are in the order in which they appear in the path
+
+  Having `pathParams` in order makes it more useful as a representation of the path parameters. The order they appear in the path is how I think developers should think about them.
+
 ## 2.21.0
 
 ### Minor Changes

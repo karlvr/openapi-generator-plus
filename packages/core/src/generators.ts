@@ -12,7 +12,6 @@ import { defaultLog } from './logging'
  */
 const baseGenerator: CodegenBaseGeneratorConstructor = function(config, context) {
 	return {
-		toEnumMemberName: (name) => context.generator().toConstantName(name),
 		toIteratedSchemaName: (name, _, iteration) => `${name}${iteration + 1}`,
 		checkAllOfInheritanceCompatibility: () => {
 			return true

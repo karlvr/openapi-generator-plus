@@ -1,7 +1,7 @@
 import { CodegenGenerator, CodegenLiteralValueOptions, CodegenNativeTypeConstructor, CodegenOperationGroupingStrategy, IndexedCollectionType, CodegenConfig, CodegenLogFunction } from './types'
 import { CodegenTransformingNativeTypeConstructor, CodegenComposingNativeTypeConstructor } from './native-types'
 
-export type CodegenBaseGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => Pick<CodegenGenerator, 'toEnumMemberName' | 'toIteratedSchemaName' | 'checkAllOfInheritanceCompatibility' | 'checkPropertyCompatibility'>
+export type CodegenBaseGeneratorConstructor<C = CodegenGeneratorContext> = (config: CodegenConfig, context: C) => Pick<CodegenGenerator, 'toIteratedSchemaName' | 'checkAllOfInheritanceCompatibility' | 'checkPropertyCompatibility'>
 
 /**
  * The options given to a generator template function when it is constructed.

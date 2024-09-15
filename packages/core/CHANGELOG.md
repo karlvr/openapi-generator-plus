@@ -1,5 +1,21 @@
 # @openapi-generator-plus/core
 
+## 2.23.0
+
+### Minor Changes
+
+- 79073bd: Remove `toEnumMemberName` from built-in generator implementation
+
+  I don't think it was sensible to default this to using `toConstantName` as enum member names are actually
+  quite significant, especially in Java with its `enum.name()` and `EnumType.valueOf(String)` methods... so I
+  think it's better than generator templates handle this specifically.
+
+### Patch Changes
+
+- Updated dependencies [79073bd]
+  - @openapi-generator-plus/types@2.19.0
+  - @openapi-generator-plus/utils@1.1.4
+
 ## 2.22.0
 
 ### Minor Changes

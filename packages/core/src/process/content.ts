@@ -253,7 +253,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 							uniquePropertyName = toUniqueName(headerProperty.name, undefined, partSchema.properties, state)
 						}
 						headerProperty.name = uniquePropertyName
-						headerProperty.serializedName = uniquePropertyName /* We don't use the serialized name, but it impacts the key it gets put in in properties */
+						headerProperty.serializedName = uniquePropertyName /* We don't set the serializedName to the actual headerName as it may not be unique in the properties. */
 
 						addCodegenProperty(partSchema.properties, headerProperty, state)
 						idx.set(propertyEncoding.headerProperties, headerName, headerProperty)

@@ -3,7 +3,6 @@ import type { OpenAPI, OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { OpenAPIX } from './types/patches'
 import { CodegenSpecVersion } from './types'
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function isOpenAPIReferenceObject(ob: any): ob is OpenAPIV2.ReferenceObject | OpenAPIV3.ReferenceObject {
 	return !!((ob as any).$ref)
 }

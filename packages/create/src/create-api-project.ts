@@ -8,6 +8,7 @@ import search from 'libnpmsearch'
 import { exec, spawn, SpawnOptionsWithoutStdio } from 'child_process'
 import util from 'util'
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const myPackage = require('../package.json')
 const execPromise = util.promisify(exec)
 
@@ -215,7 +216,7 @@ async function checkDestination(dest: string): Promise<void> {
 				process.exit(1)
 			}
 		}
-	} catch (error) {
+	} catch {
 		/* It's fine if it doesn't exist */
 		return
 	}
@@ -228,9 +229,9 @@ async function createReadme(packageManager: PackageManager, generator: Result) {
 	return `# OpenAPI Generator Plus generator project
 
 ${type === 'server' ? 'This project generates server code for providing an API.'
-		: type === 'client' ? 'This project generates client code for accessing an API.'
-			: type === 'documentation' ? 'This project generates API documentation.'
-				: ''}
+	: type === 'client' ? 'This project generates client code for accessing an API.'
+		: type === 'documentation' ? 'This project generates API documentation.'
+			: ''}
 
 The generator template used is ${generatorLink}.
 
@@ -268,7 +269,7 @@ function generatorType(generator: Result) {
 	} else if (generator.keywords.indexOf('documentation') !== -1) {
 		return 'documentation'
 	} else {
-		undefined
+		return undefined
 	}
 }
 
@@ -322,7 +323,7 @@ async function checkForPnpm() {
 	try {
 		await execPromise('pnpm -v')
 		return true
-	} catch (error) {
+	} catch {
 		return false
 	}
 }
@@ -331,7 +332,7 @@ async function checkForYarn() {
 	try {
 		await execPromise('yarn -v')
 		return true
-	} catch (error) {
+	} catch {
 		return false
 	}
 }

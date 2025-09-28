@@ -146,6 +146,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	})
 
 	if (commandLineOptions.version) {
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const version = require(path.resolve(__dirname, '../package.json')).version
 		console.log(version)
 		process.exit(0)

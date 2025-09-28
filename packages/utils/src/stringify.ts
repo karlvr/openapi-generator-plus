@@ -26,11 +26,9 @@ export function debugStringify(value: unknown): string {
  * Based on https://stackoverflow.com/a/61749783/1951952
  */
 function refReplacer(options: StringifyOptions) {
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	const paths = new Map<object, string>()
 	let initial: unknown | undefined
 
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	return function(this: object, field: string, value: unknown) {
 		if (!value || typeof value !== 'object' || value === null) {
 			return value

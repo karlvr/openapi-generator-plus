@@ -5,7 +5,6 @@ interface ObjectWithVendorExtensions {
 	[index: string]: any
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export function toCodegenVendorExtensions(ob: ObjectWithVendorExtensions): CodegenVendorExtensions | null {
 	const result: CodegenVendorExtensions = {}
 	let found = false

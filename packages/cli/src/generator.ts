@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { CodegenGeneratorConstructor } from '@openapi-generator-plus/types'
 import path from 'path'
 import { promises as fs } from 'fs'

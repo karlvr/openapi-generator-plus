@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { CodegenNativeType, CodegenNativeTypeTransformers, CodegenNativeTypeComposers, CodegenNativeTypeComposer, CodegenNativeTypeInfo } from '@openapi-generator-plus/types'
 
 export class CodegenNativeTypeImpl implements CodegenNativeType {

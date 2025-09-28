@@ -8,10 +8,11 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { createSchemaUsage, CreateSchemaUsageOptions } from './usage'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { debugStringify } from '@openapi-generator-plus/utils'
 
 export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenStringSchema {
 	if (apiSchema.type !== 'string') {
-		throw new Error('Not a string schema')
+		throw new Error(`Not a string schema: ${debugStringify(apiSchema)}`)
 	}
 
 	const format: string | undefined = apiSchema.format

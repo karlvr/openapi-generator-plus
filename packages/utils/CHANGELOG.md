@@ -1,5 +1,11 @@
 # @openapi-generator-plus/utils
 
+## 1.1.5
+
+### Patch Changes
+
+- 431d1e0: Upgrade dependencies including eslint 9 and updated linting rules
+
 ## 1.1.4
 
 ### Patch Changes

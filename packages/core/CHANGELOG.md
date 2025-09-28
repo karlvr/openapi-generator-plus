@@ -1,5 +1,14 @@
 # @openapi-generator-plus/core
 
+## 2.23.1
+
+### Patch Changes
+
+- 431d1e0: Upgrade dependencies including eslint 9 and updated linting rules
+- f8fbe35: Improve error message for string schema creation where the input schema is not of the right type
+- Updated dependencies [431d1e0]
+  - @openapi-generator-plus/utils@1.1.5
+
 ## 2.23.0
 
 ### Minor Changes

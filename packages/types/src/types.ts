@@ -244,6 +244,8 @@ export interface CodegenOperationGroup {
 export interface CodegenOperation {
 	/** The name for this operation (safe as an identifier) */
 	name: string
+	/** The operation id if one was set in the spec */
+	operationId: string | null
 	/** A name for this operation that is unique within the API. Often based on the `operationId`, but always safe as an identifier */
 	uniqueName: string
 	httpMethod: string

@@ -186,6 +186,7 @@ export function toCodegenOperation(fullPath: string, method: string, operation: 
 
 	const op: CodegenOperation = {
 		name,
+		operationId: operation.operationId || null,
 		uniqueName: name, /* Temporarily assume that name is unique, and we'll check it later */
 		httpMethod: method,
 		path: fullPath, /* Path will later be made relative to a CodegenOperationGroup */

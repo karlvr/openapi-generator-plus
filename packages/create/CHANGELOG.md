@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.6
+
+### Patch Changes
+
+- 71de8bb: Downgrade inquirer to fix menus
+
 ## 1.1.5
 
 ### Patch Changes

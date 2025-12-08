@@ -1,5 +1,13 @@
 # openapi-generator-plus
 
+## 2.20.2
+
+### Patch Changes
+
+- e27e278: Update dependencies
+- Updated dependencies [4d1a6ef]
+  - @openapi-generator-plus/core@2.24.0
+
 ## 2.20.1
 
 ### Patch Changes

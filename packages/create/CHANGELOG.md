@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.5
+
+### Patch Changes
+
+- e27e278: Update dependencies
+
 ## 1.1.4
 
 ### Patch Changes

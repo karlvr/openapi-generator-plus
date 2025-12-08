@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.20.0
+
+### Minor Changes
+
+- 4d1a6ef: Add operationId to CodegenOperation so we can reproduce the original operationId from the spec
+
 ## 2.19.0
 
 ### Minor Changes

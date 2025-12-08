@@ -34,7 +34,7 @@
   "dependencies": {
     "ansi-colors": "^4.1.3",
     "getopts": "^2.3.0",
-    "inquirer": "^13.0.2",
+    "inquirer": "^9.3.8",
     "libnpmsearch": "^9.0.1"
   },
   "devDependencies": {

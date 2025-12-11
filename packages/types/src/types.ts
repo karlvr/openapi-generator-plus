@@ -874,7 +874,13 @@ export interface CodegenDiscriminator extends CodegenSchemaUsage {
 }
 
 export interface CodegenDiscriminatorValue {
-	/** The schema containing the discriminator */
+	discriminator: CodegenDiscriminator | null
+	/** The schemas containing the discriminator */
+	schemas: CodegenDiscriminatorSchema[]
+	/**
+	 * The schema containing the discriminator
+	 * @deprecated use schemas instead
+	*/
 	schema: CodegenDiscriminatorSchema
 	value: string
 	/** The value literal in the native language */

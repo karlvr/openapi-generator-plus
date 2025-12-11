@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenLogLevel, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenDiscriminatorMappings, CodegenDiscriminatorReference, CodegenDiscriminatorSchema, CodegenDiscriminatorValue, CodegenLogLevel, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenProperty, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaUsage, isCodegenAllOfSchema, isCodegenAnyOfSchema, isCodegenDiscriminatableSchema, isCodegenDiscriminatorSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectLikeSchema, isCodegenObjectSchema, isCodegenOneOfSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import type { OpenAPIV3 } from 'openapi-types'
 import { discoverSchemasInOtherDocuments, DiscoverSchemasTestFunc, toCodegenSchemaUsage } from '.'
 import * as idx from '@openapi-generator-plus/indexed-type'
@@ -258,11 +258,38 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 	if (!memberSchema.discriminatorValues) {
 		memberSchema.discriminatorValues = []
 	}
-	memberSchema.discriminatorValues.push({
-		schema: discriminatorSchema,
-		value: discriminatorValue,
-		literalValue: discriminatorValueLiteral,
-	})
+
+	const existingCompatibleDiscriminatorValue = memberSchema.discriminatorValues && memberSchema.discriminatorValues.find(dv =>
+		discriminatorCompatible(dv.discriminator, discriminatorSchema.discriminator)
+		&& dv.value === discriminatorValue
+	)
+	if (existingCompatibleDiscriminatorValue) {
+		existingCompatibleDiscriminatorValue.schemas.push(discriminatorSchema)
+	} else {
+		memberSchema.discriminatorValues.push({
+			discriminator: discriminatorSchema.discriminator,
+			schemas: [discriminatorSchema],
+			schema: discriminatorSchema,
+			value: discriminatorValue,
+			literalValue: discriminatorValueLiteral,
+		})
+	}
+}
+
+/**
+ * Check if two discriminators are compatible 
+ * @param a 
+ * @param b 
+ * @returns 
+ */
+function discriminatorCompatible(a: CodegenDiscriminator | null, b: CodegenDiscriminator | null): boolean {
+	if (a === b) {
+		return true
+	}
+	if (!a || !b) {
+		return false
+	}
+	return a.serializedName === b.serializedName
 }
 
 /**
@@ -299,7 +326,7 @@ function findDiscriminatorSchemas(schema: CodegenSchema): CodegenDiscriminatorSc
 		}
 		/* If we find a schema that is itself a member of a discriminator, then that is also a target */
 		if (isCodegenDiscriminatableSchema(aSchema) && aSchema.discriminatorValues) {
-			open.push(...aSchema.discriminatorValues.map(dv => dv.schema))
+			open.push(...aSchema.discriminatorValues.flatMap(dv => dv.schemas))
 		}
 		if (isCodegenObjectSchema(aSchema)) {
 			if (aSchema.parents) {

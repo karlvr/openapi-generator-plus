@@ -76,7 +76,7 @@ test('allOf with discriminator (native)', async() => {
 	expect(child.discriminator).toBeNull()
 	expect(child.discriminatorValues).not.toBeNull()
 	expect(child.discriminatorValues!.length).toEqual(1)
-	expect(child.discriminatorValues![0].schema).toBe(parent)
+	expect(child.discriminatorValues![0].schemas[0]).toBe(parent)
 
 	expect(parent.name).toEqual('Pet')
 	expect(parent.discriminator!.references.length).toEqual(3)

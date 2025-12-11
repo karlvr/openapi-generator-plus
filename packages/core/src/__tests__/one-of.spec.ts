@@ -351,7 +351,7 @@ test('oneOf allOf (object)', async() => {
 	expect(idx.get(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
 	expect(integerProperty.discriminatorValues).toBeTruthy()
 	expect(integerProperty.discriminatorValues?.length).toEqual(1)
-	expect(integerProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
+	expect(integerProperty.discriminatorValues![0].schemas[0].discriminator?.serializedName).toEqual('type')
 
 	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
 	expect(objectProperty.name).toEqual('ObjectProperty')
@@ -362,7 +362,7 @@ test('oneOf allOf (object)', async() => {
 
 	expect(objectProperty.discriminatorValues).toBeTruthy()
 	expect(objectProperty.discriminatorValues?.length).toEqual(1)
-	expect(objectProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
+	expect(objectProperty.discriminatorValues![0].schemas[0].discriminator?.serializedName).toEqual('type')
 })
 
 test('oneOf allOf (object with inheritance)', async() => {
@@ -393,7 +393,7 @@ test('oneOf allOf (object with inheritance)', async() => {
 	
 	expect(integerProperty.discriminatorValues).toBeTruthy()
 	expect(integerProperty.discriminatorValues?.length).toEqual(1)
-	expect(integerProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
+	expect(integerProperty.discriminatorValues![0].schemas[0].discriminator?.serializedName).toEqual('type')
 
 	const objectProperty = propertyInfo.implementors![2] as CodegenObjectSchema
 	expect(objectProperty.name).toEqual('ObjectProperty')
@@ -404,7 +404,7 @@ test('oneOf allOf (object with inheritance)', async() => {
 
 	expect(objectProperty.discriminatorValues).toBeTruthy()
 	expect(objectProperty.discriminatorValues?.length).toEqual(1)
-	expect(objectProperty.discriminatorValues![0].schema.discriminator?.serializedName).toEqual('type')
+	expect(objectProperty.discriminatorValues![0].schemas[0].discriminator?.serializedName).toEqual('type')
 })
 
 test('oneOf anonymous', async() => {

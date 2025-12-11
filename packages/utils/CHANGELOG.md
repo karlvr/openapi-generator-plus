@@ -1,5 +1,12 @@
 # @openapi-generator-plus/utils
 
+## 1.1.7
+
+### Patch Changes
+
+- Updated dependencies [93bf707]
+  - @openapi-generator-plus/types@2.21.0
+
 ## 1.1.6
 
 ### Patch Changes

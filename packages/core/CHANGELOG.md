@@ -1,5 +1,17 @@
 # @openapi-generator-plus/core
 
+## 2.25.0
+
+### Minor Changes
+
+- 93bf707: Discriminators are now uniqued if the same discriminator comes from multiple schemas
+
+### Patch Changes
+
+- Updated dependencies [93bf707]
+  - @openapi-generator-plus/types@2.21.0
+  - @openapi-generator-plus/utils@1.1.7
+
 ## 2.24.0
 
 ### Minor Changes

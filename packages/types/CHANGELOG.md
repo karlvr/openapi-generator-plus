@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.21.0
+
+### Minor Changes
+
+- 93bf707: Discriminators are now uniqued if the same discriminator comes from multiple schemas
+
 ## 2.20.0
 
 ### Minor Changes

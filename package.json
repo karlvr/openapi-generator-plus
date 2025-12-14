@@ -12,7 +12,7 @@
     "check-updates": "pnpm dlx npm-check-updates -u && pnpm --recursive exec pnpm dlx npm-check-updates -u",
     "clean": "pnpm --recursive clean",
     "clean:node": "pnpm --recursive exec rm -rf node_modules && rm -rf node_modules",
-    "link": "pnpm --recursive exec pnpm link --global",
+    "link": "pnpm --recursive exec pnpm link",
     "lint": "pnpm --recursive lint",
     "release": "pnpm clean && pnpm lint && pnpm build && pnpm test && pnpm publish --recursive && pnpm exec changeset tag && pnpm install",
     "release:version": "pnpm changeset version && pnpm install",

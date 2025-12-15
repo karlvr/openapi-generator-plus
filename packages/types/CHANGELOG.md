@@ -1,5 +1,12 @@
 # @openapi-generator-plus/types
 
+## 2.22.0
+
+### Minor Changes
+
+- 579757f: Allow parameter encoding to impact the native type used
+- d0ceec9: Change type of CodegenParameterEncoding from string to CodegenEncodingStyle
+
 ## 2.21.0
 
 ### Minor Changes

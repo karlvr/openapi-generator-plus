@@ -1,4 +1,4 @@
-import { CodegenArraySchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenArraySchema, CodegenNativeArrayTypeOptions, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { SchemaOptions, toCodegenSchemaUsage } from './index'
@@ -28,7 +28,7 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, options: 
 		purpose: CodegenSchemaPurpose.ARRAY_ITEM,
 		suggestedScope: options.suggestedItemModelScope,
 	})
-	const nativeType = state.generator.toNativeArrayType({
+	const nativeTypeOptions: CodegenNativeArrayTypeOptions = {
 		type: apiSchema.type,
 		format: apiSchema.format,
 		purpose,
@@ -36,7 +36,9 @@ export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, options: 
 		componentNativeType: componentSchemaUsage.nativeType,
 		uniqueItems: apiSchema.uniqueItems,
 		vendorExtensions,
-	})
+		encoding: options.encoding,
+	}
+	const nativeType = state.generator.toNativeArrayType(nativeTypeOptions)
 
 	const result: CodegenArraySchema = {
 		...extractNaming(naming),

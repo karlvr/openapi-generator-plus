@@ -32,6 +32,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let defaultValue: CodegenValue | null
 
 	const required = parameter.in === 'path' ? true : convertToBoolean(parameter.required, false)
+	const encoding = toCodegenParameterEncoding(parameter, state)
 
 	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
@@ -39,6 +40,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			suggestedScope: null,
+			encoding,
 		})
 		examples = null
 		defaultValue = toDefaultValue(parameter.default, schemaUse, state)
@@ -57,6 +59,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			suggestedScope: null,
+			encoding,
 		})
 
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
@@ -64,8 +67,6 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	}
 
 	const vendorExtensions = toCodegenVendorExtensions(parameter)
-
-	const encoding = toCodegenParameterEncoding(parameter, state)
 
 	if ((encoding.style === CodegenEncodingStyle.SPACE_DELIMITED || encoding.style === CodegenEncodingStyle.PIPE_DELIMITED) && !isCodegenArraySchema(schemaUse.schema) && !isCodegenObjectSchema(schemaUse.schema)) {
 		throw new Error(`Encoding style "${encoding.style}" is not appropriate schema type ${schemaUse.schema.schemaType} in parameter "${parameter.name}"`)

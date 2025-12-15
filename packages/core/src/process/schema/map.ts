@@ -46,10 +46,12 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, options: Ma
 	const nativeType = state.generator.toNativeMapType({
 		type: apiSchema.type as string,
 		format: apiSchema.format,
+		purpose,
 		schemaType: CodegenSchemaType.MAP,
 		keyNativeType,
 		componentNativeType: componentSchemaUsage.nativeType,
 		vendorExtensions,
+		encoding: options.encoding,
 	})
 
 	const result: CodegenMapSchema = {

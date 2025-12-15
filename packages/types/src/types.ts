@@ -1036,13 +1036,19 @@ export interface CodegenNativeArrayTypeOptions extends CodegenTypeOptions {
 	/** The uniqueItems property from the API spec */
 	uniqueItems?: boolean
 	scopedName?: string[]
+	/** The parameter encoding in use when purpose === CodegenSchemaPurpose.PARAMETER */
+	encoding?: CodegenParameterEncoding
 }
 
 export interface CodegenNativeMapTypeOptions extends CodegenTypeOptions {
+	/** The purpose of schema that will be using this type. */
+	purpose: CodegenSchemaPurpose
 	schemaType: CodegenSchemaType.MAP
 	keyNativeType: CodegenNativeType
 	componentNativeType: CodegenNativeType
 	modelNames?: string[]
+	/** The parameter encoding in use when purpose === CodegenSchemaPurpose.PARAMETER */
+	encoding?: CodegenParameterEncoding
 }
 
 export type CodegenEnumValues = IndexedCollectionType<CodegenEnumValue>

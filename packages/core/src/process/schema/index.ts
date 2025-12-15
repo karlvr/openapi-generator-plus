@@ -1,4 +1,4 @@
-import { CodegenSchema, CodegenSchemaInfo, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
+import { CodegenParameterEncoding, CodegenSchema, CodegenSchemaInfo, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIV2Document } from '../../openapi-type-guards'
@@ -56,11 +56,17 @@ export interface SchemaUsageOptions {
 	 */
 	purpose: CodegenSchemaPurpose
 	suggestedScope: CodegenScope | null
+
+	/** The parameter encoding in use if purpose === CodegenSchemaPurpose.PARAMETER */
+	encoding?: CodegenParameterEncoding
 }
 
 export interface SchemaOptions {
 	naming: ScopedModelInfo | null
 	purpose: CodegenSchemaPurpose
+
+	/** The parameter encoding in use if purpose === CodegenSchemaPurpose.PARAMETER */
+	encoding?: CodegenParameterEncoding
 }
 
 export interface SchemaOptionsRequiredNaming extends SchemaOptions {
@@ -177,6 +183,7 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	const schemaOptions: SchemaOptions = {
 		naming,
 		purpose,
+		encoding: options.encoding,
 	}
 	
 	let result: CodegenSchema

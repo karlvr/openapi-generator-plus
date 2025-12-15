@@ -140,7 +140,7 @@ export function applyCodegenContentEncoding(content: CodegenContent, encodingSpe
 
 		const propertyEncodingSpec = encodingSpec[name]
 		const contentType = propertyEncodingSpec.contentType || 'text/plain'
-		const style = propertyEncodingSpec.style || CodegenEncodingStyle.FORM
+		const style: CodegenEncodingStyle = propertyEncodingSpec.style as CodegenEncodingStyle || CodegenEncodingStyle.FORM
 
 		const propertyEncoding: CodegenContentPropertyEncoding = {
 			contentType,

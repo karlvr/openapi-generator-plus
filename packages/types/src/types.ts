@@ -1093,7 +1093,7 @@ export interface CodegenParameter extends CodegenParameterBase {
 }
 
 export interface CodegenParameterEncoding {
-	style: string | null
+	style: CodegenEncodingStyle | null
 	explode: boolean
 	allowReserved: boolean
 	allowEmptyValue: boolean

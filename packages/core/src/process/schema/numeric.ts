@@ -8,8 +8,11 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenSchemaType } from './schema-type'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { CreateSchemaUsageOptions, createSchemaUsage } from './usage'
+import { SchemaOptions } from '.'
 
-export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenNumericSchema {
+export function toCodegenNumericSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenNumericSchema {
+	const { naming, purpose } = options
+
 	if (apiSchema.type !== 'number' && apiSchema.type !== 'integer') {
 		throw new Error('Not a numeric schema')
 	}
@@ -64,6 +67,9 @@ export function createNumericSchemaUsage(format: string | undefined, options: Cr
 	const schema = toCodegenNumericSchema({
 		type: 'number',
 		format,
-	}, null, purpose, state)
+	}, {
+		naming: null,
+		purpose,
+	}, state)
 	return createSchemaUsage(schema, options, state)
 }

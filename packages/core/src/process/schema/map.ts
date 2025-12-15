@@ -1,14 +1,20 @@
 import { CodegenMapSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { toCodegenSchemaUsage } from './index'
+import { SchemaOptions, toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { debugStringify } from '@openapi-generator-plus/utils'
 
-export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedValueModelName: string, suggestedValueModelScope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenMapSchema {
+export interface MapSchemaOptions extends SchemaOptions {
+	suggestedValueModelName: string
+	suggestedValueModelScope: CodegenScope | null
+}
+
+export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, options: MapSchemaOptions, state: InternalCodegenState): CodegenMapSchema {
+	const { naming, purpose } = options
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 	
 	const keyNativeType = state.generator.toNativeType({
@@ -32,9 +38,9 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, naming: Sco
 	
 	const componentSchemaUsage: CodegenSchemaUsage<CodegenSchema> = toCodegenSchemaUsage(additionalProperties, state, {
 		required: true,
-		suggestedName: suggestedValueModelName,
+		suggestedName: options.suggestedValueModelName,
 		purpose: CodegenSchemaPurpose.MAP_VALUE,
-		suggestedScope: suggestedValueModelScope,
+		suggestedScope: options.suggestedValueModelScope,
 	})
 
 	const nativeType = state.generator.toNativeMapType({

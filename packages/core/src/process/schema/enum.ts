@@ -9,8 +9,10 @@ import { extractNaming, ScopedModelInfo } from './naming'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
 import { debugStringify } from '@openapi-generator-plus/utils'
+import { SchemaOptions } from '.'
 
-export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenEnumSchema {
+export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenEnumSchema {
+	const { naming, purpose } = options
 	if (!apiSchema.enum) {
 		throw new Error('Not an enum schema')
 	}

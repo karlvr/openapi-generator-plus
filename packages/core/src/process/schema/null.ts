@@ -5,8 +5,11 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { SchemaOptions } from '.'
 
-export function toCodegenNullSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenNullSchema {
+export function toCodegenNullSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenNullSchema {
+	const { naming, purpose } = options
+
 	if (apiSchema.type !== 'null') {
 		throw new Error('Not a null schema')
 	}

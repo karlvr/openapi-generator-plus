@@ -10,8 +10,10 @@ import { discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappi
 import { toCodegenProperties } from './property'
 import { toCodegenExternalDocs } from '../external-docs'
 import { createIfNotExistsCodegenInterfaceSchema } from './interface'
+import { SchemaOptionsRequiredNaming } from '.'
 
-export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenHierarchySchema {
+export function toCodegenHierarchySchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenHierarchySchema {
+	const { naming, purpose } = options
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)

@@ -5,8 +5,11 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { SchemaOptions } from '.'
 
-export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenBooleanSchema {
+export function toCodegenBooleanSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenBooleanSchema {
+	const { naming, purpose } = options
+
 	if (apiSchema.type !== 'boolean') {
 		throw new Error('Not a boolean schema')
 	}

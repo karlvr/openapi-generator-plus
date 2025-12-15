@@ -1,6 +1,6 @@
 import { AllOfSummary, CodegenAllOfSchema, CodegenAllOfStrategy, CodegenLogLevel, CodegenObjectSchema, CodegenPropertySummary, CodegenSchemaPurpose, CodegenSchemaType, isCodegenAllOfSchema, isCodegenHierarchySchema, isCodegenInterfaceSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
 import * as idx from '@openapi-generator-plus/indexed-type'
-import { toCodegenSchemaUsage } from '.'
+import { SchemaOptions, SchemaOptionsRequiredNaming, toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIReferenceObject, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -17,19 +17,20 @@ import { addChildObjectSchema, addImplementor, addToKnownSchemas, extractCodegen
 import { propertySummaryToString, toCodegenPropertySummary, toRequiredPropertyNames } from './property'
 import { transformNativeTypeForUsage } from './usage'
 
-export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
+export function toCodegenAllOfSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenAllOfSchema | CodegenObjectSchema {
 	const strategy = state.generator.allOfStrategy()
 	switch (strategy) {
 		case CodegenAllOfStrategy.NATIVE:
-			return toCodegenAllOfSchemaNative(apiSchema, naming, purpose, state)
+			return toCodegenAllOfSchemaNative(apiSchema, options, state)
 		case CodegenAllOfStrategy.OBJECT:
 		case CodegenAllOfStrategy.HIERARCHY:
-			return toCodegenAllOfSchemaObject(apiSchema, naming, purpose, state)
+			return toCodegenAllOfSchemaObject(apiSchema, options, state)
 	}
 	throw new Error(`Unsupported allOf strategy: ${strategy}`)
 }
 
-function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAllOfSchema {
+function toCodegenAllOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenAllOfSchema {
+	const { naming, purpose } = options
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -119,7 +120,8 @@ interface ClassifiedSchema {
 	approach: SchemaApproach
 }
 
-function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenObjectSchema {
+	const { naming, purpose } = options
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)

@@ -1,5 +1,5 @@
 import { CodegenInterfaceSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenScope, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema, isCodegenWrapperSchema } from '@openapi-generator-plus/types'
-import { toCodegenSchemaUsage } from '.'
+import { SchemaOptionsRequiredNaming, toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
@@ -12,18 +12,19 @@ import { checkContainsRelationship, extractNaming, ScopedModelInfo, toUniqueScop
 import { addImplementor, addToKnownSchemas, baseSuggestedNameForRelatedSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
-export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
+export function toCodegenOneOfSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenOneOfSchema | CodegenInterfaceSchema {
 	const strategy = state.generator.oneOfStrategy()
 	switch (strategy) {
 		case CodegenOneOfStrategy.NATIVE:
-			return toCodegenOneOfSchemaNative(apiSchema, naming, purpose, state)
+			return toCodegenOneOfSchemaNative(apiSchema, options, state)
 		case CodegenOneOfStrategy.INTERFACE:
-			return toCodegenOneOfSchemaInterface(apiSchema, naming, purpose, state)
+			return toCodegenOneOfSchemaInterface(apiSchema, options, state)
 	}
 	throw new Error(`Unsupported oneOf strategy: ${strategy}`)
 }
 
-function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenOneOfSchema {
+function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenOneOfSchema {
+	const { naming, purpose } = options
 	const { scopedName, scope } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
@@ -108,7 +109,8 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, naming: Sc
 	return result
 }
 
-function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenInterfaceSchema {
+function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenInterfaceSchema {
+	const { naming, purpose } = options
 	const { scopedName } = naming
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)

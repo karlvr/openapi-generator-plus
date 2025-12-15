@@ -5,8 +5,11 @@ import { toCodegenExternalDocs } from '../external-docs'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
+import { SchemaOptions } from '.'
 
-export function toCodegenAnySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenAnySchema {
+export function toCodegenAnySchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenAnySchema {
+	const { naming, purpose } = options
+
 	if (Object.keys(apiSchema).length !== 0) {
 		throw new Error('Not an any schema')
 	}

@@ -9,8 +9,11 @@ import { toCodegenSchemaType } from './schema-type'
 import { createSchemaUsage, CreateSchemaUsageOptions } from './usage'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { debugStringify } from '@openapi-generator-plus/utils'
+import { SchemaOptions } from '.'
 
-export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenStringSchema {
+export function toCodegenStringSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptions, state: InternalCodegenState): CodegenStringSchema {
+	const { naming, purpose } = options
+
 	if (apiSchema.type !== 'string') {
 		throw new Error(`Not a string schema: ${debugStringify(apiSchema)}`)
 	}
@@ -63,6 +66,9 @@ export function createStringSchemaUsage(format: string | undefined, options: Cre
 	const schema = toCodegenStringSchema({
 		type: 'string',
 		format,
-	}, null, purpose, state)
+	}, {
+		naming: null,
+		purpose,
+	}, state)
 	return createSchemaUsage(schema, options, state)
 }

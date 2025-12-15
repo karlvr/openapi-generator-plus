@@ -14,7 +14,7 @@ import { toCodegenArraySchema } from './array'
 import { toCodegenBooleanSchema } from './boolean'
 import { toCodegenEnumSchema } from './enum'
 import { toCodegenMapSchema } from './map'
-import { toUniqueScopedName, extractNaming, usedSchemaName } from './naming'
+import { toUniqueScopedName, extractNaming, usedSchemaName, ScopedModelInfo } from './naming'
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenOneOfSchema } from './one-of'
@@ -56,6 +56,15 @@ export interface SchemaUsageOptions {
 	 */
 	purpose: CodegenSchemaPurpose
 	suggestedScope: CodegenScope | null
+}
+
+export interface SchemaOptions {
+	naming: ScopedModelInfo | null
+	purpose: CodegenSchemaPurpose
+}
+
+export interface SchemaOptionsRequiredNaming extends SchemaOptions {
+	naming: ScopedModelInfo
 }
 
 type RememberedCodegenSchemaInfo = Partial<CodegenSchemaInfo> & { default?: unknown }
@@ -164,18 +173,30 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 	if (existingNow) {
 		return existingNow
 	}
+
+	const schemaOptions: SchemaOptions = {
+		naming,
+		purpose,
+	}
 	
 	let result: CodegenSchema
 	switch (schemaType) {
 		case CodegenSchemaType.MAP:
-			result = toCodegenMapSchema(apiSchema, naming, naming ? 'value' : singular(suggestedName), naming ? naming.scope : suggestedScope, purpose, state)
+			result = toCodegenMapSchema(apiSchema, {
+				...schemaOptions,
+				suggestedValueModelName: naming ? 'value' : singular(suggestedName),
+				suggestedValueModelScope: naming ? naming.scope : suggestedScope,
+			}, state)
 			break
 		case CodegenSchemaType.OBJECT:
 			if (!naming) {
 				// naming = toUniqueScopedName($ref, suggestedName, suggestedScope, schema, state)
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenObjectSchema(apiSchema, naming, purpose, state)
+			result = toCodegenObjectSchema(apiSchema, {
+				...schemaOptions,
+				naming,
+			}, state)
 			break
 		case CodegenSchemaType.INTERFACE:
 			throw new Error(`Cannot create an interface directly from an OpenAPI schema: ${debugStringify(apiSchema)}`)
@@ -187,35 +208,48 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenAllOfSchema(apiSchema, naming, purpose, state)
+			result = toCodegenAllOfSchema(apiSchema, {
+				...schemaOptions,
+				naming,
+			}, state)
 			break
 		case CodegenSchemaType.ANYOF:
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenAnyOfSchema(apiSchema, naming, purpose, state)
+			result = toCodegenAnyOfSchema(apiSchema, {
+				...schemaOptions,
+				naming,
+			}, state)
 			break
 		case CodegenSchemaType.ONEOF:
 			if (!naming) {
 				throw new Error(`no name for ${debugStringify(apiSchema)}`)
 			}
-			result = toCodegenOneOfSchema(apiSchema, naming, purpose, state)
+			result = toCodegenOneOfSchema(apiSchema, {
+				...schemaOptions,
+				naming,
+			}, state)
 			break
 		case CodegenSchemaType.ARRAY:
-			result = toCodegenArraySchema(apiSchema, naming, naming ? 'item' : singular(suggestedName), naming ? naming.scope : suggestedScope, purpose, state)
+			result = toCodegenArraySchema(apiSchema, {
+				...schemaOptions,
+				suggestedItemModelName: naming ? 'item' : singular(suggestedName), 
+				suggestedItemModelScope: naming ? naming.scope : suggestedScope,
+			}, state)
 			break
 		case CodegenSchemaType.ENUM:
-			result = toCodegenEnumSchema(apiSchema, naming, purpose, state)
+			result = toCodegenEnumSchema(apiSchema, schemaOptions, state)
 			break
 		case CodegenSchemaType.NUMBER:
 		case CodegenSchemaType.INTEGER:
-			result = toCodegenNumericSchema(apiSchema, naming, purpose, state)
+			result = toCodegenNumericSchema(apiSchema, schemaOptions, state)
 			break
 		case CodegenSchemaType.STRING:
-			result = toCodegenStringSchema(apiSchema, naming, purpose, state)
+			result = toCodegenStringSchema(apiSchema, schemaOptions, state)
 			break
 		case CodegenSchemaType.BOOLEAN:
-			result = toCodegenBooleanSchema(apiSchema, naming, purpose, state)
+			result = toCodegenBooleanSchema(apiSchema, schemaOptions, state)
 			break
 		case CodegenSchemaType.DATE:
 		case CodegenSchemaType.DATETIME:
@@ -259,11 +293,11 @@ function toCodegenSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefi
 			break
 		}
 		case CodegenSchemaType.NULL: {
-			result = toCodegenNullSchema(apiSchema, naming, purpose, state)
+			result = toCodegenNullSchema(apiSchema, schemaOptions, state)
 			break
 		}
 		case CodegenSchemaType.ANY: {
-			result = toCodegenAnySchema(apiSchema, naming, purpose, state)
+			result = toCodegenAnySchema(apiSchema, schemaOptions, state)
 			break
 		}
 	}

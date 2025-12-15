@@ -4,9 +4,9 @@ import { OpenAPIX } from '../../types/patches'
 import { InternalCodegenState } from '../../types'
 import { isOpenAPIReferenceObject } from '../../openapi-type-guards'
 import { toCodegenProperties } from './property'
-import { toCodegenSchemaUsage } from '.'
+import { SchemaUsageOptions, toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
-import { toCodegenMapSchema } from './map'
+import { MapSchemaOptions, toCodegenMapSchema } from './map'
 import { baseSuggestedNameForRelatedSchemas } from './utils'
 
 function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
@@ -73,7 +73,12 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 			}
 
 			try {
-				const mapSchema = toCodegenMapSchema(apiSchema, null, 'value', target, CodegenSchemaPurpose.ABSORB, state)
+				const mapSchema = toCodegenMapSchema(apiSchema, {
+					naming: null,
+					purpose: CodegenSchemaPurpose.ABSORB,
+					suggestedValueModelName: 'value',
+					suggestedValueModelScope: target,
+				}, state)
 				target.additionalProperties = mapSchema
 				absorbed = true
 			} catch (error) {

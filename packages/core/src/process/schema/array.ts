@@ -1,26 +1,32 @@
 import { CodegenArraySchema, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage, CodegenScope } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
-import { toCodegenSchemaUsage } from './index'
+import { SchemaOptions, toCodegenSchemaUsage } from './index'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { extractCodegenSchemaCommon, finaliseSchema } from './utils'
-import { extractNaming, ScopedModelInfo } from './naming'
+import { extractNaming } from './naming'
 import { toCodegenExternalDocs } from '../external-docs'
 import { convertToBoolean, convertToNumber } from '../utils'
 
-export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, naming: ScopedModelInfo | null, suggestedItemModelName: string, suggestedItemModelScope: CodegenScope | null, purpose: CodegenSchemaPurpose, state: InternalCodegenState): CodegenArraySchema {
+export interface ArraySchemaOptions extends SchemaOptions {
+	suggestedItemModelName: string
+	suggestedItemModelScope: CodegenScope | null
+}
+
+export function toCodegenArraySchema(apiSchema: OpenAPIX.SchemaObject, options: ArraySchemaOptions, state: InternalCodegenState): CodegenArraySchema {
 	if (apiSchema.type !== 'array') {
 		throw new Error('Not an array schema')
 	}
 
+	const { naming, purpose } = options
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
 	/* Component properties are implicitly required as we don't expect to have `null` entries in the array. */
 	const componentSchemaUsage = toCodegenSchemaUsage(apiSchema.items || {}, state, {
 		required: true,
-		suggestedName: suggestedItemModelName,
+		suggestedName: options.suggestedItemModelName,
 		purpose: CodegenSchemaPurpose.ARRAY_ITEM,
-		suggestedScope: suggestedItemModelScope,
+		suggestedScope: options.suggestedItemModelScope,
 	})
 	const nativeType = state.generator.toNativeArrayType({
 		type: apiSchema.type,

@@ -1,0 +1,16 @@
+openapi: 3.0.1
+info:
+  title: Example
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    X:
+      type: object
+      properties:
+        x:
+          type: number
+    Y:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/X'

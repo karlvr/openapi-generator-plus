@@ -51,6 +51,19 @@ test('description on $ref', async() => {
 	expect(valueProperty?.schema.description).toEqual('MyObject description')
 })
 
+test('external reference with nested $ref in allOf', async() => {
+	const result = await createTestDocument('references/external-nested-ref.yml')
+	const op = result.groups[0].operations[0]
+	expect(op).toBeDefined()
+
+	/* Check that schemas from the external file were discovered */
+	const schemaY = idx.get(result.schemas, 'Y')
+	expect(schemaY).toBeDefined()
+
+	const schemaX = idx.get(result.schemas, 'X')
+	expect(schemaX).toBeDefined()
+})
+
 test('default value on $ref', async() => {
 	const result = await createTestDocument('references/default-value.yml')
 	const op = result.groups[0].operations[0]

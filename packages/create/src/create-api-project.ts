@@ -379,7 +379,7 @@ async function filterByType(generators: Result[]): Promise<{ filterType?: string
 
 	const filterType = (await inquirer.prompt([
 		{
-			type: 'list',
+			type: 'select',
 			name: 'type',
 			message: 'What type of generator template are you looking for?',
 			choices: availableTypes,
@@ -398,7 +398,7 @@ async function chooseGenerator(generators: Result[], filterType?: string): Promi
 
 	const module: Result = (await inquirer.prompt([
 		{
-			type: 'list',
+			type: 'select',
 			pageSize: 20,
 			name: 'generator',
 			message: `Choose a ${filterType ? `${filterType} ` : ''}generator template to use to generate your API SDK`,

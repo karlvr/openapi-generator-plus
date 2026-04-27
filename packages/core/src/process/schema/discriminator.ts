@@ -32,7 +32,7 @@ export function toCodegenSchemaDiscriminator(apiSchema: OpenAPIX.SchemaObject, t
 		}
 	}
 
-	let discriminatorType: CodegenSchemaUsage | undefined = undefined
+	let discriminatorType: CodegenSchemaUsage | undefined
 	if (isCodegenObjectSchema(target) || isCodegenHierarchySchema(target)) {
 		const discriminatorProperty = findProperty(target, schemaDiscriminator.propertyName)
 		if (!discriminatorProperty) {

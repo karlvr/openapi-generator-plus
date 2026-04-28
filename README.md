@@ -61,10 +61,14 @@ npm run generate
 
 ## Using
 
-You can specify basic options on the command-line:
+OpenAPI Generator Plus exposes two subcommands: `generate` (the default) and `bundle`.
+
+### Generate
+
+Generate code from an API specification:
 
 ```shell
-npx openapi-generator-plus [-c <config file>] [-o <output dir>] [-g <generator template name or path>] [<path or url to api spec>]
+npx openapi-generator-plus [generate] [-c <config file>] [-o <output dir>] [-g <generator template name or path>] [<path or url to api spec>]
 ```
 
 You can also use a config file, which contains more advanced options to control the generated output:
@@ -72,6 +76,20 @@ You can also use a config file, which contains more advanced options to control 
 ```shell
 npx openapi-generator-plus -c <config file>
 ```
+
+### Bundle
+
+Bundle one or more API specifications into a single file, with all external `$ref`s inlined. Useful for distributing a self-contained spec, or for combining several specs (e.g. one per service) into one document before generating:
+
+```shell
+npx openapi-generator-plus bundle [-o <output file>] <path or url to api spec> [<additional api spec> ...]
+```
+
+If `-o` is omitted the bundled spec is written to stdout. The output format is YAML, or JSON if the output file ends in `.json`.
+
+When more than one input is supplied the specs are merged with last-wins semantics: top-level metadata (`info`, version, servers, etc.) is taken from the first document, while `paths`, `components.*` (or v2 buckets like `definitions`), and `tags` are unioned across all inputs. Collisions on the same key are reported as warnings and the later input's value wins. All inputs must use the same major OpenAPI version.
+
+Filtering and `--activate-extension` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written.
 
 ## Generator template
 
@@ -101,12 +119,49 @@ Options to the generation process can be specified on the command-line or in a c
 
 |Option|Description|
 |------|-----------|
-|`-c <path>`|The path to a configuration file to load (see below)|
-|`-o <path>`|The path to the output directory.|
+|`-c <path>`|The path to a configuration file to load (see below).|
+|`-o <path>`|The path to the output directory (or output file when bundling).|
 |`-g <module or path>`|The module name of or path to a generator template.|
-|`<path>`|The path to the input API specification.|
+|`<path>`|The path to the input API specification. `bundle` accepts multiple paths.|
+|`--watch`|Watch the input spec and any generator-supplied watch paths and regenerate on change. (`generate` only.)|
+|`--clean`|After a successful generation, remove files under the output directory that match the generator's clean patterns and were not written by this run. (`generate` only.)|
+|`--include-tag <tag>`|Keep only operations tagged with the given tag. Repeatable, or comma-separated.|
+|`--exclude-tag <tag>`|Drop operations tagged with the given tag. Repeatable, or comma-separated.|
+|`--include-path <glob>`|Keep only operations whose path matches the given glob. Repeatable, or comma-separated.|
+|`--exclude-path <glob>`|Drop operations whose path matches the given glob. Repeatable, or comma-separated.|
+|`--activate-extension <name>`|Promote `x-<name>-<key>` vendor extension keys to `<key>` throughout the spec before generation. Repeatable, or comma-separated.|
 
-Command-line options override their respective configuration options (see below).
+Command-line options override their respective configuration options (see below). When a filter or `--activate-extension` flag appears on the command line it fully replaces the matching configuration value rather than appending to it.
+
+### Filtering operations
+
+The filter flags (`--include-tag`, `--exclude-tag`, `--include-path`, `--exclude-path`) and their config equivalents (`includeTags`, `excludeTags`, `includePaths`, `excludePaths`) prune operations from the spec before generation or bundling. They are useful for splitting a large spec into multiple generated outputs (e.g. one client per tag), or for excluding internal or experimental endpoints.
+
+- An operation is kept when it matches every active include filter and does not match any exclude filter.
+- Tag filters match an operation's tags exactly.
+- Path filters use [glob syntax](https://github.com/isaacs/minimatch) against the OpenAPI path string, so `/users/*` matches `/users/{id}` and `/users/**` matches any descendant path.
+- After filtering, paths and tags with no remaining operations are removed, and `components`/`definitions` entries that are no longer reachable from any retained operation are pruned.
+
+### Activating vendor extensions
+
+`--activate-extension <name>` (or the `activateExtensions` config option) promotes any `x-<name>-<key>` vendor extension to `<key>`, replacing whatever was at that key. This lets a single spec carry alternate values for client vs. server, internal vs. public, etc., and select the right variant at generation time.
+
+For example, with `--activate-extension server`:
+
+```yaml
+servers:
+  - url: https://api.example.com
+    x-server-url: http://localhost:8080
+```
+
+becomes:
+
+```yaml
+servers:
+  - url: http://localhost:8080
+```
+
+Multiple `--activate-extension` flags are applied in order, and each pass walks the document recursively, so nested extensions on the same name are promoted in a single invocation.
 
 ### Configuration
 
@@ -118,6 +173,11 @@ The configuration file may be YAML or JSON. A basic configuration file contains:
 |`outputPath`|`string`|The path to the output directory, relative to the config file.|`undefined`|
 |`generator`|`string`|The name of the generator template, or the path relative to the config file for the generator template module.|`undefined`|
 |`options`|`Options`|Additional options to control the generation.|`undefined`|
+|`includeTags`|`string[]`|Keep only operations tagged with any of these tags. See [Filtering operations](#filtering-operations).|`undefined`|
+|`excludeTags`|`string[]`|Drop operations tagged with any of these tags.|`undefined`|
+|`includePaths`|`string[]`|Keep only operations whose path matches any of these globs.|`undefined`|
+|`excludePaths`|`string[]`|Drop operations whose path matches any of these globs.|`undefined`|
+|`activateExtensions`|`string[]`|Names to pass to [Activating vendor extensions](#activating-vendor-extensions) before generation.|`undefined`|
 
 See the README for the generator template you're using for additional configuration options supported by that generator.
 

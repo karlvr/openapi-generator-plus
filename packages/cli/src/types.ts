@@ -25,4 +25,5 @@ export interface CommandLineConfig extends CodegenConfig {
 	includePaths?: string[]
 	excludePaths?: string[]
 	activateExtensions?: string[]
+	removeExtensions?: string[]
 }

@@ -5,6 +5,7 @@ import YAML from 'yaml'
 import { isURL } from '@openapi-generator-plus/core/dist/utils'
 import { filtersFromCommandLine } from './filter'
 import { activateExtensionsFromCommandLine } from './activate-extensions'
+import { removeExtensionsFromCommandLine } from './remove-extensions'
 
 function resolveInputPaths(inputPath: string | string[], configDir: string): string | string[] {
 	if (Array.isArray(inputPath)) {
@@ -68,6 +69,7 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 	config.excludePaths = merged.excludePaths
 
 	config.activateExtensions = activateExtensionsFromCommandLine(commandLineOptions, config.activateExtensions)
+	config.removeExtensions = removeExtensionsFromCommandLine(commandLineOptions, config.removeExtensions)
 
 	return config
 }

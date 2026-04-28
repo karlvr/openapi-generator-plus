@@ -84,10 +84,12 @@ When more than one input spec is supplied (either as multiple positional argumen
 Bundle one or more API specifications into a single file, with all external `$ref`s inlined. Useful for distributing a self-contained spec, or for combining several specs (e.g. one per service) into one document before generating:
 
 ```shell
-npx openapi-generator-plus bundle [-o <output file>] <path or url to api spec> [<additional api spec> ...]
+npx openapi-generator-plus bundle [-c <config file>] [-o <output file or dir>] [<path or url to api spec> [<additional api spec> ...]]
 ```
 
-If `-o` is omitted the bundled spec is written to stdout. The output format is YAML, or JSON if the output file ends in `.json`.
+If `-o` is omitted the bundled spec is written to stdout. The output format is YAML, or JSON if the output file ends in `.json`. If the output path is a directory (or ends in `/`), the bundle is written into that directory using the basename of the first input.
+
+`bundle` also accepts `-c <config file>` to load `inputPath` (a single path or array), `outputPath`, filter flags, `activateExtensions`, and `removeExtensions` from a config file (see [Configuration](#configuration)). Positional inputs and `-o` on the command line override the config file.
 
 When more than one input is supplied the specs are merged with last-wins semantics: top-level metadata (`info`, version, servers, etc.) is taken from the first document, while `paths`, `components.*` (or v2 buckets like `definitions`), and `tags` are unioned across all inputs. Collisions on the same key are reported as warnings and the later input's value wins. All inputs must use the same major OpenAPI version.
 
@@ -189,6 +191,7 @@ The configuration file may be YAML or JSON. A basic configuration file contains:
 |`includePaths`|`string[]`|Keep only operations whose path matches any of these globs.|`undefined`|
 |`excludePaths`|`string[]`|Drop operations whose path matches any of these globs.|`undefined`|
 |`activateExtensions`|`string[]`|Names to pass to [Activating vendor extensions](#activating-vendor-extensions) before generation.|`undefined`|
+|`removeExtensions`|`string[]`|Patterns to pass to [Removing vendor extensions](#removing-vendor-extensions). (`bundle` only.)|`undefined`|
 
 See the README for the generator template you're using for additional configuration options supported by that generator.
 

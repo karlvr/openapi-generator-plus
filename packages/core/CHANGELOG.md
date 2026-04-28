@@ -1,5 +1,23 @@
 # @openapi-generator-plus/core
 
+## 2.27.0
+
+### Minor Changes
+
+- 7535cff: New `--activate-extension <name>` flag on both `generate` and `bundle` (also `activateExtensions` in the config file). For each name, every `x-{name}-{key}` extension is promoted to `{key}` recursively throughout the spec, replacing any existing value. Useful for keeping target-specific overrides (e.g. `x-server-summary`, `x-client-description`) alongside the default values in a single spec. Repeatable and comma-separated; activations are applied in order, so `--activate-extension server,other` rewrites `x-server-x-other-foo` to `foo`.
+- 6d9ef81: `bundle` command now accepts multiple input specs and merges them into a single document. Last-wins on collisions (paths, components/definitions, tags) with a warning printed for each. Top-level metadata is taken from the first spec; mixing OpenAPI v2 and v3 inputs is rejected. Filters apply after merging.
+- 6e689ea: New `--remove-extension <pattern>` flag on the `bundle` command. Each pattern targets vendor extension keys by their suffix (the part after `x-`), with `*` matching any character sequence — for example `--remove-extension server-*` strips every `x-server-*` key from the bundled output. Repeatable and comma-separated, and applied after `--activate-extension`. Backed by a new `removeExtensionsFromOpenAPISpec` export on `@openapi-generator-plus/core`.
+- 42a26ba: Support filtering API specs before bundling or generating. Add `--include-tag`, `--exclude-tag`, `--include-path` and `--exclude-path` flags (repeatable or comma-separated) to the generate and bundle commands, and matching `includeTags` / `excludeTags` / `includePaths` / `excludePaths` keys in config files, to filter the loaded API spec before generation or bundling.
+- 16299eb: Tag filtering now honours an `x-tags` extension on parameters, schema properties, request bodies, response codes, and media-type variants. When `--include-tag`/`--exclude-tag` is active, `x-tags` are additive to the enclosing operation's tags and let you filter inside an operation: drop a property (also removed from `required`), drop a single media-type variant, drop a response code, etc. `x-tags` on shared `components`/`definitions` are evaluated without an operation context and apply to the shared entry itself. The extension accepts either an array of strings or a single string.
+
+### Patch Changes
+
+- 50aeed6: Upgrade node and dependencies including TypeScript 5 -> 6
+- Updated dependencies [50aeed6]
+  - @openapi-generator-plus/indexed-type@1.0.1
+  - @openapi-generator-plus/types@2.22.1
+  - @openapi-generator-plus/utils@1.1.9
+
 ## 2.26.0
 
 ### Minor Changes

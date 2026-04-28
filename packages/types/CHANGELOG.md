@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.22.1
+
+### Patch Changes
+
+- 50aeed6: Upgrade node and dependencies including TypeScript 5 -> 6
+
 ## 2.22.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # create-openapi-generator-plus
 
+## 1.1.7
+
+### Patch Changes
+
+- 50aeed6: Upgrade node and dependencies including TypeScript 5 -> 6
+
 ## 1.1.6
 
 ### Patch Changes

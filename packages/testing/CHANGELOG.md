@@ -1,5 +1,20 @@
 # @openapi-generator-plus/testing
 
+## 2.27.0
+
+### Patch Changes
+
+- 50aeed6: Upgrade node and dependencies including TypeScript 5 -> 6
+- Updated dependencies [7535cff]
+- Updated dependencies [50aeed6]
+- Updated dependencies [6d9ef81]
+- Updated dependencies [6e689ea]
+- Updated dependencies [42a26ba]
+- Updated dependencies [16299eb]
+  - @openapi-generator-plus/core@2.27.0
+  - @openapi-generator-plus/indexed-type@1.0.1
+  - @openapi-generator-plus/types@2.22.1
+
 ## 2.26.0
 
 ### Patch Changes

@@ -1,11 +1,12 @@
 import { promises as fs } from 'fs'
-import { constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec } from '@openapi-generator-plus/core'
+import { activateExtensionsInOpenAPISpec, constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec } from '@openapi-generator-plus/core'
 import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor, CodegenInputDocument } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions, CommandLineConfig } from './types'
 import { createConfig } from './config'
 import { FILTER_STRING_OPTIONS, hasAnyFilter } from './filter'
+import { ACTIVATE_EXTENSION_STRING_OPTIONS } from './activate-extensions'
 import watch from 'node-watch'
 import { glob } from 'glob'
 import { loadGeneratorConstructor } from './generator'
@@ -61,6 +62,10 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 	} catch (error) {
 		console.error(c.bold.red('Failed to get the API specification:'), error)
 		return false
+	}
+
+	if (config.activateExtensions && config.activateExtensions.length) {
+		activateExtensionsInOpenAPISpec(input.root, config.activateExtensions)
 	}
 
 	const filters = {
@@ -150,7 +155,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 			version: 'v',
 		},
 		boolean: ['watch', 'clean'],
-		string: FILTER_STRING_OPTIONS,
+		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_EXTENSION_STRING_OPTIONS],
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false

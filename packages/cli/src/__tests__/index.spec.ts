@@ -25,6 +25,26 @@ test('config with overrides', async() => {
 	expect(config.generator).toEqual('generator')
 })
 
+test('activate-extension repeated and comma-separated', async() => {
+	const config = await createConfig({ _: ['input'], 'activate-extension': ['a,b', 'c'] }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.activateExtensions).toEqual(['a', 'b', 'c'])
+})
+
+test('activate-extension empty string from getopts is ignored', async() => {
+	const config = await createConfig({ _: ['input'], 'activate-extension': '' }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.activateExtensions).toBeUndefined()
+})
+
+test('activate-extension falls back to config file value when CLI omits it', async() => {
+	const config = await createConfig({ _: [], config: '/' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activateExtensions: ['server'] }))
+	expect(config.activateExtensions).toEqual(['server'])
+})
+
+test('activate-extension CLI overrides config file value', async() => {
+	const config = await createConfig({ _: [], config: '/', 'activate-extension': 'client' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activateExtensions: ['server'] }))
+	expect(config.activateExtensions).toEqual(['client'])
+})
+
 /* Note that the test generator doesn't actually generate files, but we still get to test the functionality of the CLI app */
 describe('generate', () => {
 	const basePath = path.join(__dirname, 'specs')

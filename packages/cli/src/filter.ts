@@ -48,7 +48,7 @@ export function hasAnyFilter(filters: OpenAPIFilters): boolean {
  * 
  * We also handle comma-separated values within one command-line option.
  */
-function fromCommandLineConfigValue(value: string | string[] | undefined): string[] | undefined {
+export function fromCommandLineConfigValue(value: string | string[] | undefined): string[] | undefined {
 	if (!value) {
 		return undefined
 	}

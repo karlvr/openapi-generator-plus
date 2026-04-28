@@ -4,6 +4,7 @@ import path from 'path'
 import YAML from 'yaml'
 import { isURL } from '@openapi-generator-plus/core/dist/utils'
 import { filtersFromCommandLine } from './filter'
+import { activateExtensionsFromCommandLine } from './activate-extensions'
 
 async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
@@ -58,6 +59,8 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 	config.excludeTags = merged.excludeTags
 	config.includePaths = merged.includePaths
 	config.excludePaths = merged.excludePaths
+
+	config.activateExtensions = activateExtensionsFromCommandLine(commandLineOptions, config.activateExtensions)
 
 	return config
 }

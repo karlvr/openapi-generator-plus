@@ -1,6 +1,6 @@
 import YAML from 'yaml'
 import { promises as fs } from 'fs'
-import { bundleCodegenInput, filterOpenAPISpec } from '@openapi-generator-plus/core'
+import { bundleCodegenInput, filterOpenAPISpec, mergeOpenAPISpecs } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import { CommandLineOptions } from './types'
 import { usage } from './usage'
@@ -19,15 +19,23 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 	})
 
 	const outputPath = commandLineOptions.output
-	const inputPath = commandLineOptions._[0]
+	const inputPaths = commandLineOptions._
 
-	if (!inputPath) {
+	if (inputPaths.length === 0) {
 		console.log('Input path not specified')
 		usage()
 		process.exit(1)
 	}
 
-	let doc = await bundleCodegenInput(inputPath)
+	const docs = await Promise.all(inputPaths.map(p => bundleCodegenInput(p)))
+
+	let doc = docs.length === 1
+		? docs[0]
+		: mergeOpenAPISpecs(docs, {
+			onCollision: ({ kind, key }) => {
+				console.warn(`Warning: collision while merging ${kind}: ${key} (last input wins)`)
+			},
+		})
 
 	const filters = filtersFromCommandLine(commandLineOptions)
 	if (hasAnyFilter(filters)) {

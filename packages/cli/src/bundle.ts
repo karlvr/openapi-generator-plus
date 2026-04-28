@@ -55,10 +55,6 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 		doc = activateExtensionsInOpenAPISpec(doc, config.activateExtensions)
 	}
 
-	if (config.removeExtensions && config.removeExtensions.length) {
-		doc = removeExtensionsFromOpenAPISpec(doc, config.removeExtensions)
-	}
-
 	const filters = {
 		includeTags: config.includeTags,
 		excludeTags: config.excludeTags,
@@ -67,6 +63,10 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 	}
 	if (hasAnyFilter(filters)) {
 		doc = filterOpenAPISpec(doc, filters)
+	}
+
+	if (config.removeExtensions && config.removeExtensions.length) {
+		doc = removeExtensionsFromOpenAPISpec(doc, config.removeExtensions)
 	}
 
 	const outputPath = await resolveOutputPath(config.outputPath, inputPaths)

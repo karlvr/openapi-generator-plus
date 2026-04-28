@@ -149,6 +149,12 @@ The filter flags (`--include-tag`, `--exclude-tag`, `--include-path`, `--exclude
 - Path filters use [glob syntax](https://github.com/isaacs/minimatch) against the OpenAPI path string, so `/users/*` matches `/users/{id}` and `/users/**` matches any descendant path.
 - After filtering, paths and tags with no remaining operations are removed, and `components`/`definitions` entries that are no longer reachable from any retained operation are pruned.
 
+#### Extended filtering with `x-tags`
+
+You can add tags to parts of the schema that don't otherwise support tags using an `x-tags: [<tag>, ...]` extension (a single string is also accepted) in order to have those parts effected by tag filters. This is supported on parameters, schema properties, request bodies, response codes, and media-type variants.
+
+On an operation, `x-tags` is combined with the operation's `tags`. This lets you tag an operation for filtering without touching the documentation-facing `tags` array.
+
 ### Activating vendor extensions
 
 `--activate-extension <name>` (or the `activateExtensions` config option) promotes any `x-<name>-<key>` vendor extension to `<key>`, replacing whatever was at that key. This lets a single spec carry alternate values for client vs. server, internal vs. public, etc., and select the right variant at generation time.

@@ -220,3 +220,280 @@ test('v2: filters operations and prunes definitions', () => {
 	expect(filtered.parameters).toBeUndefined()
 	expect(Object.keys(filtered.securityDefinitions!)).toEqual(['api_key'])
 })
+
+function v3DocWithXTags(): OpenAPIV3.Document {
+	return {
+		openapi: '3.0.0',
+		info: { title: 'test', version: '1.0' },
+		paths: {
+			'/widgets': {
+				get: {
+					tags: ['widgets'],
+					parameters: [
+						{ name: 'q', in: 'query', schema: { type: 'string' } },
+						{ name: 'debug', in: 'query', schema: { type: 'boolean' }, 'x-tags': ['internal'] } as OpenAPIV3.ParameterObject,
+					],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: {
+								'application/json': { schema: { $ref: '#/components/schemas/Widget' } },
+								'application/x-internal+json': {
+									schema: { $ref: '#/components/schemas/Widget' },
+									'x-tags': ['internal'],
+								} as OpenAPIV3.MediaTypeObject,
+							},
+						},
+						'500': {
+							description: 'oops',
+							'x-tags': ['internal'],
+						} as OpenAPIV3.ResponseObject,
+					},
+					requestBody: {
+						content: { 'application/json': { schema: { $ref: '#/components/schemas/Widget' } } },
+						'x-tags': ['internal'],
+					} as OpenAPIV3.RequestBodyObject,
+				},
+			},
+		},
+		components: {
+			schemas: {
+				Widget: {
+					type: 'object',
+					required: ['id', 'secret'],
+					properties: {
+						id: { type: 'string' },
+						name: { type: 'string' },
+						secret: { type: 'string', 'x-tags': ['internal'] } as OpenAPIV3.SchemaObject,
+					},
+				},
+			},
+		},
+	}
+}
+
+test('x-tags: drops properties tagged for exclusion and removes them from required', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { excludeTags: ['internal'] })
+	const widget = filtered.components!.schemas!.Widget as OpenAPIV3.SchemaObject
+	expect(Object.keys(widget.properties!)).toEqual(['id', 'name'])
+	expect(widget.required).toEqual(['id'])
+})
+
+test('x-tags: drops parameters tagged for exclusion', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { excludeTags: ['internal'] })
+	const op = filtered.paths['/widgets']!.get!
+	expect(op.parameters?.map(p => (p as OpenAPIV3.ParameterObject).name)).toEqual(['q'])
+})
+
+test('x-tags: drops media-type variants tagged for exclusion', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { excludeTags: ['internal'] })
+	const op = filtered.paths['/widgets']!.get!
+	const ok = op.responses!['200'] as OpenAPIV3.ResponseObject
+	expect(Object.keys(ok.content!)).toEqual(['application/json'])
+})
+
+test('x-tags: drops response codes tagged for exclusion', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { excludeTags: ['internal'] })
+	const op = filtered.paths['/widgets']!.get!
+	expect(Object.keys(op.responses!)).toEqual(['200'])
+})
+
+test('x-tags: drops requestBody tagged for exclusion', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { excludeTags: ['internal'] })
+	const op = filtered.paths['/widgets']!.get!
+	expect(op.requestBody).toBeUndefined()
+})
+
+test('x-tags: untagged sub-positions are kept; x-tagged positions filter on x-tags only', () => {
+	const doc = v3DocWithXTags()
+	// Operation is tagged 'widgets'; an include filter for 'widgets' keeps the operation
+	// and its untagged sub-positions. Sub-positions x-tagged 'internal' fail the include
+	// filter (their x-tags alone don't match 'widgets') and also hit the exclude filter.
+	const filtered = filterOpenAPISpec(doc, { includeTags: ['widgets'], excludeTags: ['internal'] })
+	const op = filtered.paths['/widgets']!.get!
+	expect(op.parameters?.map(p => (p as OpenAPIV3.ParameterObject).name)).toEqual(['q'])
+	const widget = filtered.components!.schemas!.Widget as OpenAPIV3.SchemaObject
+	expect(Object.keys(widget.properties!)).toEqual(['id', 'name'])
+})
+
+test('x-tags: include-only filter on a sub-position tag keeps that position', () => {
+	// An include filter for 'internal' alone won't keep the operation (op tagged only 'widgets'),
+	// so the whole operation goes away. Verify that.
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { includeTags: ['internal'] })
+	expect(filtered.paths['/widgets']).toBeUndefined()
+})
+
+test('x-tags: only path filters set — sub-position x-tags are not applied', () => {
+	const filtered = filterOpenAPISpec(v3DocWithXTags(), { includePaths: ['/widgets'] })
+	const widget = filtered.components!.schemas!.Widget as OpenAPIV3.SchemaObject
+	// secret should still be present since no tag filter is active
+	expect(Object.keys(widget.properties!).sort()).toEqual(['id', 'name', 'secret'])
+})
+
+test('x-tags: empty schema after dropping all properties remains valid', () => {
+	const doc: OpenAPIV3.Document = {
+		openapi: '3.0.0',
+		info: { title: 't', version: '1' },
+		paths: {
+			'/things': {
+				get: {
+					tags: ['things'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: { 'application/json': { schema: { $ref: '#/components/schemas/Thing' } } },
+						},
+					},
+				},
+			},
+		},
+		components: {
+			schemas: {
+				Thing: {
+					type: 'object',
+					required: ['only'],
+					properties: {
+						only: { type: 'string', 'x-tags': ['internal'] } as OpenAPIV3.SchemaObject,
+					},
+				},
+			},
+		},
+	}
+	const filtered = filterOpenAPISpec(doc, { excludeTags: ['internal'] })
+	const thing = filtered.components!.schemas!.Thing as OpenAPIV3.SchemaObject
+	expect(thing.properties).toEqual({})
+	expect(thing.required).toBeUndefined()
+})
+
+test('x-tags: applies inside nested schemas (items, allOf)', () => {
+	const doc: OpenAPIV3.Document = {
+		openapi: '3.0.0',
+		info: { title: 't', version: '1' },
+		paths: {
+			'/x': {
+				get: {
+					tags: ['x'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: { 'application/json': { schema: { $ref: '#/components/schemas/Box' } } },
+						},
+					},
+				},
+			},
+		},
+		components: {
+			schemas: {
+				Box: {
+					allOf: [
+						{
+							type: 'object',
+							properties: {
+								keep: { type: 'string' },
+								drop: { type: 'string', 'x-tags': ['internal'] } as OpenAPIV3.SchemaObject,
+							},
+						},
+					],
+					type: 'object',
+					properties: {
+						items: {
+							type: 'array',
+							items: {
+								type: 'object',
+								properties: {
+									keep2: { type: 'string' },
+									drop2: { type: 'string', 'x-tags': ['internal'] } as OpenAPIV3.SchemaObject,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	const filtered = filterOpenAPISpec(doc, { excludeTags: ['internal'] })
+	const box = filtered.components!.schemas!.Box as OpenAPIV3.SchemaObject
+	const allOfFirst = box.allOf![0] as OpenAPIV3.SchemaObject
+	expect(Object.keys(allOfFirst.properties!)).toEqual(['keep'])
+	const itemsSchema = (box.properties!.items as OpenAPIV3.ArraySchemaObject).items as OpenAPIV3.SchemaObject
+	expect(Object.keys(itemsSchema.properties!)).toEqual(['keep2'])
+})
+
+test('x-tags: v2 properties and parameters', () => {
+	const doc: OpenAPIV2.Document = {
+		swagger: '2.0',
+		info: { title: 't', version: '1' },
+		paths: {
+			'/things': {
+				get: {
+					tags: ['things'],
+					parameters: [
+						{ name: 'q', in: 'query', type: 'string' },
+						{ name: 'debug', in: 'query', type: 'boolean', 'x-tags': ['internal'] } as OpenAPIV2.Parameter,
+					],
+					responses: { '200': { description: 'ok', schema: { $ref: '#/definitions/Thing' } } },
+				},
+			},
+		},
+		definitions: {
+			Thing: {
+				type: 'object',
+				required: ['id', 'secret'],
+				properties: {
+					id: { type: 'string' },
+					secret: { type: 'string', 'x-tags': ['internal'] } as OpenAPIV2.Schema,
+				},
+			},
+		},
+	}
+	const filtered = filterOpenAPISpec(doc, { excludeTags: ['internal'] })
+	const thing = filtered.definitions!.Thing as OpenAPIV2.SchemaObject
+	expect(Object.keys(thing.properties!)).toEqual(['id'])
+	expect(thing.required).toEqual(['id'])
+	const op = filtered.paths['/things']!.get!
+	expect(op.parameters?.map(p => (p as OpenAPIV2.Parameter).name)).toEqual(['q'])
+})
+
+test('x-tags: input is mutated in place', () => {
+	const doc = v3DocWithXTags()
+	const result = filterOpenAPISpec(doc, { excludeTags: ['internal'] })
+	expect(result).toBe(doc)
+	const widget = doc.components!.schemas!.Widget as OpenAPIV3.SchemaObject
+	expect(Object.keys(widget.properties!)).toEqual(['id', 'name'])
+})
+
+test('x-tags: accepts a single string in place of an array', () => {
+	const doc: OpenAPIV3.Document = {
+		openapi: '3.0.0',
+		info: { title: 't', version: '1' },
+		paths: {
+			'/widgets': {
+				get: {
+					tags: ['widgets'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: {
+								'application/json': { schema: { $ref: '#/components/schemas/Widget' } },
+							},
+						},
+					},
+				} as OpenAPIV3.OperationObject,
+			},
+		},
+		components: {
+			schemas: {
+				Widget: {
+					type: 'object',
+					properties: {
+						id: { type: 'string' },
+						secret: { type: 'string', 'x-tags': 'internal' } as unknown as OpenAPIV3.SchemaObject,
+					},
+				},
+			},
+		},
+	}
+	const filtered = filterOpenAPISpec(doc, { excludeTags: ['internal'] })
+	const widget = filtered.components!.schemas!.Widget as OpenAPIV3.SchemaObject
+	expect(Object.keys(widget.properties!)).toEqual(['id'])
+})

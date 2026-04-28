@@ -43,21 +43,274 @@ function matchesAny(value: string, patterns: string[] | undefined, glob: boolean
 	return false
 }
 
-function operationMatchesTagFilter(tags: string[] | undefined, filters: OpenAPIFilters): boolean {
-	const opTags = tags || []
+function operationMatchesTagFilter(op: OpenAPI.Operation, filters: OpenAPIFilters): boolean {
+	const baseTags = Array.isArray(op.tags) ? (op.tags as unknown[]).filter((t): t is string => typeof t === 'string') : []
+	const xTags = getXTags(op as unknown) || []
+	const tags = [...baseTags, ...xTags]
 	if (filters.includeTags && filters.includeTags.length > 0) {
-		const matched = opTags.some(t => filters.includeTags!.indexOf(t) !== -1)
+		const matched = tags.some(t => filters.includeTags!.indexOf(t) !== -1)
 		if (!matched) {
 			return false
 		}
 	}
 	if (filters.excludeTags && filters.excludeTags.length > 0) {
-		const matched = opTags.some(t => filters.excludeTags!.indexOf(t) !== -1)
+		const matched = tags.some(t => filters.excludeTags!.indexOf(t) !== -1)
 		if (matched) {
 			return false
 		}
 	}
 	return true
+}
+
+function hasTagFilter(filters: OpenAPIFilters): boolean {
+	return !!(filters.includeTags?.length || filters.excludeTags?.length)
+}
+
+function getXTags(node: unknown): string[] | undefined {
+	if (!node || typeof node !== 'object' || Array.isArray(node)) {
+		return undefined
+	}
+	const value = (node as Record<string, unknown>)['x-tags']
+	if (typeof value === 'string') {
+		return [value]
+	}
+	if (!Array.isArray(value)) {
+		return undefined
+	}
+	const tags = value.filter((t): t is string => typeof t === 'string')
+	return tags.length === 0 ? undefined : tags
+}
+
+/**
+ * Decide whether a sub-operation node is removed based on its `x-tags` extension.
+ * A node with no `x-tags` is kept (it inherits the enclosing operation's filtering decision).
+ * If `x-tags` is present, the include/exclude filters are evaluated against those `x-tags` alone.
+ */
+function shouldRemoveNode(node: unknown, filters: OpenAPIFilters): boolean {
+	const xTags = getXTags(node)
+	if (!xTags) {
+		return false
+	}
+	if (filters.includeTags && filters.includeTags.length > 0) {
+		if (!xTags.some(t => filters.includeTags!.indexOf(t) !== -1)) {
+			return true
+		}
+	}
+	if (filters.excludeTags && filters.excludeTags.length > 0) {
+		if (xTags.some(t => filters.excludeTags!.indexOf(t) !== -1)) {
+			return true
+		}
+	}
+	return false
+}
+
+function filterSchemaInPlace(schema: unknown, filters: OpenAPIFilters): void {
+	if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
+		return
+	}
+	const s = schema as Record<string, unknown>
+	if (typeof s.$ref === 'string') {
+		return
+	}
+
+	const props = s.properties
+	if (props && typeof props === 'object' && !Array.isArray(props)) {
+		const propsObj = props as Record<string, unknown>
+		const required = Array.isArray(s.required) ? (s.required as unknown[]).filter((r): r is string => typeof r === 'string') : undefined
+		let requiredChanged = false
+		for (const name of Object.keys(propsObj)) {
+			if (shouldRemoveNode(propsObj[name], filters)) {
+				delete propsObj[name]
+				if (required) {
+					const idx = required.indexOf(name)
+					if (idx !== -1) {
+						required.splice(idx, 1)
+						requiredChanged = true
+					}
+				}
+			} else {
+				filterSchemaInPlace(propsObj[name], filters)
+			}
+		}
+		if (requiredChanged) {
+			if (required && required.length > 0) {
+				s.required = required
+			} else {
+				delete s.required
+			}
+		}
+	}
+
+	filterSchemaInPlace(s.items, filters)
+	if (s.additionalProperties && typeof s.additionalProperties === 'object') {
+		filterSchemaInPlace(s.additionalProperties, filters)
+	}
+	for (const key of ['allOf', 'oneOf', 'anyOf'] as const) {
+		const arr = s[key]
+		if (Array.isArray(arr)) {
+			for (const sub of arr) {
+				filterSchemaInPlace(sub, filters)
+			}
+		}
+	}
+	filterSchemaInPlace(s.not, filters)
+}
+
+function filterParameterNodeInPlace(param: unknown, filters: OpenAPIFilters): void {
+	if (!param || typeof param !== 'object' || Array.isArray(param)) {
+		return
+	}
+	const p = param as Record<string, unknown>
+	if (typeof p.$ref === 'string') {
+		return
+	}
+	filterSchemaInPlace(p.schema, filters)
+}
+
+function filterParametersInPlace(holder: Record<string, unknown>, filters: OpenAPIFilters): void {
+	const params = holder.parameters
+	if (!Array.isArray(params)) {
+		return
+	}
+	const kept: unknown[] = []
+	for (const p of params) {
+		if (shouldRemoveNode(p, filters)) {
+			continue
+		}
+		filterParameterNodeInPlace(p, filters)
+		kept.push(p)
+	}
+	if (kept.length === 0) {
+		delete holder.parameters
+	} else {
+		holder.parameters = kept
+	}
+}
+
+function filterContentMapInPlace(holder: Record<string, unknown>, filters: OpenAPIFilters): void {
+	const content = holder.content
+	if (!content || typeof content !== 'object' || Array.isArray(content)) {
+		return
+	}
+	const contentObj = content as Record<string, unknown>
+	for (const mediaType of Object.keys(contentObj)) {
+		const entry = contentObj[mediaType]
+		if (shouldRemoveNode(entry, filters)) {
+			delete contentObj[mediaType]
+			continue
+		}
+		if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+			filterSchemaInPlace((entry as Record<string, unknown>).schema, filters)
+		}
+	}
+	if (Object.keys(contentObj).length === 0) {
+		delete holder.content
+	}
+}
+
+function filterRequestBodyInPlace(operation: Record<string, unknown>, filters: OpenAPIFilters): void {
+	const rb = operation.requestBody
+	if (!rb || typeof rb !== 'object' || Array.isArray(rb)) {
+		return
+	}
+	if (shouldRemoveNode(rb, filters)) {
+		delete operation.requestBody
+		return
+	}
+	const rbObj = rb as Record<string, unknown>
+	if (typeof rbObj.$ref === 'string') {
+		return
+	}
+	filterContentMapInPlace(rbObj, filters)
+}
+
+function filterResponsesInPlace(operation: Record<string, unknown>, filters: OpenAPIFilters, isV3: boolean): void {
+	const responses = operation.responses
+	if (!responses || typeof responses !== 'object' || Array.isArray(responses)) {
+		return
+	}
+	const responsesObj = responses as Record<string, unknown>
+	for (const code of Object.keys(responsesObj)) {
+		const resp = responsesObj[code]
+		if (shouldRemoveNode(resp, filters)) {
+			delete responsesObj[code]
+			continue
+		}
+		if (!resp || typeof resp !== 'object' || Array.isArray(resp)) {
+			continue
+		}
+		const respObj = resp as Record<string, unknown>
+		if (typeof respObj.$ref === 'string') {
+			continue
+		}
+		if (isV3) {
+			filterContentMapInPlace(respObj, filters)
+		} else {
+			filterSchemaInPlace(respObj.schema, filters)
+		}
+	}
+}
+
+function applyXTagsToOperation(op: Record<string, unknown>, filters: OpenAPIFilters, isV3: boolean): void {
+	filterParametersInPlace(op, filters)
+	if (isV3) {
+		filterRequestBodyInPlace(op, filters)
+	}
+	filterResponsesInPlace(op, filters, isV3)
+}
+
+function applyXTagsToV3Components(doc: OpenAPIV3.Document, filters: OpenAPIFilters): void {
+	if (!doc.components) {
+		return
+	}
+	const c = doc.components
+	if (c.schemas) {
+		for (const name of Object.keys(c.schemas)) {
+			filterSchemaInPlace(c.schemas[name], filters)
+		}
+	}
+	if (c.parameters) {
+		for (const name of Object.keys(c.parameters)) {
+			filterParameterNodeInPlace(c.parameters[name], filters)
+		}
+	}
+	if (c.requestBodies) {
+		for (const name of Object.keys(c.requestBodies)) {
+			const rb = c.requestBodies[name] as unknown as Record<string, unknown> | undefined
+			if (rb) {
+				filterContentMapInPlace(rb, filters)
+			}
+		}
+	}
+	if (c.responses) {
+		for (const name of Object.keys(c.responses)) {
+			const resp = c.responses[name] as unknown as Record<string, unknown> | undefined
+			if (resp) {
+				filterContentMapInPlace(resp, filters)
+			}
+		}
+	}
+}
+
+function applyXTagsToV2SharedDefinitions(doc: OpenAPIV2.Document, filters: OpenAPIFilters): void {
+	if (doc.definitions) {
+		for (const name of Object.keys(doc.definitions)) {
+			filterSchemaInPlace(doc.definitions[name], filters)
+		}
+	}
+	if (doc.parameters) {
+		for (const name of Object.keys(doc.parameters)) {
+			filterParameterNodeInPlace(doc.parameters[name], filters)
+		}
+	}
+	if (doc.responses) {
+		for (const name of Object.keys(doc.responses)) {
+			const resp = doc.responses[name] as unknown as Record<string, unknown> | undefined
+			if (resp) {
+				filterSchemaInPlace(resp.schema, filters)
+			}
+		}
+	}
 }
 
 function pathMatchesPathFilter(path: string, filters: OpenAPIFilters): boolean {
@@ -90,6 +343,8 @@ export function filterOpenAPISpec<T extends OpenAPI.Document>(doc: T, filters: O
 
 	const newPaths: Record<string, unknown> = {}
 	const sourcePaths = (doc as OpenAPIV2.Document | OpenAPIV3.Document).paths || {}
+	const isV3 = isOpenAPIV3Document(doc)
+	const applyXTags = hasTagFilter(filters)
 
 	let anyOperationKept = false
 
@@ -110,13 +365,20 @@ export function filterOpenAPISpec<T extends OpenAPI.Document>(doc: T, filters: O
 			const value = (pathItem as Record<string, unknown>)[key]
 			if (HTTP_METHODS.indexOf(key as HttpMethod) !== -1) {
 				const op = value as OpenAPI.Operation | undefined
-				if (op && operationMatchesTagFilter(op.tags, filters)) {
+				if (op && operationMatchesTagFilter(op, filters)) {
+					if (applyXTags) {
+						applyXTagsToOperation(op as unknown as Record<string, unknown>, filters, isV3)
+					}
 					newPathItem[key] = op
 					kept = true
 				}
 			} else {
 				newPathItem[key] = value
 			}
+		}
+
+		if (kept && applyXTags) {
+			filterParametersInPlace(newPathItem, filters)
 		}
 
 		if (kept) {
@@ -128,8 +390,14 @@ export function filterOpenAPISpec<T extends OpenAPI.Document>(doc: T, filters: O
 	(doc as OpenAPIV2.Document | OpenAPIV3.Document).paths = newPaths as OpenAPIV2.PathsObject & OpenAPIV3.PathsObject
 
 	if (isOpenAPIV3Document(doc)) {
+		if (applyXTags) {
+			applyXTagsToV3Components(doc, filters)
+		}
 		pruneOpenAPIV3Components(doc, anyOperationKept)
 	} else if (isOpenAPIV2Document(doc)) {
+		if (applyXTags) {
+			applyXTagsToV2SharedDefinitions(doc, filters)
+		}
 		pruneOpenAPIV2Definitions(doc, anyOperationKept)
 	}
 

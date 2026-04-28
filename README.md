@@ -93,7 +93,7 @@ When more than one input is supplied the specs are merged with last-wins semanti
 
 The same merging behaviour applies to the `generate` command when multiple inputs are supplied.
 
-Filtering and `--activate-extension` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written.
+Filtering and `--activate-extension` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written. `bundle` additionally accepts `--remove-extension <pattern>` to strip vendor extensions from the output (see [Removing vendor extensions](#removing-vendor-extensions)).
 
 ## Generator template
 
@@ -134,6 +134,7 @@ Options to the generation process can be specified on the command-line or in a c
 |`--include-path <glob>`|Keep only operations whose path matches the given glob. Repeatable, or comma-separated.|
 |`--exclude-path <glob>`|Drop operations whose path matches the given glob. Repeatable, or comma-separated.|
 |`--activate-extension <name>`|Promote `x-<name>-<key>` vendor extension keys to `<key>` throughout the spec before generation. Repeatable, or comma-separated.|
+|`--remove-extension <pattern>`|Strip vendor extensions whose suffix (the part after `x-`) matches the given glob pattern. (`bundle` only.) Repeatable, or comma-separated.|
 
 Command-line options override their respective configuration options (see below). When a filter or `--activate-extension` flag appears on the command line it fully replaces the matching configuration value rather than appending to it.
 
@@ -166,6 +167,12 @@ servers:
 ```
 
 Multiple `--activate-extension` flags are applied in order, and each pass walks the document recursively, so nested extensions on the same name are promoted in a single invocation.
+
+### Removing vendor extensions
+
+`--remove-extension <pattern>` (available on `bundle` only) deletes vendor extension keys whose suffix — the portion after `x-` — matches the given pattern. Patterns support `*` as a wildcard; all other characters match literally.
+
+For example, `--remove-extension server-*` strips every `x-server-*` key from the bundled output, while leaving the rest of the spec untouched. `--remove-extension '*'` removes every vendor extension. The flag is repeatable and comma-separated, and is applied after `--activate-extension` so any extensions promoted to first-class keys are preserved.
 
 ### Configuration
 

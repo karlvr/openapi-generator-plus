@@ -1,18 +1,19 @@
 import YAML from 'yaml'
 import { promises as fs } from 'fs'
-import { activateExtensionsInOpenAPISpec, bundleCodegenInput, filterOpenAPISpec, mergeOpenAPISpecs } from '@openapi-generator-plus/core'
+import { activateExtensionsInOpenAPISpec, bundleCodegenInput, filterOpenAPISpec, mergeOpenAPISpecs, removeExtensionsFromOpenAPISpec } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import { CommandLineOptions } from './types'
 import { usage } from './usage'
 import { FILTER_STRING_OPTIONS, filtersFromCommandLine, hasAnyFilter } from './filter'
 import { ACTIVATE_EXTENSION_STRING_OPTIONS, activateExtensionsFromCommandLine } from './activate-extensions'
+import { REMOVE_EXTENSION_STRING_OPTIONS, removeExtensionsFromCommandLine } from './remove-extensions'
 
 export default async function bundleCommand(argv: string[]): Promise<void> {
 	const commandLineOptions: CommandLineOptions = getopts(argv, {
 		alias: {
 			output: 'o',
 		},
-		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_EXTENSION_STRING_OPTIONS],
+		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_EXTENSION_STRING_OPTIONS, ...REMOVE_EXTENSION_STRING_OPTIONS],
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false
@@ -41,6 +42,11 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 	const activations = activateExtensionsFromCommandLine(commandLineOptions)
 	if (activations && activations.length) {
 		doc = activateExtensionsInOpenAPISpec(doc, activations)
+	}
+
+	const removals = removeExtensionsFromCommandLine(commandLineOptions)
+	if (removals && removals.length) {
+		doc = removeExtensionsFromOpenAPISpec(doc, removals)
 	}
 
 	const filters = filtersFromCommandLine(commandLineOptions)

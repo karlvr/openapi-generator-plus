@@ -12,6 +12,7 @@ export interface CommandLineOptions {
 	'include-path'?: string | string[]
 	'exclude-path'?: string | string[]
 	'activate-extension'?: string | string[]
+	'remove-extension'?: string | string[]
 	_: string[]
 }
 

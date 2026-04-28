@@ -10,6 +10,7 @@ export { createGeneratorContext } from './generators'
 export { filterOpenAPISpec } from './filter'
 export type { OpenAPIFilters } from './filter'
 export { activateExtensionsInOpenAPISpec } from './activate-extensions'
+export { removeExtensionsFromOpenAPISpec } from './remove-extensions'
 export { mergeOpenAPISpecs } from './merge'
 export type { MergeOpenAPISpecsOptions, MergeCollision } from './merge'
 

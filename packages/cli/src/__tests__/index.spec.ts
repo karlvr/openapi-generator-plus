@@ -45,6 +45,21 @@ test('activate-extension CLI overrides config file value', async() => {
 	expect(config.activateExtensions).toEqual(['client'])
 })
 
+test('multiple positional inputs become an array', async() => {
+	const config = await createConfig({ _: ['a.yaml', 'b.yaml'] }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.inputPath).toEqual(['a.yaml', 'b.yaml'])
+})
+
+test('single positional input remains a string', async() => {
+	const config = await createConfig({ _: ['a.yaml'] }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.inputPath).toEqual('a.yaml')
+})
+
+test('config file inputPath array is resolved relative to the config dir', async() => {
+	const config = await createConfig({ _: [], config: '/cfg/cli.yml' }, async() => ({ outputPath: 'o', inputPath: ['a.yaml', 'b.yaml'], generator: 'g' }))
+	expect(config.inputPath).toEqual(['/cfg/a.yaml', '/cfg/b.yaml'])
+})
+
 /* Note that the test generator doesn't actually generate files, but we still get to test the functionality of the CLI app */
 describe('generate', () => {
 	const basePath = path.join(__dirname, 'specs')

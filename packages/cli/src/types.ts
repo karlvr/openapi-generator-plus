@@ -16,7 +16,7 @@ export interface CommandLineOptions {
 }
 
 export interface CommandLineConfig extends CodegenConfig {
-	inputPath: string
+	inputPath: string | string[]
 	outputPath: string
 	generator: string
 	includeTags?: string[]

@@ -6,6 +6,13 @@ import { isURL } from '@openapi-generator-plus/core/dist/utils'
 import { filtersFromCommandLine } from './filter'
 import { activateExtensionsFromCommandLine } from './activate-extensions'
 
+function resolveInputPaths(inputPath: string | string[], configDir: string): string | string[] {
+	if (Array.isArray(inputPath)) {
+		return inputPath.map(p => isURL(p) ? p : path.resolve(configDir, p))
+	}
+	return isURL(inputPath) ? inputPath : path.resolve(configDir, inputPath)
+}
+
 async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
 		encoding: 'utf-8',
@@ -29,8 +36,8 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 		if (config.outputPath) {
 			config.outputPath = path.resolve(path.dirname(configPath), config.outputPath)
 		}
-		if (config.inputPath && !isURL(config.inputPath)) {
-			config.inputPath = path.resolve(path.dirname(configPath), config.inputPath)
+		if (config.inputPath) {
+			config.inputPath = resolveInputPaths(config.inputPath, path.dirname(configPath))
 		}
 		if (commandLineOptions.generator) {
 			config.generator = commandLineOptions.generator
@@ -39,13 +46,13 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 			config.outputPath = commandLineOptions.output
 		}
 		if (commandLineOptions._.length) {
-			config.inputPath = commandLineOptions._[0]
+			config.inputPath = commandLineOptions._.length === 1 ? commandLineOptions._[0] : [...commandLineOptions._]
 		}
 	} else {
 		config = {
 			generator: commandLineOptions.generator || '',
 			outputPath: commandLineOptions.output || '',
-			inputPath: commandLineOptions._[0],
+			inputPath: commandLineOptions._.length <= 1 ? commandLineOptions._[0] : [...commandLineOptions._],
 		}
 	}
 

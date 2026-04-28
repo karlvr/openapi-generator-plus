@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import { activateExtensionsInOpenAPISpec, constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec } from '@openapi-generator-plus/core'
+import { activateExtensionsInOpenAPISpec, bundleCodegenInput, constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec, mergeOpenAPISpecs } from '@openapi-generator-plus/core'
 import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor, CodegenInputDocument } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
@@ -25,7 +25,7 @@ function createMyGeneratorContext() {
 async function createCodegenInputPossiblyWithUrl(inputPathOrUrl: string): Promise<CodegenInputDocument> {
 	if (isURL(inputPathOrUrl)) {
 		console.info(c.bold.green('Downloading:'), inputPathOrUrl)
-		
+
 		const startTime = Date.now()
 		const response = await fetch(inputPathOrUrl)
 		if (!response.ok) {
@@ -50,15 +50,40 @@ async function createCodegenInputPossiblyWithUrl(inputPathOrUrl: string): Promis
 	}
 }
 
+async function createCodegenInputForPaths(inputPaths: string[]): Promise<CodegenInputDocument> {
+	if (inputPaths.length === 1) {
+		return await createCodegenInputPossiblyWithUrl(inputPaths[0])
+	}
+
+	const docs = await Promise.all(inputPaths.map(p => bundleCodegenInput(p)))
+	const merged = mergeOpenAPISpecs(docs, {
+		onCollision: ({ kind, key }) => {
+			console.warn(c.yellow(`Warning: collision while merging ${kind}: ${key} (last input wins)`))
+		},
+	})
+
+	const tempDir = await fs.mkdtemp('openapi-generator-plus')
+	const tempFile = path.resolve(tempDir, 'merged-openapi.json')
+	await fs.writeFile(tempFile, JSON.stringify(merged))
+	try {
+		return await createCodegenInput(tempFile)
+	} finally {
+		await fs.unlink(tempFile)
+		await fs.rmdir(tempDir)
+	}
+}
+
 async function generate(config: CommandLineConfig, generatorConstructor: CodegenGeneratorConstructor): Promise<boolean> {
 	const generator = constructGenerator(config, createMyGeneratorContext(), generatorConstructor)
 	
 	const state = createCodegenState(config, generator)
 	state.log = log
 	
+	const inputPaths = Array.isArray(config.inputPath) ? config.inputPath : [config.inputPath]
+
 	let input: CodegenInputDocument
 	try {
-		input = await createCodegenInputPossiblyWithUrl(config.inputPath)
+		input = await createCodegenInputForPaths(inputPaths)
 	} catch (error) {
 		console.error(c.bold.red('Failed to get the API specification:'), error)
 		return false
@@ -177,7 +202,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 		process.exit(1)
 	}
 
-	if (!config.inputPath) {
+	if (!config.inputPath || (Array.isArray(config.inputPath) && config.inputPath.length === 0)) {
 		console.warn('API specification not specified')
 		usage()
 		process.exit(1)
@@ -227,10 +252,13 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 	
 	if (commandLineOptions.watch) {
 		const watchPaths: string[] = []
-		if (config.inputPath.indexOf('://') === -1) {
-			watchPaths.push(config.inputPath)
-		} else {
-			console.warn(c.red('Not watching for API specification changes as it is not a local file path:'), config.inputPath)
+		const inputPaths = Array.isArray(config.inputPath) ? config.inputPath : [config.inputPath]
+		for (const inputPath of inputPaths) {
+			if (inputPath.indexOf('://') === -1) {
+				watchPaths.push(inputPath)
+			} else {
+				console.warn(c.red('Not watching for API specification changes as it is not a local file path:'), inputPath)
+			}
 		}
 
 		const generatorWatchPaths = constructGenerator(config, createMyGeneratorContext(), generatorConstructor).watchPaths()
@@ -253,7 +281,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 			const startTime = Date.now()
 			const beforeFilesystemTimestamp = await currentFilesystemTimestamp(config.outputPath)
 
-			console.log(c.cyan('Rebuilding:'), config.inputPath)
+			console.log(c.cyan('Rebuilding:'), Array.isArray(config.inputPath) ? config.inputPath.join(', ') : config.inputPath)
 			try {
 				const result = await generate(config, generatorConstructor)
 				if (result) {

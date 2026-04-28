@@ -68,7 +68,7 @@ OpenAPI Generator Plus exposes two subcommands: `generate` (the default) and `bu
 Generate code from an API specification:
 
 ```shell
-npx openapi-generator-plus [generate] [-c <config file>] [-o <output dir>] [-g <generator template name or path>] [<path or url to api spec>]
+npx openapi-generator-plus [generate] [-c <config file>] [-o <output dir>] [-g <generator template name or path>] [<path or url to api spec> [<additional api spec> ...]]
 ```
 
 You can also use a config file, which contains more advanced options to control the generated output:
@@ -76,6 +76,8 @@ You can also use a config file, which contains more advanced options to control 
 ```shell
 npx openapi-generator-plus -c <config file>
 ```
+
+When more than one input spec is supplied (either as multiple positional arguments or as an array `inputPath` in the config file) the specs are merged before generation using the same semantics as the `bundle` command described below.
 
 ### Bundle
 
@@ -88,6 +90,8 @@ npx openapi-generator-plus bundle [-o <output file>] <path or url to api spec> [
 If `-o` is omitted the bundled spec is written to stdout. The output format is YAML, or JSON if the output file ends in `.json`.
 
 When more than one input is supplied the specs are merged with last-wins semantics: top-level metadata (`info`, version, servers, etc.) is taken from the first document, while `paths`, `components.*` (or v2 buckets like `definitions`), and `tags` are unioned across all inputs. Collisions on the same key are reported as warnings and the later input's value wins. All inputs must use the same major OpenAPI version.
+
+The same merging behaviour applies to the `generate` command when multiple inputs are supplied.
 
 Filtering and `--activate-extension` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written.
 
@@ -122,7 +126,7 @@ Options to the generation process can be specified on the command-line or in a c
 |`-c <path>`|The path to a configuration file to load (see below).|
 |`-o <path>`|The path to the output directory (or output file when bundling).|
 |`-g <module or path>`|The module name of or path to a generator template.|
-|`<path>`|The path to the input API specification. `bundle` accepts multiple paths.|
+|`<path>`|The path to the input API specification. Both `generate` and `bundle` accept multiple paths, in which case the specs are merged before processing.|
 |`--watch`|Watch the input spec and any generator-supplied watch paths and regenerate on change. (`generate` only.)|
 |`--clean`|After a successful generation, remove files under the output directory that match the generator's clean patterns and were not written by this run. (`generate` only.)|
 |`--include-tag <tag>`|Keep only operations tagged with the given tag. Repeatable, or comma-separated.|
@@ -169,7 +173,7 @@ The configuration file may be YAML or JSON. A basic configuration file contains:
 
 |Property|Type|Description|Default|
 |--------|----|-----------|-------|
-|`inputPath`|`string`|The path to the input API specification, relative to the config file.|`undefined`|
+|`inputPath`|`string` \| `string[]`|The path to the input API specification, relative to the config file. May be an array of paths, in which case the specs are merged before processing (see [Generate](#generate) and [Bundle](#bundle)).|`undefined`|
 |`outputPath`|`string`|The path to the output directory, relative to the config file.|`undefined`|
 |`generator`|`string`|The name of the generator template, or the path relative to the config file for the generator template module.|`undefined`|
 |`options`|`Options`|Additional options to control the generation.|`undefined`|

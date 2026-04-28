@@ -1,5 +1,11 @@
 # openapi-generator-plus
 
+## 2.21.1
+
+### Patch Changes
+
+- 9c9ca72: Fix `bundle` command to apply tag/path filters before removing extensions, so `--remove-extension` no longer strips `x-tags` (and other filter-relevant extensions) before they can be evaluated.
+
 ## 2.21.0
 
 ### Minor Changes

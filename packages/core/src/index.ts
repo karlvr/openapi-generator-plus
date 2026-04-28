@@ -7,6 +7,8 @@ import * as idx from '@openapi-generator-plus/indexed-type'
 import type { OpenAPI } from 'openapi-types'
 import { defaultLog } from './logging'
 export { createGeneratorContext } from './generators'
+export { filterOpenAPISpec } from './filter'
+export type { OpenAPIFilters } from './filter'
 
 export * as idx from '@openapi-generator-plus/indexed-type'
 

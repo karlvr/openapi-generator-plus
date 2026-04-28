@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import YAML from 'yaml'
 import { isURL } from '@openapi-generator-plus/core/dist/utils'
+import { filtersFromCommandLine } from './filter'
 
 async function loadConfig(path: string): Promise<CommandLineConfig> {
 	const configContents = await fs.readFile(path, {
@@ -20,8 +21,9 @@ async function loadConfig(path: string): Promise<CommandLineConfig> {
 
 export async function createConfig(commandLineOptions: CommandLineOptions, loadConfigFunction: (path: string) => Promise<CommandLineConfig> = loadConfig): Promise<CommandLineConfig> {
 	const configPath = commandLineOptions.config
+	let config: CommandLineConfig
 	if (configPath) {
-		const config = await loadConfigFunction(configPath)
+		config = await loadConfigFunction(configPath)
 		config.configPath = configPath
 		if (config.outputPath) {
 			config.outputPath = path.resolve(path.dirname(configPath), config.outputPath)
@@ -38,12 +40,24 @@ export async function createConfig(commandLineOptions: CommandLineOptions, loadC
 		if (commandLineOptions._.length) {
 			config.inputPath = commandLineOptions._[0]
 		}
-		return config
 	} else {
-		return {
+		config = {
 			generator: commandLineOptions.generator || '',
 			outputPath: commandLineOptions.output || '',
 			inputPath: commandLineOptions._[0],
 		}
 	}
+
+	const merged = filtersFromCommandLine(commandLineOptions, {
+		includeTags: config.includeTags,
+		excludeTags: config.excludeTags,
+		includePaths: config.includePaths,
+		excludePaths: config.excludePaths,
+	})
+	config.includeTags = merged.includeTags
+	config.excludeTags = merged.excludeTags
+	config.includePaths = merged.includePaths
+	config.excludePaths = merged.excludePaths
+
+	return config
 }

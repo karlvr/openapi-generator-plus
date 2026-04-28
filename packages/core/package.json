@@ -28,6 +28,7 @@
     "@openapi-generator-plus/types": "workspace:*",
     "@openapi-generator-plus/utils": "workspace:*",
     "lodash": "^4.18.1",
+    "minimatch": "^10.0.1",
     "pluralize": "^8.0.0"
   },
   "devDependencies": {

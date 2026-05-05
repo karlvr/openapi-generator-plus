@@ -1,12 +1,12 @@
 import { promises as fs } from 'fs'
-import { activateExtensionsInOpenAPISpec, bundleCodegenInput, constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec, mergeOpenAPISpecs } from '@openapi-generator-plus/core'
+import { activatePatchesInOpenAPISpec, bundleCodegenInput, constructGenerator, createCodegenDocument, createCodegenState, createCodegenInput, createGeneratorContext, filterOpenAPISpec, mergeOpenAPISpecs } from '@openapi-generator-plus/core'
 import { CodegenDocument, CodegenConfig, CodegenGeneratorConstructor, CodegenInputDocument } from '@openapi-generator-plus/types'
 import getopts from 'getopts'
 import path from 'path'
 import { CommandLineOptions, CommandLineConfig } from './types'
 import { createConfig } from './config'
 import { FILTER_STRING_OPTIONS, hasAnyFilter } from './filter'
-import { ACTIVATE_EXTENSION_STRING_OPTIONS } from './activate-extensions'
+import { ACTIVATE_PATCH_STRING_OPTIONS } from './activate-patches'
 import watch from 'node-watch'
 import { glob } from 'glob'
 import { loadGeneratorConstructor } from './generator'
@@ -89,8 +89,8 @@ async function generate(config: CommandLineConfig, generatorConstructor: Codegen
 		return false
 	}
 
-	if (config.activateExtensions && config.activateExtensions.length) {
-		activateExtensionsInOpenAPISpec(input.root, config.activateExtensions)
+	if (config.activatePatches && config.activatePatches.length) {
+		activatePatchesInOpenAPISpec(input.root, config.activatePatches)
 	}
 
 	const filters = {
@@ -180,7 +180,7 @@ export default async function generateCommand(argv: string[]): Promise<void> {
 			version: 'v',
 		},
 		boolean: ['watch', 'clean'],
-		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_EXTENSION_STRING_OPTIONS],
+		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_PATCH_STRING_OPTIONS],
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false

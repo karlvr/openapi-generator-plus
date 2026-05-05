@@ -89,13 +89,13 @@ npx openapi-generator-plus bundle [-c <config file>] [-o <output file or dir>] [
 
 If `-o` is omitted the bundled spec is written to stdout. The output format is YAML, or JSON if the output file ends in `.json`. If the output path is a directory (or ends in `/`), the bundle is written into that directory using the basename of the first input.
 
-`bundle` also accepts `-c <config file>` to load `inputPath` (a single path or array), `outputPath`, filter flags, `activateExtensions`, and `removeExtensions` from a config file (see [Configuration](#configuration)). Positional inputs and `-o` on the command line override the config file.
+`bundle` also accepts `-c <config file>` to load `inputPath` (a single path or array), `outputPath`, filter flags, `activatePatches`, and `removeExtensions` from a config file (see [Configuration](#configuration)). Positional inputs and `-o` on the command line override the config file.
 
 When more than one input is supplied the specs are merged with last-wins semantics: top-level metadata (`info`, version, servers, etc.) is taken from the first document, while `paths`, `components.*` (or v2 buckets like `definitions`), and `tags` are unioned across all inputs. Collisions on the same key are reported as warnings and the later input's value wins. All inputs must use the same major OpenAPI version.
 
 The same merging behaviour applies to the `generate` command when multiple inputs are supplied.
 
-Filtering and `--activate-extension` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written. `bundle` additionally accepts `--remove-extension <pattern>` to strip vendor extensions from the output (see [Removing vendor extensions](#removing-vendor-extensions)).
+Filtering and `--activate-patch` flags (described below) are also supported by `bundle`, and are applied to the merged document before it is written. `bundle` additionally accepts `--remove-extension <pattern>` to strip vendor extensions from the output (see [Removing vendor extensions](#removing-vendor-extensions)).
 
 ## Generator template
 
@@ -135,10 +135,10 @@ Options to the generation process can be specified on the command-line or in a c
 |`--exclude-tag <tag>`|Drop operations tagged with the given tag. Repeatable, or comma-separated.|
 |`--include-path <glob>`|Keep only operations whose path matches the given glob. Repeatable, or comma-separated.|
 |`--exclude-path <glob>`|Drop operations whose path matches the given glob. Repeatable, or comma-separated.|
-|`--activate-extension <name>`|Promote `x-<name>-<key>` vendor extension keys to `<key>` throughout the spec before generation. Repeatable, or comma-separated.|
+|`--activate-patch <name>`|Promote `x-<name>-<key>` vendor extension keys to `<key>` throughout the spec before generation. Repeatable, or comma-separated.|
 |`--remove-extension <pattern>`|Strip vendor extensions whose suffix (the part after `x-`) matches the given glob pattern. (`bundle` only.) Repeatable, or comma-separated.|
 
-Command-line options override their respective configuration options (see below). When a filter or `--activate-extension` flag appears on the command line it fully replaces the matching configuration value rather than appending to it.
+Command-line options override their respective configuration options (see below). When a filter or `--activate-patch` flag appears on the command line it fully replaces the matching configuration value rather than appending to it.
 
 ### Filtering operations
 
@@ -155,11 +155,11 @@ You can add tags to parts of the schema that don't otherwise support tags using 
 
 On an operation, `x-tags` is combined with the operation's `tags`. This lets you tag an operation for filtering without touching the documentation-facing `tags` array.
 
-### Activating vendor extensions
+### Activating patches
 
-`--activate-extension <name>` (or the `activateExtensions` config option) promotes any `x-<name>-<key>` vendor extension to `<key>`, replacing whatever was at that key. This lets a single spec carry alternate values for client vs. server, internal vs. public, etc., and select the right variant at generation time.
+`--activate-patch <name>` (or the `activatePatches` config option) promotes any `x-<name>-<key>` vendor extension to `<key>`, replacing whatever was at that key. This lets a single spec carry alternate values for client vs. server, internal vs. public, etc., and select the right variant at generation time.
 
-For example, with `--activate-extension server`:
+For example, with `--activate-patch server`:
 
 ```yaml
 servers:
@@ -174,13 +174,13 @@ servers:
   - url: http://localhost:8080
 ```
 
-Multiple `--activate-extension` flags are applied in order, and each pass walks the document recursively, so nested extensions on the same name are promoted in a single invocation.
+Multiple `--activate-patch` flags are applied in order, and each pass walks the document recursively, so nested extensions on the same name are promoted in a single invocation.
 
 ### Removing vendor extensions
 
 `--remove-extension <pattern>` (available on `bundle` only) deletes vendor extension keys whose suffix — the portion after `x-` — matches the given pattern. Patterns support `*` as a wildcard; all other characters match literally.
 
-For example, `--remove-extension server-*` strips every `x-server-*` key from the bundled output, while leaving the rest of the spec untouched. `--remove-extension '*'` removes every vendor extension. The flag is repeatable and comma-separated, and is applied after `--activate-extension` so any extensions promoted to first-class keys are preserved.
+For example, `--remove-extension server-*` strips every `x-server-*` key from the bundled output, while leaving the rest of the spec untouched. `--remove-extension '*'` removes every vendor extension. The flag is repeatable and comma-separated, and is applied after `--activate-patch` so any extensions promoted to first-class keys are preserved.
 
 ### Configuration
 
@@ -196,7 +196,7 @@ The configuration file may be YAML or JSON. A basic configuration file contains:
 |`excludeTags`|`string[]`|Drop operations tagged with any of these tags.|`undefined`|
 |`includePaths`|`string[]`|Keep only operations whose path matches any of these globs.|`undefined`|
 |`excludePaths`|`string[]`|Drop operations whose path matches any of these globs.|`undefined`|
-|`activateExtensions`|`string[]`|Names to pass to [Activating vendor extensions](#activating-vendor-extensions) before generation.|`undefined`|
+|`activatePatches`|`string[]`|Names to pass to [Activating patches](#activating-patches) before generation.|`undefined`|
 |`removeExtensions`|`string[]`|Patterns to pass to [Removing vendor extensions](#removing-vendor-extensions). (`bundle` only.)|`undefined`|
 
 See the README for the generator template you're using for additional configuration options supported by that generator.

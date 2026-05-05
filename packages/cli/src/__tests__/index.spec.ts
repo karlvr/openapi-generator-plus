@@ -25,24 +25,24 @@ test('config with overrides', async() => {
 	expect(config.generator).toEqual('generator')
 })
 
-test('activate-extension repeated and comma-separated', async() => {
-	const config = await createConfig({ _: ['input'], 'activate-extension': ['a,b', 'c'] }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
-	expect(config.activateExtensions).toEqual(['a', 'b', 'c'])
+test('activate-patch repeated and comma-separated', async() => {
+	const config = await createConfig({ _: ['input'], 'activate-patch': ['a,b', 'c'] }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.activatePatches).toEqual(['a', 'b', 'c'])
 })
 
-test('activate-extension empty string from getopts is ignored', async() => {
-	const config = await createConfig({ _: ['input'], 'activate-extension': '' }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
-	expect(config.activateExtensions).toBeUndefined()
+test('activate-patch empty string from getopts is ignored', async() => {
+	const config = await createConfig({ _: ['input'], 'activate-patch': '' }, async() => ({ outputPath: '', inputPath: '', generator: '' }))
+	expect(config.activatePatches).toBeUndefined()
 })
 
-test('activate-extension falls back to config file value when CLI omits it', async() => {
-	const config = await createConfig({ _: [], config: '/' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activateExtensions: ['server'] }))
-	expect(config.activateExtensions).toEqual(['server'])
+test('activate-patch falls back to config file value when CLI omits it', async() => {
+	const config = await createConfig({ _: [], config: '/' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activatePatches: ['server'] }))
+	expect(config.activatePatches).toEqual(['server'])
 })
 
-test('activate-extension CLI overrides config file value', async() => {
-	const config = await createConfig({ _: [], config: '/', 'activate-extension': 'client' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activateExtensions: ['server'] }))
-	expect(config.activateExtensions).toEqual(['client'])
+test('activate-patch CLI overrides config file value', async() => {
+	const config = await createConfig({ _: [], config: '/', 'activate-patch': 'client' }, async() => ({ outputPath: 'o', inputPath: 'i', generator: 'g', activatePatches: ['server'] }))
+	expect(config.activatePatches).toEqual(['client'])
 })
 
 test('multiple positional inputs become an array', async() => {

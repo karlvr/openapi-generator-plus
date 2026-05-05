@@ -1,13 +1,13 @@
 import YAML from 'yaml'
 import { promises as fs } from 'fs'
 import path from 'path'
-import { activateExtensionsInOpenAPISpec, bundleCodegenInput, filterOpenAPISpec, mergeOpenAPISpecs, removeExtensionsFromOpenAPISpec } from '@openapi-generator-plus/core'
+import { activatePatchesInOpenAPISpec, bundleCodegenInput, filterOpenAPISpec, mergeOpenAPISpecs, removeExtensionsFromOpenAPISpec } from '@openapi-generator-plus/core'
 import getopts from 'getopts'
 import { CommandLineOptions } from './types'
 import { createConfig } from './config'
 import { usage } from './usage'
 import { FILTER_STRING_OPTIONS, hasAnyFilter } from './filter'
-import { ACTIVATE_EXTENSION_STRING_OPTIONS } from './activate-extensions'
+import { ACTIVATE_PATCH_STRING_OPTIONS } from './activate-patches'
 import { REMOVE_EXTENSION_STRING_OPTIONS } from './remove-extensions'
 
 export default async function bundleCommand(argv: string[]): Promise<void> {
@@ -16,7 +16,7 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 			config: 'c',
 			output: 'o',
 		},
-		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_EXTENSION_STRING_OPTIONS, ...REMOVE_EXTENSION_STRING_OPTIONS],
+		string: [...FILTER_STRING_OPTIONS, ...ACTIVATE_PATCH_STRING_OPTIONS, ...REMOVE_EXTENSION_STRING_OPTIONS],
 		unknown: (option) => {
 			console.log(`Unknown option: ${option}`)
 			return false
@@ -51,8 +51,8 @@ export default async function bundleCommand(argv: string[]): Promise<void> {
 			},
 		})
 
-	if (config.activateExtensions && config.activateExtensions.length) {
-		doc = activateExtensionsInOpenAPISpec(doc, config.activateExtensions)
+	if (config.activatePatches && config.activatePatches.length) {
+		doc = activatePatchesInOpenAPISpec(doc, config.activatePatches)
 	}
 
 	const filters = {

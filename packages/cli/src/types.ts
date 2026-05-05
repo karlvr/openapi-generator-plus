@@ -11,7 +11,7 @@ export interface CommandLineOptions {
 	'exclude-tag'?: string | string[]
 	'include-path'?: string | string[]
 	'exclude-path'?: string | string[]
-	'activate-extension'?: string | string[]
+	'activate-patch'?: string | string[]
 	'remove-extension'?: string | string[]
 	_: string[]
 }
@@ -24,6 +24,6 @@ export interface CommandLineConfig extends CodegenConfig {
 	excludeTags?: string[]
 	includePaths?: string[]
 	excludePaths?: string[]
-	activateExtensions?: string[]
+	activatePatches?: string[]
 	removeExtensions?: string[]
 }

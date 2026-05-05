@@ -45,7 +45,7 @@ function activateInPlace(node: unknown, prefix: string): void {
  * `createCodegenInput`) sees the rewrites. Callers who need the input untouched should clone
  * before calling.
  */
-export function activateExtensionsInOpenAPISpec<T extends OpenAPI.Document>(doc: T, names: string[]): T {
+export function activatePatchesInOpenAPISpec<T extends OpenAPI.Document>(doc: T, names: string[]): T {
 	if (!names || names.length === 0) {
 		return doc
 	}

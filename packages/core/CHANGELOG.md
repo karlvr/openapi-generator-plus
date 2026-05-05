@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.28.0
+
+### Minor Changes
+
+- 1c5a85b: Change `--activate-extension` to `--activate-patch` and `activateExtensions` to `activatePatches`.
+
 ## 2.27.0
 
 ### Minor Changes

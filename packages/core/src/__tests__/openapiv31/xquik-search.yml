@@ -1,0 +1,63 @@
+openapi: 3.1.0
+info:
+  title: Xquik API
+  version: '1.0'
+servers:
+- url: https://xquik.com
+paths:
+  /api/v1/x/tweets/search:
+    get:
+      operationId: searchTweets
+      tags:
+      - x
+      parameters:
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      security:
+      - apiKey: []
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchTweetsResponse'
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    SearchTweetsResponse:
+      type: object
+      required:
+      - tweets
+      properties:
+        tweets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tweet'
+    Tweet:
+      type: object
+      required:
+      - id
+      - text
+      properties:
+        id:
+          type: string
+        text:
+          type: string

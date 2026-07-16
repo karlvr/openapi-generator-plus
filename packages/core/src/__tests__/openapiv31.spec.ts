@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '..'
-import { CodegenAllOfStrategy, CodegenArraySchema, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenAnyOfSchema, CodegenArraySchema, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { findProperty } from '../process/schema/utils'
 
 test('process document', async() => {
@@ -40,6 +40,47 @@ test('null property', async() => {
 	const config = idx.get(schema.properties!, 'config')
 	expect(config).toBeDefined()
 	expect(config!.schema.schemaType).toBe(CodegenSchemaType.NULL)
+})
+
+test('type union', async() => {
+	const result = await createTestDocument('openapiv31/type-union.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+	expect(schema.schemaType).toBe(CodegenSchemaType.OBJECT)
+
+	/* A genuine multi-type union becomes an anyOf of single-type schemas */
+	const union = idx.get(schema.properties!, 'union')!
+	expect(union.schema.schemaType).toBe(CodegenSchemaType.ANYOF)
+	const unionSchema = union.schema as CodegenAnyOfSchema
+	const memberTypes = unionSchema.composes.map(m => m.schemaType).sort()
+	expect(memberTypes).toEqual([CodegenSchemaType.NUMBER, CodegenSchemaType.STRING].sort())
+})
+
+test('nullable type union', async() => {
+	const result = await createTestDocument('openapiv31/type-union.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* A union that also contains "null" is factored into a nullable anyOf of the remaining types */
+	const nullableUnion = idx.get(schema.properties!, 'nullableUnion')!
+	expect(nullableUnion.nullable).toBe(true)
+	expect(nullableUnion.schema.schemaType).toBe(CodegenSchemaType.ANYOF)
+	const nullableUnionSchema = nullableUnion.schema as CodegenAnyOfSchema
+	expect(nullableUnionSchema.composes.length).toBe(2)
+})
+
+test('type union preserves format', async() => {
+	const result = await createTestDocument('openapiv31/type-union.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* The sibling format is carried onto each member so type/format combinations survive */
+	const formattedUnion = idx.get(schema.properties!, 'formattedUnion')!
+	expect(formattedUnion.schema.schemaType).toBe(CodegenSchemaType.ANYOF)
+	const formattedUnionSchema = formattedUnion.schema as CodegenAnyOfSchema
+	const integerMember = formattedUnionSchema.composes.find(m => m.schemaType === CodegenSchemaType.INTEGER)!
+	expect(integerMember).toBeDefined()
+	expect(integerMember.format).toBe('int64')
 })
 
 test('required on all-of with incompatible base', async() => {

@@ -451,20 +451,26 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 		}
 	}
 
-	/* OpenAPI 3.1.0 no longer has the nullable attribute and instead uses a type _array_ with a "null" type.
-	   We change that here to be a nullable attribute instead.
+	/* OpenAPI 3.1.0 no longer has the nullable attribute and instead uses a type _array_. A `"null"` member
+	   is the nullable idiom, which we turn back into a `nullable` attribute. Any remaining members form a
+	   genuine type union, which we model as an `anyOf` of single-type schemas so it flows through the existing
+	   composition handling (a single remaining type is simply that type).
 	 */
 	if (Array.isArray(apiSchema.type) && apiSchema.type.length > 1) {
-		const nullIndex = apiSchema.type.indexOf('null')
-		if (nullIndex !== -1) {
+		if (apiSchema.type.indexOf('null') !== -1) {
 			apiSchema.nullable = true
+		}
 
-			const otherTypes = apiSchema.type.filter(t => t !== 'null')
-			if (otherTypes.length === 1) {
-				apiSchema.type = otherTypes[0]
-			} else {
-				apiSchema.type = otherTypes
-			}
+		const otherTypes = apiSchema.type.filter(t => t !== 'null')
+		if (otherTypes.length === 1) {
+			apiSchema.type = otherTypes[0]
+		} else {
+			/* Carry the format onto each member so type/format combinations (e.g. an int64 integer or a
+			   date-time string) are preserved; each member's type handling uses it where relevant. */
+			const format = apiSchema.format
+			apiSchema.anyOf = otherTypes.map(t => format !== undefined ? { type: t, format } : { type: t })
+			delete apiSchema.type
+			delete apiSchema.format
 		}
 	}
 

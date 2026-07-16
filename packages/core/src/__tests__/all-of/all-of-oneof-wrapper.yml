@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: all-of-oneof-wrapper
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    SubscriptionHistory:
+      type: object
+      properties:
+        detail:
+          allOf:
+            - $ref: "#/components/schemas/SubscriptionHistoryDetail"
+          description: Details specific to the action.
+          readOnly: true
+    SubscriptionHistoryDetail:
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/DetailActivated"
+        - $ref: "#/components/schemas/DetailCanceled"
+      discriminator:
+        propertyName: action
+        mapping:
+          subscription_activated: "#/components/schemas/DetailActivated"
+          subscription_canceled: "#/components/schemas/DetailCanceled"
+    DetailActivated:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+    DetailCanceled:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string

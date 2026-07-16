@@ -18,7 +18,7 @@ import { toUniqueScopedName, extractNaming, usedSchemaName, ScopedModelInfo } fr
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenOneOfSchema } from './one-of'
-import { isObjectLikeSchemaType, toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
+import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
 import { addReservedSchemaName, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
@@ -381,20 +381,24 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 		}
 	}
 
-	/* An allOf with a single member that isn't object-like (such as an enum or other primitive) cannot be modelled
-	   as an object composition, so we unwrap it to that single member. This supports the common idiom of wrapping a
-	   $ref in an allOf purely to attach sibling attributes such as a description, which OpenAPI 3.0 otherwise ignores
-	   on a $ref. Those attributes are preserved as attributes of this usage, matching how a $ref with sibling
-	   attributes is handled.
+	/* An allOf with a single member that adds no structure of its own is often just a wrapper for the common idiom of
+	   attaching sibling attributes such as a description to a $ref (which OpenAPI 3.0 otherwise ignores on a $ref).
+	   We unwrap it to that member so it resolves to the referenced schema, with the sibling attributes preserved as
+	   attributes of this usage.
+
+	   We only do this when the member cannot be a base to inherit from: a union (oneOf/anyOf) or a leaf (enum,
+	   primitive, array). When the member is a concrete object-like schema (an object, map, or another allOf) we
+	   leave the allOf in place, as it may legitimately model inheritance from that member (for example a discriminator
+	   subclass that adds no properties of its own).
+
+	   The member may itself be a redundant wrapper (such as a nullable anyOf, or another single-member allOf), so we
+	   reduce it to what it is ultimately equivalent to before making this decision.
 	 */
 	if (apiSchema.allOf && apiSchema.allOf.length === 1 && !apiSchema.properties && !apiSchema.additionalProperties && !apiSchema.discriminator) {
 		const member = apiSchema.allOf[0] as OpenAPIX.SchemaObject
-
-		/* The member may itself be a redundant wrapper (such as a nullable anyOf, or another single-member allOf), so
-		   we reduce it to what it is ultimately equivalent to before deciding whether it is object-like.
-		 */
 		const reducedMember = reduceRedundantSchema(member, state)
-		if (!isObjectLikeSchemaType(toCodegenSchemaTypeFromApiSchema(reducedMember.apiSchema))) {
+		const reducedMemberType = toCodegenSchemaTypeFromApiSchema(reducedMember.apiSchema)
+		if (reducedMemberType !== CodegenSchemaType.OBJECT && reducedMemberType !== CodegenSchemaType.MAP && reducedMemberType !== CodegenSchemaType.ALLOF) {
 			const originalApiSchema = apiSchema
 
 			/* As we're unwrapping this redundant allOf we need to also update the $ref to point to our new target schema */

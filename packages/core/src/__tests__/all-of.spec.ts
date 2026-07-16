@@ -556,6 +556,24 @@ test('allOf with single ref to a nullable enum (anyOf)', async() => {
 	expect(reason!.nullable).toBe(true)
 })
 
+test('allOf with single ref to a discriminated oneOf (description wrapper)', async() => {
+	const result = await createTestDocument('all-of/all-of-oneof-wrapper.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+
+	const parent = idx.get(result.schemas, 'SubscriptionHistory') as CodegenObjectSchema
+	expect(parent).toBeDefined()
+
+	const detail = idx.get(parent.properties!, 'detail')
+	expect(detail).toBeDefined()
+
+	/* The `detail` property should resolve to the shared SubscriptionHistoryDetail schema, not a new allOf subtype */
+	const subscriptionHistoryDetail = idx.get(result.schemas, 'SubscriptionHistoryDetail')
+	expect(subscriptionHistoryDetail).toBeDefined()
+	expect(detail!.schema).toBe(subscriptionHistoryDetail)
+})
+
 test('allOf with single ref to enum', async() => {
 	const result = await createTestDocument('all-of/all-of-enum.yml', {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,

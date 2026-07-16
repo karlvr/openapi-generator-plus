@@ -1,4 +1,5 @@
-import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenObjectSchema, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import { CodegenAnyOfSchema, CodegenAnyOfStrategy, CodegenLogLevel, CodegenObjectSchema, CodegenProperty, CodegenPropertySummary, CodegenSchema, CodegenSchemaPurpose, CodegenSchemaType, isCodegenCompositionSchema, isCodegenDiscriminatableSchema, isCodegenObjectSchema } from '@openapi-generator-plus/types'
+import * as idx from '@openapi-generator-plus/indexed-type'
 import { SchemaOptionsRequiredNaming, toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
@@ -192,7 +193,13 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 
-	/* Absorb models and use interface conformance */
+	/* Absorb the members' properties into this object. We defer creating interfaces until we've
+	   confirmed the members are mutually compatible, as a single object cannot implement member
+	   interfaces that declare the same property with incompatible types (e.g. a property that is
+	   nullable in one member but not another, which the target language may represent with
+	   different types).
+	 */
+	const members: [OpenAPIX.SchemaObject, CodegenObjectSchema][] = []
 	for (const anyOfApiSchema of anyOf) {
 		/* We must absorb the schema from the others, and then indicate that we conform to them */
 		const anyOfSchema = toCodegenSchemaUsage(anyOfApiSchema, state, {
@@ -207,12 +214,23 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 		}
 
 		absorbCodegenSchema(anyOfSchema, result, { includeNestedSchemas: false, makePropertiesOptional: true })
+		members.push([anyOfApiSchema, anyOfSchema])
+	}
 
-		/* Make sure there's an interface schema to use */
-		const interfaceSchema = createIfNotExistsCodegenInterfaceSchema(anyOfSchema, scope, CodegenSchemaPurpose.INTERFACE, state)
+	if (anyOfMembersHaveCompatibleProperties(members.map(([, schema]) => schema), state)) {
+		/* Use interface conformance so the object can be used wherever a member is expected */
+		for (const [anyOfApiSchema, anyOfSchema] of members) {
+			/* Make sure there's an interface schema to use */
+			const interfaceSchema = createIfNotExistsCodegenInterfaceSchema(anyOfSchema, scope, CodegenSchemaPurpose.INTERFACE, state)
 
-		addImplementor(interfaceSchema, result)
-		added.push([anyOfApiSchema, interfaceSchema])
+			addImplementor(interfaceSchema, result)
+			added.push([anyOfApiSchema, interfaceSchema])
+		}
+	} else {
+		/* The members share properties with incompatible types, so we cannot implement their interfaces.
+		   We still absorb all of the members' properties above, so the object remains a valid union of them.
+		 */
+		state.log(CodegenLogLevel.INFO, `anyOf schema "${(naming.originalScopedName || scopedName).join('.')}" members not suitable for interface conformance: incompatible properties`)
 	}
 
 	/* Process discriminator after adding composes so they can be used */
@@ -230,4 +248,68 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 	finaliseSchema(result, naming, state)
 	return result
+}
+
+/**
+ * Check that where the anyOf members share a property (by serialized name), those properties are
+ * mutually compatible, so that a single object absorbing all of them can also implement each member's
+ * interface. Members legitimately differ on whether a property is required, so we ignore `required`
+ * and only consider the property type, format and nullability.
+ */
+function anyOfMembersHaveCompatibleProperties(members: CodegenObjectSchema[], state: InternalCodegenState): boolean {
+	const propertiesByName: Record<string, CodegenProperty[]> = {}
+	for (const member of members) {
+		collectProperties(member, propertiesByName)
+	}
+
+	for (const properties of Object.values(propertiesByName)) {
+		const first = properties[0]
+		for (let i = 1; i < properties.length; i++) {
+			if (!propertiesCompatible(first, properties[i], state)) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+/**
+ * Collect the properties of the given object schema, including those inherited from its parents,
+ * grouping them by serialized name.
+ */
+function collectProperties(schema: CodegenObjectSchema, into: Record<string, CodegenProperty[]>): void {
+	if (schema.parents) {
+		for (const aParent of schema.parents) {
+			collectProperties(aParent, into)
+		}
+	}
+	if (schema.properties) {
+		for (const property of idx.allValues(schema.properties)) {
+			const existing = into[property.serializedName]
+			if (existing) {
+				existing.push(property)
+			} else {
+				into[property.serializedName] = [property]
+			}
+		}
+	}
+}
+
+function propertiesCompatible(a: CodegenProperty, b: CodegenProperty, state: InternalCodegenState): boolean {
+	const summaryA = toPropertySummary(a)
+	const summaryB = toPropertySummary(b)
+	return state.generator.checkPropertyCompatibility(summaryA, summaryB) && state.generator.checkPropertyCompatibility(summaryB, summaryA)
+}
+
+function toPropertySummary(property: CodegenProperty): CodegenPropertySummary {
+	return {
+		name: property.name,
+		type: property.schema.type || undefined,
+		format: property.schema.format || undefined,
+		nullable: property.nullable,
+		readOnly: property.readOnly,
+		writeOnly: property.writeOnly,
+		/* We ignore required when checking compatibility of anyOf members, so we normalise it here */
+		required: false,
+	}
 }

@@ -110,3 +110,27 @@ test('anyOf of different primitive types wraps each member (object)', async() =>
 	const wrappedTypes = iface.implementors!.map(i => (i as CodegenWrapperSchema).property.schema.schemaType).sort()
 	expect(wrappedTypes).toEqual([CodegenSchemaType.INTEGER, CodegenSchemaType.STRING].sort())
 })
+
+test('anyOf with incompatible member properties absorbs without interfaces (object)', async() => {
+	const result = await createTestDocument('any-of/any-of-incompatible-properties.yml', {
+		anyOfStrategy: CodegenAnyOfStrategy.OBJECT,
+	})
+
+	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
+	expect(someObject).toBeDefined()
+
+	const thing = idx.get(someObject.schemas!, 'thing') as CodegenObjectSchema
+	expect(thing.schemaType).toEqual(CodegenSchemaType.OBJECT)
+
+	/* The members share a `value` property with incompatible types (string vs integer), so the object cannot
+	   implement their interfaces. It still absorbs all of the members' properties. */
+	expect(thing.implements).toBeNull()
+
+	expect(idx.size(thing.properties!)).toEqual(3)
+	for (const name of ['value', 'a', 'b']) {
+		expect(idx.get(thing.properties!, name)).toBeDefined()
+	}
+	for (const property of idx.values(thing.properties!)) {
+		expect(property.required).toBeFalsy()
+	}
+})

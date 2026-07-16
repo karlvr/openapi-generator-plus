@@ -1,0 +1,30 @@
+openapi: '3.0.3'
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    MemberA:
+      type: object
+      properties:
+        value:
+          type: string
+        a:
+          type: string
+      required:
+        - value
+    MemberB:
+      type: object
+      properties:
+        value:
+          type: integer
+        b:
+          type: string
+    SomeObject:
+      type: object
+      properties:
+        thing:
+          anyOf:
+            - $ref: "#/components/schemas/MemberA"
+            - $ref: "#/components/schemas/MemberB"

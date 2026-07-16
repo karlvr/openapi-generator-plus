@@ -30,6 +30,18 @@ test('parse null reference', async() => {
 	expect(nullProp?.nullable).toBeTruthy()
 })
 
+test('null property', async() => {
+	const result = await createTestDocument('openapiv31/null-property.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+	expect(schema.schemaType).toBe(CodegenSchemaType.OBJECT)
+
+	/* A property declared as `type: "null"` results in a schema of type NULL, which the generator must support */
+	const config = idx.get(schema.properties!, 'config')
+	expect(config).toBeDefined()
+	expect(config!.schema.schemaType).toBe(CodegenSchemaType.NULL)
+})
+
 test('required on all-of with incompatible base', async() => {
 	const result = await createTestDocument('openapiv31/required-on-all-of.yml', {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,

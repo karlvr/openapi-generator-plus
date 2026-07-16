@@ -1,0 +1,12 @@
+openapi: 3.1.0
+info:
+  title: Example
+  version: '1.0.1'
+paths: {}
+components:
+  schemas:
+    TestObject:
+      type: object
+      properties:
+        config:
+          type: "null"

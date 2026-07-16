@@ -7,6 +7,7 @@
     "node": ">=20",
     "pnpm": ">=9"
   },
+  "packageManager": "pnpm@10.34.3",
   "scripts": {
     "build": "pnpm --recursive build",
     "check-updates": "pnpm dlx npm-check-updates -u && pnpm --recursive exec pnpm dlx npm-check-updates -u",

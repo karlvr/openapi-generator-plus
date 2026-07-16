@@ -1057,6 +1057,9 @@ export interface CodegenEnumValue {
 	name: string
 	literalValue: string
 	value: string
+
+	/** A description of this enum value for documentation purposes, if one was provided in the specification. */
+	description: string | null
 }
 
 export type CodegenParameterIn = 'query' | 'header' | 'path' | 'formData' | 'body' | 'cookie'

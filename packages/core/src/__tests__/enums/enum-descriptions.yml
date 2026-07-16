@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: enum-descriptions
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    MappedEnum:
+      type: string
+      enum:
+        - request_error
+        - api_error
+      x-enum-descriptions:
+        request_error:
+          description: Problem with request
+        api_error:
+          description: Problem with API
+    ArrayEnum:
+      type: string
+      enum:
+        - red
+        - green
+        - blue
+      x-enum-descriptions:
+        - The colour red
+        - The colour green
+        - The colour blue
+    PlainEnum:
+      type: string
+      enum:
+        - one
+        - two

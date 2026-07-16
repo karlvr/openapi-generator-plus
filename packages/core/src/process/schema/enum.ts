@@ -1,4 +1,4 @@
-import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenEnumSchema, CodegenEnumValues, CodegenLiteralValueOptions, CodegenLogLevel, CodegenSchemaPurpose, CodegenSchemaType, CodegenVendorExtensions } from '@openapi-generator-plus/types'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
@@ -65,6 +65,8 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, options: S
 		writeOnly: false,
 	}
 	
+	const enumValueDescriptions = toEnumValueDescriptions(vendorExtensions, apiSchema.enum, apiSchema, state)
+
 	const existingEnumValueNames = new Set<string>()
 	const enumValues: CodegenEnumValues = idx.create()
 	apiSchema.enum.forEach(name => {
@@ -90,6 +92,7 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, options: S
 				name: uniqueName,
 				literalValue,
 				value: `${name}`,
+				description: enumValueDescriptions[`${name}`] ?? null,
 			},
 		)
 	})
@@ -120,4 +123,76 @@ export function toCodegenEnumSchema(apiSchema: OpenAPIX.SchemaObject, options: S
 
 	finaliseSchema(result, naming, state)
 	return result
+}
+
+/**
+ * Extract descriptions for individual enum values from the `x-enum-descriptions` vendor extension, returning them
+ * keyed by the (stringified) enum value.
+ * <p>
+ * Two forms of the extension are supported:
+ * <ul>
+ * <li>An array of descriptions positionally aligned with the enum values.
+ * <li>An object keyed by enum value, whose values are either a description string or an object with a `description`
+ *     property.
+ * </ul>
+ * Entries that don't correspond to an enum value, or that aren't in a recognised form, are ignored with a warning.
+ */
+function toEnumValueDescriptions(vendorExtensions: CodegenVendorExtensions | null, enumValues: unknown[], apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState): Record<string, string> {
+	const result: Record<string, string> = {}
+	if (!vendorExtensions) {
+		return result
+	}
+
+	const ext = vendorExtensions['x-enum-descriptions']
+	if (!ext) {
+		return result
+	}
+
+	const stringValues = enumValues.map(value => `${value}`)
+
+	if (Array.isArray(ext)) {
+		/* An array of descriptions positionally aligned with the enum values */
+		if (ext.length > stringValues.length) {
+			state.log(CodegenLogLevel.WARN, `x-enum-descriptions has more entries (${ext.length}) than enum values (${stringValues.length}) in ${debugStringify(apiSchema)}`)
+		}
+		ext.forEach((entry, i) => {
+			if (i >= stringValues.length) {
+				return
+			}
+			const description = toEnumValueDescription(entry)
+			if (description !== undefined) {
+				result[stringValues[i]] = description
+			}
+		})
+	} else if (typeof ext === 'object') {
+		/* An object keyed by enum value */
+		for (const key of Object.keys(ext as Record<string, unknown>)) {
+			if (stringValues.indexOf(key) === -1) {
+				state.log(CodegenLogLevel.WARN, `x-enum-descriptions references unknown enum value "${key}" in ${debugStringify(apiSchema)}`)
+				continue
+			}
+			const description = toEnumValueDescription((ext as Record<string, unknown>)[key])
+			if (description !== undefined) {
+				result[key] = description
+			}
+		}
+	} else {
+		state.log(CodegenLogLevel.WARN, `x-enum-descriptions is not an array or object in ${debugStringify(apiSchema)}`)
+	}
+
+	return result
+}
+
+/**
+ * Extract a description string from a single `x-enum-descriptions` entry, which may be a plain description string or
+ * an object with a `description` property. Returns `undefined` if no description can be determined.
+ */
+function toEnumValueDescription(entry: unknown): string | undefined {
+	if (typeof entry === 'string') {
+		return entry
+	} else if (entry && typeof entry === 'object' && typeof (entry as { description?: unknown }).description === 'string') {
+		return (entry as { description: string }).description
+	} else {
+		return undefined
+	}
 }

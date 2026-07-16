@@ -24,6 +24,43 @@ test('non-unique enum values', async() => {
 	expect(seenNames.size).toBe(5)
 })
 
+test('enum value descriptions (keyed map form)', async() => {
+	const result = await createTestDocument('enums/enum-descriptions.yml')
+
+	const schema = idx.get(result.schemas, 'MappedEnum') as CodegenEnumSchema
+	expect(schema).toBeDefined()
+	expect(schema.schemaType).toEqual(CodegenSchemaType.ENUM)
+	expect(schema.enumValues).not.toBeNull()
+
+	expect(idx.get(schema.enumValues!, 'request_error')!.description).toEqual('Problem with request')
+	expect(idx.get(schema.enumValues!, 'api_error')!.description).toEqual('Problem with API')
+})
+
+test('enum value descriptions (parallel array form)', async() => {
+	const result = await createTestDocument('enums/enum-descriptions.yml')
+
+	const schema = idx.get(result.schemas, 'ArrayEnum') as CodegenEnumSchema
+	expect(schema).toBeDefined()
+	expect(schema.schemaType).toEqual(CodegenSchemaType.ENUM)
+	expect(schema.enumValues).not.toBeNull()
+
+	expect(idx.get(schema.enumValues!, 'red')!.description).toEqual('The colour red')
+	expect(idx.get(schema.enumValues!, 'green')!.description).toEqual('The colour green')
+	expect(idx.get(schema.enumValues!, 'blue')!.description).toEqual('The colour blue')
+})
+
+test('enum without value descriptions', async() => {
+	const result = await createTestDocument('enums/enum-descriptions.yml')
+
+	const schema = idx.get(result.schemas, 'PlainEnum') as CodegenEnumSchema
+	expect(schema).toBeDefined()
+	expect(schema.schemaType).toEqual(CodegenSchemaType.ENUM)
+
+	for (const enumValue of idx.allValues(schema.enumValues!)) {
+		expect(enumValue.description).toBeNull()
+	}
+})
+
 test('boolean with enum shouldn\'t be an enum', async() => {
 	const result = await createTestDocument('enums/boolean-enum.yml')
 

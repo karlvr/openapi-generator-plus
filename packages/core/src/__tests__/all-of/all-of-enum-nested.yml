@@ -1,0 +1,25 @@
+openapi: 3.1.0
+info:
+  title: all-of-enum-nested
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    SubscriptionHistory:
+      type: object
+      properties:
+        reason:
+          allOf:
+            - $ref: "#/components/schemas/SubscriptionHistoryReason"
+          description: A reason.
+          readOnly: true
+    SubscriptionHistoryReason:
+      anyOf:
+        - $ref: "#/components/schemas/SubscriptionHistoryReasonEnum"
+        - type: "null"
+      description: A reason.
+    SubscriptionHistoryReasonEnum:
+      type: string
+      enum:
+        - frilling
+        - shilling

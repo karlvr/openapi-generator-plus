@@ -539,6 +539,23 @@ test('allOf allOf object', async() => {
 	expect(grandChildImpl.implements?.length).toEqual(3)
 })
 
+test('allOf with single ref to a nullable enum (anyOf)', async() => {
+	const result = await createTestDocument('all-of/all-of-enum-nested.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+		supportsInheritance: true,
+	})
+
+	const parent = idx.get(result.schemas, 'SubscriptionHistory') as CodegenObjectSchema
+	expect(parent).toBeDefined()
+
+	const reason = idx.get(parent.properties!, 'reason')
+	expect(reason).toBeDefined()
+
+	/* The `reason` property should resolve to the nullable enum, not fail as a non-object parent */
+	expect(reason!.schema.schemaType).toEqual(CodegenSchemaType.ENUM)
+	expect(reason!.nullable).toBe(true)
+})
+
 test('allOf with single ref to enum', async() => {
 	const result = await createTestDocument('all-of/all-of-enum.yml', {
 		allOfStrategy: CodegenAllOfStrategy.OBJECT,

@@ -204,7 +204,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 					addImplementor(parentSchema, result)
 				}
 			} else {
-				throw new Error(`allOf "${result.name}" references a non-object-like schema: ${parentSchema.schemaType}`)
+				throw new Error(`allOf "${result.name}" references a non-object-like ${parentSchema.schemaType} schema: ${debugStringify(allOfApiSchema)}`)
 			}
 	
 			/* Add discriminator values */

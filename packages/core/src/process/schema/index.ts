@@ -389,15 +389,21 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 	 */
 	if (apiSchema.allOf && apiSchema.allOf.length === 1 && !apiSchema.properties && !apiSchema.additionalProperties && !apiSchema.discriminator) {
 		const member = apiSchema.allOf[0] as OpenAPIX.SchemaObject
-		const resolvedMember = resolveReference(member, state)
-		if (!isObjectLikeSchemaType(toCodegenSchemaTypeFromApiSchema(resolvedMember))) {
+
+		/* The member may itself be a redundant wrapper (such as a nullable anyOf, or another single-member allOf), so
+		   we reduce it to what it is ultimately equivalent to before deciding whether it is object-like.
+		 */
+		const reducedMember = reduceRedundantSchema(member, state)
+		if (!isObjectLikeSchemaType(toCodegenSchemaTypeFromApiSchema(reducedMember.apiSchema))) {
 			const originalApiSchema = apiSchema
 
-			if (isOpenAPIReferenceObject(member)) {
-				/* As we're unwrapping this redundant allOf we need to also update the $ref to point to our new target schema */
-				$ref = member.$ref
+			/* As we're unwrapping this redundant allOf we need to also update the $ref to point to our new target schema */
+			$ref = reducedMember.$ref
+			apiSchema = reducedMember.apiSchema
+
+			if (reducedMember.nullable) {
+				usageInfo.nullable = true
 			}
-			apiSchema = resolvedMember
 
 			/* Preserve attributes from the original allOf, if present */
 			if (originalApiSchema.description) {
@@ -459,6 +465,50 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 	}
 
 	return { apiSchema, $ref }
+}
+
+interface ReducedSchema {
+	/** The resolved schema that the original is ultimately equivalent to */
+	apiSchema: OpenAPIX.SchemaObject
+	/** The `$ref` of the reduced schema, if it is a reference */
+	$ref: string | undefined
+	/** Whether nullability was factored out during reduction (for example from a nullable anyOf) */
+	nullable: boolean
+}
+
+/**
+ * Reduce a schema to the schema it is ultimately equivalent to, looking through references, single-member allOf
+ * wrappers, and anyOf schemas whose only non-null member is a single schema (the OpenAPI 3.1 nullable idiom).
+ * Reduction stops at the first schema that isn't one of these redundant wrappers. The returned `nullable` is true if
+ * a null member was factored out along the way.
+ */
+function reduceRedundantSchema(apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState, seenRefs: Set<string> = new Set()): ReducedSchema {
+	const $ref = isOpenAPIReferenceObject(apiSchema) ? apiSchema.$ref : undefined
+	if ($ref) {
+		if (seenRefs.has($ref)) {
+			/* A circular reference; stop reducing to avoid infinite recursion */
+			return { apiSchema: resolveReference(apiSchema, state), $ref, nullable: false }
+		}
+		seenRefs.add($ref)
+	}
+
+	const resolved = resolveReference(apiSchema, state)
+
+	/* A single-member allOf that adds no structure of its own is equivalent to its member */
+	if (resolved.allOf && resolved.allOf.length === 1 && !resolved.properties && !resolved.additionalProperties && !resolved.discriminator && !resolved.anyOf && !resolved.oneOf) {
+		return reduceRedundantSchema(resolved.allOf[0] as OpenAPIX.SchemaObject, state, seenRefs)
+	}
+
+	/* An anyOf whose only non-null member is a single schema is equivalent to that member, made nullable */
+	if (resolved.anyOf && resolved.anyOf.length > 1) {
+		const members = resolved.anyOf as OpenAPIX.SchemaObject[]
+		const nonNullMembers = members.filter(member => member.type !== 'null')
+		if (nonNullMembers.length === 1 && nonNullMembers.length < members.length) {
+			return { ...reduceRedundantSchema(nonNullMembers[0], state, seenRefs), nullable: true }
+		}
+	}
+
+	return { apiSchema: resolved, $ref, nullable: false }
 }
 
 export type DiscoverSchemasTestFunc = (apiSchema: OpenAPIX.SchemaObject, state: InternalCodegenState) => boolean

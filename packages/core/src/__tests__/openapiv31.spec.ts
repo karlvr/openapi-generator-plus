@@ -1,6 +1,6 @@
 import { createTestDocument } from './common'
 import { idx } from '..'
-import { CodegenAllOfStrategy, CodegenAnyOfSchema, CodegenArraySchema, CodegenObjectSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenAnyOfSchema, CodegenArraySchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenSchemaType } from '@openapi-generator-plus/types'
 import { findProperty } from '../process/schema/utils'
 
 test('process document', async() => {
@@ -163,4 +163,81 @@ test('array without items schema', async() => {
 	expect(property?.schema.schemaType).toBe(CodegenSchemaType.ARRAY)
 	
 	expect((property?.schema as CodegenArraySchema).component.schema.schemaType).toBe(CodegenSchemaType.ANY)
+})
+
+test('oneOf with null member', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* A oneOf of a single member and "null" is equivalent to that member, made nullable, as `oneOf` and `anyOf` are
+	   equivalent when the other member is "null"
+	 */
+	const singleMember = idx.get(schema.properties!, 'singleMember')!
+	expect(singleMember.nullable).toBe(true)
+	expect(singleMember.schema.schemaType).toBe(CodegenSchemaType.ARRAY)
+})
+
+test('oneOf with null member preserves attributes', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* Unwrapping the redundant oneOf preserves the attributes it declared alongside its members */
+	const property = idx.get(schema.properties!, 'singleMemberWithAttributes')!
+	expect(property.nullable).toBe(true)
+	expect(property.schema.schemaType).toBe(CodegenSchemaType.ARRAY)
+	expect(property.description).toBe('A description on the oneOf itself')
+	expect(property.deprecated).toBe(true)
+})
+
+test('oneOf with null member inside allOf', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* A single-member allOf wrapping a nullable oneOf reduces to the oneOf's non-null member */
+	const property = idx.get(schema.properties!, 'singleMemberInAllOf')!
+	expect(property.nullable).toBe(true)
+	expect(property.schema.schemaType).toBe(CodegenSchemaType.ARRAY)
+})
+
+test('oneOf with null member and multiple other members', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* A oneOf with more members remains a oneOf of those members, made nullable */
+	const property = idx.get(schema.properties!, 'multipleMembers')!
+	expect(property.nullable).toBe(true)
+	expect(property.schema.schemaType).toBe(CodegenSchemaType.ONEOF)
+	expect((property.schema as CodegenOneOfSchema).composes.length).toBe(2)
+})
+
+test('oneOf with null member preserves discriminator', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	/* Factoring out the "null" member leaves the remaining members discriminated as they were */
+	const property = idx.get(schema.properties!, 'multipleMembersWithDiscriminator')!
+	expect(property.nullable).toBe(true)
+	expect(property.schema.schemaType).toBe(CodegenSchemaType.ONEOF)
+
+	const oneOfSchema = property.schema as CodegenOneOfSchema
+	expect(oneOfSchema.composes.length).toBe(2)
+	expect(oneOfSchema.discriminator).toBeTruthy()
+	expect(oneOfSchema.discriminator!.name).toBe('petType')
+	expect(oneOfSchema.discriminator!.references.length).toBe(2)
+})
+
+test('oneOf without null member is unaffected', async() => {
+	const result = await createTestDocument('openapiv31/one-of-null.yml')
+
+	const schema = idx.get(result.schemas, 'TestObject') as CodegenObjectSchema
+
+	const property = idx.get(schema.properties!, 'notNullable')!
+	expect(property.nullable).toBeFalsy()
+	expect(property.schema.schemaType).toBe(CodegenSchemaType.ONEOF)
+	expect((property.schema as CodegenOneOfSchema).composes.length).toBe(2)
 })

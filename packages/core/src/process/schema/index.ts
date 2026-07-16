@@ -336,50 +336,13 @@ function supportedNamedSchema(schemaType: CodegenSchemaType, referenced: boolean
  * @param apiSchema 
  */
 function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined, usageInfo: RememberedCodegenSchemaInfo, state: InternalCodegenState): { apiSchema: OpenAPIX.SchemaObject; $ref: string | undefined } {
-	if (apiSchema.anyOf && apiSchema.anyOf.length > 1) {
-		const nullIndex = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).findIndex(s => s.type === 'null')
-		if (nullIndex !== -1) {
-			const otherTypes = (apiSchema.anyOf as OpenAPIX.SchemaObject[]).filter(s => s.type !== 'null')
-			if (otherTypes.length === 1) {
-				/* An anyOf that was a single type + null gets turned back into that single type, but with a "nullable" attribute
-				 * on this usage.
-				 */
-				const originalApiSchema = apiSchema
-				
-				if (isOpenAPIReferenceObject(otherTypes[0])) {
-					/* As we're unwrapping this redundant anyOf we need to also update the $ref to point to our new target schema */
-					$ref = otherTypes[0].$ref
-				}
-				apiSchema = resolveReference(otherTypes[0], state)
-
-				/* Mark this usage as nullable */
-				usageInfo.nullable = true
-
-				/* Preserve other attributes from the original anyOf, if present */
-				if (originalApiSchema.description) {
-					usageInfo.description = originalApiSchema.description
-				}
-				if (originalApiSchema.readOnly) {
-					usageInfo.readOnly = originalApiSchema.readOnly
-				}
-				if (originalApiSchema.writeOnly) {
-					usageInfo.writeOnly = originalApiSchema.writeOnly
-				}
-				if (originalApiSchema.deprecated) {
-					usageInfo.deprecated = originalApiSchema.deprecated
-				}
-				if (originalApiSchema.default) {
-					usageInfo.default = originalApiSchema.default
-				}
-
-				/* Note that we fall through to do the rest of the "fixes" */
-			} else {
-				/* The anyOf has more members */
-				apiSchema.nullable = true
-				apiSchema.anyOf = otherTypes
-			}
-		}
-	}
+	/* A composition may itself compose a nullable composition, so we fix each in turn, allowing an unwrapped
+	   member to be fixed in its own right.
+	 */
+	let fixedComposition = fixNullableComposition(apiSchema, 'anyOf', $ref, usageInfo, state)
+	fixedComposition = fixNullableComposition(fixedComposition.apiSchema, 'oneOf', fixedComposition.$ref, usageInfo, state)
+	apiSchema = fixedComposition.apiSchema
+	$ref = fixedComposition.$ref
 
 	/* An allOf with a single member that adds no structure of its own is often just a wrapper for the common idiom of
 	   attaching sibling attributes such as a description to a $ref (which OpenAPI 3.0 otherwise ignores on a $ref).
@@ -391,7 +354,7 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 	   leave the allOf in place, as it may legitimately model inheritance from that member (for example a discriminator
 	   subclass that adds no properties of its own).
 
-	   The member may itself be a redundant wrapper (such as a nullable anyOf, or another single-member allOf), so we
+	   The member may itself be a redundant wrapper (such as a nullable oneOf/anyOf, or another single-member allOf), so we
 	   reduce it to what it is ultimately equivalent to before making this decision.
 	 */
 	if (apiSchema.allOf && apiSchema.allOf.length === 1 && !apiSchema.properties && !apiSchema.additionalProperties && !apiSchema.discriminator) {
@@ -477,6 +440,71 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 	return { apiSchema, $ref }
 }
 
+/** The composition keywords that can express the OpenAPI 3.1 nullable idiom */
+type NullableCompositionKeyword = 'anyOf' | 'oneOf'
+
+/**
+ * Factor the OpenAPI 3.1 nullable idiom out of the given composition keyword on a schema: a composition with a
+ * `"null"` type member is nullable, and composes its remaining members. `oneOf` and `anyOf` are equivalent for this
+ * purpose, as a `"null"` member is mutually exclusive with every other member.
+ *
+ * A composition of a single member and null is redundant, as it is equivalent to that member, so it is unwrapped to
+ * that member and the nullability, along with the composition's own attributes, are preserved on the given usage. Any
+ * other composition remains a genuine composition of its non-null members, and is marked nullable in its own right.
+ *
+ * Returns the schema that the given schema is equivalent to, and the `$ref` that points at it, both unchanged if the
+ * composition isn't present or doesn't use the idiom.
+ */
+function fixNullableComposition(apiSchema: OpenAPIX.SchemaObject, keyword: NullableCompositionKeyword, $ref: string | undefined, usageInfo: RememberedCodegenSchemaInfo, state: InternalCodegenState): { apiSchema: OpenAPIX.SchemaObject; $ref: string | undefined } {
+	const members = apiSchema[keyword] as OpenAPIX.SchemaObject[] | undefined
+	if (!members || members.length <= 1) {
+		return { apiSchema, $ref }
+	}
+
+	const otherMembers = members.filter(member => member.type !== 'null')
+	if (otherMembers.length === members.length) {
+		/* The composition doesn't use the nullable idiom */
+		return { apiSchema, $ref }
+	}
+
+	if (otherMembers.length !== 1) {
+		/* The composition has more members, which remain a composition, made nullable */
+		apiSchema.nullable = true
+		apiSchema[keyword] = otherMembers
+		return { apiSchema, $ref }
+	}
+
+	const originalApiSchema = apiSchema
+
+	if (isOpenAPIReferenceObject(otherMembers[0])) {
+		/* As we're unwrapping this redundant composition we need to also update the $ref to point to our new target schema */
+		$ref = otherMembers[0].$ref
+	}
+	apiSchema = resolveReference(otherMembers[0], state)
+
+	/* Mark this usage as nullable */
+	usageInfo.nullable = true
+
+	/* Preserve other attributes from the original composition, if present */
+	if (originalApiSchema.description) {
+		usageInfo.description = originalApiSchema.description
+	}
+	if (originalApiSchema.readOnly) {
+		usageInfo.readOnly = originalApiSchema.readOnly
+	}
+	if (originalApiSchema.writeOnly) {
+		usageInfo.writeOnly = originalApiSchema.writeOnly
+	}
+	if (originalApiSchema.deprecated) {
+		usageInfo.deprecated = originalApiSchema.deprecated
+	}
+	if (originalApiSchema.default) {
+		usageInfo.default = originalApiSchema.default
+	}
+
+	return { apiSchema, $ref }
+}
+
 interface ReducedSchema {
 	/** The resolved schema that the original is ultimately equivalent to */
 	apiSchema: OpenAPIX.SchemaObject
@@ -488,7 +516,7 @@ interface ReducedSchema {
 
 /**
  * Reduce a schema to the schema it is ultimately equivalent to, looking through references, single-member allOf
- * wrappers, and anyOf schemas whose only non-null member is a single schema (the OpenAPI 3.1 nullable idiom).
+ * wrappers, and oneOf/anyOf schemas whose only non-null member is a single schema (the OpenAPI 3.1 nullable idiom).
  * Reduction stops at the first schema that isn't one of these redundant wrappers. The returned `nullable` is true if
  * a null member was factored out along the way.
  */
@@ -509,11 +537,11 @@ function reduceRedundantSchema(apiSchema: OpenAPIX.SchemaObject, state: Internal
 		return reduceRedundantSchema(resolved.allOf[0] as OpenAPIX.SchemaObject, state, seenRefs)
 	}
 
-	/* An anyOf whose only non-null member is a single schema is equivalent to that member, made nullable */
-	if (resolved.anyOf && resolved.anyOf.length > 1) {
-		const members = resolved.anyOf as OpenAPIX.SchemaObject[]
-		const nonNullMembers = members.filter(member => member.type !== 'null')
-		if (nonNullMembers.length === 1 && nonNullMembers.length < members.length) {
+	/* A oneOf or anyOf whose only non-null member is a single schema is equivalent to that member, made nullable */
+	const composition = (resolved.anyOf || resolved.oneOf) as OpenAPIX.SchemaObject[] | undefined
+	if (composition && composition.length > 1) {
+		const nonNullMembers = composition.filter(member => member.type !== 'null')
+		if (nonNullMembers.length === 1 && nonNullMembers.length < composition.length) {
 			return { ...reduceRedundantSchema(nonNullMembers[0], state, seenRefs), nullable: true }
 		}
 	}

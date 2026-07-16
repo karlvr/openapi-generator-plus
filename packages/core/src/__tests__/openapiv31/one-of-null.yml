@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info:
+  title: Example
+  version: '1.0.1'
+paths: {}
+components:
+  schemas:
+    AllowedCountries:
+      type: array
+      items:
+        type: string
+    Dog:
+      type: object
+      required:
+        - petType
+      properties:
+        petType:
+          type: string
+        bark:
+          type: string
+    Cat:
+      type: object
+      required:
+        - petType
+      properties:
+        petType:
+          type: string
+        meow:
+          type: string
+    TestObject:
+      type: object
+      properties:
+        singleMember:
+          oneOf:
+            - $ref: '#/components/schemas/AllowedCountries'
+            - type: 'null'
+        singleMemberWithAttributes:
+          description: A description on the oneOf itself
+          deprecated: true
+          oneOf:
+            - $ref: '#/components/schemas/AllowedCountries'
+            - type: 'null'
+        singleMemberInAllOf:
+          allOf:
+            - oneOf:
+                - $ref: '#/components/schemas/AllowedCountries'
+                - type: 'null'
+        multipleMembers:
+          oneOf:
+            - $ref: '#/components/schemas/Dog'
+            - $ref: '#/components/schemas/Cat'
+            - type: 'null'
+        multipleMembersWithDiscriminator:
+          oneOf:
+            - $ref: '#/components/schemas/Dog'
+            - $ref: '#/components/schemas/Cat'
+            - type: 'null'
+          discriminator:
+            propertyName: petType
+            mapping:
+              dog: '#/components/schemas/Dog'
+              cat: '#/components/schemas/Cat'
+        notNullable:
+          oneOf:
+            - $ref: '#/components/schemas/Dog'
+            - $ref: '#/components/schemas/Cat'

@@ -110,6 +110,18 @@ function toCodegenOneOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, options: S
 }
 
 function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenInterfaceSchema {
+	return toCodegenComposedInterfaceSchema(apiSchema, apiSchema.oneOf as Array<OpenAPIX.SchemaObject>, CodegenSchemaPurpose.ONE_OF, options, state)
+}
+
+/**
+ * Create an interface schema that each of the given member schemas implements, used to model a composition (such as
+ * a oneOf or a non-object anyOf) whose value is one of a set of alternative schemas. Member schemas that aren't
+ * object-like are wrapped so they can participate as implementors, preserving each member's own type.
+ * @param apiSchema the composition schema, used for its common attributes and any discriminator
+ * @param members the member schemas that will implement the resulting interface
+ * @param memberPurpose the purpose to use when processing each member schema
+ */
+export function toCodegenComposedInterfaceSchema(apiSchema: OpenAPIX.SchemaObject, members: Array<OpenAPIX.SchemaObject>, memberPurpose: CodegenSchemaPurpose, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenInterfaceSchema {
 	const { naming, purpose } = options
 	const { scopedName } = naming
 
@@ -164,36 +176,35 @@ function toCodegenOneOfSchemaInterface(apiSchema: OpenAPIX.SchemaObject, options
 	 */
 	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
-	const oneOf = apiSchema.oneOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
-	for (const oneOfApiSchema of oneOf) {
-		const oneOfSchemaUsage = toCodegenSchemaUsage(oneOfApiSchema, state, {
-			purpose: CodegenSchemaPurpose.ONE_OF,
+	for (const memberApiSchema of members) {
+		const memberSchemaUsage = toCodegenSchemaUsage(memberApiSchema, state, {
+			purpose: memberPurpose,
 			required: false,
 			suggestedScope: result,
 			suggestedName: type => `${type.toLowerCase()}_value`,
 		})
-		let oneOfSchema = oneOfSchemaUsage.schema
+		let memberSchema = memberSchemaUsage.schema
 
-		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema)) {
+		if (!isCodegenObjectSchema(memberSchema) && !isCodegenCompositionSchema(memberSchema)) {
 			/* Create a wrapper around this primitive type */
 			const wrapper = createWrapperSchemaUsage(
-				`${baseSuggestedNameForRelatedSchemas(oneOfSchema) || `${oneOfSchemaUsage.schema.schemaType.toLowerCase()}_value`}_wrapper`, 
+				`${baseSuggestedNameForRelatedSchemas(memberSchema) || `${memberSchemaUsage.schema.schemaType.toLowerCase()}_value`}_wrapper`,
 				result,
-				oneOfSchemaUsage,
-				oneOfApiSchema,
+				memberSchemaUsage,
+				memberApiSchema,
 				purpose,
 				state
 			)
-			oneOfSchema = wrapper.schema
+			memberSchema = wrapper.schema
 		}
 
-		if (!isCodegenObjectSchema(oneOfSchema) && !isCodegenCompositionSchema(oneOfSchema) && !isCodegenWrapperSchema(oneOfSchema)) {
-			throw new Error(`Failed to convert oneOf part to object schema: ${debugStringify(oneOfApiSchema)}`)
+		if (!isCodegenObjectSchema(memberSchema) && !isCodegenCompositionSchema(memberSchema) && !isCodegenWrapperSchema(memberSchema)) {
+			throw new Error(`Failed to convert composition member to object schema: ${debugStringify(memberApiSchema)}`)
 		}
 
-		addImplementor(result, oneOfSchema)
-		added.push([oneOfApiSchema, oneOfSchema])
+		addImplementor(result, memberSchema)
+		added.push([memberApiSchema, memberSchema])
 	}
 
 	/* Check for a situation where an implementor of this interface is the scope where the interface is destined for or a parent of that */

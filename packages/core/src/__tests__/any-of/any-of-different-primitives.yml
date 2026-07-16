@@ -1,0 +1,14 @@
+openapi: 3.1.0
+info:
+  title: any-of-incompatible-primitives
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        mixed:
+          anyOf:
+            - type: string
+            - type: integer

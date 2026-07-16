@@ -1,0 +1,23 @@
+openapi: 3.1.0
+info:
+  title: any-of-primitives
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        image_url:
+          anyOf:
+            - $ref: "#/components/schemas/ImageUrl"
+            - type: "null"
+            - $ref: "#/components/schemas/EmptyString"
+    ImageUrl:
+      type: string
+      minLength: 1
+      format: uri
+    EmptyString:
+      type: string
+      minLength: 0
+      maxLength: 0

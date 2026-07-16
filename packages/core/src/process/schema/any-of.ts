@@ -6,15 +6,18 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { toCodegenExamples } from '../examples'
 import { toCodegenExternalDocs } from '../external-docs'
+import { resolveReference } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
 import { addToDiscriminator, discoverDiscriminatorReferencesInOtherDocuments, loadDiscriminatorMappings, toCodegenSchemaDiscriminator } from './discriminator'
 import { createIfNotExistsCodegenInterfaceSchema } from './interface'
 import { extractNaming, ScopedModelInfo } from './naming'
 import { absorbCodegenSchema } from './object-absorb'
+import { toCodegenComposedInterfaceSchema } from './one-of'
+import { isObjectLikeSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { addImplementor, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema } from './utils'
 import { createWrapperSchemaUsage } from './wrapper'
 
-export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenAnyOfSchema | CodegenObjectSchema {
+export function toCodegenAnyOfSchema(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenSchema {
 	const strategy = state.generator.anyOfStrategy()
 	switch (strategy) {
 		case CodegenAnyOfStrategy.NATIVE:
@@ -114,9 +117,28 @@ function toCodegenAnyOfSchemaNative(apiSchema: OpenAPIX.SchemaObject, options: S
 	return result
 }
 
-function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenObjectSchema {
+function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: SchemaOptionsRequiredNaming, state: InternalCodegenState): CodegenSchema {
 	const { naming, purpose } = options
 	const { scopedName, scope } = naming
+
+	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
+
+	/* An anyOf models a value that validates against at least one of its members. The object strategy represents that
+	   as a single object that absorbs each member's (optional) properties, which only works when the members are
+	   object-like. We classify the members up-front so we can handle the cases that don't fit that model.
+	 */
+	const membersAreObjectLike = anyOf.map(member => isObjectLikeSchemaType(toCodegenSchemaTypeFromApiSchema(resolveReference(member, state))))
+	if (membersAreObjectLike.every(objectLike => !objectLike)) {
+		/* None of the members are object-like (they are primitives, enums or arrays), so there is nothing to absorb
+		   into an object; we model the anyOf as an interface implemented by each member, wrapping the members so
+		   each keeps its own type rather than collapsing them to a common type.
+		 */
+		return toCodegenComposedInterfaceSchema(apiSchema, anyOf, CodegenSchemaPurpose.ANY_OF, options, state)
+	} else if (membersAreObjectLike.some(objectLike => !objectLike)) {
+		/* A mix of object-like and non-object-like members is not yet supported */
+		// TODO
+		throw new Error(`anyOf combining object and non-object schemas is not yet supported: ${debugStringify(apiSchema)}`)
+	}
 
 	const vendorExtensions = toCodegenVendorExtensions(apiSchema)
 
@@ -168,7 +190,6 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 	 */
 	result = addToKnownSchemas(apiSchema, result, naming.$ref, state)
 
-	const anyOf = apiSchema.anyOf as Array<OpenAPIX.SchemaObject>
 	const added: [OpenAPIX.SchemaObject, CodegenSchema][] = []
 
 	/* Absorb models and use interface conformance */
@@ -204,7 +225,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 			addToDiscriminator(result, addedSchema, state)
 		}
 	}
-	
+
 	loadDiscriminatorMappings(result, state)
 	discoverDiscriminatorReferencesInOtherDocuments(apiSchema, state)
 	finaliseSchema(result, naming, state)

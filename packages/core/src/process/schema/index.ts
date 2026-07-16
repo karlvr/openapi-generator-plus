@@ -18,7 +18,7 @@ import { toUniqueScopedName, extractNaming, usedSchemaName, ScopedModelInfo } fr
 import { toCodegenNumericSchema } from './numeric'
 import { toCodegenObjectSchema } from './object'
 import { toCodegenOneOfSchema } from './one-of'
-import { toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
+import { isObjectLikeSchemaType, toCodegenSchemaType, toCodegenSchemaTypeFromApiSchema } from './schema-type'
 import { toCodegenStringSchema } from './string'
 import { transformNativeTypeForUsage } from './usage'
 import { addReservedSchemaName, addToKnownSchemas, extractCodegenSchemaCommon, finaliseSchema, findKnownSchema, refForPathAndSchemaName, refForSchemaName } from './utils'
@@ -390,14 +390,7 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 	if (apiSchema.allOf && apiSchema.allOf.length === 1 && !apiSchema.properties && !apiSchema.additionalProperties && !apiSchema.discriminator) {
 		const member = apiSchema.allOf[0] as OpenAPIX.SchemaObject
 		const resolvedMember = resolveReference(member, state)
-		const memberSchemaType = toCodegenSchemaTypeFromApiSchema(resolvedMember)
-		const memberIsObjectLike =
-			memberSchemaType === CodegenSchemaType.OBJECT ||
-			memberSchemaType === CodegenSchemaType.MAP ||
-			memberSchemaType === CodegenSchemaType.ALLOF ||
-			memberSchemaType === CodegenSchemaType.ANYOF ||
-			memberSchemaType === CodegenSchemaType.ONEOF
-		if (!memberIsObjectLike) {
+		if (!isObjectLikeSchemaType(toCodegenSchemaTypeFromApiSchema(resolvedMember))) {
 			const originalApiSchema = apiSchema
 
 			if (isOpenAPIReferenceObject(member)) {

@@ -36,6 +36,18 @@ export function toCodegenSchemaType(type: string, format: string | undefined): C
 	}
 }
 
+/**
+ * Whether the given schema type is object-like, meaning it is an object, a map, or a composition (allOf/anyOf/oneOf)
+ * that is modelled as an object, as opposed to a primitive, enum or array.
+ */
+export function isObjectLikeSchemaType(schemaType: CodegenSchemaType): boolean {
+	return schemaType === CodegenSchemaType.OBJECT ||
+		schemaType === CodegenSchemaType.MAP ||
+		schemaType === CodegenSchemaType.ALLOF ||
+		schemaType === CodegenSchemaType.ANYOF ||
+		schemaType === CodegenSchemaType.ONEOF
+}
+
 export function toCodegenSchemaTypeFromApiSchema(apiSchema: OpenAPIX.SchemaObject): CodegenSchemaType {
 	if (apiSchema.allOf) {
 		return CodegenSchemaType.ALLOF

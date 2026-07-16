@@ -1,0 +1,22 @@
+openapi: 3.1.0
+info:
+  title: all-of-enum
+  version: '1.0'
+paths: {}
+components:
+  schemas:
+    ApiError:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          allOf:
+            - $ref: "#/components/schemas/ErrorResponseType"
+          description: Type of error encountered.
+    ErrorResponseType:
+      type: string
+      enum:
+        - request_error
+        - api_error
+      description: Represents an error.

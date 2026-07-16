@@ -538,3 +538,28 @@ test('allOf allOf object', async() => {
 	expect(grandChildImpl.implements).toBeTruthy()
 	expect(grandChildImpl.implements?.length).toEqual(3)
 })
+
+test('allOf with single ref to enum', async() => {
+	const result = await createTestDocument('all-of/all-of-enum.yml', {
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+	})
+
+	const apiError = idx.get(result.schemas, 'ApiError') as CodegenObjectSchema
+	expect(apiError).toBeDefined()
+	expect(apiError.schemaType).toEqual(CodegenSchemaType.OBJECT)
+
+	const typeProperty = idx.get(apiError.properties!, 'type')
+	expect(typeProperty).toBeDefined()
+
+	const errorResponseType = idx.get(result.schemas, 'ErrorResponseType')
+	expect(errorResponseType).toBeDefined()
+	expect(errorResponseType!.schemaType).toEqual(CodegenSchemaType.ENUM)
+
+	/* The `type` property should resolve to the shared ErrorResponseType enum */
+	expect(typeProperty!.schema.schemaType).toEqual(CodegenSchemaType.ENUM)
+	expect(typeProperty!.schema).toBe(errorResponseType)
+
+	/* The description on the allOf overrides the enum's own description as an attribute of the property usage */
+	expect(typeProperty!.description).toEqual('Type of error encountered.')
+	expect(errorResponseType!.description).toEqual('Represents an error.')
+})

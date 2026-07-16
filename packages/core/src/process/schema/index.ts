@@ -381,6 +381,52 @@ function fixApiSchema(apiSchema: OpenAPIX.SchemaObject, $ref: string | undefined
 		}
 	}
 
+	/* An allOf with a single member that isn't object-like (such as an enum or other primitive) cannot be modelled
+	   as an object composition, so we unwrap it to that single member. This supports the common idiom of wrapping a
+	   $ref in an allOf purely to attach sibling attributes such as a description, which OpenAPI 3.0 otherwise ignores
+	   on a $ref. Those attributes are preserved as attributes of this usage, matching how a $ref with sibling
+	   attributes is handled.
+	 */
+	if (apiSchema.allOf && apiSchema.allOf.length === 1 && !apiSchema.properties && !apiSchema.additionalProperties && !apiSchema.discriminator) {
+		const member = apiSchema.allOf[0] as OpenAPIX.SchemaObject
+		const resolvedMember = resolveReference(member, state)
+		const memberSchemaType = toCodegenSchemaTypeFromApiSchema(resolvedMember)
+		const memberIsObjectLike =
+			memberSchemaType === CodegenSchemaType.OBJECT ||
+			memberSchemaType === CodegenSchemaType.MAP ||
+			memberSchemaType === CodegenSchemaType.ALLOF ||
+			memberSchemaType === CodegenSchemaType.ANYOF ||
+			memberSchemaType === CodegenSchemaType.ONEOF
+		if (!memberIsObjectLike) {
+			const originalApiSchema = apiSchema
+
+			if (isOpenAPIReferenceObject(member)) {
+				/* As we're unwrapping this redundant allOf we need to also update the $ref to point to our new target schema */
+				$ref = member.$ref
+			}
+			apiSchema = resolvedMember
+
+			/* Preserve attributes from the original allOf, if present */
+			if (originalApiSchema.description) {
+				usageInfo.description = originalApiSchema.description
+			}
+			if (originalApiSchema.readOnly) {
+				usageInfo.readOnly = originalApiSchema.readOnly
+			}
+			if (originalApiSchema.writeOnly) {
+				usageInfo.writeOnly = originalApiSchema.writeOnly
+			}
+			if (originalApiSchema.deprecated) {
+				usageInfo.deprecated = originalApiSchema.deprecated
+			}
+			if (originalApiSchema.default !== undefined) {
+				usageInfo.default = originalApiSchema.default
+			}
+
+			/* Note that we fall through to do the rest of the "fixes" */
+		}
+	}
+
 	if (apiSchema.type === undefined && !apiSchema.allOf && !apiSchema.anyOf && !apiSchema.oneOf) {
 		if (apiSchema.required || apiSchema.properties || apiSchema.additionalProperties) {
 			apiSchema.type = 'object'

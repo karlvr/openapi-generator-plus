@@ -227,21 +227,26 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 		return
 	}
 
+	let discriminatorProperty: CodegenProperty | undefined
 	if (isCodegenObjectLikeSchema(memberSchema)) {
-		const property = findProperty(memberSchema, discriminatorSchema.discriminator.serializedName)
-		if (!property) {
+		discriminatorProperty = findProperty(memberSchema, discriminatorSchema.discriminator.serializedName)
+		if (!discriminatorProperty) {
 			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.serializedName}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
 		}
 
-		if (!property.discriminators) {
-			property.discriminators = []
+		if (!discriminatorProperty.discriminators) {
+			discriminatorProperty.discriminators = []
 		}
-		property.discriminators.push(discriminatorSchema.discriminator)
+		discriminatorProperty.discriminators.push(discriminatorSchema.discriminator)
 	}
-	
+
 	const discriminatorValue = discriminatorValueForSchema(discriminatorSchema.discriminator, memberSchema, state)
+	/* We create the literal using the member's own discriminator property, if it has one, so that the literal
+	   refers to the member's own type (e.g. its own enum). The discriminator's type is a single common type
+	   for all members, so using it would make every member's literal refer to that one member's type, which is
+	   incorrect when each member declares its own type (such as its own single-value enum) for the property. */
 	const discriminatorValueLiteral = state.generator.toLiteral(discriminatorValue, toCodegenDefaultValueOptions({
-		...discriminatorSchema.discriminator,
+		...(discriminatorProperty || discriminatorSchema.discriminator),
 		required: true,
 		nullable: false,
 		readOnly: false,

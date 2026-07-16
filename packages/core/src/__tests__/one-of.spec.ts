@@ -2,6 +2,10 @@ import { createTestDocument } from './common'
 import { idx } from '../'
 // import util from 'util'
 import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import testGeneratorConstructor from '@openapi-generator-plus/test-generator'
+import { constructGenerator, createCodegenDocument, createCodegenInput, createCodegenState } from '..'
+import { createGeneratorContext } from '../generators'
+import path from 'path'
 
 test('oneOf simple (native)', async() => {
 	const result = await createTestDocument('one-of/one-of-simple.yml', {
@@ -479,4 +483,30 @@ test('oneOf with recursion', async() => {
 
 	expect(nonRecursiveContainer.schemas).not.toBeNull()
 	expect(idx.size(nonRecursiveContainer.schemas!)).toBe(1)
+})
+
+test('oneOf discriminator builds each member literal from its own property type', async() => {
+	/* Each member declares its own inline single-value enum for the discriminator property. The literal
+	   for each member's discriminator value must be built from that member's own property type (its own
+	   enum), not from the discriminator's single common type — otherwise every member's literal would
+	   refer to the first member's enum, which does not contain the other members' values. */
+	const literalNativeTypes: Record<string, string> = {}
+	const generator = constructGenerator({}, createGeneratorContext(), (config, context) => {
+		const base = testGeneratorConstructor(config, context)
+		return {
+			...base,
+			toLiteral: (value, options) => {
+				if (value === 'item_added' || value === 'item_removed') {
+					literalNativeTypes[value] = String(options.nativeType)
+				}
+				return base.toLiteral(value, options)
+			},
+		}
+	})
+	const state = createCodegenState({}, generator)
+	const input = await createCodegenInput(path.resolve(__dirname, 'one-of/one-of-discriminator-inline-enums.yml'))
+	createCodegenDocument(input, state)
+
+	expect(literalNativeTypes['item_added']).toEqual('EventItemAdded.action_enum')
+	expect(literalNativeTypes['item_removed']).toEqual('EventItemRemoved.action_enum')
 })

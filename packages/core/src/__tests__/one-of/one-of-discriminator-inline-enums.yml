@@ -1,0 +1,38 @@
+openapi: '3.0.3'
+info:
+  version: 1.0.0
+  title: oneOf discriminator where each member has its own inline enum
+paths: {}
+components:
+  schemas:
+    EventItemAdded:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - item_added
+        item:
+          type: string
+    EventItemRemoved:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum:
+            - item_removed
+        reason:
+          type: string
+    Event:
+      oneOf:
+        - $ref: '#/components/schemas/EventItemAdded'
+        - $ref: '#/components/schemas/EventItemRemoved'
+      discriminator:
+        propertyName: action
+        mapping:
+          item_added: '#/components/schemas/EventItemAdded'
+          item_removed: '#/components/schemas/EventItemRemoved'

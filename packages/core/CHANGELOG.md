@@ -1,5 +1,11 @@
 # @openapi-generator-plus/core
 
+## 2.30.0
+
+### Minor Changes
+
+- 80ee1bb: Support OpenAPI 3.1 multi-type unions
+
 ## 2.29.0
 
 ### Minor Changes

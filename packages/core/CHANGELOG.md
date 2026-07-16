@@ -1,5 +1,35 @@
 # @openapi-generator-plus/core
 
+## 2.29.0
+
+### Minor Changes
+
+- fadf74b: Don't implement `anyOf` member interfaces when members share a property with incompatible types
+
+  When an anyOf's object strategy absorbs its members into a single object, it now only makes that
+  object implement the members' interfaces if the members' shared properties are mutually compatible.
+  Previously a property that was, for example, nullable in one member but not another could produce a
+  class that could not satisfy all of the member interfaces.
+
+- 6510666: Build each discriminator member's value literal from the member's own property type
+
+  When the members of a discriminated `oneOf`/`anyOf` each declare their own type for the discriminator
+  property (for example, their own single-value enum), each member's discriminator value literal is now
+  built from that member's own property rather than from the discriminator's single common type.
+  Previously every member's literal referred to the first member's type, which does not contain the
+  other members' values.
+
+- 62e5961: Support allOf with a single ref to a non-object type such as an enum
+- efcc60f: Support `anyOf` combining non-object schemas (primitives, enums or arrays) under the object strategy by wrapping each member.
+- 25a656c: allOf with single ref to object type is also unwrapped
+
+### Patch Changes
+
+- 936d338: Support the common `x-enum-descriptions` vendor extensions to provide descriptions for enum values
+- Updated dependencies [936d338]
+  - @openapi-generator-plus/types@2.22.2
+  - @openapi-generator-plus/utils@1.1.10
+
 ## 2.28.0
 
 ### Minor Changes

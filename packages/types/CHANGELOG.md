@@ -1,5 +1,11 @@
 # @openapi-generator-plus/types
 
+## 2.22.2
+
+### Patch Changes
+
+- 936d338: Support the common `x-enum-descriptions` vendor extensions to provide descriptions for enum values
+
 ## 2.22.1
 
 ### Patch Changes

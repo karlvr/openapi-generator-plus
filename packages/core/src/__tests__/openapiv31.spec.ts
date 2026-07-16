@@ -8,6 +8,36 @@ test('process document', async() => {
 	expect(result).toBeDefined()
 })
 
+test('parse Xquik search operation', async() => {
+	const result = await createTestDocument('openapiv31/xquik-search.yml')
+
+	expect(result.info.title).toEqual('Xquik API')
+	expect(result.servers![0].url).toEqual('https://xquik.com')
+	expect(result.securitySchemes).not.toBeNull()
+	expect(result.securitySchemes?.[0].name).toEqual('apiKey')
+	expect(result.securitySchemes?.[0].in).toEqual('header')
+	expect(result.securitySchemes?.[0].paramName).toEqual('x-api-key')
+
+	let operation = undefined
+	for (const group of result.groups) {
+		for (const candidate of group.operations) {
+			if (candidate.name === 'searchTweets') {
+				operation = candidate
+				break
+			}
+		}
+		if (operation) {
+			break
+		}
+	}
+	expect(operation).toBeDefined()
+	expect(operation?.path).toEqual('/v1/x/tweets/search')
+	expect(operation?.parameters).not.toBeNull()
+	expect(idx.allValues(operation!.parameters!).map((parameter: { name: string }) => parameter.name)).toEqual(['q', 'cursor', 'limit'])
+	expect(operation?.securityRequirements?.requirements[0].schemes[0].scheme.name).toEqual('apiKey')
+	expect(operation?.returnNativeType?.toString()).toEqual('SearchTweetsResponse')
+})
+
 test('parse null string', async() => {
 	const result = await createTestDocument('openapiv31/simple.yml')
 

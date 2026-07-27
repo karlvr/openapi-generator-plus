@@ -41,6 +41,28 @@ test('anyOf (object)', async() => {
 	}
 })
 
+test('anyOf (object) re-derives the native type of the properties it makes optional', async() => {
+	/* Absorbing the members makes their required properties optional. A generator where optionality is part
+	   of the type must see the optional type, otherwise it declares a property that it cannot leave unset.
+	 */
+	const result = await createTestDocument('any-of/any-of.yml', {
+		anyOfStrategy: CodegenAnyOfStrategy.OBJECT,
+		nativeTypeUsageTransformer: ({ required }) => ({
+			default: (nativeType) => required ? nativeType.nativeType : `optional ${nativeType.nativeType}`,
+		}),
+	})
+
+	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
+	const submodel = idx.get(someObject!.schemas!, 'color') as CodegenObjectSchema
+
+	/* The members declare r, g, b, h and s as required, so each was first given its required native type */
+	expect(idx.size(submodel.properties!)).toEqual(5)
+	for (const property of idx.values(submodel.properties!)) {
+		expect(property.required).toBeFalsy()
+		expect(property.nativeType.toString()).toEqual(`optional ${property.schema.nativeType}`)
+	}
+})
+
 test('anyOf of primitives (object)', async() => {
 	const result = await createTestDocument('any-of/any-of-primitives.yml', {
 		anyOfStrategy: CodegenAnyOfStrategy.OBJECT,

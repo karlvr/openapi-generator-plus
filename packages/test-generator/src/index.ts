@@ -1,4 +1,4 @@
-import { CodegenAllOfStrategy, CodegenAnyOfStrategy, CodegenGeneratorConstructor, CodegenGeneratorType, CodegenOneOfStrategy, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenSchemaType } from '@openapi-generator-plus/types'
+import { CodegenAllOfStrategy, CodegenAnyOfStrategy, CodegenGeneratorConstructor, CodegenGeneratorType, CodegenNativeTypeTransformers, CodegenOneOfStrategy, CodegenOperationGroupingStrategy, CodegenSchemaPurpose, CodegenSchemaType, CodegenSchemaUsage } from '@openapi-generator-plus/types'
 import { camelCase } from 'lodash'
 import pluralize from 'pluralize'
 
@@ -15,6 +15,8 @@ export interface TestCodegenConfig {
 	supportsMultipleInheritance?: boolean
 	expectLogWarnings?: boolean
 	toSchemaName?: (name: string) => string
+	/** Override so a test can make a usage's effect on the native type observable, as real generators do. */
+	nativeTypeUsageTransformer?: (usage: CodegenSchemaUsage) => CodegenNativeTypeTransformers
 }
 
 const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generatorContext) => {
@@ -76,9 +78,14 @@ const testGeneratorConstructor: CodegenGeneratorConstructor = (config, generator
 		toNativeObjectType: (options) => new generatorContext.NativeType(options.scopedName.join('.')),
 		toNativeArrayType: (options) => new generatorContext.NativeType(`array ${options.componentNativeType}`),
 		toNativeMapType: (options) => new generatorContext.NativeType(`map ${options.componentNativeType}`),
-		nativeTypeUsageTransformer: () => ({
-			default: (nativeType) => nativeType.nativeType,
-		}),
+		nativeTypeUsageTransformer: (usage) => {
+			if (testConfig.nativeTypeUsageTransformer) {
+				return testConfig.nativeTypeUsageTransformer(usage)
+			}
+			return {
+				default: (nativeType) => nativeType.nativeType,
+			}
+		},
 		defaultValue: (options) => {
 			if (!options.required) {
 				return { value: undefined, literalValue: 'undefined' }

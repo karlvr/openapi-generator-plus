@@ -8,12 +8,16 @@ import { SchemaUsageOptions, toCodegenSchemaUsage } from '.'
 import { debugStringify } from '@openapi-generator-plus/utils'
 import { MapSchemaOptions, toCodegenMapSchema } from './map'
 import { baseSuggestedNameForRelatedSchemas } from './utils'
+import { transformNativeTypeForUsage } from './usage'
 
-function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, options: { makePropertiesOptional?: boolean }) {
+function absorbProperties(otherProperties: CodegenProperties, schema: CodegenObjectSchema, state: InternalCodegenState, options: { makePropertiesOptional?: boolean }) {
 	for (const property of idx.allValues(otherProperties)) {
 		const newProperty = { ...property }
-		if (options.makePropertiesOptional) {
+		if (options.makePropertiesOptional && newProperty.required) {
 			newProperty.required = false
+
+			/* The native type is derived from the property's usage, which we've just changed */
+			newProperty.nativeType = transformNativeTypeForUsage(newProperty, state)
 		}
 		if (!schema.properties) {
 			schema.properties = idx.create()
@@ -31,14 +35,14 @@ function absorbCodegenSchemas(schemas: CodegenNamedSchemas, target: CodegenObjec
 	}
 }
 
-export function absorbCodegenSchema(schema: CodegenObjectLikeSchemas, target: CodegenObjectSchema, options: { includeNestedSchemas?: boolean; makePropertiesOptional?: boolean } = {}): void {
+export function absorbCodegenSchema(schema: CodegenObjectLikeSchemas, target: CodegenObjectSchema, state: InternalCodegenState, options: { includeNestedSchemas?: boolean; makePropertiesOptional?: boolean } = {}): void {
 	if (schema.parents) {
 		for (const aParent of schema.parents) {
-			absorbCodegenSchema(aParent, target, options)
+			absorbCodegenSchema(aParent, target, state, options)
 		}
 	}
 	if (schema.properties) {
-		absorbProperties(schema.properties, target, { makePropertiesOptional: options.makePropertiesOptional })
+		absorbProperties(schema.properties, target, state, { makePropertiesOptional: options.makePropertiesOptional })
 	}
 	if (schema.additionalProperties) {
 		if (target.additionalProperties) {
@@ -64,7 +68,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 		let absorbed = false
 		const otherProperties = toCodegenProperties(apiSchema, target, state)
 		if (otherProperties) {
-			absorbProperties(otherProperties, target, {})
+			absorbProperties(otherProperties, target, state, {})
 			absorbed = true
 		}
 		if (apiSchema.additionalProperties) {
@@ -106,7 +110,7 @@ export function absorbApiSchema(apiSchema: OpenAPIX.SchemaObject, target: Codege
 		target.additionalProperties = schema
 	} else if (isCodegenObjectLikeSchema(schema)) {
 		/* We only include nested schemas if the schema being observed won't actually exist to contain its nested schemas itself */
-		absorbCodegenSchema(schema, target, { includeNestedSchemas: false })
+		absorbCodegenSchema(schema, target, state, { includeNestedSchemas: false })
 	} else {
 		throw new Error(`Cannot absorb schema as it isn't an object: ${debugStringify(schema)}`)
 	}

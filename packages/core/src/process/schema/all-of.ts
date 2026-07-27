@@ -200,7 +200,7 @@ function toCodegenAllOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 					addChildObjectSchema(parentImplementation, result)
 				} else {
 					/* If we can't create an implementation containing all of the parent's properties, we must absorb and have the properties ourselves */
-					absorbCodegenSchema(parentSchema, result)
+					absorbCodegenSchema(parentSchema, result, state)
 					addImplementor(parentSchema, result)
 				}
 			} else {

@@ -213,7 +213,7 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 			throw new Error(`Non-object schema not yet supported in anyOf: ${debugStringify(anyOfApiSchema)}`)
 		}
 
-		absorbCodegenSchema(anyOfSchema, result, { includeNestedSchemas: false, makePropertiesOptional: true })
+		absorbCodegenSchema(anyOfSchema, result, state, { includeNestedSchemas: false, makePropertiesOptional: true })
 		members.push([anyOfApiSchema, anyOfSchema])
 	}
 

@@ -143,7 +143,7 @@ export function toCodegenInterfaceImplementationSchema(interfaceSchema: CodegenI
 			}
 		} else {
 			for (const aParent of interfaceSchema.parents) {
-				absorbCodegenSchema(aParent, result, {})
+				absorbCodegenSchema(aParent, result, state, {})
 			}
 		}
 	}

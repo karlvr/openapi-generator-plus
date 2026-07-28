@@ -27,9 +27,11 @@ export function createWrapperSchemaUsage(suggestedName: string, scope: CodegenSc
 
 	const naming = toUniqueScopedName(undefined, suggestedName, scope, wrapApi, CodegenSchemaType.WRAPPER, CodegenSchemaPurpose.WRAPPER, state)
 	
-	const property = createCodegenProperty('value', wrap, state)
-	property.required = true
-	property.nullable = wrap.nullable
+	/* The wrapped value is always present, so we create the property from a required usage rather
+	   than making it required afterwards, which would leave its native type derived from the
+	   optional usage we were given.
+	 */
+	const property = createCodegenProperty('value', { ...wrap, required: true }, state)
 
 	const nativeType = state.generator.toNativeObjectType({
 		type: 'object',

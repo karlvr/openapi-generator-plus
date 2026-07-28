@@ -1,0 +1,25 @@
+---
+openapi: 3.0.3
+info:
+  version: 1.0.1
+  title: Example
+paths:
+  /test:
+    get:
+      operationId: test
+      parameters:
+        # The reference makes the parameter required and deprecated, neither of which the
+        # referenced parameter declares.
+        - $ref: '#/components/parameters/Filter'
+          required: true
+          deprecated: true
+      responses:
+        '200':
+          description: OK
+components:
+  parameters:
+    Filter:
+      name: filter
+      in: query
+      schema:
+        type: string

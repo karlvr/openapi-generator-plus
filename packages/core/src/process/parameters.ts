@@ -31,12 +31,19 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 	let examples: CodegenExamples | null
 	let defaultValue: CodegenValue | null
 
-	const required = parameter.in === 'path' ? true : convertToBoolean(parameter.required, false)
+	/* We allow some properties to be overridden on a $ref. We must resolve them before creating the
+	   schema usage below, as the usage determines the native type.
+	 */
+	const originalApiSchemaAsSchemaObject = originalApiSchema as unknown as OpenAPIV3.ParameterObject | undefined
+	const requiredOverride = convertToBoolean(originalApiSchemaAsSchemaObject?.required, false)
+	const deprecatedOverride = convertToBoolean(originalApiSchemaAsSchemaObject?.deprecated, false)
+
+	const required = parameter.in === 'path' ? true : convertToBoolean(parameter.required, false) || requiredOverride
 	const encoding = toCodegenParameterEncoding(parameter, state)
 
 	if (isOpenAPIV2GeneralParameterObject(parameter, state.specVersion)) {
 		schemaUse = toCodegenSchemaUsage(parameter, state, {
-			required: convertToBoolean(parameter.required, false),
+			required: convertToBoolean(parameter.required, false) || requiredOverride,
 			suggestedName: parameterContextName,
 			purpose: CodegenSchemaPurpose.PARAMETER,
 			suggestedScope: null,
@@ -89,7 +96,7 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		nullable: false,
 		readOnly: false,
 		writeOnly: false,
-		deprecated: convertToBoolean(parameter.deprecated, false),
+		deprecated: convertToBoolean(parameter.deprecated, false) || deprecatedOverride,
 
 		vendorExtensions,
 		encoding,
@@ -99,17 +106,6 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		isHeaderParam: parameter.in === 'header',
 		isCookieParam: parameter.in === 'cookie',
 		isFormParam: parameter.in === 'formData',
-	}
-
-	if (originalApiSchema) {
-		/* We allow some properties to be overriden on a $ref */
-		const originalApiSchemaAsSchemaObject: OpenAPIV3.ParameterObject = originalApiSchema as unknown as OpenAPIV3.ParameterObject
-		if (originalApiSchemaAsSchemaObject.required) {
-			result.required = true
-		}
-		if (originalApiSchemaAsSchemaObject.deprecated) {
-			result.deprecated = true
-		}
 	}
 
 	return result

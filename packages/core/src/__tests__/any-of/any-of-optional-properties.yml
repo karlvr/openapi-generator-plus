@@ -1,0 +1,33 @@
+---
+openapi: 3.0.3
+info:
+  version: 1.0.1
+  title: Example
+paths: {}
+components:
+  schemas:
+    # As any-of.yml, but neither member requires any of its properties, so absorbing them takes
+    # nothing away and the absorbing object can still conform to their interfaces.
+    ColorRgb:
+      type: object
+      properties:
+        r:
+          type: integer
+        g:
+          type: integer
+        b:
+          type: integer
+    ColorHs:
+      type: object
+      properties:
+        h:
+          type: number
+        s:
+          type: number
+    SomeObject:
+      type: object
+      properties:
+        color:
+          anyOf:
+            - $ref: "#/components/schemas/ColorRgb"
+            - $ref: "#/components/schemas/ColorHs"

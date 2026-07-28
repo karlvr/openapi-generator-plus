@@ -217,7 +217,18 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 		members.push([anyOfApiSchema, anyOfSchema])
 	}
 
-	if (anyOfMembersHaveCompatibleProperties(members.map(([, schema]) => schema), state)) {
+	const memberSchemas = members.map(([, schema]) => schema)
+	if (!anyOfMembersHaveCompatibleProperties(memberSchemas, state)) {
+		/* The members share properties with incompatible types, so we cannot implement their interfaces.
+		   We still absorb all of the members' properties above, so the object remains a valid union of them.
+		 */
+		state.log(CodegenLogLevel.INFO, `anyOf schema "${(naming.originalScopedName || scopedName).join('.')}" members not suitable for interface conformance: incompatible properties`)
+	} else if (!membersCanBeImplemented(result, memberSchemas, state)) {
+		/* Absorbing made the members' properties optional, and the generator can't satisfy a member
+		   that requires one. We still absorb them, so the object remains a valid union of the members.
+		 */
+		state.log(CodegenLogLevel.INFO, `anyOf schema "${(naming.originalScopedName || scopedName).join('.')}" members not suitable for interface conformance: absorbing makes required properties optional`)
+	} else {
 		/* Use interface conformance so the object can be used wherever a member is expected */
 		for (const [anyOfApiSchema, anyOfSchema] of members) {
 			/* Make sure there's an interface schema to use */
@@ -226,11 +237,6 @@ function toCodegenAnyOfSchemaObject(apiSchema: OpenAPIX.SchemaObject, options: S
 			addImplementor(interfaceSchema, result)
 			added.push([anyOfApiSchema, interfaceSchema])
 		}
-	} else {
-		/* The members share properties with incompatible types, so we cannot implement their interfaces.
-		   We still absorb all of the members' properties above, so the object remains a valid union of them.
-		 */
-		state.log(CodegenLogLevel.INFO, `anyOf schema "${(naming.originalScopedName || scopedName).join('.')}" members not suitable for interface conformance: incompatible properties`)
 	}
 
 	/* Process discriminator after adding composes so they can be used */
@@ -301,7 +307,7 @@ function propertiesCompatible(a: CodegenProperty, b: CodegenProperty, state: Int
 	return state.generator.checkPropertyCompatibility(summaryA, summaryB) && state.generator.checkPropertyCompatibility(summaryB, summaryA)
 }
 
-function toPropertySummary(property: CodegenProperty): CodegenPropertySummary {
+function toPropertySummary(property: CodegenProperty, required = false): CodegenPropertySummary {
 	return {
 		name: property.name,
 		type: property.schema.type || undefined,
@@ -309,7 +315,38 @@ function toPropertySummary(property: CodegenProperty): CodegenPropertySummary {
 		nullable: property.nullable,
 		readOnly: property.readOnly,
 		writeOnly: property.writeOnly,
-		/* We ignore required when checking compatibility of anyOf members, so we normalise it here */
-		required: false,
+		/* We ignore required when checking compatibility of anyOf members, so it is normalised by default */
+		required,
 	}
+}
+
+/**
+ * Whether the object that absorbed the members can conform to their interfaces.
+ *
+ * Absorbing makes the members' properties optional, as only one member need match, so a member
+ * that requires a property is asking for something the object cannot promise. Where a generator
+ * makes `required` part of the property's type it then cannot satisfy the interface at all, so we
+ * ask it rather than assuming.
+ */
+function membersCanBeImplemented(target: CodegenObjectSchema, members: CodegenObjectSchema[], state: InternalCodegenState): boolean {
+	const targetProperties: Record<string, CodegenProperty[]> = {}
+	collectProperties(target, targetProperties)
+
+	for (const member of members) {
+		const memberProperties: Record<string, CodegenProperty[]> = {}
+		collectProperties(member, memberProperties)
+
+		for (const [serializedName, properties] of Object.entries(memberProperties)) {
+			const targetProperty = targetProperties[serializedName]?.[0]
+			if (!targetProperty) {
+				return false
+			}
+			for (const property of properties) {
+				if (!state.generator.checkPropertyCompatibility(toPropertySummary(property, property.required), toPropertySummary(targetProperty, targetProperty.required))) {
+					return false
+				}
+			}
+		}
+	}
+	return true
 }

@@ -32,13 +32,33 @@ test('anyOf (object)', async() => {
 
 	const submodel = idx.get(someObject!.schemas!, 'color') as CodegenObjectSchema
 	expect(submodel.schemaType).toEqual(CodegenSchemaType.OBJECT)
-	expect(submodel.implements).not.toBeNull()
-	expect(submodel.implements!.length).toEqual(2)
 
 	expect(idx.size(submodel.properties!)).toEqual(5)
 	for (const property of idx.values(submodel.properties!)) {
 		expect(property.required).toBeFalsy()
 	}
+
+	/* Both members require their properties, which absorbing has just made optional, so the object
+	   cannot promise what their interfaces ask for and does not conform to them.
+	 */
+	expect(submodel.implements).toBeNull()
+})
+
+test('anyOf (object) conforms to its members when they require nothing', async() => {
+	const result = await createTestDocument('any-of/any-of-optional-properties.yml', {
+		anyOfStrategy: CodegenAnyOfStrategy.OBJECT,
+	})
+
+	const someObject = idx.get(result.schemas, 'SomeObject') as CodegenObjectSchema
+	const submodel = idx.get(someObject!.schemas!, 'color') as CodegenObjectSchema
+
+	expect(idx.size(submodel.properties!)).toEqual(5)
+
+	/* Absorbing takes nothing away from a member whose properties are all optional, so the object
+	   really can be used wherever a member is expected.
+	 */
+	expect(submodel.implements).not.toBeNull()
+	expect(submodel.implements!.length).toEqual(2)
 })
 
 test('anyOf (object) re-derives the native type of the properties it makes optional', async() => {

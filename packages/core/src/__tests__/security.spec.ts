@@ -30,3 +30,14 @@ test('global security', async() => {
 	expect(op2.securityRequirements).toBeTruthy()
 	expect(op2.securityRequirements?.requirements[0].schemes[0].scheme.name).toEqual('test_auth2')
 })
+
+test('optional security alternatives', async() => {
+	const result = await createTestDocument('security/security-optional.yml')
+	const requirements = result.groups[0].operations[0].securityRequirements
+
+	expect(requirements?.optional).toBe(true)
+	expect(requirements?.requirements.map(requirement => requirement.schemes.map(({ scheme }) => scheme.name))).toEqual([
+		['apiKey'],
+		['bearerAuth'],
+	])
+})

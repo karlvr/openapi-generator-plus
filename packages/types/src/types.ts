@@ -1077,6 +1077,10 @@ interface CodegenParameterBase {
 	defaultValue: CodegenValue | null
 
 	/* Add properties from CodegenSchemaUsage so templates can treat parameters like properties */
+	/**
+	 * Always false. A parameter and a header become text in a URL or in a header, and that form
+	 * has no null. A nullable schema used here loses its nullability, and its native type with it.
+	 */
 	nullable: false
 	readOnly: false
 	writeOnly: false

@@ -8,6 +8,7 @@ import { toCodegenVendorExtensions } from './vendor-extensions'
 import * as idx from '@openapi-generator-plus/indexed-type'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenSchemaUsage } from './schema'
+import { ignoreNullability } from './schema/usage'
 import { toCodegenParameterEncoding } from './parameter-encoding'
 
 export function toCodegenParameters(parameters: OpenAPIX.Parameters, pathParameters: CodegenParameters | undefined, scopeName: string, state: InternalCodegenState): CodegenParameters | null {
@@ -72,6 +73,8 @@ function toCodegenParameter(parameter: OpenAPI.Parameter, scopeName: string, sta
 		examples = toCodegenExamples(parameter.example, parameter.examples, undefined, schemaUse, state)
 		defaultValue = schemaUse.defaultValue
 	}
+
+	ignoreNullability(schemaUse, `Parameter "${parameter.name}"`, state)
 
 	const vendorExtensions = toCodegenVendorExtensions(parameter)
 

@@ -4,6 +4,7 @@ import { InternalCodegenState } from '../types'
 import { OpenAPIX } from '../types/patches'
 import { toCodegenExamples } from './examples'
 import { toCodegenSchemaUsage } from './schema'
+import { ignoreNullability } from './schema/usage'
 import { convertToBoolean, nameFromRef, resolveReference } from './utils'
 import { toCodegenVendorExtensions } from './vendor-extensions'
 import { toCodegenHeaderEncoding } from './parameter-encoding'
@@ -35,6 +36,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			purpose: CodegenSchemaPurpose.HEADER, 
 			suggestedScope: null,
 		})
+		ignoreNullability(schemaUse, `Header "${name}"`, state)
+
 		return {
 			name: state.generator.toIdentifier(name),
 			serializedName: name,
@@ -61,6 +64,8 @@ function toCodegenHeader(name: string, header: OpenAPIX.Header, state: InternalC
 			suggestedScope: null,
 		})
 		const examples = toCodegenExamples(header.example, header.examples, undefined, schemaUse, state)
+
+		ignoreNullability(schemaUse, `Header "${name}"`, state)
 
 		return {
 			name: state.generator.toIdentifier(name),

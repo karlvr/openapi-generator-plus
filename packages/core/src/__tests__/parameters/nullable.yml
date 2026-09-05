@@ -1,0 +1,48 @@
+openapi: 3.0.1
+info:
+  title: Nullable parameters
+  description: A parameter and a header whose schema is nullable
+  version: "1.0"
+paths:
+  /test:
+    get:
+      operationId: getTest
+      parameters:
+        - name: inline
+          in: query
+          schema:
+            type: string
+            format: date-time
+            nullable: true
+        - name: viaRef
+          in: query
+          schema:
+            nullable: true
+            $ref: '#/components/schemas/ADateTime'
+        - name: plain
+          in: query
+          schema:
+            $ref: '#/components/schemas/ADateTime'
+      responses:
+        "200":
+          description: OK
+          headers:
+            X-Nullable:
+              schema:
+                type: string
+                nullable: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnObject'
+components:
+  schemas:
+    ADateTime:
+      type: string
+      format: date-time
+    AnObject:
+      type: object
+      properties:
+        nullableProperty:
+          nullable: true
+          $ref: '#/components/schemas/ADateTime'

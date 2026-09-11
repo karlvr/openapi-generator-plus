@@ -531,9 +531,8 @@ export interface CodegenProperty extends CodegenSchemaUsage {
 	 */
 	initialValue: CodegenValue | null
 
-	/** The discriminators that this property is used by, if this property is used by a discriminator.
-	 * We usually remove properties used for discriminators, but sometimes they are left for
-	 * interface comformance.
+	/**
+	 * The discriminators that this property holds the value of, if any.
 	 */
 	discriminators: CodegenDiscriminator[] | null
 

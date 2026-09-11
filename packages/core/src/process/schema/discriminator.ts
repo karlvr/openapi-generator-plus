@@ -6,7 +6,7 @@ import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
 import { equalCodegenTypeInfo, extractCodegenSchemaUsage, resolveReference, toCodegenDefaultValueOptions, typeInfoToString } from '../utils'
 import { toCodegenVendorExtensions } from '../vendor-extensions'
-import { baseSuggestedNameForRelatedSchemas, findKnownSchema, findProperty, interfaceForProperty, removeProperty } from './utils'
+import { addDiscriminatorToProperty, baseSuggestedNameForRelatedSchemas, findKnownSchema, findOwnProperty, findProperty, interfaceForProperty } from './utils'
 
 /**
  * Create a CodegenDiscriminator for the given schema, to be put into the target
@@ -234,10 +234,7 @@ export function addToDiscriminator(discriminatorSchema: CodegenDiscriminatorSche
 			throw new Error(`Discriminator property "${discriminatorSchema.discriminator.serializedName}" for "${discriminatorSchema.name}" missing from "${memberSchema.name}"`)
 		}
 
-		if (!discriminatorProperty.discriminators) {
-			discriminatorProperty.discriminators = []
-		}
-		discriminatorProperty.discriminators.push(discriminatorSchema.discriminator)
+		addDiscriminatorToProperty(discriminatorProperty, discriminatorSchema.discriminator)
 	}
 
 	const discriminatorValue = discriminatorValueForSchema(discriminatorSchema.discriminator, memberSchema, state)
@@ -352,9 +349,9 @@ function findDiscriminatorSchemas(schema: CodegenSchema): CodegenDiscriminatorSc
 }
 
 /**
- * Post-process schemas to remove discriminator properties from objects. We don't remove the discriminator
- * properties earlier, as we need to keep them while we're reconciling all of the discriminators, and members,
- * as we try to find the discriminator property.
+ * Post-process schemas to record which properties hold the value of a discriminator. We don't record
+ * this earlier, as we need to reconcile all of the discriminators, and members, first, as we try to
+ * find the discriminator property.
  * @param schema 
  * @returns 
  */
@@ -365,27 +362,44 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 
 	const discriminator = schema.discriminator
 	
-	function removeDiscriminatorPropertyFromSchema(schema: CodegenObjectLikeSchemas) {
-		/* Check if the discriminator property is in an interface that this referenced schema conforms to, and if it is, remove
-		   the property from the interface as well. Interfaces are a construct of the generator and are used in languages that
-		   have a concept of interface conformance (e.g. Java, but not TypeScript which uses duck-typing), so it's OK to remove
-		   properties from the interface.
+	const marked: CodegenSchema[] = []
 
-		   I've concluded that when a property of an object is identified as a discriminator that property is no longer an
-		   independent part of the object... it must fulfil its role as a discriminator value holder, even when polymorphism isn't
-		   important, because what's it doing otherwise? Being a random string property? With what value?
-		 */
-		const iface = interfaceForProperty(schema, discriminator.serializedName)
-		if (iface) {
-			removeProperty(iface, discriminator.serializedName)
+	function markDiscriminatorPropertyInSchema(schema: CodegenSchema) {
+		if (marked.indexOf(schema) !== -1) {
+			return
+		}
+		marked.push(schema)
+
+		if (isCodegenObjectLikeSchema(schema)) {
+			/* Check if the discriminator property is in an interface that this schema conforms to, and if it is,
+			   record it in the interface as well, so that a generator renders the interface and the schema the same way.
+			 */
+			const iface = interfaceForProperty(schema, discriminator.serializedName)
+			if (iface) {
+				const ifaceProperty = findOwnProperty(iface, discriminator.serializedName)
+				if (ifaceProperty) {
+					addDiscriminatorToProperty(ifaceProperty, discriminator)
+				}
+			}
+
+			const ownProperty = findOwnProperty(schema, discriminator.serializedName)
+			if (ownProperty) {
+				addDiscriminatorToProperty(ownProperty, discriminator)
+			}
 		}
 
-		removeProperty(schema, discriminator.serializedName)
-
-		/* Also remove from parents of the schema */
-		if (schema.parents) {
-			for (const parent of schema.parents) {
-				removeDiscriminatorPropertyFromSchema(parent)
+		/* The schema may take the property from another schema, rather than declare it, so look in
+		   the schemas that it builds on as well */
+		if (isCodegenObjectSchema(schema) || isCodegenInterfaceSchema(schema)) {
+			if (schema.parents) {
+				for (const parent of schema.parents) {
+					markDiscriminatorPropertyInSchema(parent)
+				}
+			}
+		}
+		if (isCodegenAllOfSchema(schema)) {
+			for (const composed of schema.composes) {
+				markDiscriminatorPropertyInSchema(composed)
 			}
 		}
 	}
@@ -394,13 +408,11 @@ export function postProcessSchemaForDiscriminator(schema: CodegenSchema): void {
 	discriminator.references = discriminator.references.sort(compareDiscriminatorReferences)
 
 	if (isCodegenObjectLikeSchema(schema) && schema.properties) {
-		removeDiscriminatorPropertyFromSchema(schema)
+		markDiscriminatorPropertyInSchema(schema)
 	}
 
 	for (const reference of discriminator.references) {
-		if (isCodegenObjectLikeSchema(reference.schema)) {
-			removeDiscriminatorPropertyFromSchema(reference.schema)
-		}
+		markDiscriminatorPropertyInSchema(reference.schema)
 	}
 }
 

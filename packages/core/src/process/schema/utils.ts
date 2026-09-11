@@ -1,4 +1,4 @@
-import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenDiscriminatableSchema, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAnyOfSchema, CodegenDiscriminatableSchema, CodegenDiscriminator, CodegenHierarchySchema, CodegenInterfaceSchema, CodegenNamedSchema, CodegenObjectLikeSchemas, CodegenObjectSchema, CodegenOneOfSchema, CodegenProperty, CodegenSchema, CodegenScope, CodegenWrapperSchema, isCodegenInterfaceSchema, isCodegenNamedSchema, isCodegenObjectSchema, isCodegenScope } from '@openapi-generator-plus/types'
 import { isOpenAPIV2Document, isOpenAPIv3SchemaObject } from '../../openapi-type-guards'
 import { InternalCodegenState } from '../../types'
 import { OpenAPIX } from '../../types/patches'
@@ -192,27 +192,40 @@ export function interfaceForProperty(schema: CodegenObjectLikeSchemas, serialize
 }
 
 /**
- * Finds and removes the named property from the given set of properties.
- * @param properties the properties to look in
- * @param serializedName the serialized name of the property
- * @returns a CodegenProperty or undefined if not found
+ * Records that the property holds the value of a discriminator.
+ *
+ * The property keeps its place in its schema. A generator uses the record to decide how to render
+ * the property, as a language may need to narrow the type of the property to the value, or to hand
+ * the serialization of the property to a runtime.
+ *
+ * A property may hold the value of more than one discriminator. This records each discriminator
+ * once, however many members refer to it.
+ * @param property the property that holds the value
+ * @param discriminator the discriminator that the property holds the value of
  */
-export function removeProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
+export function addDiscriminatorToProperty(property: CodegenProperty, discriminator: CodegenDiscriminator): void {
+	if (!property.discriminators) {
+		property.discriminators = []
+	}
+	if (property.discriminators.indexOf(discriminator) === -1) {
+		property.discriminators.push(discriminator)
+	}
+}
+
+/**
+ * Finds the named property that the given schema declares itself.
+ *
+ * Use this when an inherited property is not an acceptable answer. Use `findProperty` to look in
+ * the parents of the schema as well.
+ * @param schema the schema to look in
+ * @param serializedName the serialized name of the property
+ * @returns a CodegenProperty, or undefined if the schema does not declare it
+ */
+export function findOwnProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {
 	if (!schema.properties) {
 		return undefined
 	}
-
-	const entry = idx.get(schema.properties, serializedName)
-	if (!entry) {
-		return undefined
-	}
-
-	idx.remove(schema.properties, serializedName)
-	if (idx.isEmpty(schema.properties)) {
-		schema.properties = null
-	}
-
-	return entry
+	return idx.get(schema.properties, serializedName)
 }
 
 export function findProperty(schema: CodegenObjectLikeSchemas, serializedName: string): CodegenProperty | undefined {

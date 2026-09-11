@@ -1,7 +1,7 @@
 import { createTestDocument } from './common'
 import { idx } from '../'
 // import util from 'util'
-import { CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
+import { CodegenAllOfSchema, CodegenAllOfStrategy, CodegenInterfaceSchema, CodegenNumericSchema, CodegenObjectSchema, CodegenOneOfSchema, CodegenOneOfStrategy, CodegenSchemaType, CodegenWrapperSchema, isCodegenAllOfSchema, isCodegenInterfaceSchema, isCodegenObjectSchema, isCodegenOneOfSchema } from '@openapi-generator-plus/types'
 import testGeneratorConstructor from '@openapi-generator-plus/test-generator'
 import { constructGenerator, createCodegenDocument, createCodegenInput, createCodegenState } from '..'
 import { createGeneratorContext } from '../generators'
@@ -243,10 +243,16 @@ test('oneOf discriminator with separate allOf (object)', async() => {
 	const abstractAnimal = child.implements![0]
 	expect(abstractAnimal.schemaType).toEqual(CodegenSchemaType.INTERFACE)
 	expect(abstractAnimal.name).toEqual('i_AbstractAnimal')
-	expect(abstractAnimal.properties).toBeNull() /* As the petType property gets removed and turned into a discriminator */
+	/* AbstractAnimal declares the discriminator property, so it keeps it, marked as a discriminator */
+	expect(idx.allKeys(abstractAnimal.properties!)).toEqual(['petType'])
+	expect(idx.get(abstractAnimal.properties!, 'petType')!.discriminators).toHaveLength(1)
 
 	expect(child.properties).toBeTruthy()
-	expect(idx.has(child.properties!, 'petType')).toBeFalsy() /* The discriminator property doesn't exist in the child (removed, as above) */
+	/* Without inheritance the child declares every property of the interface, including the one
+	   that holds the discriminator value */
+	expect(idx.allKeys(child.properties!)).toEqual(['petType', 'name'])
+	expect(idx.get(child.properties!, 'petType')!.discriminators).toHaveLength(1)
+	expect(idx.get(child.properties!, 'petType')!.overrides).toBeTruthy()
 
 	expect(parent.name).toEqual('Pet')
 	expect(parent.discriminator!.name).toEqual('petType')
@@ -349,10 +355,11 @@ test('oneOf allOf (object)', async() => {
 	expect(integerProperty.implements).toBeTruthy()
 	expect(integerProperty.implements?.length).toEqual(2)
 	expect(integerProperty.properties).toBeTruthy()
-	expect(idx.size(integerProperty.properties!)).toEqual(1)
-	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
-
-	expect(idx.get(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	/* Without inheritance the implementor declares every property of the interface, including the
+	   one that holds the discriminator value */
+	expect(idx.allKeys(integerProperty.properties!)).toEqual(['type', 'value'])
+	expect(idx.get(integerProperty.properties!, 'type')!.discriminators).toHaveLength(1)
+	expect(idx.get(integerProperty.properties!, 'type')!.overrides).toBeTruthy()
 	expect(integerProperty.discriminatorValues).toBeTruthy()
 	expect(integerProperty.discriminatorValues?.length).toEqual(1)
 	expect(integerProperty.discriminatorValues![0].schemas[0].discriminator?.serializedName).toEqual('type')
@@ -362,7 +369,9 @@ test('oneOf allOf (object)', async() => {
 	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(objectProperty.implements).toBeTruthy()
 	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
-	expect(idx.has(objectProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	/* ObjectProperty could not use inheritance, so it declares the property itself */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy()
+	expect(idx.get(objectProperty.properties!, 'type')!.discriminators).toHaveLength(1)
 
 	expect(objectProperty.discriminatorValues).toBeTruthy()
 	expect(objectProperty.discriminatorValues?.length).toEqual(1)
@@ -392,8 +401,8 @@ test('oneOf allOf (object with inheritance)', async() => {
 	expect(integerProperty.parents).toBeTruthy()
 	expect(integerProperty.parents!.length).toEqual(1)
 	expect(integerProperty.properties).toBeTruthy()
-	expect(idx.size(integerProperty.properties!)).toEqual(1)
-	expect(idx.has(integerProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	/* The implementor inherits the property that holds the discriminator value from AbstractProperty */
+	expect(idx.allKeys(integerProperty.properties!)).toEqual(['value'])
 	
 	expect(integerProperty.discriminatorValues).toBeTruthy()
 	expect(integerProperty.discriminatorValues?.length).toEqual(1)
@@ -404,7 +413,9 @@ test('oneOf allOf (object with inheritance)', async() => {
 	expect(objectProperty.schemaType).toEqual(CodegenSchemaType.OBJECT)
 	expect(objectProperty.implements).toBeTruthy()
 	expect(objectProperty.implements?.length).toEqual(3) /* Extra interfaces as it couldn't use inheritance */
-	expect(idx.has(objectProperty.properties!, 'type')).toBeFalsy() /* As the type property gets removed and turned into a discriminator */
+	/* ObjectProperty could not use inheritance, so it declares the property itself */
+	expect(idx.has(objectProperty.properties!, 'type')).toBeTruthy()
+	expect(idx.get(objectProperty.properties!, 'type')!.discriminators).toHaveLength(1)
 
 	expect(objectProperty.discriminatorValues).toBeTruthy()
 	expect(objectProperty.discriminatorValues?.length).toEqual(1)
@@ -509,4 +520,95 @@ test('oneOf discriminator builds each member literal from its own property type'
 
 	expect(literalNativeTypes['item_added']).toEqual('EventItemAdded.action_enum')
 	expect(literalNativeTypes['item_removed']).toEqual('EventItemRemoved.action_enum')
+})
+
+/*
+ * A schema that declares a discriminator property keeps it. The schema is a type in its own right,
+ * and a caller may reach it outside the discriminator hierarchy, so the property must stay
+ * available. See https://github.com/karlvr/openapi-generator-plus-generators/issues/48
+ */
+test('oneOf discriminator keeps an inherited property in its base (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-inherited-property.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+	})
+
+	/* IndependentObject declares the property, and SubObject2 inherits it */
+	const base = idx.get(result.schemas, 'IndependentObject') as CodegenObjectSchema
+	expect(idx.allKeys(base.properties!)).toEqual(['thisProperty', 'otherProperty2'])
+	const baseProperty = idx.get(base.properties!, 'thisProperty')!
+	expect(baseProperty.required).toBeTruthy()
+	expect(baseProperty.discriminators).toHaveLength(1)
+	expect(baseProperty.discriminators![0].serializedName).toEqual('thisProperty')
+	expect(idx.get(base.properties!, 'otherProperty2')!.discriminators).toBeNull()
+
+	/* The base is not itself a member, so it holds no discriminator and no value */
+	expect(base.discriminator).toBeNull()
+	expect(base.discriminatorValues).toBeNull()
+
+	/* SubObject2 takes the property from IndependentObject, and holds the value for it */
+	const member = idx.get(result.schemas, 'SubObject2') as CodegenAllOfSchema
+	expect(isCodegenAllOfSchema(member)).toBeTruthy()
+	expect(member.composes.map(c => (c as CodegenObjectSchema).name)).toEqual(['IndependentObject'])
+	expect(member.discriminatorValues).toHaveLength(1)
+
+	/* A member that declares the property itself keeps it too, marked */
+	const ownMember = idx.get(result.schemas, 'SubObject1') as CodegenObjectSchema
+	expect(idx.allKeys(ownMember.properties!)).toEqual(['thisProperty', 'otherProperty1'])
+	expect(idx.get(ownMember.properties!, 'thisProperty')!.discriminators).toHaveLength(1)
+	expect(ownMember.discriminatorValues).toHaveLength(1)
+})
+
+test('oneOf discriminator keeps the property in a base two levels up (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-inherited-property.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+	})
+
+	/* DeepBase declares the property, and Cat inherits it through MiddleBase */
+	const deepBase = idx.get(result.schemas, 'DeepBase') as CodegenObjectSchema
+	expect(idx.allKeys(deepBase.properties!)).toEqual(['kind', 'deepProperty'])
+	expect(idx.get(deepBase.properties!, 'kind')!.discriminators).toHaveLength(1)
+
+	/* MiddleBase does not declare the property, so it does not gain one */
+	const middleBase = idx.get(result.schemas, 'MiddleBase') as CodegenAllOfSchema
+	for (const composed of middleBase.composes) {
+		const properties = (composed as CodegenObjectSchema).properties
+		if (properties && idx.has(properties, 'kind')) {
+			expect((composed as CodegenObjectSchema).name).toEqual('DeepBase')
+		}
+	}
+
+	const cat = idx.get(result.schemas, 'Cat') as CodegenAllOfSchema
+	expect(isCodegenAllOfSchema(cat)).toBeTruthy()
+	expect(cat.discriminatorValues).toHaveLength(1)
+})
+
+test('oneOf discriminator does not add a property to a base that never declared one (native)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-inherited-property.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.NATIVE,
+	})
+
+	/* Each member declares its own action property, so SharedBase never had one */
+	const sharedBase = idx.get(result.schemas, 'SharedBase') as CodegenObjectSchema
+	expect(idx.allKeys(sharedBase.properties!)).toEqual(['common'])
+	expect(idx.has(sharedBase.properties!, 'action')).toBeFalsy()
+
+	/* The member declares the property itself, in the schema it composes with SharedBase */
+	const member = idx.get(result.schemas, 'EventItemAdded') as CodegenAllOfSchema
+	const declaring = member.composes.find(c => idx.has((c as CodegenObjectSchema).properties!, 'action')) as CodegenObjectSchema
+	expect(declaring).toBeTruthy()
+	expect(idx.get(declaring.properties!, 'action')!.discriminators).toHaveLength(1)
+})
+
+test('oneOf discriminator keeps an inherited property in its base (interface)', async() => {
+	const result = await createTestDocument('one-of/one-of-discriminator-inherited-property.yml', {
+		oneOfStrategy: CodegenOneOfStrategy.INTERFACE,
+		allOfStrategy: CodegenAllOfStrategy.OBJECT,
+	})
+
+	const base = idx.get(result.schemas, 'IndependentObject') as CodegenObjectSchema
+	expect(idx.allKeys(base.properties!)).toEqual(['thisProperty', 'otherProperty2'])
+	expect(idx.get(base.properties!, 'thisProperty')!.discriminators).toHaveLength(1)
+
+	const sharedBase = idx.get(result.schemas, 'SharedBase') as CodegenObjectSchema
+	expect(idx.allKeys(sharedBase.properties!)).toEqual(['common'])
 })

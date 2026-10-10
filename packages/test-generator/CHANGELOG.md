@@ -1,5 +1,13 @@
 # @openapi-generator-plus/test-generator
 
+## 1.1.11
+
+### Patch Changes
+
+- Updated dependencies [bf71d80]
+- Updated dependencies [041358a]
+  - @openapi-generator-plus/types@2.23.0
+
 ## 1.1.10
 
 ### Patch Changes

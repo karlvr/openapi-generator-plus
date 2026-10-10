@@ -1,5 +1,43 @@
 # @openapi-generator-plus/types
 
+## 2.23.0
+
+### Minor Changes
+
+- bf71d80: Keep the discriminator property in the schema that declares it
+
+  A discriminator property was previously removed from the schema that declared it. For the
+  declaring schema, and for each member, the property could be found in `discriminator` or
+  `discriminatorValues`. However for a schema that a member inherits the property from,
+  the property was lost.
+
+  A schema may be used outside of its role in the discriminator hierarchy, so it's important to
+  retain its properties.
+
+  The property is no longer removed. `CodegenProperty.discriminators` records the
+  discriminators and a generator can use that to decide how to render the
+  property. A generator may narrow the type of the property to the member's own value, or delegate the
+  serialization of the property to a runtime.
+
+  This is a breaking change for generators that assumed the core removed these discriminator properties.
+
+### Patch Changes
+
+- 041358a: Ignore the nullability of a parameter or a header, and warn about it.
+
+  A parameter and a header become text in a URL or in a header. That form has no null, and OpenAPI
+  does not define how to send one. A receiver also cannot tell null from an empty value, so the
+  nullability cannot survive a round trip. See
+  https://github.com/OAI/OpenAPI-Specification/issues/1915
+
+  `CodegenParameter.nullable` and `CodegenHeader.nullable` were already always `false`, but the
+  native type still included null. So a template saw a non-nullable parameter with a nullable native
+  type, and it could not generate correct code for either reading.
+
+  The core now removes the nullability from the schema usage, so the native type loses null too, and
+  it logs a warning that names the parameter or the header. The schema itself keeps its nullability,
+  because another usage of the same schema can express it. A nullable property is unaffected.
+
 ## 2.22.2
 
 ### Patch Changes

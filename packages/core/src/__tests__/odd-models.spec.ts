@@ -144,7 +144,7 @@ test('empty additionalProperties', async() => {
 
 	const emptyAdditionalPropertiesSchema = emptyAdditionalProperties.additionalProperties as CodegenMapSchema
 	expect(emptyAdditionalPropertiesSchema.schemaType).toEqual(CodegenSchemaType.MAP)
-	expect(emptyAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map string')
+	expect(emptyAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map any')
 
 	const trueAdditionalProperties = result.schemas['TrueAdditionalProperties'] as CodegenObjectSchema
 	expect(trueAdditionalProperties).toBeDefined()
@@ -152,7 +152,7 @@ test('empty additionalProperties', async() => {
 
 	const trueAdditionalPropertiesSchema = trueAdditionalProperties.additionalProperties as CodegenMapSchema
 	expect(trueAdditionalPropertiesSchema.schemaType).toEqual(CodegenSchemaType.MAP)
-	expect(trueAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map string')
+	expect(trueAdditionalPropertiesSchema.nativeType.nativeType).toEqual('map any')
 
 	const falseAdditionalProperties = result.schemas['FalseAdditionalProperties'] as CodegenObjectSchema
 	expect(falseAdditionalProperties).toBeDefined()

@@ -24,15 +24,13 @@ export function toCodegenMapSchema(apiSchema: OpenAPIX.SchemaObject, options: Ma
 		vendorExtensions,
 	})
 
+	/* `additionalProperties: true` and `additionalProperties: {}` both permit values of any type (see
+	   https://json-schema.org/understanding-json-schema/reference/object#additionalproperties), which the
+	   empty schema expresses */
 	let additionalProperties = apiSchema.additionalProperties
 	if (additionalProperties === true) {
-		additionalProperties = { type: 'string' }
-	} else if (typeof additionalProperties === 'object') {
-		if (Object.keys(additionalProperties).length === 0) {
-			/* Handle an empty object */
-			additionalProperties = { type: 'string' }
-		}
-	} else {
+		additionalProperties = {}
+	} else if (typeof additionalProperties !== 'object') {
 		throw new Error(`Invalid additionalProperties value: ${debugStringify(additionalProperties)}`)
 	}
 	

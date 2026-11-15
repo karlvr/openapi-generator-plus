@@ -462,18 +462,178 @@ const V2_REF_PREFIXES: RefPrefix[] = [
 	{ prefix: '#/responses/', bucket: 'responses' },
 ]
 
+/** Returns the parts of a document outside its components that can refer to components. */
+function seedRoots(doc: OpenAPI.Document): unknown[] {
+	const roots: unknown[] = []
+	const paths = (doc as OpenAPIV2.Document | OpenAPIV3.Document).paths
+	if (paths) {
+		roots.push(paths)
+	}
+	if ((doc as OpenAPIV3.Document).security) {
+		roots.push((doc as OpenAPIV3.Document).security)
+	}
+	if ((doc as { webhooks?: unknown }).webhooks) {
+		roots.push((doc as { webhooks?: unknown }).webhooks)
+	}
+	return roots
+}
+
+/**
+ * The components of a document that the parts outside the components need, directly or through
+ * other components. Use it to find the components that a filter leaves unused.
+ *
+ * A schema with a discriminator is polymorphic, and so is a schema that extends a polymorphic
+ * schema with `allOf`. A value of a polymorphic schema can be any of its subtypes, and code
+ * generation finds those subtypes from the `allOf` of each subtype. So when a reachable schema
+ * uses a polymorphic schema as a type, its subtypes are reachable too, although nothing refers to
+ * them. A schema that only extends a polymorphic schema does not make the other subtypes reachable.
+ */
+class ReachableComponents {
+	/** The names of the reachable components, by bucket. */
+	private readonly reachable = new Map<string, Set<string>>()
+	/** The reachable schemas that a reference uses as a type, and not only as an `allOf` parent. */
+	private readonly schemaTypes = new Set<string>()
+	/** The memo of {@link isPolymorphic}. */
+	private readonly polymorphic = new Map<string, boolean>()
+
+	/**
+	 * @param componentsRoot the object that holds a bucket of components for each prefix
+	 * @param prefixes the prefixes of a reference to a component, with the bucket of each
+	 * @param schemaBucket the bucket of the schemas
+	 */
+	constructor(
+		private readonly componentsRoot: Record<string, Record<string, unknown> | undefined>,
+		private readonly prefixes: RefPrefix[],
+		private readonly schemaBucket: string,
+	) {}
+
+	/** Returns the names of the reachable components in a bucket. */
+	names(bucket: string): ReadonlySet<string> {
+		return this.reachable.get(bucket) || new Set<string>()
+	}
+
+	/**
+	 * Marks the components that the nodes refer to as reachable, with each component that they
+	 * need in turn, and the subtypes of the polymorphic schemas among them.
+	 */
+	addRefsIn(nodes: unknown[]): void {
+		for (const node of nodes) {
+			walkForRefs(node, this.prefixes, (bucket, name, inherited) => this.add(bucket, name, inherited))
+		}
+		this.addSubtypes()
+	}
+
+	/**
+	 * Marks a component as reachable, with each component that it refers to.
+	 * @param inherited true when the reference is a member of an `allOf`
+	 */
+	add(bucket: string, name: string, inherited = false): void {
+		if (bucket === this.schemaBucket && !inherited) {
+			this.schemaTypes.add(name)
+		}
+		let set = this.reachable.get(bucket)
+		if (!set) {
+			set = new Set<string>()
+			this.reachable.set(bucket, set)
+		}
+		if (set.has(name)) {
+			return
+		}
+		set.add(name)
+
+		const target = this.componentsRoot[bucket]?.[name]
+		if (target === undefined) {
+			return
+		}
+		walkForRefs(target, this.prefixes, (b, n, i) => this.add(b, n, i))
+	}
+
+	/** Marks the subtypes of each polymorphic schema that a reachable component uses as a type. */
+	private addSubtypes(): void {
+		const subtypes = this.directSubtypes()
+		let count = -1
+		while (this.schemaTypes.size !== count) {
+			count = this.schemaTypes.size
+			for (const name of Array.from(this.schemaTypes)) {
+				if (this.isPolymorphic(name, new Set())) {
+					for (const subtype of subtypes.get(name) || []) {
+						this.add(this.schemaBucket, subtype)
+					}
+				}
+			}
+		}
+	}
+
+	/** Returns the schemas that extend each schema directly with `allOf`, by the name of the schema that they extend. */
+	private directSubtypes(): Map<string, string[]> {
+		const result = new Map<string, string[]>()
+		const schemas = this.componentsRoot[this.schemaBucket] || {}
+		for (const name of Object.keys(schemas)) {
+			for (const parent of this.allOfParents(schemas[name])) {
+				const list = result.get(parent)
+				if (list) {
+					list.push(name)
+				} else {
+					result.set(parent, [name])
+				}
+			}
+		}
+		return result
+	}
+
+	/** Returns the names of the schemas that a schema extends with `allOf` references. */
+	private allOfParents(schema: unknown): string[] {
+		const allOf = schema && typeof schema === 'object' ? (schema as { allOf?: unknown }).allOf : undefined
+		if (!Array.isArray(allOf)) {
+			return []
+		}
+		const result: string[] = []
+		for (const member of allOf) {
+			const ref = member && typeof member === 'object' ? (member as { $ref?: unknown }).$ref : undefined
+			if (typeof ref === 'string') {
+				visitRef(ref, this.prefixes, (bucket, name) => {
+					if (bucket === this.schemaBucket) {
+						result.push(name)
+					}
+				})
+			}
+		}
+		return result
+	}
+
+	/**
+	 * Returns true when a schema has a discriminator, or extends a schema with a discriminator.
+	 * @param visiting the schemas that the check is in, to stop at a cycle of `allOf` references
+	 */
+	private isPolymorphic(name: string, visiting: Set<string>): boolean {
+		const known = this.polymorphic.get(name)
+		if (known !== undefined) {
+			return known
+		}
+		if (visiting.has(name)) {
+			return false
+		}
+		visiting.add(name)
+		const schema = this.componentsRoot[this.schemaBucket]?.[name]
+		const result = (!!schema && typeof schema === 'object' && (schema as { discriminator?: unknown }).discriminator !== undefined)
+			|| this.allOfParents(schema).some(parent => this.isPolymorphic(parent, visiting))
+		this.polymorphic.set(name, result)
+		return result
+	}
+}
+
 function pruneOpenAPIV3Components(doc: OpenAPIV3.Document, anyOperationKept: boolean): void {
 	if (!doc.components) {
 		return
 	}
 
-	const reachable = computeReachable(doc, V3_REF_PREFIXES)
-
 	const componentsRoot = doc.components as unknown as Record<string, Record<string, unknown> | undefined>
+	const reachable = new ReachableComponents(componentsRoot, V3_REF_PREFIXES, 'schemas')
+	reachable.addRefsIn(seedRoots(doc))
 
 	const usedSecuritySchemes = collectV3UsedSecuritySchemeNames(doc)
 	for (const name of usedSecuritySchemes) {
-		addReachable(reachable, 'securitySchemes', name, componentsRoot, V3_REF_PREFIXES)
+		reachable.add('securitySchemes', name)
 	}
 
 	const components = doc.components
@@ -482,7 +642,7 @@ function pruneOpenAPIV3Components(doc: OpenAPIV3.Document, anyOperationKept: boo
 		if (!bucket || typeof bucket !== 'object') {
 			continue
 		}
-		const reachableNames = reachable.get(bucketKey as string) || new Set<string>()
+		const reachableNames = reachable.names(bucketKey as string)
 		for (const name of Object.keys(bucket)) {
 			if (!reachableNames.has(name)) {
 				delete bucket[name]
@@ -503,7 +663,8 @@ function pruneOpenAPIV3Components(doc: OpenAPIV3.Document, anyOperationKept: boo
 }
 
 function pruneOpenAPIV2Definitions(doc: OpenAPIV2.Document, anyOperationKept: boolean): void {
-	const reachable = computeReachable(doc, V2_REF_PREFIXES)
+	const reachable = new ReachableComponents(doc as unknown as Record<string, Record<string, unknown> | undefined>, V2_REF_PREFIXES, 'definitions')
+	reachable.addRefsIn(seedRoots(doc))
 
 	const usedSecuritySchemes = collectV2UsedSecuritySchemeNames(doc)
 
@@ -512,7 +673,7 @@ function pruneOpenAPIV2Definitions(doc: OpenAPIV2.Document, anyOperationKept: bo
 		if (!container || typeof container !== 'object') {
 			continue
 		}
-		const reachableNames = reachable.get(bucket) || new Set<string>()
+		const reachableNames = reachable.names(bucket)
 		for (const name of Object.keys(container)) {
 			if (!reachableNames.has(name)) {
 				delete container[name]
@@ -539,66 +700,11 @@ function pruneOpenAPIV2Definitions(doc: OpenAPIV2.Document, anyOperationKept: bo
 	}
 }
 
-function computeReachable(doc: OpenAPI.Document, prefixes: RefPrefix[]): Map<string, Set<string>> {
-	const reachable = new Map<string, Set<string>>()
-
-	const componentsRoot = getComponentsRoot(doc, prefixes)
-
-	const seedRoots: unknown[] = []
-	const paths = (doc as OpenAPIV2.Document | OpenAPIV3.Document).paths
-	if (paths) {
-		seedRoots.push(paths)
-	}
-	if ((doc as OpenAPIV3.Document).security) {
-		seedRoots.push((doc as OpenAPIV3.Document).security)
-	}
-	if ((doc as { webhooks?: unknown }).webhooks) {
-		seedRoots.push((doc as { webhooks?: unknown }).webhooks)
-	}
-
-	for (const root of seedRoots) {
-		walkForRefs(root, prefixes, (bucket, name) => addReachable(reachable, bucket, name, componentsRoot, prefixes))
-	}
-
-	return reachable
-}
-
-function getComponentsRoot(doc: OpenAPI.Document, prefixes: RefPrefix[]): Record<string, Record<string, unknown> | undefined> {
-	if (prefixes === V3_REF_PREFIXES) {
-		return ((doc as OpenAPIV3.Document).components || {}) as Record<string, Record<string, unknown> | undefined>
-	}
-	return doc as unknown as Record<string, Record<string, unknown> | undefined>
-}
-
-function addReachable(
-	reachable: Map<string, Set<string>>,
-	bucket: string,
-	name: string,
-	componentsRoot: Record<string, Record<string, unknown> | undefined>,
-	prefixes: RefPrefix[],
-): void {
-	let set = reachable.get(bucket)
-	if (!set) {
-		set = new Set<string>()
-		reachable.set(bucket, set)
-	}
-	if (set.has(name)) {
-		return
-	}
-	set.add(name)
-
-	const container = componentsRoot[bucket]
-	if (!container) {
-		return
-	}
-	const target = container[name]
-	if (target === undefined) {
-		return
-	}
-	walkForRefs(target, prefixes, (b, n) => addReachable(reachable, b, n, componentsRoot, prefixes))
-}
-
-function walkForRefs(node: unknown, prefixes: RefPrefix[], visit: (bucket: string, name: string) => void): void {
+/**
+ * Calls `visit` for each component that a node refers to. `inherited` is true when the reference is
+ * a member of an `allOf`. A mapping of a discriminator also refers to components.
+ */
+function walkForRefs(node: unknown, prefixes: RefPrefix[], visit: (bucket: string, name: string, inherited: boolean) => void, inherited = false): void {
 	if (node === null || node === undefined) {
 		return
 	}
@@ -615,18 +721,51 @@ function walkForRefs(node: unknown, prefixes: RefPrefix[], visit: (bucket: strin
 	const obj = node as Record<string, unknown>
 	const ref = obj.$ref
 	if (typeof ref === 'string') {
-		for (const { prefix, bucket } of prefixes) {
-			if (ref.startsWith(prefix)) {
-				const name = decodeURIComponent(ref.substring(prefix.length))
-				visit(bucket, name)
-				return
-			}
-		}
+		visitRef(ref, prefixes, (bucket, name) => visit(bucket, name, inherited))
 		return
 	}
 
 	for (const key in obj) {
-		walkForRefs(obj[key], prefixes, visit)
+		const value = obj[key]
+		if (key === 'allOf' && Array.isArray(value)) {
+			for (const member of value) {
+				walkForRefs(member, prefixes, visit, true)
+			}
+			continue
+		}
+		if (key === 'discriminator') {
+			visitDiscriminatorMapping(value, prefixes, visit)
+		}
+		walkForRefs(value, prefixes, visit)
+	}
+}
+
+/** Calls `visit` with the bucket and the name of the component that a reference points to, if it points to a component. */
+function visitRef(ref: string, prefixes: RefPrefix[], visit: (bucket: string, name: string) => void): void {
+	for (const { prefix, bucket } of prefixes) {
+		if (ref.startsWith(prefix)) {
+			visit(bucket, decodeURIComponent(ref.substring(prefix.length)))
+			return
+		}
+	}
+}
+
+/**
+ * Calls `visit` for each schema in the mapping of an OpenAPI 3 discriminator. A mapping value is a
+ * reference, or the name of a schema in the components.
+ */
+function visitDiscriminatorMapping(discriminator: unknown, prefixes: RefPrefix[], visit: (bucket: string, name: string, inherited: boolean) => void): void {
+	const mapping = discriminator && typeof discriminator === 'object' ? (discriminator as { mapping?: unknown }).mapping : undefined
+	if (!mapping || typeof mapping !== 'object') {
+		return
+	}
+	const schemaPrefix = prefixes.find(p => p.bucket === 'schemas')
+	for (const value of Object.values(mapping as Record<string, unknown>)) {
+		if (typeof value !== 'string') {
+			continue
+		}
+		const ref = value.indexOf('/') === -1 && schemaPrefix ? `${schemaPrefix.prefix}${value}` : value
+		visitRef(ref, prefixes, (bucket, name) => visit(bucket, name, false))
 	}
 }
 

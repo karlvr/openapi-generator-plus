@@ -497,3 +497,139 @@ test('x-tags: accepts a single string in place of an array', () => {
 	const widget = filtered.components!.schemas!.Widget as OpenAPIV3.SchemaObject
 	expect(Object.keys(widget.properties!)).toEqual(['id'])
 })
+
+function v3DocWithPolymorphism(): OpenAPIV3.Document {
+	return {
+		openapi: '3.0.0',
+		info: { title: 'test', version: '1.0' },
+		paths: {
+			'/animals': {
+				get: {
+					tags: ['animals'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Animal' } } } },
+						},
+					},
+				},
+			},
+			'/films/{id}': {
+				get: {
+					tags: ['films'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: { 'application/json': { schema: { $ref: '#/components/schemas/Film' } } },
+						},
+					},
+				},
+			},
+			'/shows/{id}': {
+				get: {
+					tags: ['shows'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: { 'application/json': { schema: { $ref: '#/components/schemas/Show' } } },
+						},
+					},
+				},
+			},
+			'/vehicles': {
+				get: {
+					tags: ['vehicles'],
+					responses: {
+						'200': {
+							description: 'ok',
+							content: {
+								'application/json': {
+									schema: {
+										oneOf: [{ $ref: '#/components/schemas/Car' }],
+										discriminator: { propertyName: 'kind', mapping: { car: '#/components/schemas/Car', boat: 'Boat' } },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		components: {
+			schemas: {
+				Animal: {
+					type: 'object',
+					discriminator: { propertyName: 'type' },
+					properties: { type: { type: 'string' } },
+				},
+				Cat: {
+					allOf: [{ $ref: '#/components/schemas/Animal' }, { type: 'object', properties: { toy: { $ref: '#/components/schemas/Toy' } } }],
+				},
+				Dog: {
+					allOf: [{ $ref: '#/components/schemas/Animal' }],
+				},
+				Kitten: {
+					allOf: [{ $ref: '#/components/schemas/Cat' }],
+				},
+				Toy: { type: 'object' },
+				Production: {
+					type: 'object',
+					discriminator: { propertyName: 'type' },
+					properties: { type: { type: 'string' } },
+				},
+				Film: {
+					allOf: [{ $ref: '#/components/schemas/Production' }],
+				},
+				Show: {
+					allOf: [{ $ref: '#/components/schemas/Production' }],
+				},
+				Car: { type: 'object' },
+				Boat: { type: 'object' },
+				Unrelated: { allOf: [{ $ref: '#/components/schemas/Toy' }] },
+			},
+		},
+	}
+}
+
+test('keeps the subtypes of a polymorphic schema that a kept operation uses', () => {
+	const filtered = filterOpenAPISpec(v3DocWithPolymorphism(), { includeTags: ['animals'] })
+	expect(Object.keys(filtered.components!.schemas!).sort()).toEqual(['Animal', 'Cat', 'Dog', 'Kitten', 'Toy'])
+})
+
+test('does not keep the other subtypes of a polymorphic schema that a kept schema only extends', () => {
+	const filtered = filterOpenAPISpec(v3DocWithPolymorphism(), { includeTags: ['films'] })
+	expect(Object.keys(filtered.components!.schemas!).sort()).toEqual(['Film', 'Production'])
+})
+
+test('keeps the schemas in the mapping of a discriminator', () => {
+	const filtered = filterOpenAPISpec(v3DocWithPolymorphism(), { includeTags: ['vehicles'] })
+	expect(Object.keys(filtered.components!.schemas!).sort()).toEqual(['Boat', 'Car'])
+})
+
+test('v2: keeps the subtypes of a schema with a discriminator', () => {
+	const doc: OpenAPIV2.Document = {
+		swagger: '2.0',
+		info: { title: 't', version: '1' },
+		paths: {
+			'/animals': {
+				get: {
+					tags: ['animals'],
+					responses: { '200': { description: 'ok', schema: { $ref: '#/definitions/Animal' } } },
+				},
+			},
+			'/admin': {
+				get: {
+					tags: ['admin'],
+					responses: { '200': { description: 'ok' } },
+				},
+			},
+		},
+		definitions: {
+			Animal: { type: 'object', discriminator: 'type', required: ['type'], properties: { type: { type: 'string' } } },
+			Cat: { allOf: [{ $ref: '#/definitions/Animal' }] },
+			Unused: { type: 'object' },
+		},
+	}
+	const filtered = filterOpenAPISpec(doc, { includeTags: ['animals'] })
+	expect(Object.keys(filtered.definitions!).sort()).toEqual(['Animal', 'Cat'])
+})
